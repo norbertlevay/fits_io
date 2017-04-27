@@ -1,151 +1,290 @@
 
-with Ada.Text_IO; use Ada.Text_IO;
--- 3.1 Overall File Structure
--- FitsFile is an array of Header- or DataBlocks (HDU's).
--- PrimaryHDU;
--- ConformingExtensions; -- starts with "XTENSION" string
--- SpecialRecords; -- not start with "XTENSION" string, and can be whatever non-standard
 
-with Ada.Characters.Handling;
-use  Ada.Characters.Handling;
+with Ada.Text_IO; -- for debug only
+with GNAT.OS_Lib;
 
 package body FitsFile is
 
- BlockSize : constant Natural := 2880; -- bytes
+   subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
 
- -- 3.2 HeaderBlock only restricted set of (7bit ascii)
- -- chars: 32..126 (x20..x7E) -> " "(Space) .. "~"(Tilde)
- -- Ada.Standard.Ascii represents 7bit chars (considered outdated)
+   -- set up a buffer for reading fits-file by blocks
+   subtype Block_Type is String(1..BlockSize);
 
- type HeaderBlock is array(Positive range 1..CardsInBlockCnt) of Card;
- type Header is array(Positive range <>) of Card;
+   MaxNAXIS : constant Positive := 99; --FIXME check standard
+   type AxisArray_Type is array (1..MaxNAXIS) of Natural;
+   type Axes_Type is record
+    BitPix : Integer; -- FIXME actually fixed values only
+    Naxes  : Natural;
+    Naxis  : AxisArray_Type;
+   end record;
+   Null_AxisArray : AxisArray_Type := (others=> 1);
+   Null_Axes : Axes_Type := (0,0, Null_AxisArray);
+   -- Axis dimesions allow to calculate Data Unit size and position to next HDU in file
 
- type HeaderBlockBuffer is array(Positive range 1..CardsInBlockCnt)
-                                                          of CardBuffer;
+ procedure Assert_HDU_Positions_Valid ( HDU : in HDU_Position_Type ) is
+  begin
+   null;
+   -- TODO not implemented: raise excpetion if HDU "not opened"
+   -- e.g. HDU_Position_Type was not initialized
+   -- should be first call in each func using HDU
+  end Assert_HDU_Positions_Valid;
 
- PosInBlock_Default : constant Positive := CardsInBlockCnt + 1;
- PosInBlock  : Positive := PosInBlock_Default;
- BlockBuffer : String(1..BlockSize);
+   -- for debug
+   procedure Print_AxesDimensions(HDU_Num        : in Positive;
+                                  AxesDimensions : in Axes_Type) is
+   begin
+       Ada.Text_IO.Put("HDU#" & Integer'Image(HDU_Num) & "> ");
+       Ada.Text_IO.Put(Integer'Image(AxesDimensions.Naxes)  &" : ");
+       Ada.Text_IO.Put(Integer'Image(AxesDimensions.BitPix));
+       for I in 1 .. AxesDimensions.Naxes
+       loop
+         Ada.Text_IO.Put(" x " & Integer'Image(AxesDimensions.Naxis(I)));
+       end loop;
+       Ada.Text_IO.New_Line;
+   end Print_AxesDimensions;
 
- procedure Initialize is
+   --
+   --
+   --
+   function Calc_DataUnit_Size( AxesDimensions : in Axes_Type )
+    return Natural
+   is
+    DUSize : Natural := 0;
+   begin
+
+     if AxesDimensions.Naxes > 0 then
+       DUSize := 1;
+       for I in 1..AxesDimensions.Naxes loop
+        DUSize := DUSize * AxesDimensions.Naxis(I);
+       end loop;
+       DUSize := DUSize * (abs AxesDimensions.BitPix/8);
+       DUSize := BlockSize*(1 + DUSize/BlockSize);
+       -- must be multiple of BlockSize
+     end if;
+
+    return DUSize;
+   end Calc_DataUnit_Size;
+
+   --
+   -- parse keywords -> AxesDimensions
+   -- parse all kewords needed to calculate DU size
+   procedure Parse_KeyRecord( Card : Card_Type;
+                              AxesDimensions  : in out Axes_Type )
+   is
+    dim : Positive;
+   begin
+     -- pos 9..10 is '= '
+     -- pos 31 is comment ' /'
+     -- then : pos 10..20 is value
+     if    (Card(1..9) = "BITPIX  =") then
+       AxesDimensions.BitPix := Integer'Value(Card(10..30));
+     elsif (Card(1..5) = "NAXIS") then
+
+          if (Card(1..9) = "NAXIS   =") then
+              AxesDimensions.Naxes := Positive'Value(Card(10..30));
+          else
+              dim := Positive'Value(Card(6..8));
+	      AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
+          end if;
+          -- FIXME what to do if NAXIS and NAXISnn do not match -> see standard
+     end if;
+   end Parse_KeyRecord;
+
+   -- walk through each HeaderBlock
+   function Parse_HeaderBlock( Block   : in Block_Type ;
+                               AxesDimensions     : in out Axes_Type ) return Boolean
+   is
+    ENDFound : Boolean := False;
+    ENDCard  : Card_Type := "END                                                                             ";
+    Card     : Card_Type;
+    CardCnt  : Positive := 1;
+    from     : Positive := 1;
+    next     : Positive := 1;
+   begin
+    loop
+      next := from + CardSize;
+      Card := Block( from .. (next - 1) );
+      Parse_KeyRecord( Card, AxesDimensions );
+      ENDFound := (Card = ENDCard);
+      exit when ENDFound or CardCnt >= 36;
+      CardCnt := CardCnt + 1;
+      from := next;
+    end loop;
+    return ENDFound;
+   end Parse_HeaderBlock;
+
+ --
+ --
+ --
+ function Parse_HDU_Positions ( FitsFile : in File_Type;
+                                HDU_Num  : in Positive )
+                                return HDU_Position_Type
+ is
+   InFitsStreamAccess  : Stream_Access := Stream(FitsFile);
+   HDU_Pos : HDU_Position_Type;
+
+   -- controlling the loops
+   HDU_Cnt : Positive := 1;
+   EndCardFound : Boolean := false;
+
+   -- positions & size in file
+   HeadStart_Index : Positive_Count;
+   DataStart_Index : Positive_Count;
+   DataUnit_Size   : Natural := 0;
+
+   AxesDimensions : Axes_Type;
+   Block : Block_Type;
  begin
-  PosInBlock := PosInBlock_Default;
- end Initialize;
 
- procedure Get(File : in File_Type; Item : out CardBuffer) is
-  from : Positive;
- begin
-      if PosInBlock > CardsInBlockCnt
-      then
-       Ada.Text_IO.Get(File, BlockBuffer);
-       PosInBlock := 1;
-      end if;
+   while not End_OF_File(FitsFile)
+         and (HDU_Cnt <= HDU_Num)
+   loop
 
-      from := (PosInBlock-1) * CardSize + 1;
-      Item := BlockBuffer(from..(from + CardSize - 1));
-      PosInBlock := PosInBlock + 1;
- end Get;
+      AxesDimensions := Null_Axes;
 
+      -- Header
 
- -- Note: String is a Fixed.String in Ada
- function To_String ( Item : in Card )
- return String is
-  mystr : String(1..CardSize) := (others => ' ');
- begin
-      for i in Item'Range
+      HeadStart_Index := Index(FitsFile);
+
       loop
-      mystr(i) := Item(i);
+         Block_Type'Read(InFitsStreamAccess,Block);
+         EndCardFound := Parse_HeaderBlock( Block , AxesDimensions );
+         exit when EndCardFound ;
       end loop;
-  return mystr;
- end To_String;
 
- function To_Card ( Item : in String )
- return Card is
-  mycard : Card := (others => ' ');
+      Print_AxesDimensions(HDU_Cnt,AxesDimensions);
+
+      -- DataUnit
+
+      DataStart_Index := Index(FitsFile);
+      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+      Set_Index( FitsFile, DataStart_Index + Count(DataUnit_Size) );-- FIXME DataUnit_Size can be 0 !! Count is >=0 Positive_Count is >0 in Ada.Streams.Stream_IO
+      -- skip data unit for next header
+                                                              
+
+      HDU_Cnt := HDU_Cnt + 1;
+      -- next HDU
+
+   end loop;
+
+   HDU_Pos.Header_Index := HeadStart_Index;
+   HDU_Pos.Header_Size  := DataStart_Index - HeadStart_Index;
+   HDU_Pos.Data_Index   := DataStart_Index;
+   HDU_Pos.Data_Size    := Count(DataUnit_Size);
+
+  return HDU_Pos;
+
+ end Parse_HDU_Positions;
+
+
+
+
+ -- returns a Header given by HDU_Pos
+ function Read_Header ( InFitsFile : in File_Type;
+                        HDU        : in HDU_Position_Type )
+  return String
+ is                                  -- FIXME Count-> Integer cast
+  InFitsStreamAccess  : Stream_Access := Stream(InFitsFile);
+  subtype Header_Type is String( 1 .. Integer(HDU.Header_Size) );
+  Header : Header_Type;
  begin
 
-   if Item'Length <= CARDSIZE then
-      for i in Item'Range 
-      loop
-      -- Note: if Item char is out of range of FitsChar:
-      -- raised CONSTRAINT_ERROR : fitsfile.adb:NN range check failed
-      mycard(i) := Item(i);
-      end loop;
-   end if;
+  Set_Index(InFitsFile, HDU.Header_Index);
 
-   return mycard;
- end To_Card;
+  Header_Type'Read(InFitsStreamAccess,Header);
+  return Header;
 
- function Is_Card ( Item : in String )
- return Boolean is
-  c : Boolean := False;
-  fc : FitsChar;
+ end Read_Header;
+
+
+
+
+ -- writes Header to position given by HDU
+ -- Header blocksize and space in file must match (see CheckSize)
+ -- FIXME Streams dont have InOut mode. Out mode truncates files.
+ procedure Write_Header ( OutFitsFile : in out File_Type;
+                          HDU         : in HDU_Position_Type;
+                          Header      : in String ) -- FIXME must be HeaderBlocks, otherwise does not overwrite space after END-Card
+ is
+  InOutFitsStreamAccess : Stream_Access := Stream(OutFitsFile);
+  HeaderSize : Positive := (( Header'Length - 1 )/BlockSize) + 1;
+  FileSpace  : Positive := Positive(HDU.Header_Size) / BlockSize;
+  -- Header_Size no need to check: is multiple of BlockSize because we read by BlockSize
  begin
 
-   if Item'Length <= CARDSIZE then
-      for i in Item'Range
-      loop
-      -- Note: if Item char is out of range of FitsChar:
-      -- raised CONSTRAINT_ERROR : fitsfile.adb:NN range check failed
-      fc := Item(i);
-      end loop;
-      c := True;
-   end if;
+    Set_Mode(OutFitsFile,In_File);
+    Set_Mode(OutFitsFile,Out_File);
+    -- this gives write access _without_truncation_
+    -- See GNAT manual:
+    -- GNAT, The GNU Ada 95 Compiler
+    -- GNAT Academic Edition, Version 2005
+    -- Document revision level 1.439
+    -- Date: 2005/04/22 09:59:43
+    -- A special case occurs with Stream_IO. As shown in the above table,
+    -- the file is initially opened in `r' or `w' mode for the In_File and
+    -- Out_File cases. If a Set_Mode operation subsequently requires switching
+    -- from reading to writing or vice-versa, then the file is reopened in `r+'
+    -- mode to permit the required operation.<<
 
-   return c;
- end Is_Card;
+    Set_Index(OutFitsFile, HDU.Header_Index);
+    String'Write(InOutFitsStreamAccess,Header);
 
- function To_CardBuffer ( Item : in String )
- return CardBuffer is
-  mycard : CardBuffer := (others => ' ');
+ end Write_Header;
+
+
+
+ -- when sizes differ
+ -- create new file and copy data there
+ -- then rename the new file to orginal name
+ procedure Write_Header_To_New_FitsFile ( InFitsFile : in File_Type;
+                                          HDU        : in HDU_Position_Type;
+                                          Header     : in String )
+ is
+  OutFitsName : String := Name(InFitsFile) & ".part";
+  OutFitsFile : File_Type;
+  OutFitsStreamAccess  : Stream_Access;
+  InFitsStreamAccess   : Stream_Access := Stream(InFitsFile);
+
+  type Buffer_Type is new String(1 .. BlockSize);
+  Buffer : Buffer_Type;
+
+  Succeeded : Boolean := False;
  begin
 
-   if Item'Length <= CardSize then
-      for i in Item'Range 
-      loop
-      mycard(i) := Item(i);
-      end loop;
-   end if;
+  Create (File => OutFitsFile,
+          Mode => Out_File,
+          Name => OutFitsName);
+  OutFitsStreamAccess := Stream(OutFitsFile);
 
-   return mycard;
- end To_CardBuffer;
+  -- copy from begining until Header starts
+  Set_Index(InFitsFile,1);
+  loop
+   exit when HDU.Header_Index = Index(OutFitsFile);
+   Buffer_Type'Read(InFitsStreamAccess,Buffer);
+   Buffer_Type'Write(OutFitsStreamAccess,Buffer);
+  end loop;
 
+  -- write new Header
+  String'Write(OutFitsStreamAccess,Header);
+  -- skip old Header
+  Set_Index(InFitsFile,HDU.Data_Index);
 
- -- non-standard FitsFile, as sequence of 80-char strings
- function To_String ( Item : in CardBuffer;
-  		      Substitute: in Character := '.' )
- return String is
-  mystr : String(1..CardSize);
- begin
-      for i in Item'Range
-      loop
-        if Is_Control(Item(i)) -- or Is_Special(Item(i))
-        then
-          mystr(i) := Substitute;
-        else
-          mystr(i) := Item(i);
-        end if;
+  -- copy the rest after Header
+  while not End_OF_File(InFitsFile)
+  loop
+   Buffer_Type'Read( InFitsStreamAccess, Buffer);
+   Buffer_Type'Write(OutFitsStreamAccess,Buffer);
+  end loop;
 
-      end loop;
-  return mystr;
- end To_String;
+  Close(OutFitsFile);
 
--- procedure Get(File : in File_Type; Item : out CardBuffer) is
--- begin
---      Ada.Text_IO.Get(File, Item);
--- end Get;
-
- -- Put "as is"
- procedure Put(File : in File_Type; Item : in CardBuffer) is
- begin
-      Ada.Text_IO.Put(File, Item);
- end Put;
-
- -- When printing to terminal replace all non-printable charactes (with dot)
- procedure Put(Item : in CardBuffer) is
- begin
-      Ada.Text_IO.Put(To_ISO_646(To_String(Item)));
- end Put;
+  -- rename <filename>.fits.part -> <filename>.fits
+  GNAT.OS_Lib.Rename_File (OutFitsName, Name(InFitsFile), Succeeded);
+  if not Succeeded then
+    null;
+    -- raise exception
+  end if;
+ end Write_Header_To_New_FitsFile;
 
 end FitsFile;
 

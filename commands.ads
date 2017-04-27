@@ -1,31 +1,17 @@
 
 with FitsFile;
-use FitsFile;
+use  FitsFile;
 
 package Commands is
 
- LimitDefault : constant Positive := 100*CardsInBlockCnt;
- type HeaderBuffer is array (1..LimitDefault) of CardBuffer;
+ procedure Print_Header( FileName : in String );
+ -- read Header from FileName and print to stdout
 
- -- with HeaderBuffer
-
- procedure Read_PrimaryHeader( FileName : in  String;
-                               Header   : out HeaderBuffer;
-                               CardsCount : out Natural;
-                               Limit : in Positive := LimitDefault );
-
- procedure Write_PrimaryHeader( Header   : in HeaderBuffer;
- 				FileName : in String );
-
- procedure Print_Header( Header : in HeaderBuffer );
-
- -- directly with filenames
-
- procedure Print_PrimaryHeader( FileName : in String;
-                                Limit : in Positive := LimitDefault );
-
- procedure Write_PrimaryHeader( HeaderFileName : in String;
- 				FileName   : in String );
+ procedure Write_Header( FitsFileName   : in String;
+ 			 HeaderFileName : in String);
+ -- write Header from HeaderFileName into FitsFileName
+ -- HeaderFileName is text file, with one card per line
+ -- and last line must be "END"
 
 end Commands;
 

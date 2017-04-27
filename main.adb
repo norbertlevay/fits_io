@@ -27,10 +27,11 @@ procedure main is
    Put_Line("Version: " & Version);New_Line;
    Put_Line("Usage:");New_Line;
    Put_Line(" fits header <fitsfilename>                   prints header");
-   Put_Line(" fits header <headerfilename> <fitsfilename>  writes header into fits-file");
+   Put_Line(" fits header <fitsfilename> <headerfilename>  writes header into fits-file");
    New_Line;
    Put_Line("Notes:");
    Put_Line(" <headerfilename> is text file with one fits-keyword record per line");
+   Put_Line("                  last line must start with three letters END.");
    New_Line;
  end Print_Usage;
 
@@ -76,14 +77,14 @@ procedure main is
         then
         	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-        	Print_PrimaryHeader( To_String(Input_File_Path) );
+        	Print_Header( To_String(Input_File_Path) );
         else
-        	Header_File_Path := SB.To_Bounded_String(Argument(i+1));
+        	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-        	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
+        	Header_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-                Write_PrimaryHeader(To_String(Header_File_Path),
-                                    To_String(Input_File_Path) );
+                Write_Header(To_String(Input_File_Path),
+                             To_String(Header_File_Path));
         end if;
 
      else

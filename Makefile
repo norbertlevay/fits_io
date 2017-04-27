@@ -14,10 +14,19 @@ build_date.ads :
 
 
 main : main.adb build_date.ads
-	gnatmake -we  main.adb -o ${TARGET}
+	gnatmake -gnat12 -we  main.adb -o ${TARGET}
 	rm build_date.ads
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
+
+testsameheader:   # orig header has 35 cards
+	cp unimap_l118_blue_wglss_rcal.fits.orig unimap_l118_blue_wglss_rcal.fits
+	./fits header unimap_l118_blue_wglss_rcal.fits test-35cards.hdr
+
+testbiggerheader:   # orig header has 35 cards
+	cp unimap_l118_blue_wglss_rcal.fits.orig unimap_l118_blue_wglss_rcal.fits
+	./fits header unimap_l118_blue_wglss_rcal.fits test-50cards.hdr
+
 
 clean:
 	rm -f ${TARGET} *.o *.ali build_date.*

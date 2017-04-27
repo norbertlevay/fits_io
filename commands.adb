@@ -1,177 +1,147 @@
 
-with
-    Ada.Text_IO,
-    Ada.Direct_IO;
+with Ada.Text_IO, Ada.Integer_Text_IO,
+     Ada.Streams.Stream_IO;
 
-
-use
-    Ada.Text_IO;
+use  Ada.Streams.Stream_IO;
 
 package body Commands is
 
-
  --
- -- print header to screen
+ -- read header from file and print to stdout
  --
-
- procedure Read_HeaderFromTextFile( FileName : in String;
-                               Header   : out HeaderBuffer;
-                               CardsCount : out Natural;
-                               Limit : in Positive := LimitDefault) is
-   FileHandle     : File_Type;
-   FitsCardBuffer : CardBuffer := (others => ' ');
-   Count : Positive := 1;
+ procedure Print_Header( FileName : in String )
+ is
+   FileHandle : File_Type;
+   hdunum     : Positive := 1;
+   HDU        : HDU_Position_Type;
  begin
+
    Open(FileHandle, In_File, FileName );
-   loop
-      exit when ( (FitsCardBuffer(1..3) = "END") or
-                  (Count >= Limit) );
+   HDU := Parse_HDU_Positions ( FileHandle , hdunum );
 
-      FitsCardBuffer := To_CardBuffer(Ada.Text_IO.Get_Line( FileHandle ));
-      Header(Count) := FitsCardBuffer;
-      Count := Count + 1;
-   -- Put_Line("Debug " & Integer'Image(Count));
+   -- print the Header
+   declare
+     head : String := Read_Header(FileHandle, HDU);
+     from : Positive := 1;
+   begin
+     for I in Positive range 1 .. (head'Length / CardSize)
+     loop
+      Ada.Integer_Text_IO.Put( I, 5 );
+      Ada.Text_IO.Put_Line(  " >"  & head( from .. (from + CardSize-1) ) & "<");
+      from := from + CardSize;
+     end loop;
+   end;
 
-   end loop;
-   CardsCount := Count - 1;
    Close(FileHandle);
- end Read_HeaderFromTextFile;
 
-
- procedure Read_PrimaryHeader( FileName : in String;
-                               Header   : out HeaderBuffer;
-                               CardsCount : out Natural;
-                               Limit : in Positive := LimitDefault) is
-   FileHandle     : File_Type;
-   FitsCardBuffer : CardBuffer := (others => ' ');
-   Count : Positive := 1;
- begin
-   Initialize;
-   Open(FileHandle, In_File, FileName );
-   loop
-      exit when ( (FitsCardBuffer(1..3) = "END") or
-                  (Count >= Limit) );
-      FitsFile.Get( FileHandle, FitsCardBuffer );
-      Header(Count) := FitsCardBuffer;
-      Count := Count + 1;
-   end loop;
-   CardsCount := Count - 1;
-   Close(FileHandle);
- end Read_PrimaryHeader;
-
-
- procedure Print_Header( Header : in HeaderBuffer ) is
-   FitsCardBuffer : CardBuffer := (others => ' ');
-   Count : Positive := 1;
- begin
-   loop
-      exit when ( (FitsCardBuffer(1..3) = "END") or
-                  (Count >= LimitDefault) );
-      FitsCardBuffer := Header(Count);
-      Put_Line(FitsCardBuffer);
-      Count := Count + 1;
-   end loop;
  end Print_Header;
 
+ --
+ -- convert HeaderText -> HeaderBlocks
+ --
+ subtype CardBuffer is String(1 .. CardSize);
 
- procedure Print_PrimaryHeader( FileName : in String;
-                                   Limit : in Positive := LimitDefault ) is
-   EmptyCard : CardBuffer := ( others => ' ' );
-   Header    : HeaderBuffer := ( others => EmptyCard );
-   CardsCount : Natural;
+ function To_CardBuffer ( Item : in String )
+ return CardBuffer is
+  mycard : CardBuffer := (others => ' ');
  begin
-   Read_PrimaryHeader( FileName, Header, CardsCount );
-   Print_Header( Header );
- end Print_PrimaryHeader;
 
+   if Item'Length <= CardSize then
+      for i in Item'Range 
+      loop
+       mycard(i) := Item(i);
+      end loop;
+   end if;
+
+   return mycard;
+ end To_CardBuffer;
+
+ function NoOfLines( FileName : in String )
+  return Positive
+ is
+  FileHandle     : Ada.Text_IO.File_Type;
+  NoLines : Natural := 0;
+  ENDFound : Boolean := False;
+ begin
+    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
+    loop
+      exit when ENDFound;
+        declare
+         Dummy : String := Ada.Text_IO.Get_Line( FileHandle );
+         -- raises exception if no END-Line found but EOF reached
+        begin
+         ENDFound := (Dummy(1..3) = "END");
+        end;
+        NoLines := NoLines + 1;
+    end loop;
+    Ada.Text_IO.Close(FileHandle);
+  return NoLines;
+ end NoOfLines;
+
+ function Read_HeaderFromTextFile( FileName : in String )
+  return String
+ is
+   FileHandle     : Ada.Text_IO.File_Type;
+   FitsCardBuffer : CardBuffer := (others => ' ');
+
+   NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
+   HeaderSizeInBlocks : Positive := (NoLines - 1)/ CardsCntInBlock + 1;
+   subtype Header_Type is String( 1 .. HeaderSizeInBlocks*BlockSize );
+   Header : Header_Type := (others => ' ');
+
+   from,to : Positive;
+   Count : Positive := 1;
+ begin
+   Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
+   loop
+      exit when (FitsCardBuffer(1..3) = "END");
+
+      from := (Count - 1) * CardSize + 1;
+      to   := from + CardSize - 1;
+      FitsCardBuffer := To_CardBuffer(Ada.Text_IO.Get_Line( FileHandle ));
+
+--      Ada.Text_IO.Put_Line("Debug Count    " & Integer'Image(Count));
+--      Ada.Text_IO.Put_Line("Debug from     " & Integer'Image(from));
+--      Ada.Text_IO.Put_Line("Debug to       " & Integer'Image(to));
+--      Ada.Text_IO.Put_Line("Debug to - from " & Integer'Image(to-from));
+--      Ada.Text_IO.Put_Line("Debug FitsCardBuffer " & Integer'Image(FitsCardBuffer'Size/8));
+
+      Header( from .. to ) := FitsCardBuffer;
+      Count := Count + 1;
+   end loop;
+   Ada.Text_IO.Close(FileHandle);
+   return Header;
+ end Read_HeaderFromTextFile;
 
  --
  -- write header to file
  --
-
- procedure Write_PrimaryHeader( Header   : in HeaderBuffer;
- 				FileName : in String ) is
-
- -- note Ada.Streams_IO allows direct access and also
- -- heterogenoius data to write to file
- -- Direct_IO assumes homogenius data in all file
- type my_rec is
-  record
-   mc : String(1..80) := (others => ' ');
-  end record;
- package Ran_IO is new Ada.Direct_IO(my_rec);
-   use Ran_IO;
-
- my_line : my_rec;
- FileHandle : Ran_IO.File_Type;
- i : Positive := 1;
- iRem : Positive;
- EmptyCard : CardBuffer := ( others => ' ' );
-
+ procedure Write_Header( FitsFileName   : in String;
+ 			 HeaderFileName : in String )
+ is
+   BitsInByte : Positive := 8;--FIXME get this fro System.xxxx
+   InFileHandle  : File_Type;
+   OutFileHandle : File_Type;
+   hdunum : Positive := 1;
+   HDU    : HDU_Position_Type;
+   HeaderBlocks : String := Read_HeaderFromTextFile( HeaderFileName );
  begin
-   Open(FileHandle, Out_File, FileName );
+   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
-   loop
-       exit when ( my_line.mc(1..3) = "END" );
+   -- first read where are HDUs
+   Open(InFileHandle, In_File, FitsFileName );
+   HDU := Parse_HDU_Positions ( InFileHandle , hdunum );
 
-       my_line.mc := Header(i);
-
-       -- Write( FileHandle, my_line, myCnt );
-       -- or omit myCnt and default is 'next record'
-       Write( FileHandle, my_line );
-
-       i := i + 1;
-
-   end loop;
-
-   -- fill up the block with empty cards
-
-   -- Put_Line(Integer'Image(i));
-   if (i-1) /= CardsInBlockCnt then
-    iRem := ((i-1) mod CardsInBlockCnt ) + 1;
-    for c in iRem .. CardsInBlockCnt loop
-
-      -- Put_Line(Integer'Image(c));
-      my_line.mc := EmptyCard;
-      Write( FileHandle, my_line );
-
-    end loop;
-   end if;
-
-   Close(FileHandle);
- end Write_PrimaryHeader;
-
-
- procedure Write_PrimaryHeader( HeaderFileName : in String;
- 				   FileName   : in String ) is
-   EmptyCard : CardBuffer   := ( others => ' ' );
-   NewHeader : HeaderBuffer := ( others => EmptyCard );
-   OldHeader : HeaderBuffer := ( others => EmptyCard );
-   NewCardsCount : Natural;
-   OldCardsCount : Natural;
- begin
-   Read_HeaderFromTextFile( HeaderFileName, NewHeader, NewCardsCount );
-   -- Print_Header(NewHeader);
-
-   Read_PrimaryHeader( FileName, OldHeader, OldCardsCount );
-
-   -- write only if same number of HeaderBlocks needed
-
-   if (OldCardsCount / CardsInBlockCnt) = (NewCardsCount / CardsInBlockCnt)
-   then
-     Write_PrimaryHeader( NewHeader, FileName );
+   -- now write
+   if Positive(HDU.Header_Size) = (HeaderBlocks'Size / BitsInByte) then
+    Write_Header ( InFileHandle, HDU, HeaderBlocks );
    else
-     New_Line;
-     Put_Line("Nothing written:");
-     Put_Line("New header needs different number of blocks then the one in the file,");
-     Put_Line("so it would require moving all data. NOT IMPLEMENTED YET.");
-     Put_Line( "New Card Count  " & Integer'Image(NewCardsCount) & Integer'Image(NewHeader'Last) );
-     Put_Line( "Old Card Count  " & Integer'Image(OldCardsCount) & Integer'Image(OldHeader'Last) );
-     Put_Line( "Cards per Block " & Integer'Image(CardsInBlockCnt) );
-     New_Line;
+    Write_Header_To_New_FitsFile ( InFileHandle, HDU, HeaderBlocks );
    end if;
 
- end Write_PrimaryHeader;
+   Close(InFileHandle);
+
+ end Write_Header;
 
 end Commands;
 
