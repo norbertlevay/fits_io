@@ -79,9 +79,9 @@ procedure main is
 	        i := i + 1;
         	Print_Header( To_String(Input_File_Path) );
         else
-        	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
+        	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-        	Header_File_Path  := SB.To_Bounded_String(Argument(i+1));
+        	Header_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
                 Write_Header(To_String(Input_File_Path),
                              To_String(Header_File_Path));

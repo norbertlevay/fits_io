@@ -9,15 +9,15 @@ package body Commands is
  --
  -- read header from file and print to stdout
  --
- procedure Print_Header( FileName : in String )
+ procedure Print_Header( FileName : in String;
+                         HDU_Num  : Positive := 1 )
  is
    FileHandle : File_Type;
-   hdunum     : Positive := 1;
    HDU        : HDU_Position_Type;
  begin
 
    Open(FileHandle, In_File, FileName );
-   HDU := Parse_HDU_Positions ( FileHandle , hdunum );
+   HDU := Parse_HDU_Positions ( FileHandle , HDU_Num );
 
    -- print the Header
    declare
@@ -117,12 +117,12 @@ package body Commands is
  -- write header to file
  --
  procedure Write_Header( FitsFileName   : in String;
- 			 HeaderFileName : in String )
+ 			 HeaderFileName : in String;
+                         HDU_Num        : Positive := 1 )
  is
    BitsInByte : Positive := 8;--FIXME get this fro System.xxxx
    InFileHandle  : File_Type;
    OutFileHandle : File_Type;
-   hdunum : Positive := 1;
    HDU    : HDU_Position_Type;
    HeaderBlocks : String := Read_HeaderFromTextFile( HeaderFileName );
  begin
@@ -130,7 +130,7 @@ package body Commands is
 
    -- first read where are HDUs
    Open(InFileHandle, In_File, FitsFileName );
-   HDU := Parse_HDU_Positions ( InFileHandle , hdunum );
+   HDU := Parse_HDU_Positions ( InFileHandle , HDU_Num );
 
    -- now write
    if Positive(HDU.Header_Size) = (HeaderBlocks'Size / BitsInByte) then

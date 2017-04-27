@@ -34,16 +34,17 @@ package FitsFile is
  procedure Write_Header ( OutFitsFile : in out File_Type;
                           HDU         : in HDU_Position_Type;
                           Header      : in String );
- -- writes Header to position given by HDU_Pos
+ -- writes Header to position given by HDU
  -- only if Header sizes (counted in Blocks) match
 
  procedure Write_Header_To_New_FitsFile ( InFitsFile : in File_Type;
                                           HDU        : in HDU_Position_Type;
                                           Header     : in String );
- -- writes Header to position given by HDU_Pos
- -- this func always creates new Fits File assuming
+ -- writes Header to position given by HDU
+ -- this func always creates new temporary FitsFile assuming
  -- that size of Headers do not match and so Blocks
- -- need to be shifted
+ -- need to be shifted. After succesful copy, temp file is
+ -- renamed back to name of the original fits file
 
 end FitsFile;
 
