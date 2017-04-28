@@ -21,14 +21,13 @@ package body Commands is
 
    -- print the Header
    declare
-     head : String := Read_Header(FileHandle, HDU);
-     from : Positive := 1;
+     Header : Header_Type := Get_Header(FileHandle, HDU);
    begin
-     for I in Positive range 1 .. (head'Length / CardSize)
+     for I in Header'Range
      loop
       Ada.Integer_Text_IO.Put( I, 5 );
-      Ada.Text_IO.Put_Line(  " >"  & head( from .. (from + CardSize-1) ) & "<");
-      from := from + CardSize;
+      Ada.Text_IO.Put_Line(  " >"  & Header(I)  & "<");
+--      Ada.Text_IO.Put_Line(Header(I));
      end loop;
    end;
 
