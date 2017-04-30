@@ -287,8 +287,86 @@ package body FitsFile is
 
  end Put_Header;
 
+ -- HDU_Type based calls
+
+ procedure Create ( HDU : in out HDU_Type;
+                    Mode : in File_Mode := Out_File;
+                    Name : in String    := "";
+                    HDU_Num : Natural   := 0;-- Primary HDU
+                    Form : in String    := "") is
+ -- can be first HDU when FitsFile in Out_Mode, or
+ -- last HDU of existing files when FitsFile in Append_Mode
+ begin
+  Create( HDU.FitsFile, Mode, Name, Form);
+  HDU.Positions := HDU_Null;
+  -- init only to undef
+  -- later first write will setup numbers based on given Header
+ end;
+
+ procedure Open ( HDU : in out HDU_Type;
+                  Mode : in File_Mode;
+                  Name : in String;
+                  HDU_Num : Natural   := 0;-- Primary HDU
+                  Form : in String := "") is
+ begin
+  Open(HDU.FitsFile, Mode, Name, Form);
+  --HDU.FitsFile  := FitsFile; -- FIXME File_TYpe is limited
+   -- e.g. cannot be assigned, can be manipulated only by funcs defined for it...
+  HDU.Positions := Parse_HDU_Positions ( HDU.FitsFile,
+                                         HDU_Num );
+ end;
+
+ procedure Close  ( HDU : in out HDU_Type ) is
+ begin
+  Close (HDU.FitsFile);
+  HDU.Positions := HDU_Null;
+ end;
+
+ function Get ( HDU : in HDU_Type )
+  return Header_Type is
+   InFitsStreamAccess  : Stream_Access := Stream(HDU.FitsFile);
+   Header : Header_Type(1..Integer(HDU.Positions.Header_Size)/CardSize);
+  begin
+   Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
+   Header_Type'Read(InFitsStreamAccess,Header);
+   return Header;
+  end Get;
+
+ procedure Put ( HDU    : in out HDU_Type;
+                 Header : in Header_Type ) is
+  InOutFitsStreamAccess : Stream_Access := Stream(HDU.FitsFile);
+  -- sizes in units of Blocks
+  HeaderSize : Positive := (( Header'Length - 1 )/CardsCntInBlock) + 1;
+  FileSpace  : Positive := Positive(HDU.Positions.Header_Size) / BlockSize;
+  -- Header_Size no need to check: is multiple of BlockSize because we read by BlockSize
+ begin
+    if HeaderSize /= FileSpace then
+     null;
+     -- raise excpetion Constraint error ?
+    end if;
+    Set_Mode(HDU.FitsFile,In_File);
+    Set_Mode(HDU.FitsFile,Out_File);
+    -- this gives write access _without_truncation_
+    -- See GNAT manual:
+    -- GNAT, The GNU Ada 95 Compiler
+    -- GNAT Academic Edition, Version 2005
+    -- Document revision level 1.439
+    -- Date: 2005/04/22 09:59:43
+    -- A special case occurs with Stream_IO. As shown in the above table,
+    -- the file is initially opened in `r' or `w' mode for the In_File and
+    -- Out_File cases. If a Set_Mode operation subsequently requires switching
+    -- from reading to writing or vice-versa, then the file is reopened in `r+'
+    -- mode to permit the required operation.<<
+    Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
+    Header_Type'Write(InOutFitsStreamAccess,Header);
+  end Put;
 
 
+ ---------------------------------------------
+ ---------------------------------------------
+ ---------------------------------------------
+ ---------------------------------------------
+ -- Move this to commands.ads:
  -- when sizes differ
  -- create new file and copy data there
  -- then rename the new file to orginal name

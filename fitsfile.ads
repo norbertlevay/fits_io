@@ -15,6 +15,9 @@ package FitsFile is
   Data_Size    : Positive_Count; -- FIXME Positive_Count is >0 !! Count is >=0 Ada.Stream.Stream_IO
  end record;
 
+ HDU_Null : constant HDU_Position_Type := (1,1,1,1);
+ -- FIXME Positive_Count does not allow 0, use Natural for size
+
  function Parse_HDU_Positions ( FitsFile : in File_Type; -- opened FitsFile
                                 HDU_Num  : in Positive ) -- which HDU: 1,2,3,...
   return HDU_Position_Type;
@@ -62,6 +65,37 @@ package FitsFile is
                         Header      : in Header_Type );
  -- writes Header to position given by HDU
  -- only if Header sizes (counted in Blocks) match
+
+
+
+ -- HDU_Type based calls
+
+ type HDU_Type is
+  record
+   FitsFile  : File_Type;
+   Positions : HDU_Position_Type;
+  end record;
+
+ procedure Create ( HDU : in out HDU_Type;
+                    Mode : in File_Mode := Out_File;
+                    Name : in String    := "";
+                    HDU_Num : Natural   := 0;-- Primary HDU
+                    Form : in String    := "");
+ -- can be first HDU when Out_Mode, or
+ -- last HDU of existing files when Append_Mode
+
+ procedure Open ( HDU : in out HDU_Type;
+                  Mode : in File_Mode;
+                  Name : in String;
+                  HDU_Num : Natural   := 0;-- Primary HDU
+                  Form : in String := "");
+
+ procedure Close  (HDU : in out HDU_Type);
+
+ function  Get ( HDU : in HDU_Type ) return Header_Type;
+
+ procedure Put ( HDU    : in out HDU_Type;
+                 Header : in Header_Type );
 
 end FitsFile;
 

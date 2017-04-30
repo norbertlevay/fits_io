@@ -13,15 +13,18 @@ package body Commands is
                          HDU_Num  : Positive := 1 )
  is
    FileHandle : File_Type;
-   HDU        : HDU_Position_Type;
+--   HDU        : HDU_Position_Type;
+   HDU        : HDU_Type;
  begin
 
-   Open(FileHandle, In_File, FileName );
-   HDU := Parse_HDU_Positions ( FileHandle , HDU_Num );
+--   Open(FileHandle, In_File, FileName );
+--   HDU := Parse_HDU_Positions ( FileHandle , HDU_Num );
+   Open(HDU, In_File, FileName, HDU_Num);
 
    -- print the Header
    declare
-     Header : Header_Type := Get_Header(FileHandle, HDU);
+--     Header : Header_Type := Get_Header(FileHandle, HDU);
+     Header : Header_Type := Get(HDU);
    begin
      for I in Header'Range
      loop
@@ -31,7 +34,8 @@ package body Commands is
      end loop;
    end;
 
-   Close(FileHandle);
+   Close(HDU);
+--   Close(FileHandle);
 
  end Print_Header;
 
