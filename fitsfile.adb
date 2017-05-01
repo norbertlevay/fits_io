@@ -6,6 +6,7 @@ with GNAT.OS_Lib;
 package body FitsFile is
 
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
+   ENDCard  : Card_Type := "END                                                                             ";
 
    -- set up a buffer for reading fits-file by blocks
    subtype Block_Type is String(1..BlockSize);
@@ -95,7 +96,6 @@ package body FitsFile is
                                AxesDimensions     : in out Axes_Type ) return Boolean
    is
     ENDFound : Boolean := False;
-    ENDCard  : Card_Type := "END                                                                             ";
     Card     : Card_Type;
     CardCnt  : Positive := 1;
     from     : Positive := 1;
@@ -106,15 +106,44 @@ package body FitsFile is
       Card := Block( from .. (next - 1) );
       Parse_KeyRecord( Card, AxesDimensions );
       ENDFound := (Card = ENDCard);
-      exit when ENDFound or CardCnt >= 36;
+      exit when ENDFound or CardCnt >= CardsCntInBlock;
       CardCnt := CardCnt + 1;
       from := next;
     end loop;
     return ENDFound;
    end Parse_HeaderBlock;
 
+ -- FIXME Header should be HeaderBlocks in future
+ function Parse_HDU_Positions ( Header : in Header_Type;
+                                Cur_Index : in Positive_Count )
+                                
+  return HDU_Position_Type
+ is
+  HDU_Pos : HDU_Position_Type;
+  AxesDimensions : Axes_Type;
+  DU_Size : Natural := 0;
+  Card : String(1..CardSize);
+  ENDFound : Boolean := False;
+ begin
+
+   for I in Header'Range
+    loop
+     Card := Header(I);
+     Parse_KeyRecord( Card, AxesDimensions );
+     ENDFound := (Card = ENDCard);
+     exit when ENDFound;
+   end loop;
+   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+
+   HDU_Pos.Header_Index := Cur_Index;
+   HDU_Pos.Header_Size  := Positive_Count((Header'Length -1 )/ CardsCntInBlock + 1);--FIXME verify this
+   HDU_Pos.Data_Index   := HDU_Pos.Header_Index + HDU_Pos.Header_Size;--FIXME verify this
+   HDU_Pos.Data_Size    := Count(DU_Size);
+
+    return HDU_Pos;
+ end;
  --
- --
+ -- for Open
  --
  function Parse_HDU_Positions ( FitsFile : in File_Type;
                                 HDU_Num  : in Positive )
@@ -339,11 +368,24 @@ package body FitsFile is
   HeaderSize : Positive := (( Header'Length - 1 )/CardsCntInBlock) + 1;
   FileSpace  : Positive := Positive(HDU.Positions.Header_Size) / BlockSize;
   -- Header_Size no need to check: is multiple of BlockSize because we read by BlockSize
+  Cur_Index : Positive_Count := Index(HDU.FitsFile);-- raises exception if file not open
  begin
+
+    -- if not initialized, initilaze it
+    -- Only this whe initialzed: Update HDU (without truncation, Inout_Mode): Open     with Inout_Mode -> switch to Inout_Mode below for update-without-truncation
+    if HDU.Positions = HDU_Null then
+     -- 3 cases when Positions is left unitialized:
+     -- Create HDU at begining of the file (Out_Mode): -> file will be truncuted and HDU created as first HDU
+     -- Create HDU at the end of an existing file (Append_Mode) -> new HDU will be added to the end of the file
+     -- Create/Open(HDU) not called -> rely on Create/Open File to raise exception File_Not_opened
+     HDU.Positions := Parse_HDU_Positions ( Header, Cur_Index );
+    end if;
+
     if HeaderSize /= FileSpace then
      null;
      -- raise excpetion Constraint error ?
     end if;
+
     Set_Mode(HDU.FitsFile,In_File);
     Set_Mode(HDU.FitsFile,Out_File);
     -- this gives write access _without_truncation_
