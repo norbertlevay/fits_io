@@ -140,27 +140,40 @@ type File_Mode is (In_File, Out_File, Append_File);
 --  for Sequential_IO, Text_IO, Wide_Text_IO, Wide_Wide_Text_IO, and Stream_IO
 \end{minted} 
 
-\section{Figure insert example}
-
-Here is ref to a Figure \ref{fig:system}.
-
-\begin{figure}[ht]
-\begin{center}
+%\section{Figure insert example}
+%Here is ref to a Figure \ref{fig:system}.
+%\begin{figure}[ht]
+%\begin{center}
 %\includegraphics[width=\textwidth]{vlkb_radiocube_services.pdf}
-\caption{System overview}
-\label{fig:system}
-\end{center}
-\end{figure}
-
-But figure is not inserted.
+%\caption{System overview}
+%\label{fig:system}
+%\end{center}
+%\end{figure}
+%
+%But figure is not inserted.
 
 \section{Source insert example}
 
-Here input file....
+\subsection{fitsfile}
 
+Specification fitsfile.ads
 \inputminted{ada}{../fitsfile.ads}
 
-... after input source file.
+Body fitsfile.adb
+\inputminted{ada}{../fitsfile.adb}
+
+\subsection{commands}
+
+Specification fitsfile.ads
+\inputminted{ada}{../commands.ads}
+
+Body fitsfile.adb
+\inputminted{ada}{../commands.adb}
+
+\subsection{main}
+
+Specification fitsfile.ads
+\inputminted{ada}{../main.adb}
 
 
 \end{document}
