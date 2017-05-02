@@ -11,6 +11,7 @@
 \usepackage[top=5.2cm, left=2cm, right=2cm, bottom=2cm, headheight=2.6cm]{geometry}%showframe
 \usepackage{minted}
 \usepackage{graphicx}
+%\usepackage{listings}
 
 % for testing use this code instea i2-template
 %\newcommand{\code}[1]{ \texttt{ \detokenize{#1} } }
@@ -152,6 +153,15 @@ Here is ref to a Figure \ref{fig:system}.
 \end{figure}
 
 But figure is not inserted.
+
+\section{Source insert example}
+
+Here input file....
+
+\inputminted{ada}{../fitsfile.ads}
+
+... after input source file.
+
 
 \end{document}
 

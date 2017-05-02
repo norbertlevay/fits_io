@@ -123,7 +123,7 @@ package body Commands is
  			 HeaderFileName : in String;
                          HDU_Num        : Positive := 1 )
  is
-   BitsInByte : Positive := 8;--FIXME get this fro System.xxxx
+   BitsInByte : Positive := 8;--FIXME get this from System.xxxx
    InFileHandle  : File_Type;
    OutFileHandle : File_Type;
    HDU    : HDU_Position_Type;
