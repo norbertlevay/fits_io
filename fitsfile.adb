@@ -66,8 +66,8 @@ package body FitsFile is
    end Calc_DataUnit_Size;
 
    --
-   -- parse keywords -> AxesDimensions
-   -- parse all kewords needed to calculate DU size
+   -- parse keywords needed to calculate DU size
+   --
    procedure Parse_KeyRecord( Card : Card_Type;
                               AxesDimensions  : in out Axes_Type )
    is
@@ -80,17 +80,20 @@ package body FitsFile is
        AxesDimensions.BitPix := Integer'Value(Card(10..30));
      elsif (Card(1..5) = "NAXIS") then
 
-          if (Card(1..9) = "NAXIS   =") then
-              AxesDimensions.Naxes := Positive'Value(Card(10..30));
-          else
-              dim := Positive'Value(Card(6..8));
-	      AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
-          end if;
-          -- FIXME what to do if NAXIS and NAXISnn do not match -> see standard
+       if (Card(1..9) = "NAXIS   =") then
+           AxesDimensions.Naxes := Positive'Value(Card(10..30));
+       else
+           dim := Positive'Value(Card(6..8));
+           AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
+       end if;
+       -- FIXME what to do if NAXIS and NAXISnn do not match -> see standard
+
      end if;
    end Parse_KeyRecord;
 
+   --
    -- walk through each HeaderBlock
+   --
    function Parse_HeaderBlock( Block   : in Block_Type ;
                                AxesDimensions     : in out Axes_Type ) return Boolean
    is
@@ -112,37 +115,8 @@ package body FitsFile is
     return ENDFound;
    end Parse_HeaderBlock;
 
- -- FIXME Header should be HeaderBlocks in future
- function Parse_HDU_Positions ( Header : in Header_Type;
-                                Cur_Index : in Positive_Count )
-                                
-  return HDU_Position_Type
- is
-  HDU_Pos : HDU_Position_Type;
-  AxesDimensions : Axes_Type;
-  DU_Size : Natural := 0;
-  Card : String(1..CardSize);
-  ENDFound : Boolean := False;
- begin
-
-   for I in Header'Range
-    loop
-     Card := Header(I);
-     Parse_KeyRecord( Card, AxesDimensions );
-     ENDFound := (Card = ENDCard);
-     exit when ENDFound;
-   end loop;
-   DU_Size := Calc_DataUnit_Size( AxesDimensions );
-
-   HDU_Pos.Header_Index := Cur_Index;
-   HDU_Pos.Header_Size  := Positive_Count((Header'Length -1 )/ CardsCntInBlock + 1);--FIXME verify this
-   HDU_Pos.Data_Index   := HDU_Pos.Header_Index + HDU_Pos.Header_Size;--FIXME verify this
-   HDU_Pos.Data_Size    := Count(DU_Size);
-
-    return HDU_Pos;
- end;
  --
- -- for Open
+ -- for Open - using existing HDU
  --
  function Parse_HDU_Positions ( FitsFile : in File_Type;
                                 HDU_Num  : in Positive )
@@ -204,7 +178,43 @@ package body FitsFile is
 
  end Parse_HDU_Positions;
 
+ --
+ -- for Put - creating new HDU from Header
+ --
+ function Parse_HDU_Positions ( HeaderBlocks : in HeaderBlocks_Type;
+                                Cur_Index : in Positive_Count )
+                                
+  return HDU_Position_Type
+ is
+  HDU_Pos : HDU_Position_Type;
+  AxesDimensions : Axes_Type;
+  DU_Size : Natural := 0;
+  Card : String(1..CardSize);
+  ENDFound : Boolean := False;
+ begin
+   for I in HeaderBlocks'Range
+    loop
+     for J in HeaderBlocks(I)'Range
+      loop
+       Card := HeaderBlocks(I)(J);
+       Parse_KeyRecord( Card, AxesDimensions );
+       ENDFound := (Card = ENDCard);
+     end loop;
+     exit when ENDFound;
+   end loop;
 
+   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+
+   HDU_Pos.Header_Index := Cur_Index;
+   HDU_Pos.Header_Size  := Positive_Count(HeaderBlocks'Length * BlockSize); -- FIXME verify
+   HDU_Pos.Data_Index   := HDU_Pos.Header_Index + HDU_Pos.Header_Size;--FIXME verify this
+   HDU_Pos.Data_Size    := Count(DU_Size);
+
+    return HDU_Pos;
+ end;
+
+
+ -- Interface
 
  procedure Create ( HDU : in out HDU_Type;
                     Mode : in File_Mode := Out_File;
@@ -222,17 +232,19 @@ package body FitsFile is
 
 
 
+ -- HDU.FitsFile  := FitsFile; -- FIXME File_Type is limited
+ -- e.g. cannot be assigned, can be manipulated only by funcs defined for it...
  procedure Open ( HDU : in out HDU_Type;
                   Mode : in File_Mode;
                   Name : in String;
                   HDU_Num : Natural   := 0;-- Primary HDU
                   Form : in String := "") is
  begin
-  Open(HDU.FitsFile, Mode, Name, Form);
-  --HDU.FitsFile  := FitsFile; -- FIXME File_TYpe is limited
-   -- e.g. cannot be assigned, can be manipulated only by funcs defined for it...
+  -- Parse requires read access
+  Open(HDU.FitsFile, In_File, Name, Form);
   HDU.Positions := Parse_HDU_Positions ( HDU.FitsFile,
                                          HDU_Num );
+  Set_Mode(HDU.FitsFile,Mode);
  end;
 
 
@@ -246,22 +258,22 @@ package body FitsFile is
 
 
  function Get ( HDU : in HDU_Type )
-  return Header_Type is
+  return HeaderBlocks_Type is
    InFitsStreamAccess  : Stream_Access := Stream(HDU.FitsFile);
-   Header : Header_Type(1..Integer(HDU.Positions.Header_Size)/CardSize);
+   HeaderBlocks : HeaderBlocks_Type(1..Integer(HDU.Positions.Header_Size)/BlockSize);
   begin
    Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
-   Header_Type'Read(InFitsStreamAccess,Header);
-   return Header;
+   HeaderBlocks_Type'Read(InFitsStreamAccess,HeaderBlocks);
+   return HeaderBlocks;
   end Get;
 
 
 
  procedure Put ( HDU    : in out HDU_Type;
-                 Header : in Header_Type ) is
+                 HeaderBlocks : in HeaderBlocks_Type ) is
   InOutFitsStreamAccess : Stream_Access := Stream(HDU.FitsFile);
   -- sizes in units of Blocks
-  HeaderSize : Positive := (( Header'Length - 1 )/CardsCntInBlock) + 1;
+  HeaderSize : Positive := HeaderBlocks'Length; --(( Header'Length - 1 )/CardsCntInBlock) + 1;
   FileSpace  : Positive := Positive(HDU.Positions.Header_Size) / BlockSize;
   -- Header_Size no need to check: is multiple of BlockSize because we read by BlockSize
   Cur_Index : Positive_Count := Index(HDU.FitsFile);-- raises exception if file not open
@@ -274,7 +286,7 @@ package body FitsFile is
      -- Create HDU at begining of the file (Out_Mode): -> file will be truncuted and HDU created as first HDU
      -- Create HDU at the end of an existing file (Append_Mode) -> new HDU will be added to the end of the file
      -- Create/Open(HDU) not called -> rely on Create/Open File to raise exception File_Not_opened
-     HDU.Positions := Parse_HDU_Positions ( Header, Cur_Index );
+     HDU.Positions := Parse_HDU_Positions ( HeaderBlocks, Cur_Index );
     end if;
 
     if HeaderSize /= FileSpace then
@@ -296,7 +308,7 @@ package body FitsFile is
     -- from reading to writing or vice-versa, then the file is reopened in `r+'
     -- mode to permit the required operation.<<
     Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
-    Header_Type'Write(InOutFitsStreamAccess,Header);
+    HeaderBlocks_Type'Write(InOutFitsStreamAccess,HeaderBlocks);
   end Put;
 
 end FitsFile;

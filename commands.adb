@@ -14,29 +14,31 @@ package body Commands is
                          HDU_Num  : Positive := 1 )
  is
    FileHandle : File_Type;
---   HDU        : HDU_Position_Type;
    HDU        : HDU_Type;
  begin
 
---   Open(FileHandle, In_File, FileName );
---   HDU := Parse_HDU_Positions ( FileHandle , HDU_Num );
    Open(HDU, In_File, FileName, HDU_Num);
 
    -- print the Header
    declare
---     Header : Header_Type := Get_Header(FileHandle, HDU);
-     Header : Header_Type := Get(HDU);
+     HeaderBlocks : HeaderBlocks_Type := Get(HDU);
    begin
-     for I in Header'Range
+
+     for I in HeaderBlocks'Range
      loop
-      Ada.Integer_Text_IO.Put( I, 5 );
-      Ada.Text_IO.Put_Line(  " >"  & Header(I)  & "<");
---      Ada.Text_IO.Put_Line(Header(I));
+
+      for J in HeaderBlocks(I)'Range
+      loop
+       Ada.Integer_Text_IO.Put( I, 5 );
+       Ada.Integer_Text_IO.Put( J, 5 );
+       Ada.Text_IO.Put_Line(  " >"  & HeaderBlocks(I)(J)  & "<");
+      end loop;
+
      end loop;
+
    end;
 
    Close(HDU);
---   Close(FileHandle);
 
  end Print_Header;
 
