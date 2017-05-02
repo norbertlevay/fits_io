@@ -24,40 +24,6 @@ package FitsFile is
   -- get positions and sizes of HDU's in FitsFile
 
 
- -- Header access
-
- -- read / write Header as one string
-
- function Read_Header ( InFitsFile : in File_Type;          -- opened FitsFile
-                        HDU        : in HDU_Position_Type ) -- from this HDU
-  return String;
-  -- read Header as one long string
-  -- of size Cards*CardSize rounded up to BlockSize
-  -- (includes eventual empty cards after END-card)
-
-
- procedure Write_Header ( OutFitsFile : in out File_Type;
-                          HDU         : in HDU_Position_Type;
-                          Header      : in String );
- -- writes Header to position given by HDU
- -- only if Header sizes (counted in Blocks) match
-
- -- read / write Header as array of cards
-
- type Header_Type is array (Positive range <> ) of String(1..CardSize);
-
- function Get_Header ( InFitsFile : in File_Type;
-                       HDU        : in HDU_Position_Type )
-  return Header_Type;
-
- procedure Put_Header ( OutFitsFile : in out File_Type;
-                        HDU         : in HDU_Position_Type;
-                        Header      : in Header_Type );
- -- writes Header to position given by HDU
- -- only if Header sizes (counted in Blocks) match
-
-
-
  -- HDU_Type based calls
 
  type HDU_Type is
@@ -71,8 +37,8 @@ package FitsFile is
                     Name : in String    := "";
                     HDU_Num : Natural   := 0;-- Primary HDU
                     Form : in String    := "");
- -- can be first HDU when Out_Mode, or
- -- last HDU of existing files when Append_Mode
+ -- creates first HDU of a new file when in Out_Mode, or
+ -- last HDU of an existing file when in Append_Mode
 
  procedure Open ( HDU : in out HDU_Type;
                   Mode : in File_Mode;
@@ -82,10 +48,16 @@ package FitsFile is
 
  procedure Close  (HDU : in out HDU_Type);
 
+
+ -- access Header
+
+ type Header_Type is array (Positive range <> ) of String(1..CardSize);
+
  function  Get ( HDU : in HDU_Type ) return Header_Type;
 
  procedure Put ( HDU    : in out HDU_Type;
                  Header : in Header_Type );
+
 
 end FitsFile;
 

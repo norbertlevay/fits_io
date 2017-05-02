@@ -194,7 +194,8 @@ package body Commands is
 
    -- now write
    if Positive(HDU.Header_Size) = (HeaderBlocks'Size / BitsInByte) then
-    Write_Header ( InFileHandle, HDU, HeaderBlocks );
+--    Write_Header ( InFileHandle, HDU, HeaderBlocks );
+    null;-- FIXME with Put()
    else
     Write_Header_To_New_FitsFile ( InFileHandle, HDU, HeaderBlocks );
    end if;
