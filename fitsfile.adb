@@ -219,7 +219,7 @@ package body FitsFile is
  procedure Create ( HDU : in out HDU_Type;
                     Mode : in File_Mode := Out_File;
                     Name : in String    := "";
-                    HDU_Num : Natural   := 0;-- Primary HDU
+                    HDU_Num : Positive  := 1;-- Primary HDU
                     Form : in String    := "") is
  -- can be first HDU when FitsFile in Out_Mode, or
  -- last HDU of existing files when FitsFile in Append_Mode
@@ -237,8 +237,8 @@ package body FitsFile is
  procedure Open ( HDU : in out HDU_Type;
                   Mode : in File_Mode;
                   Name : in String;
-                  HDU_Num : Natural   := 0;-- Primary HDU
-                  Form : in String := "") is
+                  HDU_Num : Positive := 1;-- Primary HDU
+                  Form : in String   := "") is
  begin
   -- Parse requires read access
   Open(HDU.FitsFile, In_File, Name, Form);
@@ -310,6 +310,74 @@ package body FitsFile is
     Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
     HeaderBlocks_Type'Write(InOutFitsStreamAccess,HeaderBlocks);
   end Put;
+
+ -- positioning
+
+  -- return index from start of the FITS file where Header and DataUnit start
+  function Header_Index( HDU : HDU_Type ) return Positive_Count
+  is
+  begin
+   return HDU.Positions.Header_Index;
+  end Header_Index;
+
+  function Data_Index  ( HDU : HDU_Type ) return Positive_Count
+  is
+  begin
+   return HDU.Positions.Data_Index;
+  end Data_Index;
+
+  function Header_Size( HDU : HDU_Type ) return Positive_Count
+  is
+  begin
+   return HDU.Positions.Header_Size;
+  end Header_Size;
+
+  function Data_Size  ( HDU : HDU_Type ) return Positive_Count
+  is
+  begin
+   return HDU.Positions.Data_Size;
+  end Data_Size;
+
+ procedure Set_Index(HDU : HDU_Type; Index : Positive_Count )
+ is
+ begin
+   Set_Index(HDU.FitsFile,Index);
+ end Set_Index;
+
+ function Index(HDU : HDU_TYPE) return Positive_Count
+ is
+ begin
+   return Index(HDU.FitsFile);
+ end Index;
+
+ function Size(HDU : HDU_TYPE) return Positive_Count
+ is
+ begin
+  return Size(HDU.FitsFile);
+ end Size;
+
+-- Note alternatives
+--       Copy_HDUs(InFileHandle, FromHDUnum, ToHDUnum, OutFileHandle);<- still File abstraction level, we should have this
+--       Copy_HDU(InHDUHandle, OutFileHandle);<- for HDU abstraction, we should have this
+ procedure Copy_Blocks(FromFile : HDU_Type; ToFile : File_Type;
+                       FromBlock : Positive; ToBlock : Natural )
+ is
+  OutFitsSA  : Stream_Access := Stream(ToFile);
+  InFitsSA   : Stream_Access := Stream(FromFile.FitsFile);
+  ToIndex : Positive_Count;
+  subtype Buffer_Type is String(1..BlockSize);
+  Buffer : Buffer_Type;
+ begin
+
+       Set_Index(FromFile,Positive_Count((FromBlock-1)*BlockSize+1));
+       ToIndex := Positive_Count((ToBlock*BlockSize) + 1);
+
+       loop
+         exit when Index(FromFile) = ToIndex;
+         Buffer_Type'Read(InFitsSA,Buffer);
+         Buffer_Type'Write(OutFitsSA,Buffer);
+       end loop;
+ end;
 
 end FitsFile;
 

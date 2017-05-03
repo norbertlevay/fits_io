@@ -84,70 +84,110 @@ package body Commands is
   return NoLines;
  end NoOfLines;
 
+ --
+ -- Convert Header from text file into HeaderBlocks_Type
+ --
  function Read_HeaderFromTextFile( FileName : in String )
-  return String
+  return HeaderBlocks_Type
  is
    FileHandle     : Ada.Text_IO.File_Type;
-   FitsCardBuffer : CardBuffer := (others => ' ');
+   FitsCardBuffer : CardBuffer := EmptyCard;
 
    NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
    HeaderSizeInBlocks : Positive := (NoLines - 1)/ CardsCntInBlock + 1;
-   subtype Header_Type is String( 1 .. HeaderSizeInBlocks*BlockSize );
-   Header : Header_Type := (others => ' ');
-
-   from,to : Positive;
-   Count : Positive := 1;
+   HeaderBlocks : HeaderBlocks_Type(1..HeaderSizeInBlocks) := (others => EmptyBlock);
+   CardsCount : Positive := 1;
+   IxBlock : Positive;
+   IxCard : Positive;
  begin
    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
    loop
       exit when (FitsCardBuffer(1..3) = "END");
-
-      from := (Count - 1) * CardSize + 1;
-      to   := from + CardSize - 1;
       FitsCardBuffer := To_CardBuffer(Ada.Text_IO.Get_Line( FileHandle ));
-
---      Ada.Text_IO.Put_Line("Debug Count    " & Integer'Image(Count));
---      Ada.Text_IO.Put_Line("Debug from     " & Integer'Image(from));
---      Ada.Text_IO.Put_Line("Debug to       " & Integer'Image(to));
---      Ada.Text_IO.Put_Line("Debug to - from " & Integer'Image(to-from));
---      Ada.Text_IO.Put_Line("Debug FitsCardBuffer " & Integer'Image(FitsCardBuffer'Size/8));
-
-      Header( from .. to ) := FitsCardBuffer;
-      Count := Count + 1;
+      IxBlock := (CardsCount - 1) / CardsCntInBlock   + 1;
+      IxCard  := (CardsCount - 1) mod CardsCntInBlock + 1;
+      HeaderBlocks(IxBlock)(IxCard) := FitsCardBuffer;
+      CardsCount := CardsCount + 1;
    end loop;
    Ada.Text_IO.Close(FileHandle);
-   return Header;
+   return HeaderBlocks;
  end Read_HeaderFromTextFile;
 
  --
  -- write header to file
  --
-
-
  procedure Write_Header( FitsFileName   : in String;
  			 HeaderFileName : in String;
                          HDU_Num        : Positive := 1 )
  is
    BitsInByte : Positive := 8;--FIXME get this from System.xxxx
-   InFileHandle  : File_Type;
-   OutFileHandle : File_Type;
-   -- HDU    : HDU_Position_Type;
-   HeaderBlocks : String := Read_HeaderFromTextFile( HeaderFileName );
+   InHDUHandle  : HDU_Type;
+   HeaderBlocks : HeaderBlocks_Type := Read_HeaderFromTextFile( HeaderFileName );
+   InFileHeaderSizeInBlocks : Positive;
  begin
-   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
+--   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
-   -- first read where are HDUs
-   Open(InFileHandle, In_File, FitsFileName );
---   HDU := Parse_HDU_Positions ( InFileHandle , HDU_Num );
+   Open(InHDUHandle, In_File, FitsFileName );
+   InFileHeaderSizeInBlocks := Positive(Header_Size(InHDUHandle)) / BlockSize;
+   Close(InHDUHandle);
 
-   -- now write
---   if Positive(HDU.Header_Size) = (HeaderBlocks'Size / BitsInByte) then
---    Write_Header ( InFileHandle, HDU, HeaderBlocks );
---   else
---    Write_Header_To_New_FitsFile ( InFileHandle, HDU, HeaderBlocks );
---   end if;
+   if InFileHeaderSizeInBlocks = HeaderBlocks'Length
+   then
+     Ada.text_IO.Put_Line("DBG: SHORT Version " & FitsFileName );
+     -- new Header fits into empty space in file, simply write it there
 
-   Close(InFileHandle);
+     Open( InHDUHandle, In_File, FitsFileName );
+     Put ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
+     Close(InHDUHandle);
+
+   else
+     Ada.text_IO.Put_Line("DBG: LOONG Version " & FitsFileName );
+
+     -- new HeaderSize and empty-space differ -> shrink or extend the file:
+
+       -- create new file <filename>.fits.part
+       -- copy from start until the Header
+       -- write the new Header
+       -- copy rest until end of file
+       -- rename <filename>.fits.part -> <filename>.fits
+
+     declare
+       OutFitsName   : String := FitsFileName & ".part";
+       OutFileHandle : File_Type;
+       Succeeded     : Boolean := False;
+       FromBlock,ToBlock : Natural;
+     begin
+       Open( InHDUHandle, In_File, FitsFileName );-- open Primary HDU
+       Create (File => OutFileHandle,
+               Mode => Out_File,
+               Name => OutFitsName);
+
+       FromBlock := 1;
+       ToBlock   := (Positive(Header_Index(InHDUHandle))-1) / BlockSize;
+       Copy_Blocks(InHDUHandle, OutFileHandle, FromBlock, ToBlock);
+
+       -- insert new header and skip old
+       HeaderBlocks_Type'Write(Stream(OutFileHandle),HeaderBlocks);-- FIXME use Put(HDU,..)
+       -- skip old header
+       Set_Index(InHDUHandle, Data_Index(InHDUHandle));
+
+       FromBlock := (Positive(Index(InHDUHandle))-1) / BlockSize + 1;
+       ToBlock   := (Positive(Size (InHDUHandle))-1) / BlockSize + 1;
+       Copy_Blocks(InHDUHandle, OutFileHandle, FromBlock, ToBlock);
+       Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
+
+       Close(OutFileHandle);
+       Close(InHDUHandle);
+
+       -- rename <filename>.fits.part -> <filename>.fits
+       GNAT.OS_Lib.Rename_File (OutFitsName, FitsFileName, Succeeded);
+       if not Succeeded then
+         null;
+         -- raise exception
+       end if;
+     end;
+
+   end if;
 
  end Write_Header;
 
