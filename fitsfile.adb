@@ -334,41 +334,68 @@ package body FitsFile is
 
  -- positioning
 
+ -- note: [Ada-wikibook] since Ada2012 pragma Inline() obsolete
+
+ -- retuned index will point to first element of a block
+ function To_FileIndex( BlockIndex : Positive ) return Positive is
+  F_Ix : Positive := (BlockIndex - 1) * BlockSize + 1;
+ begin
+  return F_Ix;
+ end To_FileIndex;
+ -- retuned index will point to a block which contains
+ -- the element to which FileIndex points
+ function To_BlockIndex( FileIndex : Positive ) return Positive is
+  B_Ix : Positive := (FileIndex - 1) / BlockSize + 1;
+ begin
+  return B_Ix;
+ end To_BlockIndex;
+ -- FIXME FileIndex and Block Size must count in same units:
+ -- FileIndex is now Stream_IO so Element_Size in GNAT is Byte
+ function To_BlockSize( Size : Natural ) return Natural is
+  SizeInBlocks : Natural := 0;
+ begin
+  if Size /= 0 then
+   SizeInBlocks := (Size - 1) / BlockSize + 1;
+  end if;
+  return SizeInBlocks;
+ end To_BlockSize;
+
+
   -- return index from start of the FITS file where Header and DataUnit start
  function Header_Index( HDU : HDU_Type ) return Positive
  is
  begin
-  return HDU.Positions.Header_Index;
+  return To_BlockIndex(HDU.Positions.Header_Index);
  end Header_Index;
 
  function Data_Index  ( HDU : HDU_Type ) return Positive
  is
  begin
-  return HDU.Positions.Data_Index;
+  return To_BlockIndex(HDU.Positions.Data_Index);
  end Data_Index;
 
  function Header_Size( HDU : HDU_Type ) return Natural
  is
  begin
-  return HDU.Positions.Header_Size;
+  return To_BlockSize(HDU.Positions.Header_Size);
  end Header_Size;
 
  function Data_Size  ( HDU : HDU_Type ) return Natural
  is
  begin
-  return HDU.Positions.Data_Size;
+  return To_BlockSize(HDU.Positions.Data_Size);
  end Data_Size;
 
  procedure Set_Index(HDU : HDU_Type; Index : Positive )
  is
  begin
-   Set_Index(HDU.FitsFile,Positive_Count(Index));
+   Set_Index(HDU.FitsFile,Positive_Count(To_FileIndex(Index)));
  end Set_Index;
 
  function Index(HDU : HDU_TYPE) return Positive
  is
  begin
-   return Positive(Index(HDU.FitsFile));
+   return To_BlockIndex(Positive(Index(HDU.FitsFile)));
  end Index;
 
 -- FIXME CopyBlocks is FITS_File_Type operation

@@ -46,6 +46,10 @@ package FitsFile is
  -- should be re-implemented when FITS_File_Type added
  -- now they serve as a workaround for new-Header write
 
+ -- FITS file consists of blocks 2880-bytes (aka BlockSize)
+ -- smallest addressable unit for file operatrions is Block
+ -- all indexes, sizes are given in count of Blocks
+
  function Header_Index( HDU : HDU_Type ) return Positive;
  function Data_Index  ( HDU : HDU_Type ) return Positive;
  -- return index from start of the FITS file where Header and DataUnit start

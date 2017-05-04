@@ -128,8 +128,10 @@ package body Commands is
 --   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
    Open(InHDUHandle, In_HDU, FitsFileName );
-   InFileHeaderSizeInBlocks := Positive(Header_Size(InHDUHandle)) / BlockSize;
+   InFileHeaderSizeInBlocks := Header_Size(InHDUHandle);--Positive(Header_Size(InHDUHandle)) / BlockSize;
    Close(InHDUHandle);
+
+   Ada.Text_IO.Put_Line("Debug FileHSize va NewHSzie >" & Integer'Image(InFileHeaderSizeInBlocks) &" - " & Integer'Image(HeaderBlocks'Length));
 
    if InFileHeaderSizeInBlocks = HeaderBlocks'Length
    then
@@ -155,25 +157,26 @@ package body Commands is
        OutFitsName  : String := FitsFileName & ".part";
        OutHDUHandle : HDU_Type;
        Succeeded    : Boolean := False;
-       FromBlock,ToBlock : Natural;
+       BeforeHeaderStart : Natural;
+       FirstDataBlock   : Positive;
+       FileEnd : Positive := Positive'Last / BlockSize;
+       -- Copy_Blocks exits with end-of-file
      begin
+
        Open  ( InHDUHandle,  In_HDU,  FitsFileName );
        Create( OutHDUHandle, Out_HDU, OutFitsName );
 
-       FromBlock := 1;
-       ToBlock   := (Header_Index(InHDUHandle)-1) / BlockSize;
-       Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
+       BeforeHeaderStart := Header_Index(InHDUHandle) - 1;
+       Copy_Blocks(InHDUHandle,1,BeforeHeaderStart, OutHDUHandle);
 
-       -- insert new header and skip old
+       -- insert new header
        Write(OutHDUHandle, HeaderBlocks);
        -- skip old header
-       Set_Index(InHDUHandle,Data_Index(InHDUHandle));
+       FirstDataBlock := Data_Index(InHDUHandle);
 
-       FromBlock := (Index(InHDUHandle)-1) / BlockSize + 1;
-       ToBlock   := Positive'Last / BlockSize; -- Copy_Blocks exits with end-of-file
-       Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
+       Copy_Blocks(InHDUHandle,FirstDataBlock,FileEnd, OutHDUHandle);
 
-       Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
+--       Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
 
        Close(OutHDUHandle);
        Close(InHDUHandle);
