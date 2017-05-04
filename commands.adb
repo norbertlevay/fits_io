@@ -152,26 +152,27 @@ package body Commands is
        -- rename <filename>.fits.part -> <filename>.fits
 
      declare
-       OutFitsName   : String := FitsFileName & ".part";
-       OutHDUHandle  : HDU_Type;
-       Succeeded     : Boolean := False;
+       OutFitsName  : String := FitsFileName & ".part";
+       OutHDUHandle : HDU_Type;
+       Succeeded    : Boolean := False;
        FromBlock,ToBlock : Natural;
      begin
        Open  ( InHDUHandle,  In_HDU,  FitsFileName );
        Create( OutHDUHandle, Out_HDU, OutFitsName );
 
        FromBlock := 1;
-       ToBlock   := (Positive(Header_Index(InHDUHandle))-1) / BlockSize;
+       ToBlock   := (Header_Index(InHDUHandle)-1) / BlockSize;
        Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
 
        -- insert new header and skip old
        Write(OutHDUHandle, HeaderBlocks);
        -- skip old header
-       Set_Index(InHDUHandle, Data_Index(InHDUHandle));
+       Set_Index(InHDUHandle,Data_Index(InHDUHandle));
 
-       FromBlock := (Positive(Index(InHDUHandle))-1) / BlockSize + 1;
-       ToBlock   := Positive'Last / BlockSize;-- Copy exits with end of file
+       FromBlock := (Index(InHDUHandle)-1) / BlockSize + 1;
+       ToBlock   := Positive'Last / BlockSize; -- Copy_Blocks exits with end-of-file
        Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
+
        Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
 
        Close(OutHDUHandle);
@@ -181,7 +182,7 @@ package body Commands is
        GNAT.OS_Lib.Rename_File (OutFitsName, FitsFileName, Succeeded);
        if not Succeeded then
          null;
-         -- raise exception
+         -- FIXME raise exception
        end if;
      end;
 

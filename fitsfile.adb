@@ -335,29 +335,29 @@ package body FitsFile is
  -- positioning
 
   -- return index from start of the FITS file where Header and DataUnit start
-  function Header_Index( HDU : HDU_Type ) return Positive
-  is
-  begin
-   return HDU.Positions.Header_Index;
-  end Header_Index;
+ function Header_Index( HDU : HDU_Type ) return Positive
+ is
+ begin
+  return HDU.Positions.Header_Index;
+ end Header_Index;
 
-  function Data_Index  ( HDU : HDU_Type ) return Positive
-  is
-  begin
-   return HDU.Positions.Data_Index;
-  end Data_Index;
+ function Data_Index  ( HDU : HDU_Type ) return Positive
+ is
+ begin
+  return HDU.Positions.Data_Index;
+ end Data_Index;
 
-  function Header_Size( HDU : HDU_Type ) return Natural
-  is
-  begin
-   return HDU.Positions.Header_Size;
-  end Header_Size;
+ function Header_Size( HDU : HDU_Type ) return Natural
+ is
+ begin
+  return HDU.Positions.Header_Size;
+ end Header_Size;
 
-  function Data_Size  ( HDU : HDU_Type ) return Natural
-  is
-  begin
-   return HDU.Positions.Data_Size;
-  end Data_Size;
+ function Data_Size  ( HDU : HDU_Type ) return Natural
+ is
+ begin
+  return HDU.Positions.Data_Size;
+ end Data_Size;
 
  procedure Set_Index(HDU : HDU_Type; Index : Positive )
  is
@@ -373,15 +373,15 @@ package body FitsFile is
 
 -- FIXME CopyBlocks is FITS_File_Type operation
 -- this serves only as workaround until FITS_File_Type API implemented
- procedure Copy_Blocks(FromFile  : HDU_Type;
-                       FromBlock : Positive; ToBlock : Natural;
-                       ToFile  : HDU_Type )
+ procedure Copy_Blocks( FromFile  : HDU_Type;
+                        FromBlock : Positive; ToBlock : Natural;
+                        ToFile  : HDU_Type )
  is
   InFitsSA   : Stream_Access := Stream(FromFile.FitsFile);
   ToIndex    : Natural;
   OutFitsSA  : Stream_Access := Stream(ToFile.FitsFile);
   -- now the buffer:
-  subtype Buffer_Type is String(1..BlockSize);
+  subtype  Buffer_Type is String(1..BlockSize);
   Buffer : Buffer_Type;
  begin
 
@@ -394,6 +394,7 @@ package body FitsFile is
      Buffer_Type'Read (InFitsSA, Buffer);
      Buffer_Type'Write(OutFitsSA,Buffer);
    end loop;
+   -- FIXME should loop-exit with EOF be considered an error?
 
  end;
 
