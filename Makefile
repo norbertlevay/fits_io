@@ -24,10 +24,12 @@ main : main.adb build_date.ads
 
 testsameheader:   # orig header has 35 cards
 	cp $(TESTFILE).orig $(TESTFILE)
+	chmod +w $(TESTFILE)
 	./fits header $(TESTFILE) test-35cards.hdr
 
 testbiggerheader:   # orig header has 35 cards
 	cp $(TESTFILE).orig $(TESTFILE)
+	chmod +w $(TESTFILE)
 	./fits header $(TESTFILE) test-50cards.hdr
 
 
