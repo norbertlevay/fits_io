@@ -4,6 +4,9 @@ builddate=$(shell date)
 
 TARGET=fits
 
+#TESTFILE=unimap_l118_blue_wglss_rcal.fits
+TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
+
 all: main
 
 
@@ -20,12 +23,12 @@ main : main.adb build_date.ads
 # -gnaty <-- prints warnings on identation style
 
 testsameheader:   # orig header has 35 cards
-	cp unimap_l118_blue_wglss_rcal.fits.orig unimap_l118_blue_wglss_rcal.fits
-	./fits header unimap_l118_blue_wglss_rcal.fits test-35cards.hdr
+	cp $(TESTFILE).orig $(TESTFILE)
+	./fits header $(TESTFILE) test-35cards.hdr
 
 testbiggerheader:   # orig header has 35 cards
-	cp unimap_l118_blue_wglss_rcal.fits.orig unimap_l118_blue_wglss_rcal.fits
-	./fits header unimap_l118_blue_wglss_rcal.fits test-50cards.hdr
+	cp $(TESTFILE).orig $(TESTFILE)
+	./fits header $(TESTFILE) test-50cards.hdr
 
 
 clean:
