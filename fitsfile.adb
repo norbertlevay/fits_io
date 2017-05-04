@@ -157,7 +157,7 @@ package body FitsFile is
          exit when EndCardFound ;
       end loop;
 
-      Print_AxesDimensions(HDU_Cnt,AxesDimensions);
+      -- Print_AxesDimensions(HDU_Cnt,AxesDimensions);
 
       -- DataUnit
 

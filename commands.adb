@@ -11,7 +11,8 @@ package body Commands is
  -- read header from file and print to stdout
  --
  procedure Print_Header( FileName : in String;
-                         HDU_Num  : Positive := 1 )
+                         HDU_Num  : Positive := 1;
+                         AnnotatedPrint : Boolean := False )
  is
    FileHandle : File_Type;
    HDU        : HDU_Type;
@@ -29,9 +30,13 @@ package body Commands is
 
       for J in HeaderBlocks(I)'Range
       loop
-       Ada.Integer_Text_IO.Put( I, 5 );
-       Ada.Integer_Text_IO.Put( J, 5 );
-       Ada.Text_IO.Put_Line(  " >"  & HeaderBlocks(I)(J)  & "<");
+       if AnnotatedPrint then
+         Ada.Integer_Text_IO.Put( I, 5 );
+         Ada.Integer_Text_IO.Put( J, 5 );
+         Ada.Text_IO.Put_Line(  " >"  & HeaderBlocks(I)(J)  & "<");
+       else
+         Ada.Text_IO.Put_Line( HeaderBlocks(I)(J) );
+       end if;
       end loop;
 
      end loop;
