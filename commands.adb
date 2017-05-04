@@ -127,7 +127,7 @@ package body Commands is
  begin
 --   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
-   Open(InHDUHandle, In_HDU, FitsFileName );
+   Open(InHDUHandle, In_HDU, FitsFileName, HDU_Num );
    InFileHeaderSizeInBlocks := Header_Size(InHDUHandle);--Positive(Header_Size(InHDUHandle)) / BlockSize;
    Close(InHDUHandle);
 
@@ -138,7 +138,7 @@ package body Commands is
      Ada.text_IO.Put_Line("DBG: SHORT Version " & FitsFileName );
      -- new Header fits into empty space in file, simply write it there
 
-     Open( InHDUHandle, Inout_HDU, FitsFileName );
+     Open( InHDUHandle, Inout_HDU, FitsFileName, HDU_Num );
      Write ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
      Close(InHDUHandle);
 
@@ -163,8 +163,8 @@ package body Commands is
        -- Copy_Blocks exits with end-of-file
      begin
 
-       Open  ( InHDUHandle,  In_HDU,  FitsFileName );
-       Create( OutHDUHandle, Out_HDU, OutFitsName );
+       Open  ( InHDUHandle,  In_HDU,  FitsFileName, HDU_Num );
+       Create( OutHDUHandle, Out_HDU, OutFitsName , HDU_Num );
 
        BeforeHeaderStart := Header_Index(InHDUHandle) - 1;
        Ada.Text_IO.Put_Line("Debug From-To Block >" & Integer'Image(1) &" - " & Integer'Image(BeforeHeaderStart));

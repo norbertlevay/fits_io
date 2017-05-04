@@ -26,12 +26,15 @@ procedure main is
  begin
    Put_Line("Version: " & Version);New_Line;
    Put_Line("Usage:");New_Line;
-   Put_Line(" fits header <fitsfilename>                   prints header");
-   Put_Line(" fits header <fitsfilename> <headerfilename>  writes header into fits-file");
+   Put_Line(" fits header [options] <fitsfilename>                   prints header");
+   Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into fits-file");
+   New_Line;
+   Put_Line("Options:");
+   Put_Line(" --hdu N     HDU-number: 1,2,3,... Default is 1 = Primary Header.");
    New_Line;
    Put_Line("Notes:");
    Put_Line(" <headerfilename> is text file with one fits-keyword record per line");
-   Put_Line("                  last line must start with three letters END.");
+   Put_Line("                  last line must start with three letters: 'END'.");
    New_Line;
  end Print_Usage;
 
@@ -45,13 +48,15 @@ procedure main is
 
  i : Positive := 1;
 
+ NoOptions : Natural := 0;
+ HDU_Num : Positive := 1;
+
  package IO  renames Ada.Text_IO;
  package CLI renames Ada.Command_Line;
 
  begin
 
- if (CLI.Argument_Count /= 2) and
-    (CLI.Argument_Count /= 3)
+ if (CLI.Argument_Count <= 1)
  then
   Print_Usage;
   Return;
@@ -73,18 +78,24 @@ procedure main is
      if Cur_Argument = "header"
      then
 
-        if CLI.Argument_Count = 2
+        if Argument(i+1) = "--hdu" then
+          HDU_Num := Integer'Value(Argument(i+2));
+          NoOptions := 2;-- there were 2 more args
+          i := i + NoOptions;
+        end if;
+
+        if CLI.Argument_Count = (2 + NoOptions)
         then
         	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-        	Print_Header( To_String(Input_File_Path) );
+		Print_Header( To_String(Input_File_Path), HDU_Num );
         else
         	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
         	Header_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
                 Write_Header(To_String(Input_File_Path),
-                             To_String(Header_File_Path));
+                             To_String(Header_File_Path), HDU_Num);
         end if;
 
      else
