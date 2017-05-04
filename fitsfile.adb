@@ -2,6 +2,9 @@
 
 with Ada.Text_IO; -- for debug only
 
+with Ada.Streams.Stream_IO;
+use  Ada.Streams.Stream_IO;
+
 package body FitsFile is
 
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
@@ -169,10 +172,10 @@ package body FitsFile is
 
    end loop;
 
-   HDU_Pos.Header_Index := HeadStart_Index;
-   HDU_Pos.Header_Size  := DataStart_Index - HeadStart_Index;
-   HDU_Pos.Data_Index   := DataStart_Index;
-   HDU_Pos.Data_Size    := Count(DataUnit_Size);
+   HDU_Pos.Header_Index := Positive(HeadStart_Index);
+   HDU_Pos.Header_Size  := Natural(DataStart_Index - HeadStart_Index);
+   HDU_Pos.Data_Index   := Positive(DataStart_Index);
+   HDU_Pos.Data_Size    := DataUnit_Size;
 
   return HDU_Pos;
 
@@ -205,10 +208,10 @@ package body FitsFile is
 
    DU_Size := Calc_DataUnit_Size( AxesDimensions );
 
-   HDU_Pos.Header_Index := Cur_Index;
-   HDU_Pos.Header_Size  := Positive_Count(HeaderBlocks'Length * BlockSize); -- FIXME verify
-   HDU_Pos.Data_Index   := HDU_Pos.Header_Index + HDU_Pos.Header_Size;--FIXME verify this
-   HDU_Pos.Data_Size    := Count(DU_Size);
+   HDU_Pos.Header_Index := Positive(Cur_Index);
+   HDU_Pos.Header_Size  := Natural(HeaderBlocks'Length * BlockSize); -- FIXME verify
+   HDU_Pos.Data_Index   := Positive(HDU_Pos.Header_Index + HDU_Pos.Header_Size);--FIXME verify this
+   HDU_Pos.Data_Size    := DU_Size;
 
     return HDU_Pos;
  end;
@@ -216,15 +219,33 @@ package body FitsFile is
 
  -- Interface
 
+ function To_File_Mode ( HDUMode : HDU_Mode ) return Ada.Streams.Stream_IO.File_Mode
+ is
+  FileMode : Ada.Streams.Stream_IO.File_Mode;
+ begin
+
+  case HDUMode is
+    when In_HDU    => FileMode := Ada.Streams.Stream_IO.In_File;
+    when Out_HDU   => FileMode := Ada.Streams.Stream_IO.Out_File;
+    when Inout_HDU => FileMode := Ada.Streams.Stream_IO.Out_File;-- [GNAT] Set_Mode switch will open in "r+" Inout_File
+    when Append_HDU => FileMode := Ada.Streams.Stream_IO.Append_File;
+  when others =>
+   null;
+   -- raise exception FIXME
+  end case;
+
+  return FileMode;
+ end To_File_Mode;
+
  procedure Create ( HDU : in out HDU_Type;
-                    Mode : in File_Mode := Out_File;
-                    Name : in String    := "";
+                    Mode : in HDU_Mode;
+                    Name : in String;
                     HDU_Num : Positive  := 1;-- Primary HDU
                     Form : in String    := "") is
  -- can be first HDU when FitsFile in Out_Mode, or
  -- last HDU of existing files when FitsFile in Append_Mode
  begin
-  Create( HDU.FitsFile, Mode, Name, Form);
+  Create( HDU.FitsFile, To_File_Mode(Mode), Name, Form);
   HDU.Positions := HDU_Null;
   -- init only to undef
   -- later first write will setup numbers based on given Header
@@ -235,7 +256,7 @@ package body FitsFile is
  -- HDU.FitsFile  := FitsFile; -- FIXME File_Type is limited
  -- e.g. cannot be assigned, can be manipulated only by funcs defined for it...
  procedure Open ( HDU : in out HDU_Type;
-                  Mode : in File_Mode;
+                  Mode : in HDU_Mode;
                   Name : in String;
                   HDU_Num : Positive := 1;-- Primary HDU
                   Form : in String   := "") is
@@ -244,7 +265,7 @@ package body FitsFile is
   Open(HDU.FitsFile, In_File, Name, Form);
   HDU.Positions := Parse_HDU_Positions ( HDU.FitsFile,
                                          HDU_Num );
-  Set_Mode(HDU.FitsFile,Mode);
+  Set_Mode(HDU.FitsFile,To_File_Mode(Mode));
  end;
 
 
@@ -262,7 +283,7 @@ package body FitsFile is
    InFitsStreamAccess  : Stream_Access := Stream(HDU.FitsFile);
    HeaderBlocks : HeaderBlocks_Type(1..Integer(HDU.Positions.Header_Size)/BlockSize);
   begin
-   Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
+   Set_Index(HDU.FitsFile, Positive_Count(HDU.Positions.Header_Index));
    HeaderBlocks_Type'Read(InFitsStreamAccess,HeaderBlocks);
    return HeaderBlocks;
   end Get;
@@ -274,7 +295,7 @@ package body FitsFile is
   InOutFitsStreamAccess : Stream_Access := Stream(HDU.FitsFile);
   -- sizes in units of Blocks
   HeaderSize : Positive := HeaderBlocks'Length; --(( Header'Length - 1 )/CardsCntInBlock) + 1;
-  FileSpace  : Positive := Positive(HDU.Positions.Header_Size) / BlockSize;
+  FileSpace  : Natural  := HDU.Positions.Header_Size / BlockSize;
   -- Header_Size no need to check: is multiple of BlockSize because we read by BlockSize
   Cur_Index : Positive_Count := Index(HDU.FitsFile);-- raises exception if file not open
  begin
@@ -307,76 +328,73 @@ package body FitsFile is
     -- Out_File cases. If a Set_Mode operation subsequently requires switching
     -- from reading to writing or vice-versa, then the file is reopened in `r+'
     -- mode to permit the required operation.<<
-    Set_Index(HDU.FitsFile, HDU.Positions.Header_Index);
+    Set_Index(HDU.FitsFile, Positive_Count(HDU.Positions.Header_Index));
     HeaderBlocks_Type'Write(InOutFitsStreamAccess,HeaderBlocks);
   end Put;
 
  -- positioning
 
   -- return index from start of the FITS file where Header and DataUnit start
-  function Header_Index( HDU : HDU_Type ) return Positive_Count
+  function Header_Index( HDU : HDU_Type ) return Positive
   is
   begin
    return HDU.Positions.Header_Index;
   end Header_Index;
 
-  function Data_Index  ( HDU : HDU_Type ) return Positive_Count
+  function Data_Index  ( HDU : HDU_Type ) return Positive
   is
   begin
    return HDU.Positions.Data_Index;
   end Data_Index;
 
-  function Header_Size( HDU : HDU_Type ) return Positive_Count
+  function Header_Size( HDU : HDU_Type ) return Natural
   is
   begin
    return HDU.Positions.Header_Size;
   end Header_Size;
 
-  function Data_Size  ( HDU : HDU_Type ) return Positive_Count
+  function Data_Size  ( HDU : HDU_Type ) return Natural
   is
   begin
    return HDU.Positions.Data_Size;
   end Data_Size;
 
- procedure Set_Index(HDU : HDU_Type; Index : Positive_Count )
+ procedure Set_Index(HDU : HDU_Type; Index : Positive )
  is
  begin
-   Set_Index(HDU.FitsFile,Index);
+   Set_Index(HDU.FitsFile,Positive_Count(Index));
  end Set_Index;
 
- function Index(HDU : HDU_TYPE) return Positive_Count
+ function Index(HDU : HDU_TYPE) return Positive
  is
  begin
-   return Index(HDU.FitsFile);
+   return Positive(Index(HDU.FitsFile));
  end Index;
 
- function Size(HDU : HDU_TYPE) return Positive_Count
+-- FIXME CopyBlocks is FITS_File_Type operation
+-- this serves only as workaround until FITS_File_Type API implemented
+ procedure Copy_Blocks(FromFile  : HDU_Type;
+                       FromBlock : Positive; ToBlock : Natural;
+                       ToFile  : HDU_Type )
  is
- begin
-  return Size(HDU.FitsFile);
- end Size;
-
--- Note alternatives
---       Copy_HDUs(InFileHandle, FromHDUnum, ToHDUnum, OutFileHandle);<- still File abstraction level, we should have this
---       Copy_HDU(InHDUHandle, OutFileHandle);<- for HDU abstraction, we should have this
- procedure Copy_Blocks(FromFile : HDU_Type; ToFile : File_Type;
-                       FromBlock : Positive; ToBlock : Natural )
- is
-  OutFitsSA  : Stream_Access := Stream(ToFile);
   InFitsSA   : Stream_Access := Stream(FromFile.FitsFile);
-  ToIndex : Positive_Count;
+  ToIndex    : Natural;
+  OutFitsSA  : Stream_Access := Stream(ToFile.FitsFile);
+  -- now the buffer:
   subtype Buffer_Type is String(1..BlockSize);
   Buffer : Buffer_Type;
  begin
 
-       Set_Index(FromFile,Positive_Count((FromBlock-1)*BlockSize+1));
-       ToIndex := Positive_Count((ToBlock*BlockSize) + 1);
+   Set_Index( FromFile, (FromBlock-1)*BlockSize+1);
+   ToIndex := ToBlock*BlockSize + 1;
 
-       loop
-         exit when Index(FromFile) = ToIndex;
-         Buffer_Type'Read(InFitsSA,Buffer);
-         Buffer_Type'Write(OutFitsSA,Buffer);
-       end loop;
+   loop
+     exit when End_Of_File(FromFile.FitsFile)
+            or (Index(FromFile) = ToIndex);
+     Buffer_Type'Read (InFitsSA, Buffer);
+     Buffer_Type'Write(OutFitsSA,Buffer);
+   end loop;
+
  end;
 
 end FitsFile;

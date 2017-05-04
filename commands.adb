@@ -17,7 +17,7 @@ package body Commands is
    HDU        : HDU_Type;
  begin
 
-   Open(HDU, In_File, FileName, HDU_Num);
+   Open(HDU, In_HDU, FileName, HDU_Num);
 
    -- print the Header
    declare
@@ -127,7 +127,7 @@ package body Commands is
  begin
 --   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
-   Open(InHDUHandle, In_File, FitsFileName );
+   Open(InHDUHandle, In_HDU, FitsFileName );
    InFileHeaderSizeInBlocks := Positive(Header_Size(InHDUHandle)) / BlockSize;
    Close(InHDUHandle);
 
@@ -136,7 +136,7 @@ package body Commands is
      Ada.text_IO.Put_Line("DBG: SHORT Version " & FitsFileName );
      -- new Header fits into empty space in file, simply write it there
 
-     Open( InHDUHandle, In_File, FitsFileName );
+     Open( InHDUHandle, Inout_HDU, FitsFileName );
      Put ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
      Close(InHDUHandle);
 
@@ -153,30 +153,28 @@ package body Commands is
 
      declare
        OutFitsName   : String := FitsFileName & ".part";
-       OutFileHandle : File_Type;
+       OutHDUHandle  : HDU_Type;
        Succeeded     : Boolean := False;
        FromBlock,ToBlock : Natural;
      begin
-       Open( InHDUHandle, In_File, FitsFileName );-- open Primary HDU
-       Create (File => OutFileHandle,
-               Mode => Out_File,
-               Name => OutFitsName);
+       Open  ( InHDUHandle,  In_HDU,  FitsFileName );
+       Create( OutHDUHandle, Out_HDU, OutFitsName );
 
        FromBlock := 1;
        ToBlock   := (Positive(Header_Index(InHDUHandle))-1) / BlockSize;
-       Copy_Blocks(InHDUHandle, OutFileHandle, FromBlock, ToBlock);
+       Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
 
        -- insert new header and skip old
-       HeaderBlocks_Type'Write(Stream(OutFileHandle),HeaderBlocks);-- FIXME use Put(HDU,..)
+       Put(OutHDUHandle, HeaderBlocks);
        -- skip old header
        Set_Index(InHDUHandle, Data_Index(InHDUHandle));
 
        FromBlock := (Positive(Index(InHDUHandle))-1) / BlockSize + 1;
-       ToBlock   := (Positive(Size (InHDUHandle))-1) / BlockSize + 1;
-       Copy_Blocks(InHDUHandle, OutFileHandle, FromBlock, ToBlock);
+       ToBlock   := Positive'Last / BlockSize;-- Copy exits with end of file
+       Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
        Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
 
-       Close(OutFileHandle);
+       Close(OutHDUHandle);
        Close(InHDUHandle);
 
        -- rename <filename>.fits.part -> <filename>.fits
