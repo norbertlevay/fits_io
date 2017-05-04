@@ -25,13 +25,18 @@ main : main.adb build_date.ads
 testsameheader:   # orig header has 35 cards
 	cp $(TESTFILE).orig $(TESTFILE)
 	chmod +w $(TESTFILE)
-	./fits header $(TESTFILE) test-35cards.hdr
+	./fits header $(TESTFILE) test-36cards.hdr
 
 testbiggerheader:   # orig header has 35 cards
 	cp $(TESTFILE).orig $(TESTFILE)
 	chmod +w $(TESTFILE)
 	./fits header $(TESTFILE) test-50cards.hdr
 
+testmodifyheader:
+	./fits header --hdu 2 $(TESTFILE).orig | sed 's/SIMPLE/HUHUHU/'| sed 's/XTENSION/HUHUHUHU/'> test-modifheader.hdr
+	cp $(TESTFILE).orig $(TESTFILE)
+	chmod +w $(TESTFILE)
+	./fits header --hdu 2 $(TESTFILE) test-modifheader.hdr
 
 clean:
 	rm -f ${TARGET} *.o *.ali build_date.*
