@@ -404,6 +404,10 @@ package body FitsFile is
                         FromBlock : Positive; ToBlock : Natural;
                         ToFile  : HDU_Type )
  is
+  NBlocks : Positive := 100;-- BufferSize multiplier
+  subtype  BigBuffer_Type is String(1..BlockSize*NBlocks);
+  BigBuffer : BigBuffer_Type;
+  NBlocksToCopy : Natural; -- nothing to copy possible: ToBlocks < FromBlocks
   subtype  Buffer_Type is String(1..BlockSize);
   Buffer : Buffer_Type;
   BCnt : Positive := 1;
@@ -412,6 +416,17 @@ package body FitsFile is
 
    Set_Index( FromFile, FromBlock );
    BlocksToCopy := 1 + ToBlock - FromBlock ;
+
+   NBlocksToCopy := BlocksToCopy / NBlocks;
+   BlocksToCopy  := BlocksToCopy mod NBlocks;
+
+   loop
+     exit when End_Of_File(FromFile.FitsFile)
+            or (BCnt > NBlocksToCopy);
+     BigBuffer_Type'Read (Stream(FromFile.FitsFile), BigBuffer);
+     BigBuffer_Type'Write(Stream(ToFile.FitsFile),   BigBuffer);
+     BCnt := BCnt + NBlocks;
+   end loop;
 
    loop
      exit when End_Of_File(FromFile.FitsFile)
