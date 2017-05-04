@@ -404,22 +404,21 @@ package body FitsFile is
                         FromBlock : Positive; ToBlock : Natural;
                         ToFile  : HDU_Type )
  is
-  InFitsSA   : Stream_Access := Stream(FromFile.FitsFile);
-  ToIndex    : Natural;
-  OutFitsSA  : Stream_Access := Stream(ToFile.FitsFile);
-  -- now the buffer:
   subtype  Buffer_Type is String(1..BlockSize);
   Buffer : Buffer_Type;
+  BCnt : Positive := 1;
+  BlocksToCopy : Natural; -- nothing to copy possible: ToBlocks < FromBlocks
  begin
 
-   Set_Index( FromFile, (FromBlock-1)*BlockSize+1);
-   ToIndex := ToBlock*BlockSize + 1;
+   Set_Index( FromFile, FromBlock );
+   BlocksToCopy := 1 + ToBlock - FromBlock ;
 
    loop
      exit when End_Of_File(FromFile.FitsFile)
-            or (Index(FromFile) = ToIndex);
-     Buffer_Type'Read (InFitsSA, Buffer);
-     Buffer_Type'Write(OutFitsSA,Buffer);
+            or (BCnt > BlocksToCopy);
+     Buffer_Type'Read (Stream(FromFile.FitsFile), Buffer);
+     Buffer_Type'Write(Stream(ToFile.FitsFile),   Buffer);
+     BCnt := BCnt + 1;
    end loop;
    -- FIXME should loop-exit with EOF be considered an error?
 

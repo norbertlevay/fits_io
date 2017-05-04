@@ -167,6 +167,7 @@ package body Commands is
        Create( OutHDUHandle, Out_HDU, OutFitsName );
 
        BeforeHeaderStart := Header_Index(InHDUHandle) - 1;
+       Ada.Text_IO.Put_Line("Debug From-To Block >" & Integer'Image(1) &" - " & Integer'Image(BeforeHeaderStart));
        Copy_Blocks(InHDUHandle,1,BeforeHeaderStart, OutHDUHandle);
 
        -- insert new header
@@ -174,9 +175,9 @@ package body Commands is
        -- skip old header
        FirstDataBlock := Data_Index(InHDUHandle);
 
+       Ada.Text_IO.Put_Line("Debug From-To Block >" & Integer'Image(FirstDataBlock) &" - " & Integer'Image(FileEnd));
        Copy_Blocks(InHDUHandle,FirstDataBlock,FileEnd, OutHDUHandle);
 
---       Ada.Text_IO.Put_Line("Debug FromBlock ToBlock >" & Integer'Image(FromBlock) &" - " & Integer'Image(ToBlock));
 
        Close(OutHDUHandle);
        Close(InHDUHandle);
