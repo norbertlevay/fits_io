@@ -36,9 +36,9 @@ package FitsFile is
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
  type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
 
- function  Get ( HDU : in HDU_Type ) return HeaderBlocks_Type;
+ function  Read ( HDU : in HDU_Type ) return HeaderBlocks_Type;
 
- procedure Put ( HDU          : in out HDU_Type;
+ procedure Write ( HDU          : in out HDU_Type;
                  HeaderBlocks : in HeaderBlocks_Type );
 
 

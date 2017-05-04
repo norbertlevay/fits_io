@@ -278,7 +278,7 @@ package body FitsFile is
 
 
 
- function Get ( HDU : in HDU_Type )
+ function Read ( HDU : in HDU_Type )
   return HeaderBlocks_Type is
    InFitsStreamAccess  : Stream_Access := Stream(HDU.FitsFile);
    HeaderBlocks : HeaderBlocks_Type(1..Integer(HDU.Positions.Header_Size)/BlockSize);
@@ -286,12 +286,12 @@ package body FitsFile is
    Set_Index(HDU.FitsFile, Positive_Count(HDU.Positions.Header_Index));
    HeaderBlocks_Type'Read(InFitsStreamAccess,HeaderBlocks);
    return HeaderBlocks;
-  end Get;
+  end Read;
 
 
 
- procedure Put ( HDU    : in out HDU_Type;
-                 HeaderBlocks : in HeaderBlocks_Type ) is
+ procedure Write ( HDU          : in out HDU_Type;
+                   HeaderBlocks : in HeaderBlocks_Type ) is
   InOutFitsStreamAccess : Stream_Access := Stream(HDU.FitsFile);
   -- sizes in units of Blocks
   HeaderSize : Positive := HeaderBlocks'Length; --(( Header'Length - 1 )/CardsCntInBlock) + 1;
@@ -330,7 +330,7 @@ package body FitsFile is
     -- mode to permit the required operation.<<
     Set_Index(HDU.FitsFile, Positive_Count(HDU.Positions.Header_Index));
     HeaderBlocks_Type'Write(InOutFitsStreamAccess,HeaderBlocks);
-  end Put;
+  end Write;
 
  -- positioning
 

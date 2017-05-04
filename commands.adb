@@ -21,7 +21,7 @@ package body Commands is
 
    -- print the Header
    declare
-     HeaderBlocks : HeaderBlocks_Type := Get(HDU);
+     HeaderBlocks : HeaderBlocks_Type := Read(HDU);
    begin
 
      for I in HeaderBlocks'Range
@@ -137,7 +137,7 @@ package body Commands is
      -- new Header fits into empty space in file, simply write it there
 
      Open( InHDUHandle, Inout_HDU, FitsFileName );
-     Put ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
+     Write ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
      Close(InHDUHandle);
 
    else
@@ -165,7 +165,7 @@ package body Commands is
        Copy_Blocks(InHDUHandle,FromBlock,ToBlock, OutHDUHandle);
 
        -- insert new header and skip old
-       Put(OutHDUHandle, HeaderBlocks);
+       Write(OutHDUHandle, HeaderBlocks);
        -- skip old header
        Set_Index(InHDUHandle, Data_Index(InHDUHandle));
 
