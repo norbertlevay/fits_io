@@ -33,7 +33,7 @@ testbiggerheader:   # orig header has 35 cards
 	./fits header $(TESTFILE) test-50cards.hdr
 
 testmodifyheader:
-	./fits header --hdu 2 $(TESTFILE).orig | sed 's/SIMPLE/HUHUHU/'| sed 's/XTENSION/HUHUHUHU/'> test-modifheader.hdr
+	./fits header --hdu 2 $(TESTFILE).orig | sed 's/SIMPLE/HUHUHU/'| sed 's/XTENSION/HUHUHUHU/'> test-modifyheader.hdr
 	cp $(TESTFILE).orig $(TESTFILE)
 	chmod +w $(TESTFILE)
 	./fits header --hdu 2 $(TESTFILE) test-modifheader.hdr
