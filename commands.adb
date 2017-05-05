@@ -5,6 +5,8 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
 
 use  Ada.Streams.Stream_IO;
 
+with FITS_IO;-- only force to compile FITS_IO also
+
 package body Commands is
 
  --
