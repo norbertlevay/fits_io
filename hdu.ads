@@ -13,9 +13,6 @@ package HDU is
                     Name : in String;
                     HDU_Num : Positive  := 1;-- default is Primary HDU
                     Form : in String    := "");
- -- if Mode Out_File   : creates first HDU of a new file
- -- if Mode Append_Mode: creates new HDU of an existing file
- -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
 
  procedure Open ( HDU  : in out HDU_Type;
                   Mode : in HDU_Mode;

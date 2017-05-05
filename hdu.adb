@@ -274,6 +274,9 @@ package body HDU is
   -- init only to undef
   -- later first write will setup numbers based on given Header
  end;
+ -- if Mode Out_File   : creates first HDU of a new file
+ -- if Mode Append_Mode: creates new HDU of an existing file
+ -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
 
 
 

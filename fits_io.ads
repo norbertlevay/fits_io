@@ -1,5 +1,8 @@
 
 
+
+
+
 package FITS_IO is
 
  type File_Type is limited private;
@@ -8,12 +11,12 @@ package FITS_IO is
  procedure Create ( Fits : in out File_Type;
                     Mode : in Mode_Type;
                     Name : in String;
-                    Form : in String    := "");
+                    Form : in String := "");
 
  procedure Open ( Fits : in out File_Type;
                   Mode : in Mode_Type;
                   Name : in String;
-                  Form : in String   := "");
+                  Form : in String := "");
 
  procedure Close ( Fits : in out File_Type );
 
@@ -44,7 +47,9 @@ private
  type File_Data_Array;
  type File_Type is access File_Data_Array;
 
- procedure Copy_Blocks (FromFile : File_type; FirstBlock : Positive; LastBlock : Positive;
-                        ToFile   : File_type);
+ -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
+ procedure Copy_Blocks (FromFile : File_Type;
+                        FirstBlock : Positive; LastBlock : Positive;
+                        ToFile   : File_Type);
 
 end FITS_IO;
