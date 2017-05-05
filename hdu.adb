@@ -26,7 +26,7 @@ package body HDU is
    -- set up a buffer for reading fits-file by blocks
    subtype Block_Type is String(1..BlockSize);
 
-   MaxNAXIS : constant Positive := 99; --FIXME check standard
+   MaxNAXIS : constant Positive := 999;-- [FITS standard Sect 4.4.1 ]
    type AxisArray_Type is array (1..MaxNAXIS) of Natural;
    type Axes_Type is record
     BitPix : Integer; -- FIXME actually fixed values only

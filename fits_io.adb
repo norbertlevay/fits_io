@@ -19,18 +19,41 @@ package body FITS_IO is
  end record;
  type File_Data_Array is array (Positive range <>) of File_Data;
 
- File : File_Type;
+ procedure Create ( Fits : in out File_Type;
+                    Mode : in Mode_Type;
+                    Name : in String;
+                    Form : in String    := "") is
+ begin
+  null;
+ end Create;
+ -- if Mode Out_File   : creates first HDU of a new file
+ -- if Mode Append_Mode: creates new HDU of an existing file
+ -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
+
+ procedure Open ( Fits : in out File_Type;
+                  Mode : in Mode_Type;
+                  Name : in String;
+                  Form : in String   := "") is
+ begin
+  null;
+ end Open;
+
+ procedure Close ( Fits : in out File_Type ) is
+ begin
+  null;
+ end Close;
 
 
- function NoOfHDUs(FitsFile : File_Type) return Positive
+
+ function NoOfHDUs( Fits : in File_Type ) return Positive
  is
  begin
-  return File'Length;
+  return Fits'Length;
  end NoOfHDUs;
 
- function FitsFile_Info (FitsFile : File_Type) return All_HDU_Info
+ function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
  is
-  All_HDU : All_HDU_Info(1..NoOfHDUs(FitsFile));
+  All_HDU : All_HDU_Info( 1 .. Fits'Length );
  begin
   return All_HDU;
  end FitsFile_Info;
