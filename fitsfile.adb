@@ -485,11 +485,17 @@ package body FitsFile is
    Set_Index(HDU.FitsFile,Positive_Count(To_FileIndex(Index)));
  end Set_Index;
 
- function Index(HDU : HDU_TYPE) return Positive
+ function Index(HDU : HDU_Type) return Positive
  is
  begin
    return To_BlockIndex(Positive(Index(HDU.FitsFile)));
  end Index;
+
+ function  Size(HDU : HDU_Type) return Positive
+ is
+ begin
+   return To_BlockSize( Natural(Size(HDU.FitsFile)) );
+ end Size;
 
 -- FIXME CopyBlocks is FITS_File_Type operation
 -- this serves only as workaround until FITS_File_Type API implemented
@@ -504,31 +510,39 @@ package body FitsFile is
   subtype  Buffer_Type is String(1..BlockSize);
   Buffer : Buffer_Type;
   BCnt : Positive := 1;
-  BlocksToCopy : Natural; -- nothing to copy possible: ToBlocks < FromBlocks
+  TotBlocksToCopy : Natural; -- nothing to copy possible: ToBlocks < FromBlocks
+  BlocksToCopy : Natural;
  begin
 
    Set_Index( FromFile, FromBlock );
-   BlocksToCopy := 1 + ToBlock - FromBlock ;
+   TotBlocksToCopy := 1 + ToBlock - FromBlock ;
 
-   NBlocksToCopy := BlocksToCopy / NBlocks;
-   BlocksToCopy  := BlocksToCopy mod NBlocks;
+  Ada.Text_IO.Put_Line("DBG TotBlocksToCopy > " & Positive'Image(TotBlocksToCopy) );
+
+   NBlocksToCopy := TotBlocksToCopy / NBlocks;
+   BlocksToCopy  := TotBlocksToCopy mod NBlocks;
+
+   Ada.Text_IO.Put_Line("DBG NBlocksToCopy > " & Positive'Image(NBlocksToCopy) );
+   Ada.Text_IO.Put_Line("DBG BlocksToCopy  > " & Positive'Image(BlocksToCopy) );
 
    loop
      exit when End_Of_File(FromFile.FitsFile)
-            or (BCnt > NBlocksToCopy);
+            or (NBlocksToCopy <= 0);
      BigBuffer_Type'Read (Stream(FromFile.FitsFile), BigBuffer);
      BigBuffer_Type'Write(Stream(ToFile.FitsFile),   BigBuffer);
-     BCnt := BCnt + NBlocks;
+     NBlocksToCopy := NBlocksToCopy - 1;
    end loop;
 
    loop
      exit when End_Of_File(FromFile.FitsFile)
-            or (BCnt > BlocksToCopy);
+            or (BlocksToCopy <= 0);
      Buffer_Type'Read (Stream(FromFile.FitsFile), Buffer);
      Buffer_Type'Write(Stream(ToFile.FitsFile),   Buffer);
-     BCnt := BCnt + 1;
+     BlocksToCopy := BlocksToCopy - 1;
    end loop;
    -- FIXME should loop-exit with EOF be considered an error?
+
+-- Ada.Text_IO.Put_Line("DBG BCnt > " & Positive'Image(BCnt) );
 
  end;
 

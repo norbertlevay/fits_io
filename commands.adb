@@ -118,8 +118,7 @@ package body Commands is
        Succeeded    : Boolean := False;
        BeforeHeaderStart : Natural;
        FirstDataBlock    : Positive;
-       FileEnd           : Positive := Positive'Last / BlockSize;
-       -- Copy_Blocks exits with end-of-file
+       FileEnd           : Positive;
      begin
 
        Open  ( InHDUHandle,  In_HDU,  FitsFileName, HDU_Num );
@@ -134,6 +133,7 @@ package body Commands is
        -- skip old header
        FirstDataBlock := Data_Index(InHDUHandle);
 
+       FileEnd := Size(InHDUHandle);
        Ada.Text_IO.Put_Line("Debug From-To Block >" & Integer'Image(FirstDataBlock) &" - " & Integer'Image(FileEnd));
        Copy_Blocks(InHDUHandle,FirstDataBlock,FileEnd, OutHDUHandle);
 

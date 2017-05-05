@@ -58,6 +58,9 @@ package FitsFile is
  function Data_Size  ( HDU : HDU_Type ) return Natural;
  -- return Header and DataUnit sizes in bytes (StreamElement which in GNAT is Byte)
 
+ function  Size(HDU : HDU_TYPE) return Positive;
+ -- file size in blocks
+
  function  Index(HDU : HDU_TYPE) return Positive;
  procedure Set_Index(HDU : HDU_TYPE; Index : Positive );
  -- get/set Index in bytes (StreamElement which in GNAT is Byte)
