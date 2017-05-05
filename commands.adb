@@ -16,22 +16,16 @@ package body Commands is
    FileHandle : File_Type;
    HDU        : HDU_Type;
  begin
-
    Open(HDU, In_HDU, FileName, HDU_Num);
-
    declare
      Header : Header_Type := Read(HDU);
    begin
-
      for I in Header'Range
      loop
          Ada.Text_IO.Put_Line( SB.To_String(Header(I)) );
      end loop;
-
    end;
-
    Close(HDU);
-
  end Print_Header;
 
  --
@@ -62,15 +56,14 @@ package body Commands is
  end NoOfLines;
 
  --
- -- Convert Header from text file into HeaderBlocks_Type
+ -- Convert Header from text file into Header_Type
  --
  function Read_HeaderFromTextFile( FileName : in String )
   return Header_Type
  is
    FileHandle : Ada.Text_IO.File_Type;
    NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
-   HeaderSizeInBlocks : Positive := 1 + (NoLines - 1)/ CardsCntInBlock;
-   Header : Header_Type(1 .. NoLines);
+   Header  : Header_Type(1 .. NoLines);
  begin
    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
    for I in Header'Range loop
@@ -87,30 +80,26 @@ package body Commands is
  			 HeaderFileName : in String;
                          HDU_Num        : Positive := 1 )
  is
-   InHDUHandle  : HDU_Type;
+   InHDUHandle : HDU_Type;
    Header : Header_Type := Read_HeaderFromTextFile( HeaderFileName );
-   HeaderSizeInBlocks : Positive := (Header'Length - 1) / CardsCntInBlock + 1;
+   HeaderSizeInBlocks       : Positive := (Header'Length - 1) / CardsCntInBlock + 1;
    InFileHeaderSizeInBlocks : Positive;
  begin
---   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
    Open(InHDUHandle, In_HDU, FitsFileName, HDU_Num );
    InFileHeaderSizeInBlocks := Header_Size(InHDUHandle);
    Close(InHDUHandle);
 
-   Ada.Text_IO.Put_Line("Debug FileHSize va NewHSzie >"
-                       & Integer'Image(InFileHeaderSizeInBlocks)
-                       &" - "
-                       & Integer'Image(HeaderSizeInBlocks));
+   Ada.Text_IO.Put_Line("Debug FileHSize va NewHSzie >" & Integer'Image(InFileHeaderSizeInBlocks) & " - " & Integer'Image(HeaderSizeInBlocks));
 
    if InFileHeaderSizeInBlocks = HeaderSizeInBlocks
    then
      Ada.text_IO.Put_Line("DBG: SHORT Version " & FitsFileName );
      -- new Header fits into empty space in file, simply write it there
 
-     Open( InHDUHandle, Inout_HDU, FitsFileName, HDU_Num );
-     Write ( InHDUHandle, Header );-- FIXME switches mode internally for write-without-truncate
-     Close(InHDUHandle);
+     Open ( InHDUHandle, Inout_HDU, FitsFileName, HDU_Num );
+     Write( InHDUHandle, Header );-- FIXME switches mode internally for write-without-truncate
+     Close( InHDUHandle );
 
    else
      Ada.text_IO.Put_Line("DBG: LOONG Version " & FitsFileName );

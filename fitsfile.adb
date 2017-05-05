@@ -43,29 +43,30 @@ package body FitsFile is
   end Assert_HDU_Positions_Valid;
 
    -- for debug
-   procedure Print_AxesDimensions(HDU_Num        : in Positive;
-                                  AxesDimensions : in Axes_Type) is
-   begin
-       Ada.Text_IO.Put("HDU#" & Integer'Image(HDU_Num) & "> ");
-       Ada.Text_IO.Put(Integer'Image(AxesDimensions.Naxes)  &" : ");
-       Ada.Text_IO.Put(Integer'Image(AxesDimensions.BitPix));
-       for I in 1 .. AxesDimensions.Naxes
-       loop
-         Ada.Text_IO.Put(" x " & Integer'Image(AxesDimensions.Naxis(I)));
-       end loop;
-       Ada.Text_IO.New_Line;
-   end Print_AxesDimensions;
-
-   procedure Print_HeaderBlocks( HB: HeaderBlocks_Type ) is
-   begin
-    for I in HB'Range loop
-     for J in HB(I)'Range loop
-         Ada.Integer_Text_IO.Put( I, 5 );
-         Ada.Integer_Text_IO.Put( J, 5 );
-         Ada.Text_IO.Put_Line(  " >"  & HB(I)(J)  & "<");
-     end loop;
+ procedure Print_AxesDimensions(HDU_Num        : in Positive;
+                                AxesDimensions : in Axes_Type) is
+  begin
+      Ada.Text_IO.Put("HDU#" & Integer'Image(HDU_Num) & "> ");
+      Ada.Text_IO.Put(Integer'Image(AxesDimensions.Naxes)  &" : ");
+      Ada.Text_IO.Put(Integer'Image(AxesDimensions.BitPix));
+      for I in 1 .. AxesDimensions.Naxes
+      loop
+        Ada.Text_IO.Put(" x " & Integer'Image(AxesDimensions.Naxis(I)));
+      end loop;
+      Ada.Text_IO.New_Line;
+  end Print_AxesDimensions;
+  -- for debug
+ procedure Print_HeaderBlocks( HB: HeaderBlocks_Type ) is
+  begin
+   for I in HB'Range loop
+    for J in HB(I)'Range loop
+        Ada.Integer_Text_IO.Put( I, 5 );
+        Ada.Integer_Text_IO.Put( J, 5 );
+        Ada.Text_IO.Put_Line(  " >"  & HB(I)(J)  & "<");
     end loop;
-   end Print_HeaderBlocks;
+   end loop;
+  end Print_HeaderBlocks;
+
    --
    --
    --

@@ -8,6 +8,7 @@ package FitsFile is
  CardSize        : constant Positive := 80;
  CardsCntInBlock : constant Positive := 36;
  BlockSize       : constant Positive := CardSize*CardsCntInBlock;
+ -- FIXME remove Block-related definitions from here
 
  type HDU_Type is limited private;
  type HDU_Mode is (In_HDU, Out_HDU, Inout_HDU, Append_HDU);
