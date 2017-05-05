@@ -1,5 +1,7 @@
 
 
+# note: git diff --exit-code : echo "$?" returns 1 if there were changes, and 0 if no changes
+
 builddate=$(shell date)
 
 TARGET=fits

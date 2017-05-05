@@ -9,7 +9,7 @@ use  Ada.Streams.Stream_IO;
 with Ada.Strings;
 with Ada.Strings.Fixed;
 
-package body FitsFile is
+package body HDU is
 
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
    ENDCard  : Card_Type := "END                                                                             ";
@@ -559,5 +559,5 @@ package body FitsFile is
 
  end;
 
-end FitsFile;
+end HDU;
 

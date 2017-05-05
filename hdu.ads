@@ -1,9 +1,9 @@
 
-with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
+with Ada.Streams.Stream_IO;
 -- File_Type needed in HDU_Type FIXME
 
-package FitsFile is
+package HDU is
 
  type HDU_Type is limited private;
  type HDU_Mode is (In_HDU, Out_HDU, Inout_HDU, Append_HDU);
@@ -87,5 +87,5 @@ private
    Positions : HDU_Position_Type;
   end record;
 
-end FitsFile;
+end HDU;
 

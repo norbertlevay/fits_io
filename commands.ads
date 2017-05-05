@@ -1,6 +1,6 @@
 
-with FitsFile;
-use  FitsFile;
+with HDU;
+use  HDU;
 
 package Commands is
 
