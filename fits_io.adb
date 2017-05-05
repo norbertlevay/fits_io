@@ -53,7 +53,7 @@ package body FITS_IO is
 
  function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
  is
-  All_HDU : All_HDU_Info( 1 .. Fits'Length );
+  All_HDU : All_HDU_Info( 1 .. Fits'Length ) := (others=>Null_HDU_Info);
  begin
   return All_HDU;
  end FitsFile_Info;
