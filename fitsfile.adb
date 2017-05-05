@@ -14,6 +14,9 @@ package body FitsFile is
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
    ENDCard  : Card_Type := "END                                                                             ";
 
+   BlockSize       : constant Positive := 2880;
+   CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
+
    type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
    EmptyCard  : constant String(1..CardSize) := (others => ' ');
    EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
@@ -453,6 +456,16 @@ package body FitsFile is
   return SizeInBlocks;
  end To_BlockSize;
 
+ function Size( Header : Header_Type ) return Natural
+ -- returns Header size in Blocks
+ is
+ begin
+  if 0 = Header'Length then
+   return 0;
+  else
+   return 1 + (Header'Length - 1) / CardsCntInBlock;
+  end if;
+ end Size;
 
   -- return index from start of the FITS file where Header and DataUnit start
  function Header_Index( HDU : HDU_Type ) return Positive

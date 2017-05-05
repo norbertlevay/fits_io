@@ -82,7 +82,7 @@ package body Commands is
  is
    InHDUHandle : HDU_Type;
    Header : Header_Type := Read_HeaderFromTextFile( HeaderFileName );
-   HeaderSizeInBlocks       : Positive := (Header'Length - 1) / CardsCntInBlock + 1;
+   HeaderSizeInBlocks       : Positive := Size(Header);
    InFileHeaderSizeInBlocks : Positive;
  begin
 

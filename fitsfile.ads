@@ -5,11 +5,6 @@ with Ada.Strings.Bounded;
 
 package FitsFile is
 
- CardSize        : constant Positive := 80;
- CardsCntInBlock : constant Positive := 36;
- BlockSize       : constant Positive := CardSize*CardsCntInBlock;
- -- FIXME remove Block-related definitions from here
-
  type HDU_Type is limited private;
  type HDU_Mode is (In_HDU, Out_HDU, Inout_HDU, Append_HDU);
 
@@ -31,16 +26,22 @@ package FitsFile is
  procedure Close ( HDU : in out HDU_Type );
 
 
- -- access Header
+ -- Header definition
 
+ CardSize : constant Positive := 80;
  package SB is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
  type Header_Type is array (Positive range <>) of SB.Bounded_String;
- -- header lines are max CardSize long
+ -- Header is array of lines, each line max 80 chars long
+
+ -- Header access
 
  function  Read ( HDU : in HDU_Type ) return Header_Type;
 
  procedure Write ( HDU    : in out HDU_Type;
                    Header : in Header_Type );
+
+ function Size( Header : Header_Type ) return Natural;
+ -- returns Header size in Blocks
 
 
  -- positioning, FIXME these are FITS-file operations
