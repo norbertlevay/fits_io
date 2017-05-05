@@ -1,5 +1,5 @@
 
-with Ada.Text_IO, Ada.Integer_Text_IO,
+with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Streams.Stream_IO,
      GNAT.OS_Lib;
 
@@ -11,8 +11,7 @@ package body Commands is
  -- read header from file and print to stdout
  --
  procedure Print_Header( FileName : in String;
-                         HDU_Num  : Positive := 1;
-                         AnnotatedPrint : Boolean := False )
+                         HDU_Num  : Positive := 1 )
  is
    FileHandle : File_Type;
    HDU        : HDU_Type;
@@ -20,25 +19,13 @@ package body Commands is
 
    Open(HDU, In_HDU, FileName, HDU_Num);
 
-   -- print the Header
    declare
-     HeaderBlocks : HeaderBlocks_Type := Read(HDU);
+     Header : Header_Type := Read(HDU);
    begin
 
-     for I in HeaderBlocks'Range
+     for I in Header'Range
      loop
-
-      for J in HeaderBlocks(I)'Range
-      loop
-       if AnnotatedPrint then
-         Ada.Integer_Text_IO.Put( I, 5 );
-         Ada.Integer_Text_IO.Put( J, 5 );
-         Ada.Text_IO.Put_Line(  " >"  & HeaderBlocks(I)(J)  & "<");
-       else
-         Ada.Text_IO.Put_Line( HeaderBlocks(I)(J) );
-       end if;
-      end loop;
-
+         Ada.Text_IO.Put_Line( SB.To_String(Header(I)) );
      end loop;
 
    end;
@@ -48,25 +35,8 @@ package body Commands is
  end Print_Header;
 
  --
- -- convert HeaderText -> HeaderBlocks
+ -- count lines in Header file
  --
- subtype CardBuffer is String(1 .. CardSize);
-
- function To_CardBuffer ( Item : in String )
- return CardBuffer is
-  mycard : CardBuffer := (others => ' ');
- begin
-
-   if Item'Length <= CardSize then
-      for i in Item'Range 
-      loop
-       mycard(i) := Item(i);
-      end loop;
-   end if;
-
-   return mycard;
- end To_CardBuffer;
-
  function NoOfLines( FileName : in String )
   return Positive
  is
@@ -81,7 +51,9 @@ package body Commands is
          Dummy : String := Ada.Text_IO.Get_Line( FileHandle );
          -- raises exception if no END-Line found but EOF reached
         begin
-         ENDFound := (Dummy(1..3) = "END");
+         if Dummy'Length >= 3 then
+           ENDFound := (Dummy(1..3) = "END");
+         end if;
         end;
         NoLines := NoLines + 1;
     end loop;
@@ -93,29 +65,19 @@ package body Commands is
  -- Convert Header from text file into HeaderBlocks_Type
  --
  function Read_HeaderFromTextFile( FileName : in String )
-  return HeaderBlocks_Type
+  return Header_Type
  is
-   FileHandle     : Ada.Text_IO.File_Type;
-   FitsCardBuffer : CardBuffer := EmptyCard;
-
+   FileHandle : Ada.Text_IO.File_Type;
    NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
-   HeaderSizeInBlocks : Positive := (NoLines - 1)/ CardsCntInBlock + 1;
-   HeaderBlocks : HeaderBlocks_Type(1..HeaderSizeInBlocks) := (others => EmptyBlock);
-   CardsCount : Positive := 1;
-   IxBlock : Positive;
-   IxCard : Positive;
+   HeaderSizeInBlocks : Positive := 1 + (NoLines - 1)/ CardsCntInBlock;
+   Header : Header_Type(1 .. NoLines);
  begin
    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
-   loop
-      exit when (FitsCardBuffer(1..3) = "END");
-      FitsCardBuffer := To_CardBuffer(Ada.Text_IO.Get_Line( FileHandle ));
-      IxBlock := (CardsCount - 1) / CardsCntInBlock   + 1;
-      IxCard  := (CardsCount - 1) mod CardsCntInBlock + 1;
-      HeaderBlocks(IxBlock)(IxCard) := FitsCardBuffer;
-      CardsCount := CardsCount + 1;
+   for I in Header'Range loop
+      Header(I) := SB.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
    end loop;
    Ada.Text_IO.Close(FileHandle);
-   return HeaderBlocks;
+   return Header;
  end Read_HeaderFromTextFile;
 
  --
@@ -125,26 +87,29 @@ package body Commands is
  			 HeaderFileName : in String;
                          HDU_Num        : Positive := 1 )
  is
-   BitsInByte : Positive := 8;--FIXME get this from System.xxxx
    InHDUHandle  : HDU_Type;
-   HeaderBlocks : HeaderBlocks_Type := Read_HeaderFromTextFile( HeaderFileName );
+   Header : Header_Type := Read_HeaderFromTextFile( HeaderFileName );
+   HeaderSizeInBlocks : Positive := (Header'Length - 1) / CardsCntInBlock + 1;
    InFileHeaderSizeInBlocks : Positive;
  begin
 --   Ada.text_IO.Put_Line("DBG: " & FitsFileName );
 
    Open(InHDUHandle, In_HDU, FitsFileName, HDU_Num );
-   InFileHeaderSizeInBlocks := Header_Size(InHDUHandle);--Positive(Header_Size(InHDUHandle)) / BlockSize;
+   InFileHeaderSizeInBlocks := Header_Size(InHDUHandle);
    Close(InHDUHandle);
 
-   Ada.Text_IO.Put_Line("Debug FileHSize va NewHSzie >" & Integer'Image(InFileHeaderSizeInBlocks) &" - " & Integer'Image(HeaderBlocks'Length));
+   Ada.Text_IO.Put_Line("Debug FileHSize va NewHSzie >"
+                       & Integer'Image(InFileHeaderSizeInBlocks)
+                       &" - "
+                       & Integer'Image(HeaderSizeInBlocks));
 
-   if InFileHeaderSizeInBlocks = HeaderBlocks'Length
+   if InFileHeaderSizeInBlocks = HeaderSizeInBlocks
    then
      Ada.text_IO.Put_Line("DBG: SHORT Version " & FitsFileName );
      -- new Header fits into empty space in file, simply write it there
 
      Open( InHDUHandle, Inout_HDU, FitsFileName, HDU_Num );
-     Write ( InHDUHandle, HeaderBlocks );-- FIXME switches mode internally for write-without-truncate
+     Write ( InHDUHandle, Header );-- FIXME switches mode internally for write-without-truncate
      Close(InHDUHandle);
 
    else
@@ -163,8 +128,8 @@ package body Commands is
        OutHDUHandle : HDU_Type;
        Succeeded    : Boolean := False;
        BeforeHeaderStart : Natural;
-       FirstDataBlock   : Positive;
-       FileEnd : Positive := Positive'Last / BlockSize;
+       FirstDataBlock    : Positive;
+       FileEnd           : Positive := Positive'Last / BlockSize;
        -- Copy_Blocks exits with end-of-file
      begin
 
@@ -176,7 +141,7 @@ package body Commands is
        Copy_Blocks(InHDUHandle,1,BeforeHeaderStart, OutHDUHandle);
 
        -- insert new header
-       Write(OutHDUHandle, HeaderBlocks);
+       Write(OutHDUHandle, Header);
        -- skip old header
        FirstDataBlock := Data_Index(InHDUHandle);
 

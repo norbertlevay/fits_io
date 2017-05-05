@@ -1,14 +1,24 @@
 
 
 with Ada.Text_IO; -- for debug only
+with Ada.Integer_Text_IO;
 
 with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO;
+
+with Ada.Strings;
+with Ada.Strings.Fixed;
 
 package body FitsFile is
 
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
    ENDCard  : Card_Type := "END                                                                             ";
+
+   type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
+   EmptyCard  : constant String(1..CardSize) := (others => ' ');
+   EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+   type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+   -- Header format inside file
 
    -- set up a buffer for reading fits-file by blocks
    subtype Block_Type is String(1..BlockSize);
@@ -46,6 +56,16 @@ package body FitsFile is
        Ada.Text_IO.New_Line;
    end Print_AxesDimensions;
 
+   procedure Print_HeaderBlocks( HB: HeaderBlocks_Type ) is
+   begin
+    for I in HB'Range loop
+     for J in HB(I)'Range loop
+         Ada.Integer_Text_IO.Put( I, 5 );
+         Ada.Integer_Text_IO.Put( J, 5 );
+         Ada.Text_IO.Put_Line(  " >"  & HB(I)(J)  & "<");
+     end loop;
+    end loop;
+   end Print_HeaderBlocks;
    --
    --
    --
@@ -276,7 +296,68 @@ package body FitsFile is
   HDU.Positions := HDU_Null;
  end;
 
+ -- Header conversions: internal (HeaderBlocks_Type) <-> external (Header_Type)
 
+ function CardsCount (HeaderBlocks : HeaderBlocks_Type) return Positive
+ is
+  Count : Positive := 1;
+ begin
+  for I in HeaderBlocks'Range loop
+   for J in HeaderBlocks(I)'Range loop
+    exit when HeaderBlocks(I)(J) = ENDCard;
+    Count := Count + 1;
+   end loop;
+  end loop;
+  return Count;
+ end CardsCount;
+ -- FIXME we need CardsCount stored in the HeaderBlocks_Type
+
+ -- strip empty spaces from start end end of each line
+ -- strip empty cards after END-card
+ function To_Header( HeaderBlocks : HeaderBlocks_Type ) return Header_Type
+ is
+  H  : Header_Type(1 .. CardsCount(HeaderBlocks));
+  Ix : Positive := 1;
+ begin
+  for I in HeaderBlocks'Range loop
+   for J in HeaderBlocks(I)'Range loop
+    H(Ix) := SB.Trim(SB.To_Bounded_String(HeaderBlocks(I)(J)) , Ada.Strings.Both);
+    exit when HeaderBlocks(I)(J) = ENDCard;
+    Ix := Ix + 1;
+   end loop;
+  end loop;
+  return H;
+ end To_Header;
+
+ function To_HeaderBlocks( Header : Header_Type ) return HeaderBlocks_Type
+ is
+  -- init blocks with space-characters
+  HB : HeaderBlocks_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
+  Ix : Positive := 1;-- index in header
+  BIx,Cix : Natural;-- block-index, card-index
+ begin
+  for I in Header'Range loop
+    BIx := 1 + (Ix-1) /  CardsCntInBlock;
+    CIx := Ix mod CardsCntInBlock;
+    if CIx = 0 then
+     CIx := CardsCntInBlock;
+    end if;
+    declare
+     str : String := SB.To_String(SB.Trim(Header(I), Ada.Strings.Both));
+    begin
+     for J in str'Range loop
+      HB(BIx)(CIx)(J) := str(J);
+     end loop;
+     -- FIXME is there a better way?
+    end;
+    Ix := Ix + 1;
+  end loop;
+  -- debug Print_HeaderBlocks(HB);
+  return HB;
+ end To_HeaderBlocks;
+
+
+ -- Header access
 
  function Read ( HDU : in HDU_Type )
   return HeaderBlocks_Type is
@@ -288,6 +369,11 @@ package body FitsFile is
    return HeaderBlocks;
   end Read;
 
+ function Read ( HDU : in HDU_Type )
+  return Header_Type is
+  begin
+   return To_Header(Read(HDU));
+  end Read;
 
 
  procedure Write ( HDU          : in out HDU_Type;
@@ -331,6 +417,12 @@ package body FitsFile is
     Set_Index(HDU.FitsFile, Positive_Count(HDU.Positions.Header_Index));
     HeaderBlocks_Type'Write(InOutFitsStreamAccess,HeaderBlocks);
   end Write;
+
+ procedure Write ( HDU    : in out HDU_Type;
+                   Header : in Header_Type ) is
+ begin
+  Write(HDU, To_HeaderBlocks(Header));
+ end Write;
 
  -- positioning
 

@@ -1,5 +1,6 @@
 
 with Ada.Streams.Stream_IO;
+with Ada.Strings.Bounded;
 -- File_Type needed in HDU_Type FIXME
 
 package FitsFile is
@@ -31,15 +32,14 @@ package FitsFile is
 
  -- access Header
 
- type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
- EmptyCard  : constant String(1..CardSize) := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
- type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+ package SB is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
+ type Header_Type is array (Positive range <>) of SB.Bounded_String;
+ -- header lines are max CardSize long
 
- function  Read ( HDU : in HDU_Type ) return HeaderBlocks_Type;
+ function  Read ( HDU : in HDU_Type ) return Header_Type;
 
- procedure Write ( HDU          : in out HDU_Type;
-                 HeaderBlocks : in HeaderBlocks_Type );
+ procedure Write ( HDU    : in out HDU_Type;
+                   Header : in Header_Type );
 
 
  -- positioning, FIXME these are FITS-file operations

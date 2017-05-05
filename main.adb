@@ -50,7 +50,6 @@ procedure main is
 
  NoOptions : Natural := 0;
  HDU_Num : Positive := 1;
- AnnotatedPrint : Boolean := False;
 
  package IO  renames Ada.Text_IO;
  package CLI renames Ada.Command_Line;
@@ -89,8 +88,7 @@ procedure main is
         then
         	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-		Print_Header( To_String(Input_File_Path), HDU_Num,
-                              AnnotatedPrint );
+		Print_Header( To_String(Input_File_Path), HDU_Num );
         else
         	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
