@@ -94,6 +94,14 @@ private
  type File_Data_Array;
  type File_Type is access File_Data_Array;
 
+ -- HDU Records
+ -- It is linked list of HDU info about
+ -- positions and sizes of HDU's in FITS File.
+ -- Open and Write will insert HDU Records into the list
+ -- Create initializes an empty list
+ -- Close destroys the list
+
+
  -- low-level file access by Blocks
 
  BlockSize : constant Positive := 2880; -- [FITS, Sect xxx]
