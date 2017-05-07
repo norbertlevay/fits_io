@@ -24,6 +24,7 @@ package body FITS_IO is
 
  type File_Data is record
   FitsFile : Ada.Streams.Stream_IO.File_Type;
+  HDU_Cnt  : Positive;
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
@@ -52,15 +53,9 @@ package body FITS_IO is
   null;
  end Close;
 
- function NoOfHDUs( Fits : in File_Type ) return Positive
- is
- begin
-  return Fits.HDU_Arr'Length;
- end NoOfHDUs;
-
  function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
  is
-  All_HDU : All_HDU_Info( 1 .. Fits.HDU_Arr'Length ) := (others=>Null_HDU_Info);
+  All_HDU : All_HDU_Info( 1 .. Fits.HDU_Cnt ) := (others=>Null_HDU_Info);
  begin
   return All_HDU;
  end FitsFile_Info;
