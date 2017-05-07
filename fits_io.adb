@@ -209,13 +209,13 @@ package body FITS_IO is
       DataStart_Index := Index(File);
       DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
       Set_Index( File, DataStart_Index + DataUnit_Size );
-      -- FIXME DataUnit_Size can be 0 !! Count is >=0 Positive_Count is >0 in Ada.Streams.Stream_IO
-      -- skip data unit for next header
+      -- skip data unit
                                                               
       HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
       HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
       HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
       HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+      -- store positions of this HDU
 
       HDU_Cnt := HDU_Cnt + 1;
       -- next HDU
