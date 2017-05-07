@@ -7,10 +7,10 @@ package body FITS_IO is
  -- HDU positions within FITS-file
 
  type HDU_Pos is record
-  HeaderStart   : Positive; -- BlockIndex where header starts with the FitsFile
-  HeaderSize    : Positive; -- Header size in Blocks (0 not allowed, HDU starts always with Header)
-  DataUnitStart : Positive; -- BlockIndex where header starts with the FitsFile
-  DataSize      : Natural;  -- Data size in Blocks (0 allowed, Primary HDU may have no data)
+  HeaderStart : Positive; -- BlockIndex where header starts with the FitsFile
+  HeaderSize  : Positive; -- Header size in Blocks (0 not allowed, HDU starts always with Header)
+  DataStart   : Positive; -- BlockIndex where header starts with the FitsFile
+  DataSize    : Natural;  -- Data size in Blocks (0 allowed, Primary HDU may have no data)
  end record;
 
  -- File_Type will hold to array of those above for each HDU in FITS-file
@@ -73,28 +73,174 @@ package body FITS_IO is
   null;
  end;
 
+
+
 ---------------------------
 -- Low-level file access --
 ---------------------------
 
  -- Read/Write implemented with Stream_IO
 
+ MaxNAXIS : constant Positive := 999;-- [FITS standard Sect 4.4.1 ]
+ type AxisArray_Type is array (1..MaxNAXIS) of Natural;
+ type Axes_Type is record
+  BitPix : Integer; -- FIXME actually fixed values only
+  Naxes  : Natural;
+  Naxis  : AxisArray_Type;
+ end record;
+ Null_AxisArray : AxisArray_Type := (others=> 1);
+ Null_Axes : Axes_Type := (0,0, Null_AxisArray);
+ -- Axis dimesions allow to calculate Data Unit size and position to next HDU in file
+
+
+ --
+ -- returns DU-size in Octets
+ --
+ function  Calc_DataUnit_Size( AxesDimensions : in Axes_Type )
+  return Natural
+ is
+  DUSize : Natural := 0;
+ begin
+
+   if AxesDimensions.Naxes > 0 then
+     DUSize := 1;
+     for I in 1..AxesDimensions.Naxes loop
+      DUSize := DUSize * AxesDimensions.Naxis(I);
+     end loop;
+     DUSize := DUSize * (abs AxesDimensions.BitPix/8);-- 8 bits in Octet
+     DUSize := BlockSize*(1 + DUSize/BlockSize);
+     -- must be multiple of BlockSize
+   end if;
+
+  return DUSize;
+ end Calc_DataUnit_Size;
+
+ --
+ -- parse keywords needed to calculate DU size
+ --
+ procedure Parse_KeyRecord( Card : in Card_Type;
+                            AxesDimensions  : in out Axes_Type )
+ is
+  dim : Positive;
+ begin
+   -- pos 9..10 is '= '
+   -- pos 31 is comment ' /'
+   -- then : pos 10..20 is value
+   if    (Card(1..9) = "BITPIX  =") then
+     AxesDimensions.BitPix := Integer'Value(Card(10..30));
+   elsif (Card(1..5) = "NAXIS") then
+
+     if (Card(1..9) = "NAXIS   =") then
+         AxesDimensions.Naxes := Positive'Value(Card(10..30));
+     else
+         dim := Positive'Value(Card(6..8));
+         AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
+     end if;
+     -- FIXME what to do if NAXIS and NAXISnn do not match -> see standard
+
+   end if;
+ end Parse_KeyRecord;
+
+ --
+ -- walk through each HeaderBlock
+ --
+ function  Parse_HeaderBlock( Block : in Block_Type ;
+                              AxesDimensions : in out Axes_Type )
+  return Boolean
+ is
+  ENDFound : Boolean := False;
+  Card     : Card_Type;
+  CardCnt  : Positive := 1;
+  from     : Positive := 1;
+  next     : Positive := 1;
+ begin
+  loop
+    next := from + CardSize;
+    Card := Block( from .. (next - 1) );
+    Parse_KeyRecord( Card, AxesDimensions );
+    ENDFound := (Card = ENDCard);
+    exit when ENDFound or CardCnt >= CardsCntInBlock;
+    CardCnt := CardCnt + 1;
+    from := next;
+  end loop;
+  return ENDFound;
+ end Parse_HeaderBlock;
+
+ --
+ -- for Open - using existing HDU
+ --
+ function  Parse_HDU_Positions ( File : in File_Type )
+  return HDU_Data_Array_Type
+ is
+   FitsSA  : Ada.Streams.Stream_IO.Stream_Access :=
+             Ada.Streams.Stream_IO.Stream( File.FitsFile );
+   HDU_Arr : HDU_Data_Array_Type;
+
+   -- controlling the loops
+   HDU_Cnt : Positive := 1;
+   EndCardFound : Boolean := false;
+
+   -- positions & size in file
+   HeadStart_Index : Positive;
+   DataStart_Index : Positive;
+   DataUnit_Size   : Natural := 0;
+
+   AxesDimensions : Axes_Type;
+   Block : BlockArray_Type(1..1);
+ begin
+
+   while not Ada.Streams.Stream_IO.End_OF_File(File.FitsFile)
+   loop
+
+      AxesDimensions := Null_Axes;
+
+      -- Header
+
+      HeadStart_Index := Index( File );
+
+      loop
+         Block := Read( File );
+         EndCardFound := Parse_HeaderBlock( Block(1) , AxesDimensions );
+         exit when EndCardFound ;
+      end loop;
+
+      -- DataUnit
+
+      DataStart_Index := Index(File);
+      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+      Set_Index( File, DataStart_Index + DataUnit_Size );
+      -- FIXME DataUnit_Size can be 0 !! Count is >=0 Positive_Count is >0 in Ada.Streams.Stream_IO
+      -- skip data unit for next header
+                                                              
+      HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
+      HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
+      HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
+      HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+
+      HDU_Cnt := HDU_Cnt + 1;
+      -- next HDU
+
+   end loop;
+
+  return HDU_Arr;
+  end Parse_HDU_Positions;
+
  -- [GNAT] Element_Type is Byte FIXME check this
  -- current architecture Byte is Octet FIXME get this
  -- [GNAT] from System.Storage_Unit (=Byte)
- function To_BlockIndex( OctetIndex : in  Positive ) return Positive is
+ function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
    return (OctetIndex - 1) / BlockSize + 1;
   end To_BlockIndex;
 
- function To_OctetIndex( BlockIndex : in  Positive ) return Positive is
+ function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
   begin
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
  -- Use System.Storage_Unit to implement the above
  -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
 
- function Index ( File  : in File_Type ) return Positive
+ function  Index ( File  : in File_Type ) return Positive
  is
  begin
   return To_BlockIndex(Positive(Ada.Streams.Stream_IO.Index( File.FitsFile )));
@@ -120,8 +266,8 @@ package body FITS_IO is
    BlockArray_Type'Write( FileSA, Blocks );
  end Write;
 
- function Read (File    : in  File_Type;
-                NBlocks : in  Positive := 1) return BlockArray_Type
+ function  Read (File    : in  File_Type;
+                 NBlocks : in  Positive := 1) return BlockArray_Type
  is
    FileSA : Ada.Streams.Stream_IO.Stream_Access :=
             Ada.Streams.Stream_IO.Stream(File.FitsFile);

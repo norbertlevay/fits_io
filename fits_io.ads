@@ -87,12 +87,24 @@ package FITS_IO is
  Null_HDU_Info : constant HDU_Info := (1,Int32,(others=>0));
  type All_HDU_Info is array (Positive range <>) of HDU_Info;
 
- function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info;
+ function  FitsFile_Info ( Fits : File_Type ) return All_HDU_Info;
 
 private
 
  type File_Data;
  type File_Type is access File_Data;
+
+ -- FITS standard size definitions
+
+ CardSize        : constant Positive := 80;
+ BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
+ CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36
+
+ subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
+ ENDCard  : Card_Type := "END                                                                             ";
+
+ subtype Block_Type is String (1 .. BlockSize );
+ type BlockArray_Type is array ( Positive range <> ) of Block_Type;
 
  -- HDU Records
  -- It is linked list of HDU info about
@@ -102,15 +114,10 @@ private
  -- Close destroys the list
 
  -- low-level file access by Blocks
- -- Blocks in FITS-file are nubered: 1,2,3,...
-
- BlockSize : constant Positive := 2880; -- [FITS, Sect xxx]
- type Block_Type is array (1 .. BlockSize ) of Character;
- type BlockArray_Type is array ( Positive range <> ) of Block_Type;
 
  -- file positioning by Blocks, Index: 1,2,...
 
- function Index ( File  : in File_Type ) return Positive;
+ function  Index ( File  : in File_Type ) return Positive;
  -- current Index to Block
 
  procedure Set_Index ( File  : in File_Type;
@@ -122,14 +129,14 @@ private
                    Blocks  : in BlockArray_Type;
                    NBlocks : in Positive := 1);
 
- function Read ( File    : in  File_Type;
-                 NBlocks : in  Positive := 1)
+ function  Read ( File    : in  File_Type;
+                  NBlocks : in  Positive := 1)
   return BlockArray_Type;
 
- -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
  procedure Copy_Blocks (FromFile   : in File_Type;
                         FirstBlock : in Positive; -- Index of First to copy
                         LastBlock  : in Positive; -- Index of Last to copy
                         ToFile     : in File_Type) is null;
+ -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
 
 end FITS_IO;
