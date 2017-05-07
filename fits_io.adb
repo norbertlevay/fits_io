@@ -161,6 +161,21 @@ package body FITS_IO is
   return ENDFound;
  end Parse_HeaderBlock;
 
+ -- [GNAT] Element_Type is Byte FIXME check this
+ -- current architecture Byte is Octet FIXME get this
+ -- [GNAT] from System.Storage_Unit (=Byte)
+ function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
+  begin
+   return (OctetIndex - 1) / BlockSize + 1;
+  end To_BlockIndex;
+
+ function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
+  begin
+   return (BlockIndex - 1) * BlockSize + 1;
+  end To_OctetIndex;
+ -- Use System.Storage_Unit to implement the above
+ -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+
  --
  -- for Open - using existing HDU
  --
@@ -202,7 +217,7 @@ package body FITS_IO is
       -- DataUnit
 
       DataStart_Index := Index(File);
-      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+      DataUnit_Size   := To_BlockIndex(Calc_DataUnit_Size( AxesDimensions ));
       Set_Index( File, DataStart_Index + DataUnit_Size );
       -- skip data unit
                                                               
@@ -219,21 +234,6 @@ package body FITS_IO is
 
   return HDU_Arr;
   end Parse_HDU_Positions;
-
- -- [GNAT] Element_Type is Byte FIXME check this
- -- current architecture Byte is Octet FIXME get this
- -- [GNAT] from System.Storage_Unit (=Byte)
- function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
-  begin
-   return (OctetIndex - 1) / BlockSize + 1;
-  end To_BlockIndex;
-
- function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
-  begin
-   return (BlockIndex - 1) * BlockSize + 1;
-  end To_OctetIndex;
- -- Use System.Storage_Unit to implement the above
- -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
 
  function  Index ( File  : in File_Type ) return Positive
  is
