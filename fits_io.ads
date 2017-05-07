@@ -91,8 +91,8 @@ package FITS_IO is
 
 private
 
- type File_Data_Array;
- type File_Type is access File_Data_Array;
+ type File_Data;
+ type File_Type is access File_Data;
 
  -- HDU Records
  -- It is linked list of HDU info about
@@ -101,7 +101,6 @@ private
  -- Create initializes an empty list
  -- Close destroys the list
 
-
  -- low-level file access by Blocks
  -- Blocks in FITS-file are nubered: 1,2,3,...
 
@@ -109,38 +108,28 @@ private
  type Block_Type is array (1 .. BlockSize ) of Character;
  type BlockArray_Type is array ( Positive range <> ) of Block_Type;
 
- -- Read/Write implemented with Stream_IO
- -- [GNAT] Element_Type is Byte FIXME check this
- -- current architecture Byte is Octet FIXME get this
- -- [GNAT] from System.Storage_Unit (=Byte)
- procedure To_BlockIndex( OctetIndex : in  Positive;
-                          BlockIndex : out Positive ) is null;
- procedure To_OctetIndex( BlockIndex : in  Positive;
-                          OctetIndex : out Positive ) is null;
- -- Use System.Storage_Unit to implement the above
- -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
-
-
  -- file positioning by Blocks, Index: 1,2,...
 
- procedure Index ( File  : in File_Type;
-                   Index : out Positive ) is null;    -- current Index to Block
+ function Index ( File  : in File_Type ) return Positive;
+ -- current Index to Block
+
  procedure Set_Index ( File  : in File_Type;
-                       Index : in Positive ) is null; -- set Index to Block
+                       Index : in Positive );
+ -- set Index to Block
 
- procedure Read (File    : in  File_Type;
-                 Block   : out BlockArray_Type;
-                 NBlocks : in  Positive := 1) is null;
- -- FIXME implements as function; only procedures can be null
 
- procedure Write(File    : in File_Type;
-                 Block   : in BlockArray_Type;
-                 NBlocks : in Positive := 1) is null;
+ procedure Write ( File    : in File_Type;
+                   Blocks  : in BlockArray_Type;
+                   NBlocks : in Positive := 1);
+
+ function Read ( File    : in  File_Type;
+                 NBlocks : in  Positive := 1)
+  return BlockArray_Type;
 
  -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
  procedure Copy_Blocks (FromFile   : in File_Type;
-                        FirstBlock : in Positive;
-                        LastBlock  : in Positive;
-                        ToFile     : in File_Type);
+                        FirstBlock : in Positive; -- Index of First to copy
+                        LastBlock  : in Positive; -- Index of Last to copy
+                        ToFile     : in File_Type) is null;
 
 end FITS_IO;
