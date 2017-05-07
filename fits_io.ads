@@ -103,10 +103,30 @@ private
 
 
  -- low-level file access by Blocks
+ -- Blocks in FITS-file are nubered: 1,2,3,...
 
  BlockSize : constant Positive := 2880; -- [FITS, Sect xxx]
  type Block_Type is array (1 .. BlockSize ) of Character;
  type BlockArray_Type is array ( Positive range <> ) of Block_Type;
+
+ -- Read/Write implemented with Stream_IO
+ -- [GNAT] Element_Type is Byte FIXME check this
+ -- current architecture Byte is Octet FIXME get this
+ -- [GNAT] from System.Storage_Unit (=Byte)
+ procedure To_BlockIndex( OctetIndex : in  Positive;
+                          BlockIndex : out Positive ) is null;
+ procedure To_OctetIndex( BlockIndex : in  Positive;
+                          OctetIndex : out Positive ) is null;
+ -- Use System.Storage_Unit to implement the above
+ -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+
+
+ -- file positioning by Blocks, Index: 1,2,...
+
+ procedure Index ( File  : in File_Type;
+                   Index : out Positive ) is null;    -- current Index to Block
+ procedure Set_Index ( File  : in File_Type;
+                       Index : in Positive ) is null; -- set Index to Block
 
  procedure Read (File    : in  File_Type;
                  Block   : out BlockArray_Type;
