@@ -24,13 +24,13 @@ package body FITS_IO is
 
  type File_Data is record
   FitsFile : Ada.Streams.Stream_IO.File_Type;
-  HDU_Cnt  : Positive;
+  HDU_Cnt  : Natural;
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
 
  procedure Create ( Fits : in out File_Type;
-                    Mode : in Mode_Type;
+                    Mode : in File_Mode;
                     Name : in String;
                     Form : in String    := "") is
  begin
@@ -40,18 +40,6 @@ package body FITS_IO is
  -- if Mode Append_Mode: creates new HDU of an existing file
  -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
 
- procedure Open ( Fits : in out File_Type;
-                  Mode : in Mode_Type;
-                  Name : in String;
-                  Form : in String   := "") is
- begin
-  null;
- end Open;
-
- procedure Close ( Fits : in out File_Type ) is
- begin
-  null;
- end Close;
 
  function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
  is
@@ -271,5 +259,29 @@ package body FITS_IO is
    BlockArray_Type'Read( FileSA, Blocks );
    return Blocks;
  end Read;
+
+---------------
+-- Interface --
+---------------
+
+ procedure Open ( Fits : in out File_Type;
+                  Mode : in File_Mode;
+                  Name : in String;
+                  Form : in String   := "")
+ is
+ begin
+  Ada.Streams.Stream_IO.Open(Fits.FitsFile,
+                Ada.Streams.Stream_IO.In_File,-- FIXME convert or map FITS_IO.File_Mode -> Stream_IO.File_Mode
+                Name,Form);
+  Fits.HDU_Arr := Parse_HDU_Positions ( Fits );
+  Fits.HDU_Cnt := Fits.HDU_Arr'Length; --FIXME wrong! this is the container size not the actual HDUs; Parse_HDU must return the actual size
+  -- FIXME re-implement with dynamic vectors or lists. Then query actually used size.
+ end Open;
+
+ procedure Close ( Fits : in out File_Type ) is
+ begin
+  Ada.Streams.Stream_IO.Close(Fits.FitsFile);
+  Fits.HDU_Cnt := 0;
+ end Close;
 
 end FITS_IO;

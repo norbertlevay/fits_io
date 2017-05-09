@@ -6,27 +6,27 @@
 package FITS_IO is
 
  type File_Type is limited private;
- type Mode_Type is (In_File, Inout_File, Append_File);
+ type File_Mode is (In_File, Inout_File, Append_File);
 
 -- valid combinations:
 -- Open   : In Inout Append
 -- Create : Append
 
  procedure Create ( Fits : in out File_Type;
-                    Mode : in Mode_Type;
+                    Mode : in File_Mode;
                     Name : in String;
                     Form : in String := "");
 
  procedure Open ( Fits : in out File_Type;
-                  Mode : in Mode_Type;
+                  Mode : in File_Mode;
                   Name : in String;
                   Form : in String := "");
 
  procedure Mode ( Fits : in out File_Type;
-                  Mode : out Mode_Type ) is null;
+                  Mode : out File_Mode ) is null;
 
  procedure Set_Mode ( Fits : in out File_Type;
-                      Mode : in Mode_Type ) is null;
+                      Mode : in File_Mode ) is null;
 
  procedure Close ( Fits : in out File_Type );
 
