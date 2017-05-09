@@ -1,7 +1,7 @@
 
 with Ada.Text_IO;-- for debug only
 with Ada.Streams.Stream_IO;
-
+with Ada.Unchecked_Deallocation;
 
 package body FITS_IO is
 
@@ -304,10 +304,13 @@ package body FITS_IO is
  end Open;
 
  procedure Close ( Fits : in out File_Type ) is
+  procedure Delete_FileType is new Ada.Unchecked_Deallocation
+                                            (File_Data, File_Type);
  begin
   Ada.Streams.Stream_IO.Close(Fits.FitsFile);
   Fits.HDU_Cnt := 0;-- not needed
   -- Destroy(Fits); FIXME add dealloc
+  Delete_FileType(Fits);
  end Close;
 
 end FITS_IO;
