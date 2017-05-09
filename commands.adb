@@ -5,8 +5,6 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
 
 use  Ada.Streams.Stream_IO;
 
-with FITS_IO;-- only force to compile FITS_IO also
-
 package body Commands is
 
  --
@@ -15,7 +13,7 @@ package body Commands is
  procedure Print_Header( FileName : in String;
                          HDU_Num  : Positive := 1 )
  is
-   FileHandle : File_Type;
+   FileHandle : Ada.Streams.Stream_IO.File_Type;
    HDU        : HDU_Type;
  begin
    Open(HDU, In_HDU, FileName, HDU_Num);
@@ -154,6 +152,14 @@ package body Commands is
    end if;
 
  end Write_Header;
+
+ procedure Print_Struct (FitsFileName : in String)
+ is
+  FitsFile : FITS_IO.File_Type;
+ begin
+   FITS_IO.Open(FitsFile,FITS_IO.In_File,FitsFileName);
+   FITS_IO.Close(FitsFile);
+ end Print_Struct;
 
 end Commands;
 

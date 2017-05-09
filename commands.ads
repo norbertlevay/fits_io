@@ -2,6 +2,8 @@
 with HDU;
 use  HDU;
 
+with FITS_IO;
+
 package Commands is
 
  procedure Print_Header( FileName : in String;
@@ -14,6 +16,9 @@ package Commands is
  -- write Header from HeaderFileName into FitsFileName
  -- HeaderFileName is text file, with one card per line
  -- and last line must be "END"
+
+ procedure Print_Struct (FitsFileName : in String);
+ -- print HDU info
 
 end Commands;
 

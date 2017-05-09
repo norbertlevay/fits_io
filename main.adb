@@ -75,7 +75,12 @@ procedure main is
 
      -- Put_Line(To_String(Cur_Argument));
 
-     if Cur_Argument = "header"
+     if Cur_Argument = "info" then
+
+        Input_File_Path := SB.To_Bounded_String(Argument(i+1));
+        Print_Struct (To_String(Input_File_Path));
+
+     elsif Cur_Argument = "header"
      then
 
         if Argument(i+1) = "--hdu" then

@@ -1,4 +1,5 @@
 
+with Ada.Text_IO;-- for debug only
 with Ada.Streams.Stream_IO;
 
 
@@ -167,12 +168,11 @@ package body FITS_IO is
  --
  -- for Open - using existing HDU
  --
- function  Parse_HDU_Positions ( File : in File_Type )
-  return HDU_Data_Array_Type
+ procedure  Parse_HDU_Positions ( File : in out File_Type )
  is
    FitsSA  : Ada.Streams.Stream_IO.Stream_Access :=
              Ada.Streams.Stream_IO.Stream( File.FitsFile );
-   HDU_Arr : HDU_Data_Array_Type;
+   -- HDU_Arr : HDU_Data_Array_Type;
 
    -- controlling the loops
    HDU_Cnt : Positive := 1;
@@ -209,10 +209,11 @@ package body FITS_IO is
       Set_Index( File, DataStart_Index + DataUnit_Size );
       -- skip data unit
                                                               
-      HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
-      HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
-      HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
-      HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+      File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
+      File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
+      File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
+      File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+      File.HDU_Cnt := HDU_Cnt;
       -- store positions of this HDU
 
       HDU_Cnt := HDU_Cnt + 1;
@@ -220,7 +221,6 @@ package body FITS_IO is
 
    end loop;
 
-  return HDU_Arr;
   end Parse_HDU_Positions;
 
  function  Index ( File  : in File_Type ) return Positive
@@ -264,24 +264,50 @@ package body FITS_IO is
 -- Interface --
 ---------------
 
+ -- for debug only
+ procedure Print_FitsFileHandle (Fits : in File_Type) is
+  FileSize : Positive;
+ begin
+  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
+--  for I in Fits.HDU_Arr'Range -- this shows also not used entries
+  for I in 1..Fits.HDU_Cnt
+  loop
+   Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
+   Ada.Text_IO.Put(" H: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
+   Ada.Text_IO.Put(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
+
+   Ada.Text_IO.Put(" DU: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
+   Ada.Text_IO.Put_Line(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
+  end loop;
+  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
+  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
+ end;
+
  procedure Open ( Fits : in out File_Type;
                   Mode : in File_Mode;
                   Name : in String;
                   Form : in String   := "")
  is
  begin
-  Ada.Streams.Stream_IO.Open(Fits.FitsFile,
-                Ada.Streams.Stream_IO.In_File,-- FIXME convert or map FITS_IO.File_Mode -> Stream_IO.File_Mode
-                Name,Form);
-  Fits.HDU_Arr := Parse_HDU_Positions ( Fits );
-  Fits.HDU_Cnt := Fits.HDU_Arr'Length; --FIXME wrong! this is the container size not the actual HDUs; Parse_HDU must return the actual size
-  -- FIXME re-implement with dynamic vectors or lists. Then query actually used size.
+  Ada.Text_IO.Put_Line("Open: "&Name);
+
+  Fits := new File_Data;
+
+  Ada.Streams.Stream_IO.Open( Fits.FitsFile,
+                Ada.Streams.Stream_IO.In_File,
+                Name);
+
+  Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
+  Print_FitsFileHandle(Fits);-- debug
+--  Set_Mode(Fits.FitsFile,To_File_Mode(Mode));
+  -- FIXME convert or map FITS_IO.File_Mode -> Stream_IO.File_Mode
  end Open;
 
  procedure Close ( Fits : in out File_Type ) is
  begin
   Ada.Streams.Stream_IO.Close(Fits.FitsFile);
-  Fits.HDU_Cnt := 0;
+  Fits.HDU_Cnt := 0;-- not needed
+  -- Destroy(Fits); FIXME add dealloc
  end Close;
 
 end FITS_IO;
