@@ -5,6 +5,13 @@ with Ada.Unchecked_Deallocation;
 
 package body FITS_IO is
 
+ type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
+ EmptyCard  : constant String(1..CardSize) := (others => ' ');
+ EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+ type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+ -- Header format inside file
+ -- FIXME this duplicate from HDU.adb; later merge
+
  -- HDU positions within FITS-file
 
  type HDU_Pos is record
@@ -166,9 +173,9 @@ package body FITS_IO is
  -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
 
  --
- -- for Open - using existing HDU
+ -- for Open - using existing HDU's
  --
- procedure  Parse_HDU_Positions ( File : in out File_Type )
+ procedure Parse_HDU_Positions ( File : in out File_Type )
  is
    FitsSA  : Ada.Streams.Stream_IO.Stream_Access :=
              Ada.Streams.Stream_IO.Stream( File.FitsFile );
@@ -222,6 +229,46 @@ package body FITS_IO is
    end loop;
 
   end Parse_HDU_Positions;
+
+ --
+ -- for Write/Append - creating new HDU from Header
+ --
+ -- Open/Create inits File.HDU_Arr <- sets correct File-Index
+ -- Write takes and converts Header_Type --> HeaderBlocks_Type
+ -- writes the header into the file
+ -- if write success calls this Parse_HDU_positions():
+ procedure Parse_HDU_Positions( File : in out File_Type;
+                                HeaderBlocks : in HeaderBlocks_Type )
+ is
+  HDU_Cnt : Positive;
+  AxesDimensions : Axes_Type;
+  DU_Size : Natural := 0;
+  Card : String(1..CardSize);
+  ENDFound : Boolean := False;
+ begin
+   for I in HeaderBlocks'Range
+    loop
+     for J in HeaderBlocks(I)'Range
+      loop
+       Card := HeaderBlocks(I)(J);
+       Parse_KeyRecord( Card, AxesDimensions );
+       ENDFound := (Card = ENDCard);
+     end loop;
+     exit when ENDFound;
+   end loop;
+
+   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+
+   HDU_Cnt := File.HDU_Cnt + 1;
+   File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := Index(File) - HeaderBlocks'Length;
+   -- header already written - is better way to have the index from before Header Write?
+   File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := HeaderBlocks'Length;
+   File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart
+                                             + File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize;
+   File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DU_Size;
+   File.HDU_Cnt := HDU_Cnt;
+
+ end;
 
  function  Index ( File  : in File_Type ) return Positive
  is
