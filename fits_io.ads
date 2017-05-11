@@ -6,7 +6,7 @@
 package FITS_IO is
 
  type File_Type is limited private;
- type File_Mode is (In_File, Inout_File, Append_File);
+ type File_Mode is (In_File, Out_File, Inout_File, Append_File);
 
 -- valid combinations:
 -- Open   : In Inout Append
@@ -37,43 +37,26 @@ package FITS_IO is
 
  type Header_Type is null record;-- TBD take the one from HDU package
 
- procedure Read ( File    : in  File_Type;  -- with Mode In
+ procedure Read  ( File    : in  File_Type;
+                   HDU_Num : in  Positive;
+                   Header  : out Header_Type ) is null;
 
-                  HDU_Num : in  Positive;
-                  Header  : out Header_Type ) is null;
+ procedure Write ( File    : in  File_Type;
+                   HDU_Num : in  Positive;
+                   Header  : in  Header_Type ) is null;
+ -- Open   + Out_File   -> Write() truncates FITS-File and appends Header to the truncated end
+ -- Open   + Inout_File -> Write() overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
+ -- Write() raises exception if called with In_ or Append_File Mode
 
- procedure Modify ( File   : in File_Type;  -- with Mode Inout
-                    Header : in Header_Type ) is null;
-
- procedure Delete ( File    : in File_Type; -- with Mode Inout
-                    HDU_Num : in  Positive ) is null;
-
- -- with new Header
-
- procedure Insert ( File    : in File_Type; -- with Mode = Inout
-                    HDU_Num : in Positive;
-                    Header  : in Header_Type ) is null;
-
- procedure Append ( File    : in File_Type; -- with Mode Append
-                    Header  : in Header_Type ) is null;
-
- -- utilities
-
- procedure Copy_HDU ( FromFile : in File_type;
-                      FirstHDU : in Positive;
-                      LastHDU  : in Positive;
-                      ToFile   : in File_type);
+ procedure Append ( File    : in  File_Type;
+                    Header  : in  Header_Type ) is null;
+ -- Create + Append_File -> Append() adds the Header to the file-end
+ -- Open   + Append_File -> Append() adds the Header to the file-end
+ -- Append() raises exception if called with any other Mode then Append_File
 
 
- -- HDU access
 
- -- API TB Defined :
- -- To fill-in the DataUnit of a HDU, first gain access to HDU (TBD)
- -- and operate on that HDU (size cannot be changed anymore)
- -- Only File-level functions can modify size of an HDU.
-
-
- -- HDU info
+ -- FITS-file structure (HDU's)
 
  -- FIXME consider to return only one preformatted string per HDU
  MaxAxes : constant Positive := 999; -- NAXIS <= 999 [FITS, Sect 4.4.1]
@@ -88,6 +71,7 @@ package FITS_IO is
  type All_HDU_Info is array (Positive range <>) of HDU_Info;
 
  function  FitsFile_Info ( Fits : File_Type ) return All_HDU_Info;
+
 
 private
 
