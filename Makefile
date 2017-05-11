@@ -19,7 +19,7 @@ build_date.ads :
 
 
 main : main.adb build_date.ads
-	gnatmake -gnat12 -we  main.adb -o ${TARGET}
+	gnatmake -g -gnat12 -we main.adb -o ${TARGET} -bargs -E
 	rm build_date.ads
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
