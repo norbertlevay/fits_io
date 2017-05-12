@@ -26,6 +26,9 @@ main : main.adb build_date.ads
 test : test.adb build_date.ads
 	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
 
+runtestfits : test main
+	./testfits
+	./fits info test.fits
 
 testsameheader:   # orig header has 35 cards
 	rm -f $(TESTFILE)
