@@ -29,7 +29,8 @@ is
  Mode : Fits_IO.File_Mode := Append_File;
  Name : String    := "test.fits";
  Header : HDU.Header_Type :=
-  (HDU.SB.To_Bounded_String("NAXIS   = 2"),
+  (HDU.SB.To_Bounded_String("BITPIX  = 32"),
+   HDU.SB.To_Bounded_String("NAXIS   = 2"),
    HDU.SB.To_Bounded_String("NAXIS1  = 10"),
    HDU.SB.To_Bounded_String("NAXIS2  = 10"),
    HDU.SB.To_Bounded_String("END"));
