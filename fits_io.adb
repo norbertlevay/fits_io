@@ -5,13 +5,6 @@ with Ada.Unchecked_Deallocation;
 
 package body FITS_IO is
 
- type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
- EmptyCard  : constant String(1..CardSize) := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
- type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
- -- Header format inside file
- -- FIXME this duplicate from HDU.adb; later merge
-
  -- HDU positions within FITS-file
 
  type HDU_Pos is record
@@ -28,7 +21,7 @@ package body FITS_IO is
   HDUPos  : HDU_Pos;
   HDUInfo : HDU_Info;
  end record;
- type HDU_Data_Array_Type is array (1 .. MaxHDU) of HDU_Data;
+ type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
 
  type File_Data is record
   FitsFile : Ada.Streams.Stream_IO.File_Type;
@@ -36,18 +29,7 @@ package body FITS_IO is
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
-
- procedure Create ( Fits : in out File_Type;
-                    Mode : in File_Mode;
-                    Name : in String;
-                    Form : in String    := "") is
- begin
-  null;
- end Create;
- -- if Mode Out_File   : creates first HDU of a new file
- -- if Mode Append_Mode: creates new HDU of an existing file
- -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
-
+ --
 
  function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
  is
@@ -270,6 +252,39 @@ package body FITS_IO is
 
  end;
 
+ function  Parse_HDU_Data( HeaderBlocks : in HeaderBlocks_Type)
+  return HDU_Data
+ is
+  HDUData : HDU_Data;
+--  HDU_Cnt : Positive;
+  AxesDimensions : Axes_Type;
+  DU_Size : Natural := 0;
+  Card : String(1..CardSize);
+  ENDFound : Boolean := False;
+ begin
+   for I in HeaderBlocks'Range
+    loop
+     for J in HeaderBlocks(I)'Range
+      loop
+       Card := HeaderBlocks(I)(J);
+       Parse_KeyRecord( Card, AxesDimensions );
+       ENDFound := (Card = ENDCard);
+     end loop;
+     exit when ENDFound;
+   end loop;
+
+   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+
+   HDUData.HDUPos.HeaderStart := 1;
+   HDUData.HDUPos.HeaderSize  := HeaderBlocks'Length;
+   HDUData.HDUPos.DataStart   := HDUData.HDUPos.HeaderStart
+                               + HDUData.HDUPos.HeaderSize;
+   HDUData.HDUPos.DataSize    := DU_Size;
+   -- FIXME later add HDUData.HDU_Info
+
+   return HDUData;
+ end;
+
  function  Index ( File  : in File_Type ) return Positive
  is
  begin
@@ -356,8 +371,137 @@ package body FITS_IO is
  begin
   Ada.Streams.Stream_IO.Close(Fits.FitsFile);
   Fits.HDU_Cnt := 0;-- not needed
-  -- Destroy(Fits); FIXME add dealloc
   Delete_FileType(Fits);
  end Close;
+
+ function Mode ( Fits : in  File_Type )
+  return File_Mode
+  is
+  CurMode : File_Mode ;
+ begin
+  return CurMode;-- FIXME not implemented
+ end Mode;
+
+ function To_BlockArray(HeaderBlocks : HeaderBlocks_Type )
+  return BlockArray_Type
+  is
+    BA : BlockArray_Type(1..1);
+  begin
+   return BA;-- FIXME can be done with subtype ??
+  end To_BlockArray;
+
+ function To_StreamFile_Mode ( Mode : File_Mode )
+  return Ada.Streams.Stream_IO.File_Mode
+ is
+ begin
+  return  Ada.Streams.Stream_IO.In_File;--FIXME not implemented
+ end To_StreamFile_Mode;
+
+ -- behaviour depends on Mode in Open/Create
+ -- Inout_Mode updates the HDU given by HDU_Num but only if the size (in blocks) match
+ -- Out_Mode will truncate file at HDU_Num and then append the Header
+ -- Append_Mode (called without HDU_Num) appends the Header to the end of the file
+ procedure Write ( File    : in  File_Type;
+                   Header  : in  Header_Type;
+                   HDU_Num : in  Positive := HDU_Last )-- default: Append
+ is
+  HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Header);
+  HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
+  CurMode      : File_Mode := Mode(File);-- FIXME not implemented yet
+  -- FIXME convert Modes Stram_IO<->FITS_IO := Ada.Streams.Stream_IO.Mode(File.FitsFile);
+
+  HDUIx,FileIx : Positive;
+  -- Fits File consists of sequence of HDU's with
+  --   different size numbered by HDU-index: 1,2.3...
+  -- File.HDU_Arr connects FileIx and HDUIx where:
+  --   FileIx is position of the HDU in file given blocks
+  --   HDUIx  is the HDU-index itself
+ begin
+
+  -- 0. Sanity checks on HDU_Num
+
+  if (File.HDU_Cnt = 0) and
+     (HDU_Num /= 1)
+  then
+   null; -- raise exception and exit... UserMsg: to empty file we can write only 1st HDU
+  end if;
+
+  -- Note: user cannot supply HDU_Num HDU_Cnt+1 in attempt to do append.
+  -- For append Append_Mode must be used. FIXME re-consider this (?).
+  if (HDU_Num > File.HDU_Cnt) and
+     (HDU_Num /= HDU_Last)
+  then
+   null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
+  end if;
+
+  -- for Inout_Mode (e.g. file update) check sizes:
+  -- space in File vs Header+Data as defined be the new Header
+  -- FIXME note: if User wants update last HDU and sizes differ should we allow ?
+  if CurMode = Inout_File
+  then
+    null; -- FIXME not implemted yet
+    -- raise exception if sizes don't match UserMsg: For updating HDU (Inout mode) HDU sizes must match.
+  end if;
+
+  -- 1. Set HDUIx and FileIx depending on the situation
+
+  if File.HDU_Cnt = 0
+  then
+   -- writing to an empty file
+   HDUIx  := 1;
+   FileIx := 1;
+  else
+   -- updating existing (non-empty) file
+   case CurMode is
+     when Inout_File|Out_File =>
+       HDUIx  := HDU_Num;
+       FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
+     when Append_File =>
+       HDUIx  := File.HDU_Cnt + 1;
+       FileIx := File.HDU_Arr(File.HDU_Cnt).HDUPos.DataStart
+               + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
+     when others =>
+       null;-- FIXME raise exception or let Stream_IO.Write raise exception?
+   end case;
+  end if;
+
+  -- 2, Write data to file
+  Set_Index(File,FileIx);
+  Write(File, To_BlockArray(HeaderBlocks));
+  -- FIXME define convertible Header <-> Block arrays is possible ?
+
+  -- 3, Update File.HDU_Arr if write successful...
+  File.HDU_Arr(HDUIx).HDUPos.HeaderStart := FileIx; -- FIXME what does Parse_HDU_Data() do?
+  File.HDU_Arr(HDUIx).HDUPos.HeaderSize  := HDUData.HDUPos.HeaderSize;
+  File.HDU_Arr(HDUIx).HDUPos.DataStart   := FileIx + HDUData.HDUPos.HeaderSize;
+  File.HDU_Arr(HDUIx).HDUPos.DataSize    := HDUData.HDUPos.DataSize;
+  -- HDUIx is now last HDU, except in Inout case
+  if CurMode /= Inout_File then
+   File.HDU_Cnt := HDUIx;
+  end if;
+
+ end Write;
+
+ -- Create FitsFile
+ -- if Mode Out_File   : write will create first HDU of a new file
+ -- if Mode Append_Mode: write will create new HDU at the end of a file
+ -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
+ procedure Create ( Fits : in out File_Type;
+                    Mode : in File_Mode;
+                    Name : in String;
+                    Form : in String    := "") is
+ begin
+  Ada.Text_IO.Put_Line("Create: "&Name);
+  Fits := new File_Data;
+  Ada.Streams.Stream_IO.Create( Fits.FitsFile,
+                Ada.Streams.Stream_IO.Append_File,-- FIXME
+                Name);
+
+  -- init HDU_Arr
+  Fits.HDU_Cnt := 0;
+
+  Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile, To_StreamFile_Mode(Mode));
+ end Create;
+
 
 end FITS_IO;

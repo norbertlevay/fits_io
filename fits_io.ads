@@ -1,6 +1,6 @@
 
 
-
+with HDU; use HDU;
 
 
 package FITS_IO is
@@ -22,8 +22,7 @@ package FITS_IO is
                   Name : in String;
                   Form : in String := "");
 
- procedure Mode ( Fits : in out File_Type;
-                  Mode : out File_Mode ) is null;
+ function Mode ( Fits : in  File_Type ) return File_Mode;
 
  procedure Set_Mode ( Fits : in out File_Type;
                       Mode : in File_Mode ) is null;
@@ -35,26 +34,19 @@ package FITS_IO is
 
  -- with existing Header
 
- type Header_Type is null record;-- TBD take the one from HDU package
-
  procedure Read  ( File    : in  File_Type;
                    HDU_Num : in  Positive;
                    Header  : out Header_Type ) is null;
 
+ HDU_Last : constant := Positive'Last;-- FIXME this id tight to Positive range definition of HDU_Arr
+ -- FIXME is this goos idea at all ?
+ --   Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
  procedure Write ( File    : in  File_Type;
-                   HDU_Num : in  Positive;
-                   Header  : in  Header_Type ) is null;
- -- Open   + Out_File   -> Write() truncates FITS-File and appends Header to the truncated end
- -- Open   + Inout_File -> Write() overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
- -- Write() raises exception if called with In_ or Append_File Mode
-
- procedure Append ( File    : in  File_Type;
-                    Header  : in  Header_Type ) is null;
- -- Create + Append_File -> Append() adds the Header to the file-end
- -- Open   + Append_File -> Append() adds the Header to the file-end
- -- Append() raises exception if called with any other Mode then Append_File
-
-
+                   Header  : in  Header_Type;
+                   HDU_Num : in  Positive := HDU_Last ); -- default: Append
+ -- Open   + Out_File   -> Write(...,HDU_Num) truncates FITS-File and appends Header to the truncated end
+ -- Open   + Inout_File -> Write(...,HDU_Num) overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
+ -- Open/Create + Append -> Write() (call without HDU_Num ) appends to the end
 
  -- FITS-file structure (HDU's)
 

@@ -14,15 +14,6 @@ package body HDU is
    subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
    ENDCard  : Card_Type := "END                                                                             ";
 
-   BlockSize       : constant Positive := 2880;
-   CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
-
-   type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
-   EmptyCard  : constant String(1..CardSize) := (others => ' ');
-   EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
-   type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
-   -- Header format inside file
-
    -- set up a buffer for reading fits-file by blocks
    subtype Block_Type is String(1..BlockSize);
 

@@ -67,6 +67,18 @@ package HDU is
                        FromBlock : Positive; ToBlock : Natural;
                        ToFile  : HDU_Type );
 
+ -- internal info - temporarly visible for FITS_IO
+   BlockSize       : constant Positive := 2880;
+   CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
+   type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
+   EmptyCard  : constant String(1..CardSize) := (others => ' ');
+   EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+   type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+   -- Header format inside file
+   function To_HeaderBlocks( Header : Header_Type )
+    return HeaderBlocks_Type;
+
+
 private
 
  type HDU_Position_Type is record
