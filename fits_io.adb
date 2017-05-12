@@ -25,6 +25,7 @@ package body FITS_IO is
 
  type File_Data is record
   FitsFile : Ada.Streams.Stream_IO.File_Type;
+  Mode     : File_Mode;-- FITS_IO Mode
   HDU_Cnt  : Natural;
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
@@ -109,7 +110,8 @@ package body FITS_IO is
          dim := Positive'Value(Card(6..8));
          AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
      end if;
-     -- FIXME what to do if NAXIS and NAXISnn do not match -> see standard
+     -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
+     -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
 
    end if;
  end Parse_KeyRecord;
@@ -139,9 +141,9 @@ package body FITS_IO is
   return ENDFound;
  end Parse_HeaderBlock;
 
- -- [GNAT] Element_Type is Byte FIXME check this
- -- current architecture Byte is Octet FIXME get this
- -- [GNAT] from System.Storage_Unit (=Byte)
+ -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
+ -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
+ -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
  function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
    return (OctetIndex - 1) / BlockSize + 1;
@@ -152,7 +154,7 @@ package body FITS_IO is
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
  -- Use System.Storage_Unit to implement the above
- -- Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+ -- FIXME Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
 
  --
  -- for Open - using existing HDU's
@@ -345,25 +347,47 @@ package body FITS_IO is
   Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
  end;
 
+ -- FIXME File_Mode conversions : check this out; is there a better way ?
+ function To_StreamFile_Mode ( Mode : File_Mode )
+  return Ada.Streams.Stream_IO.File_Mode
+ is
+  StreamMode : Ada.Streams.Stream_IO.File_Mode;
+ begin
+  case Mode is
+   when In_File =>
+    StreamMode := Ada.Streams.Stream_IO.In_File;
+   when Out_File =>
+    StreamMode := Ada.Streams.Stream_IO.Out_File;
+   when Inout_File =>
+    StreamMode := Ada.Streams.Stream_IO.Out_File;-- Stream_IO : switch mode will result in Inout access
+   when Append_File =>
+    StreamMode := Ada.Streams.Stream_IO.Append_File;
+  end case;
+  return StreamMode;
+ end To_StreamFile_Mode;
+
+
  procedure Open ( Fits : in out File_Type;
                   Mode : in File_Mode;
                   Name : in String;
-                  Form : in String   := "")
+                  Form : in String   := "shared=no")
  is
  begin
-  Ada.Text_IO.Put_Line("Open: "&Name);
+  Ada.Text_IO.Put_Line("DBG Open: "&Name);
 
   Fits := new File_Data;
 
   Ada.Streams.Stream_IO.Open( Fits.FitsFile,
                 Ada.Streams.Stream_IO.In_File,
-                Name);
+                Name,Form);--[GNAT,9.2 FORM strings]
 
   Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
   Print_FitsFileHandle(Fits);-- debug
---  Set_Mode(Fits.FitsFile,To_File_Mode(Mode));
-  -- FIXME convert or map FITS_IO.File_Mode -> Stream_IO.File_Mode
+
+  Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile,To_StreamFile_Mode(Mode));
  end Open;
+
+
 
  procedure Close ( Fits : in out File_Type ) is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
@@ -374,28 +398,36 @@ package body FITS_IO is
   Delete_FileType(Fits);
  end Close;
 
- function Mode ( Fits : in  File_Type )
-  return File_Mode
-  is
-  CurMode : File_Mode ;
+ procedure Set_Mode ( File : in out File_Type;
+                      Mode : in File_Mode ) is
  begin
-  return CurMode;-- FIXME not implemented
+  File.Mode := Mode;
+  Ada.Streams.Stream_IO.Set_Mode(File.FitsFile,To_StreamFile_Mode(File.Mode));
+ end Set_Mode;
+
+ function Mode ( File : in  File_Type )
+  return File_Mode is
+ begin
+  return File.Mode;
  end Mode;
 
+
+ -- FIXME review these record definitions & their usage
  function To_BlockArray(HeaderBlocks : HeaderBlocks_Type )
   return BlockArray_Type
   is
-    BA : BlockArray_Type(1..1);
+    BA : BlockArray_Type(HeaderBlocks'Range);
+    first, last : Positive;
   begin
-   return BA;-- FIXME can be done with subtype ??
+   for I in HeaderBlocks'Range loop     -- N blocks of
+    for J in HeaderBlocks(I)'Range loop -- 36 cards
+      first := (J-1)*CardSize + 1;
+      last  := first + CardSize - 1;
+      BA(I)(first..last) := HeaderBlocks(I)(J)(1..CardSize); -- copy one card
+    end loop;
+   end loop;
+   return BA;
   end To_BlockArray;
-
- function To_StreamFile_Mode ( Mode : File_Mode )
-  return Ada.Streams.Stream_IO.File_Mode
- is
- begin
-  return  Ada.Streams.Stream_IO.In_File;--FIXME not implemented
- end To_StreamFile_Mode;
 
  -- behaviour depends on Mode in Open/Create
  -- Inout_Mode updates the HDU given by HDU_Num but only if the size (in blocks) match
@@ -407,9 +439,7 @@ package body FITS_IO is
  is
   HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
-  CurMode      : File_Mode := Mode(File);-- FIXME not implemented yet
-  -- FIXME convert Modes Stram_IO<->FITS_IO := Ada.Streams.Stream_IO.Mode(File.FitsFile);
-
+  CurMode      : File_Mode := Mode(File);
   HDUIx,FileIx : Positive;
   -- Fits File consists of sequence of HDU's with
   --   different size numbered by HDU-index: 1,2.3...
@@ -439,7 +469,7 @@ package body FITS_IO is
   -- FIXME note: if User wants update last HDU and sizes differ should we allow ?
   if CurMode = Inout_File
   then
-    null; -- FIXME not implemted yet
+    null; -- FIXME check sizes for Inout-write ; not implemted yet
     -- raise exception if sizes don't match UserMsg: For updating HDU (Inout mode) HDU sizes must match.
   end if;
 
@@ -489,17 +519,14 @@ package body FITS_IO is
  procedure Create ( Fits : in out File_Type;
                     Mode : in File_Mode;
                     Name : in String;
-                    Form : in String    := "") is
+                    Form : in String    := "shared=no") is
  begin
-  Ada.Text_IO.Put_Line("Create: "&Name);
+  Ada.Text_IO.Put_Line("DBG Create: "&Name);
   Fits := new File_Data;
   Ada.Streams.Stream_IO.Create( Fits.FitsFile,
-                Ada.Streams.Stream_IO.Append_File,-- FIXME
-                Name);
-
-  -- init HDU_Arr
-  Fits.HDU_Cnt := 0;
-
+                To_StreamFile_Mode(Mode),
+                Name,Form);
+  Fits.HDU_Cnt := 0;-- init HDU_Arr
   Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile, To_StreamFile_Mode(Mode));
  end Create;
 

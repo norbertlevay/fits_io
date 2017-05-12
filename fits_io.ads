@@ -15,17 +15,16 @@ package FITS_IO is
  procedure Create ( Fits : in out File_Type;
                     Mode : in File_Mode;
                     Name : in String;
-                    Form : in String := "");
+                    Form : in String := "shared=no");--[GNAT 9.2 FORM strings]
 
  procedure Open ( Fits : in out File_Type;
                   Mode : in File_Mode;
                   Name : in String;
-                  Form : in String := "");
+                  Form : in String := "shared=no");--[GNAT 9.2 FORM strings]
 
- function Mode ( Fits : in  File_Type ) return File_Mode;
-
- procedure Set_Mode ( Fits : in out File_Type;
-                      Mode : in File_Mode ) is null;
+ function  Mode ( File : in  File_Type ) return File_Mode;
+ procedure Set_Mode ( File : in out File_Type;
+                      Mode : in File_Mode );
 
  procedure Close ( Fits : in out File_Type );
 
