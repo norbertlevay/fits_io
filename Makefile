@@ -9,7 +9,7 @@ TARGET=fits
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: main
+all: main test
 
 
 build_date.ads :
@@ -20,9 +20,12 @@ build_date.ads :
 
 main : main.adb build_date.ads
 	gnatmake -g -gnat12 -we main.adb -o ${TARGET} -bargs -E
-	rm build_date.ads
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
+
+test : test.adb build_date.ads
+	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
+
 
 testsameheader:   # orig header has 35 cards
 	rm -f $(TESTFILE)
@@ -44,7 +47,7 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f ${TARGET} *.o *.ali build_date.*
+	rm -f ${TARGET} testfits *.o *.ali build_date.* b~main.* b~test.*
 
 
 distclean:
