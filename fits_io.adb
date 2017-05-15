@@ -1,3 +1,22 @@
+--
+-- FITS_IO implementation notes
+--
+-- Current implementation is based on two elements:
+--
+-- 1, Low-level FITS-file access
+-- This presents a FITS-file as array of 2880-blocks.
+-- The layer provides positioning by blocks, read and write.
+-- Currently implemented with Stream_IO. Possible with Direct_IO which would
+-- eliminate block position calculations.
+--
+-- 2, HDU information vector
+-- This is a vector of structures which store HDU's positions and sizes
+-- (and other 'useful' info). It is part of File-handle record (FIST_IO.File_Type)
+-- and is filled in Open/Create and Write, and accessed in Read.
+-- Currently it is implemented as static vector of MaxHDU records.
+-- Should be implemented as dynamic vector of 3..5 record-chunks.
+
+
 
 with Ada.Text_IO;-- for debug only
 with Ada.Streams.Stream_IO;
