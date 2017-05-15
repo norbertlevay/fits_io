@@ -25,6 +25,51 @@ with HDU;
 
 procedure test
 is
+ --
+ -- count lines in Header file
+ --
+ function NoOfLines( FileName : in String )
+  return Positive
+ is
+  FileHandle     : Ada.Text_IO.File_Type;
+  NoLines : Natural := 0;
+  ENDFound : Boolean := False;
+ begin
+    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
+    loop
+      exit when ENDFound;
+        declare
+         Dummy : String := Ada.Text_IO.Get_Line( FileHandle );
+         -- raises exception if no END-Line found but EOF reached
+        begin
+         if Dummy'Length >= 3 then
+           ENDFound := (Dummy(1..3) = "END");
+         end if;
+        end;
+        NoLines := NoLines + 1;
+    end loop;
+    Ada.Text_IO.Close(FileHandle);
+  return NoLines;
+ end NoOfLines;
+ --
+ -- Convert Header from text file into Header_Type
+ --
+ function Read_HeaderFromTextFile( FileName : in String )
+  return HDU.Header_Type
+ is
+   FileHandle : Ada.Text_IO.File_Type;
+   NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
+   Header  : HDU.Header_Type(1 .. NoLines);
+ begin
+   Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
+   for I in Header'Range loop
+      Header(I) := HDU.SB.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
+   end loop;
+   Ada.Text_IO.Close(FileHandle);
+   return Header;
+ end Read_HeaderFromTextFile;
+
+
  Fits : Fits_IO.File_Type;
  Mode : Fits_IO.File_Mode := Append_File;
  Name : String    := "test.fits";
@@ -34,12 +79,12 @@ is
    HDU.SB.To_Bounded_String("NAXIS1  = 10"),
    HDU.SB.To_Bounded_String("NAXIS2  = 10"),
    HDU.SB.To_Bounded_String("END"));
+ RealHeader : HDU.Header_Type := Read_HeaderFromTextFile("realheader.hdr");
 begin
 
  Create (Fits, Mode, Name);
-
  Ada.Text_IO.Put_Line("Write Primary Header...");
- Write (Fits, Header);
+ Write (Fits, RealHeader);
  Ada.Text_IO.Put_Line("Write Header to 2nd HDU...");
  Write (Fits, Header, 2);
 
