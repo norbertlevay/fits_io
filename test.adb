@@ -38,7 +38,10 @@ begin
 
  Create (Fits, Mode, Name);
 
+ Ada.Text_IO.Put_Line("Write Primary Header...");
  Write (Fits, Header);
+ Ada.Text_IO.Put_Line("Write Header to 2nd HDU...");
+ Write (Fits, Header, 2);
 
  Close(Fits);
 

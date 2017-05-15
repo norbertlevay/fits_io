@@ -68,7 +68,7 @@ package body FITS_IO is
 
 
  --
- -- returns DU-size in Octets
+ -- returns DU-size in Blocks
  --
  function  Calc_DataUnit_Size( AxesDimensions : in Axes_Type )
   return Natural
@@ -79,11 +79,14 @@ package body FITS_IO is
    if AxesDimensions.Naxes > 0 then
      DUSize := 1;
      for I in 1..AxesDimensions.Naxes loop
+      exit when AxesDimensions.Naxis(I) = 0;
       DUSize := DUSize * AxesDimensions.Naxis(I);
      end loop;
-     DUSize := DUSize * (abs AxesDimensions.BitPix/8);-- 8 bits in Octet
-     DUSize := BlockSize*(1 + DUSize/BlockSize);
-     -- must be multiple of BlockSize
+     if DUSize /= 0 then
+      DUSize := DUSize * (abs AxesDimensions.BitPix/8);-- 8 bits in Octet
+      DUSize := 1 + DUSize/BlockSize;
+      -- size in Blocks
+     end if;
    end if;
 
   return DUSize;
@@ -196,7 +199,7 @@ package body FITS_IO is
       -- DataUnit
 
       DataStart_Index := Index(File);
-      DataUnit_Size   := To_BlockIndex(Calc_DataUnit_Size( AxesDimensions ));
+      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
       Set_Index( File, DataStart_Index + DataUnit_Size );
       -- skip data unit
                                                               
@@ -221,39 +224,6 @@ package body FITS_IO is
  -- Write takes and converts Header_Type --> HeaderBlocks_Type
  -- writes the header into the file
  -- if write success calls this Parse_HDU_positions():
- procedure Parse_HDU_Positions( File : in out File_Type;
-                                HeaderBlocks : in HeaderBlocks_Type )
- is
-  HDU_Cnt : Positive;
-  AxesDimensions : Axes_Type;
-  DU_Size : Natural := 0;
-  Card : String(1..CardSize);
-  ENDFound : Boolean := False;
- begin
-   for I in HeaderBlocks'Range
-    loop
-     for J in HeaderBlocks(I)'Range
-      loop
-       Card := HeaderBlocks(I)(J);
-       Parse_KeyRecord( Card, AxesDimensions );
-       ENDFound := (Card = ENDCard);
-     end loop;
-     exit when ENDFound;
-   end loop;
-
-   DU_Size := Calc_DataUnit_Size( AxesDimensions );
-
-   HDU_Cnt := File.HDU_Cnt + 1;
-   File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := Index(File) - HeaderBlocks'Length;
-   -- header already written - is better way to have the index from before Header Write?
-   File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := HeaderBlocks'Length;
-   File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart
-                                             + File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize;
-   File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DU_Size;
-   File.HDU_Cnt := HDU_Cnt;
-
- end;
-
  function  Parse_HDU_Data( HeaderBlocks : in HeaderBlocks_Type)
   return HDU_Data
  is
@@ -385,6 +355,7 @@ package body FITS_IO is
   Print_FitsFileHandle(Fits);-- debug
 
   Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile,To_StreamFile_Mode(Mode));
+  Fits.Mode := Mode;
  end Open;
 
 
@@ -492,6 +463,7 @@ package body FITS_IO is
                + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
      when others =>
        null;-- FIXME raise exception or let Stream_IO.Write raise exception?
+       Ada.Text_IO.Put_Line("ERROR case CurMode undef " & File_Mode'Image(CurMode));
    end case;
   end if;
 
@@ -528,6 +500,7 @@ package body FITS_IO is
                 Name,Form);
   Fits.HDU_Cnt := 0;-- init HDU_Arr
   Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile, To_StreamFile_Mode(Mode));
+  Fits.Mode    := Mode;
  end Create;
 
 
