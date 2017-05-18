@@ -523,4 +523,19 @@ package body FITS_IO is
  end Create;
 
 
+ function Read  ( File    : in  File_Type;
+                  HDU_Num : in  Positive )
+  return Header_Type
+ is
+  Header : Header_Type(1..1);
+ begin
+  -- position to HDU_Num HeaderStart
+  -- Read (File : in File_Type; NBlocks : in Positive := 1) return BlockArray_Type
+  -- convert BlockArray_Type --> HeaderBlocks_Type TBD: FITS_IO has the oposite
+  -- HDU.To_Header( HeaderBlocks : HeaderBlocks_Type ) return Header_Type
+  return Header;
+ end Read;
+
+
+
 end FITS_IO;

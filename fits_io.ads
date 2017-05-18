@@ -33,9 +33,9 @@ package FITS_IO is
 
  -- with existing Header
 
- procedure Read  ( File    : in  File_Type;
-                   HDU_Num : in  Positive;
-                   Header  : out Header_Type ) is null;
+ function Read  ( File    : in  File_Type;
+                  HDU_Num : in  Positive )
+  return Header_Type;
 
  HDU_Last : constant := Positive'Last;-- FIXME this id tight to Positive range definition of HDU_Arr
  -- FIXME is this goos idea at all ?
