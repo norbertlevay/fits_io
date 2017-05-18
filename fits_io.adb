@@ -536,6 +536,32 @@ package body FITS_IO is
   return Header;
  end Read;
 
+ function To_HeaderBlocks( Header : Header_Type ) return HeaderBlocks_Type
+ is
+  -- init blocks with space-characters
+  HB : HeaderBlocks_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
+  Ix : Positive := 1;-- index in header
+  BIx,Cix : Natural;-- block-index, card-index
+ begin
+  for I in Header'Range loop
+    BIx := 1 + (Ix-1) /  CardsCntInBlock;
+    CIx := Ix mod CardsCntInBlock;
+    if CIx = 0 then
+     CIx := CardsCntInBlock;
+    end if;
+    declare
+     str : String := SB.To_String(SB.Trim(Header(I), Ada.Strings.Both));
+    begin
+     for J in str'Range loop
+      HB(BIx)(CIx)(J) := str(J);
+     end loop;
+     -- FIXME is there a better way?
+    end;
+    Ix := Ix + 1;
+  end loop;
+  -- debug Print_HeaderBlocks(HB);
+  return HB;
+ end To_HeaderBlocks;
 
 
 end FITS_IO;

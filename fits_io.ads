@@ -1,7 +1,7 @@
 
 
-with HDU; use HDU;
-
+with Ada.Strings.Bounded;
+ -- for Header definition
 
 package FITS_IO is
 
@@ -32,6 +32,12 @@ package FITS_IO is
  -- and so HDU's need to be shifted in file
 
  -- with existing Header
+
+ -- Header definition
+ CardSize : constant Positive := 80;
+ package SB is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
+ type Header_Type is array (Positive range <>) of SB.Bounded_String;
+ -- Header is array of lines, each line max 80 chars long
 
  function Read  ( File    : in  File_Type;
                   HDU_Num : in  Positive )
@@ -71,15 +77,23 @@ private
 
  -- FITS standard size definitions
 
- CardSize        : constant Positive := 80;
  BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
- CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36
+ CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
 
  subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
  ENDCard  : Card_Type := "END                                                                             ";
 
  subtype Block_Type is String (1 .. BlockSize );
  type BlockArray_Type is array ( Positive range <> ) of Block_Type;
+
+ type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
+ EmptyCard  : constant String(1..CardSize) := (others => ' ');
+ EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+ type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+   -- Header format inside file
+
+ function To_HeaderBlocks( Header : Header_Type )
+  return HeaderBlocks_Type;
 
  -- HDU Records
  -- It is linked list of HDU info about

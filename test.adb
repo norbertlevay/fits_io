@@ -20,7 +20,7 @@ use
     Ada.Command_Line;
 
 with Fits_IO; use Fits_IO;
-with HDU;
+--with HDU;
 
 
 procedure test
@@ -55,15 +55,15 @@ is
  -- Convert Header from text file into Header_Type
  --
  function Read_HeaderFromTextFile( FileName : in String )
-  return HDU.Header_Type
+  return Header_Type
  is
    FileHandle : Ada.Text_IO.File_Type;
    NoLines : Positive := NoOfLines(FileName); -- constraint exception if NoLines = 0
-   Header  : HDU.Header_Type(1 .. NoLines);
+   Header  : Header_Type(1 .. NoLines);
  begin
    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
    for I in Header'Range loop
-      Header(I) := HDU.SB.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
+      Header(I) := SB.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
    end loop;
    Ada.Text_IO.Close(FileHandle);
    return Header;
@@ -73,13 +73,13 @@ is
  Fits : Fits_IO.File_Type;
  Mode : Fits_IO.File_Mode := Append_File;
  Name : String    := "test.fits";
- Header : HDU.Header_Type :=
-  (HDU.SB.To_Bounded_String("BITPIX  = 32"),
-   HDU.SB.To_Bounded_String("NAXIS   = 2"),
-   HDU.SB.To_Bounded_String("NAXIS1  = 10"),
-   HDU.SB.To_Bounded_String("NAXIS2  = 10"),
-   HDU.SB.To_Bounded_String("END"));
- RealHeader : HDU.Header_Type := Read_HeaderFromTextFile("realheader.hdr");
+ Header : Header_Type :=
+  (SB.To_Bounded_String("BITPIX  = 32"),
+   SB.To_Bounded_String("NAXIS   = 2"),
+   SB.To_Bounded_String("NAXIS1  = 10"),
+   SB.To_Bounded_String("NAXIS2  = 10"),
+   SB.To_Bounded_String("END"));
+ RealHeader : Header_Type := Read_HeaderFromTextFile("realheader.hdr");
 begin
 
  Create (Fits, Mode, Name);
