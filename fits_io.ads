@@ -120,11 +120,11 @@ private
  type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
  EmptyCard  : constant String(1..CardSize) := (others => ' ');
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
- type HeaderBlocks_Type is array (Positive range <>) of HeaderBlock_Type;
+ type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
    -- Header format inside file
 
  function To_HeaderBlocks( Header : Header_Type )
-  return HeaderBlocks_Type;
+  return HeaderBlockArray_Type;
 
  -- HDU Records
  -- It is linked list of HDU info about

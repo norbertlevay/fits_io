@@ -1,7 +1,8 @@
 
 with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Streams.Stream_IO,
-     GNAT.OS_Lib;
+     GNAT.OS_Lib,
+     FITS_IO;
 
 use  Ada.Streams.Stream_IO;
 
@@ -27,6 +28,23 @@ package body Commands is
    end;
    Close(HDU);
  end Print_Header;
+
+ procedure FITSIO_Print_Header( FileName : in String;
+                                HDU_Num  : Positive := 1 )
+ is
+   File : FITS_IO.File_Type;
+ begin
+   FITS_IO.Open(File, FITS_IO.In_File, FileName);
+   declare
+     Header : FITS_IO.Header_Type := FITS_IO.Read(File,HDU_Num);
+   begin
+     for I in Header'Range
+     loop
+         Ada.Text_IO.Put_Line( FITS_IO.Card.To_String(Header(I)) );
+     end loop;
+   end;
+   FITS_IO.Close(File);
+ end FITSIO_Print_Header;
 
  --
  -- count lines in Header file

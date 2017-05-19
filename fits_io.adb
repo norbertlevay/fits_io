@@ -31,6 +31,8 @@
 with Ada.Text_IO;-- for debug only
 with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
+with Ada.Unchecked_Conversion;
+
 
 package body FITS_IO is
 
@@ -153,6 +155,7 @@ package body FITS_IO is
  -- walk through each HeaderBlock
  --
  function  Parse_HeaderBlock( Block : in Block_Type ;
+                              CardCount : out Positive;
                               AxesDimensions : in out Axes_Type )
   return Boolean
  is
@@ -171,6 +174,7 @@ package body FITS_IO is
     CardCnt := CardCnt + 1;
     from := next;
   end loop;
+  CardCount := CardCnt;
   return ENDFound;
  end Parse_HeaderBlock;
 
@@ -209,6 +213,9 @@ package body FITS_IO is
 
    AxesDimensions : Axes_Type;
    Block : BlockArray_Type(1..1);
+
+   CurCardCnt : Natural;
+   TotCardCnt : Natural := 0;
  begin
 
    while not Ada.Streams.Stream_IO.End_OF_File(File.FitsFile)
@@ -222,7 +229,8 @@ package body FITS_IO is
 
       loop
          Block := Read( File );
-         EndCardFound := Parse_HeaderBlock( Block(1) , AxesDimensions );
+         EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, AxesDimensions );
+         TotCardCnt := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
       end loop;
 
@@ -238,6 +246,7 @@ package body FITS_IO is
       File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
       File.HDU_Cnt := HDU_Cnt;
+      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;
       -- store positions of this HDU
 
       HDU_Cnt := HDU_Cnt + 1;
@@ -251,10 +260,10 @@ package body FITS_IO is
  -- for Write/Append - creating new HDU from Header
  --
  -- Open/Create inits File.HDU_Arr <- sets correct File-Index
- -- Write takes and converts Header_Type --> HeaderBlocks_Type
+ -- Write takes and converts Header_Type --> HeaderBlockArray_Type
  -- writes the header into the file
  -- if write success calls this Parse_HDU_positions():
- function  Parse_HDU_Data( HeaderBlocks : in HeaderBlocks_Type)
+ function  Parse_HDU_Data( HeaderBlocks : in HeaderBlockArray_Type)
   return HDU_Data
  is
   HDUData : HDU_Data;
@@ -414,7 +423,7 @@ package body FITS_IO is
 
 
  -- FIXME review these record definitions & their usage
- function To_BlockArray(HeaderBlocks : HeaderBlocks_Type )
+ function To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
   return BlockArray_Type
   is
     BA : BlockArray_Type(HeaderBlocks'Range);
@@ -441,7 +450,7 @@ package body FITS_IO is
                    Header  : in  Header_Type;
                    HDU_Num : in  Positive := HDU_AfterLast )-- default: Append
  is
-  HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Header);
+  HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlocks(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
   CurMode      : File_Mode := Mode(File);
   HDUIx,FileIx : Positive;
@@ -536,7 +545,7 @@ package body FITS_IO is
   Fits.Mode    := Mode;
  end Create;
 
- function CardsCount (HeaderBlocks : HeaderBlocks_Type) return Positive
+ function CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
  is
   Count : Positive := 1;
  begin
@@ -548,11 +557,11 @@ package body FITS_IO is
   end loop;
   return Count;
  end CardsCount;
- -- FIXME we need CardsCount stored in the HeaderBlocks_Type
+ -- FIXME we need CardsCount stored in the HeaderBlockArray_Type
 
  -- strip empty spaces from start end end of each line
  -- strip empty cards after END-card
- function To_Header( HeaderBlocks : HeaderBlocks_Type ) return Header_Type
+ function To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
  is
   H  : Header_Type(1 .. CardsCount(HeaderBlocks));
   Ix : Positive := 1;
@@ -567,25 +576,27 @@ package body FITS_IO is
   return H;
  end To_Header;
 
- function To_HeaderBlocks(Blocks : BlockArray_Type)
-  return HeaderBlocks_Type
+ function To_HeaderBlockType is
+    new Ada.Unchecked_Conversion (Block_Type, HeaderBlock_Type);
+
+ function To_BlockType is
+    new Ada.Unchecked_Conversion (HeaderBlock_Type, Block_Type);
+
+ function To_HeaderBlockArray(Blocks : BlockArray_Type)
+  return HeaderBlockArray_Type
  is
-  HBlocks : HeaderBlocks_Type(Blocks'Range);
-  first,last : Positive;
+  HBlocks : HeaderBlockArray_Type(Blocks'Range);
  begin
   for I in Blocks'Range loop
-   for J in HBlocks(I)'Range loop
-    first := 1 + (J-1)*CardSize;
-    last  := first + CardSize - 1;
-    HBlocks(I)(J) := Blocks(I)(first .. last);
-   end loop;
+    HBlocks(I) := To_HeaderBlockType(Blocks(I));
   end loop;
   return HBlocks;
- end To_HeaderBlocks;
+ end To_HeaderBlockArray;
+
  -- subtype Block_Type is String (1 .. BlockSize );
  -- type BlockArray_Type is array (Positive range <>) of Block_Type;
  -- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
- -- type HeaderBlocks_Type is array (Positive range <>) of HeaderBlock_Type;
+ -- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
  -- FIXME review Block, HeaderBlock, DataBlock type definitions,
  -- require too many unnecessary conversions (also see HDU.Read)
  -- Probably only Header <-> HeaderBlock is justified
@@ -597,38 +608,33 @@ package body FITS_IO is
                   HDU_Num : in  Positive ) return Header_Type
  is
   Header : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
-   -- FIXME File_Type::CardsCount not filled in/implemented yet
  begin
-
   -- sanity check (like in Write)
   if (HDU_Num > File.HDU_Cnt) and
      (HDU_Num /= HDU_AfterLast)
   then
    null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
   end if;
-
   -- position by HDU_Num in file
   -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
   Set_Index(File, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
-
   -- read and convert to Header
   declare
     Blocks : BlockArray_Type := Read (File, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
-    HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Blocks);
+    HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Blocks);
   begin
     Header := To_Header(HeaderBlocks);
   end;
-
   return Header;
  end Read;
 
  --
  --
  --
- function To_HeaderBlocks( Header : Header_Type ) return HeaderBlocks_Type
+ function To_HeaderBlocks( Header : Header_Type ) return HeaderBlockArray_Type
  is
   -- init blocks with space-characters
-  HB : HeaderBlocks_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
+  HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
   Ix : Positive := 1;-- index in header
   BIx,Cix : Natural;-- block-index, card-index
  begin
