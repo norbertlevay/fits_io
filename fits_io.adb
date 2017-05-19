@@ -64,7 +64,7 @@ package body FITS_IO is
  --
 
  -- FIXME consider to return only one preformatted string per HDU
- function List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
+ function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
  is
   All_HDU : HDU_Info_Arr( 1 .. File.HDU_Cnt ) := (others=>Null_HDU_Info);
  begin
@@ -357,7 +357,7 @@ package body FITS_IO is
  end;
 
  -- FIXME File_Mode conversions : check this out; is there a better way ?
- function To_StreamFile_Mode ( Mode : File_Mode )
+ function  To_StreamFile_Mode ( Mode : File_Mode )
   return Ada.Streams.Stream_IO.File_Mode
  is
   StreamMode : Ada.Streams.Stream_IO.File_Mode;
@@ -415,29 +415,60 @@ package body FITS_IO is
   Ada.Streams.Stream_IO.Set_Mode(File.FitsFile,To_StreamFile_Mode(File.Mode));
  end Set_Mode;
 
- function Mode ( File : in  File_Type )
+ function  Mode ( File : in  File_Type )
   return File_Mode is
  begin
   return File.Mode;
  end Mode;
 
+ function  To_HeaderBlockType is
+    new Ada.Unchecked_Conversion (Block_Type, HeaderBlock_Type);
 
- -- FIXME review these record definitions & their usage
- function To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
+ function  To_BlockType is
+    new Ada.Unchecked_Conversion (HeaderBlock_Type, Block_Type);
+ -- subtype Block_Type is String (1 .. BlockSize );
+ -- type BlockArray_Type is array (Positive range <>) of Block_Type;
+ -- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
+ -- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
+ -- FIXME review Block, HeaderBlock, DataBlock type definitions,
+ -- require too many unnecessary conversions (also see HDU.Read)
+ -- Probably only Header <-> HeaderBlock is justified
+ function  To_HeaderBlockArray(Blocks : BlockArray_Type)
+  return HeaderBlockArray_Type
+ is
+  HBlocks : HeaderBlockArray_Type(Blocks'Range);
+ begin
+  for I in Blocks'Range loop
+    HBlocks(I) := To_HeaderBlockType(Blocks(I));
+  end loop;
+  return HBlocks;
+ end To_HeaderBlockArray;
+
+ function  To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
   return BlockArray_Type
   is
     BA : BlockArray_Type(HeaderBlocks'Range);
-    first, last : Positive;
   begin
-   for I in HeaderBlocks'Range loop     -- N blocks of
-    for J in HeaderBlocks(I)'Range loop -- 36 cards
-      first := (J-1)*CardSize + 1;
-      last  := first + CardSize - 1;
-      BA(I)(first..last) := HeaderBlocks(I)(J)(1..CardSize); -- copy one card
-    end loop;
+   for I in HeaderBlocks'Range loop
+      BA(I) := To_BlockType(HeaderBlocks(I));
    end loop;
    return BA;
   end To_BlockArray;
+-- function  To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
+--  return BlockArray_Type
+--  is
+--    BA : BlockArray_Type(HeaderBlocks'Range);
+--    first, last : Positive;
+--  begin
+--   for I in HeaderBlocks'Range loop     -- N blocks of
+--    for J in HeaderBlocks(I)'Range loop -- 36 cards
+--      first := (J-1)*CardSize + 1;
+--      last  := first + CardSize - 1;
+--      BA(I)(first..last) := HeaderBlocks(I)(J)(1..CardSize); -- copy one card
+--    end loop;
+--   end loop;
+--   return BA;
+--  end To_BlockArray;
 
  -- behaviour depends on Mode in Open/Create
  -- Inout_Mode updates the HDU given by HDU_Num but only if the size (in blocks) match
@@ -545,7 +576,7 @@ package body FITS_IO is
   Fits.Mode    := Mode;
  end Create;
 
- function CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
+ function  CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
  is
   Count : Positive := 1;
  begin
@@ -561,7 +592,7 @@ package body FITS_IO is
 
  -- strip empty spaces from start end end of each line
  -- strip empty cards after END-card
- function To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
+ function  To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
  is
   H  : Header_Type(1 .. CardsCount(HeaderBlocks));
   Ix : Positive := 1;
@@ -576,35 +607,10 @@ package body FITS_IO is
   return H;
  end To_Header;
 
- function To_HeaderBlockType is
-    new Ada.Unchecked_Conversion (Block_Type, HeaderBlock_Type);
-
- function To_BlockType is
-    new Ada.Unchecked_Conversion (HeaderBlock_Type, Block_Type);
-
- function To_HeaderBlockArray(Blocks : BlockArray_Type)
-  return HeaderBlockArray_Type
- is
-  HBlocks : HeaderBlockArray_Type(Blocks'Range);
- begin
-  for I in Blocks'Range loop
-    HBlocks(I) := To_HeaderBlockType(Blocks(I));
-  end loop;
-  return HBlocks;
- end To_HeaderBlockArray;
-
- -- subtype Block_Type is String (1 .. BlockSize );
- -- type BlockArray_Type is array (Positive range <>) of Block_Type;
- -- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
- -- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
- -- FIXME review Block, HeaderBlock, DataBlock type definitions,
- -- require too many unnecessary conversions (also see HDU.Read)
- -- Probably only Header <-> HeaderBlock is justified
-
  --
  -- Read header from FITS-file
  --
- function Read  ( File    : in  File_Type;
+ function  Read ( File    : in  File_Type;
                   HDU_Num : in  Positive ) return Header_Type
  is
   Header : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
@@ -631,7 +637,7 @@ package body FITS_IO is
  --
  --
  --
- function To_HeaderBlocks( Header : Header_Type ) return HeaderBlockArray_Type
+ function  To_HeaderBlocks( Header : Header_Type ) return HeaderBlockArray_Type
  is
   -- init blocks with space-characters
   HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
