@@ -1,74 +1,105 @@
-
+----------------------------------------------------------------------
+-- Ref:                                                             --
+--                                                                  --
+-- FITS : Definition of the Flexible Image Transport System (FITS)  --
+--        The FITS Standard                                         --
+--        Version 3.0: approved 2008 July 10 by the IAUFWG          --
+--        Document publication date: 2010 November 18               --
+--                                                                  --
+-- ADA  : Ada Reference Manual, ISO/IEC 8652:2012(E)                --
+--        Language and Standard Libraries                           --
+--        Copyright @ 2008, 2009, 2010, 2011, 2012 AXE Consultants  --
+--                                                                  --
+-- GNAT : GNAT Reference Manual                                     --
+--        GNAT, The GNU Ada Compiler                                --
+--        For gcc version 4.8.2                                     --
+--        by AdaCore                                                --
+--        Copyright c 1995-2012, Free Software Foundation, Inc.     --
+----------------------------------------------------------------------
 
 with Ada.Strings.Bounded;
  -- for Header definition
 
 package FITS_IO is
 
- type File_Type is limited private;
- type File_Mode is (In_File, Out_File, Inout_File, Append_File);
+   type File_Type is limited private;
 
--- valid combinations:
--- Open   : In Inout Append
--- Create : Append
+   type File_Mode is (In_File, Inout_File, Out_File, Append_File);
 
- procedure Create ( Fits : in out File_Type;
-                    Mode : in File_Mode;
-                    Name : in String;
-                    Form : in String := "shared=no");--[GNAT 9.2 FORM strings]
+   CardSize : constant Positive := 80;
+   -- [FITS Sects. 3.3.1, 4.4.1]
 
- procedure Open ( Fits : in out File_Type;
-                  Mode : in File_Mode;
-                  Name : in String;
-                  Form : in String := "shared=no");--[GNAT 9.2 FORM strings]
+   -- Header definition
 
- function  Mode ( File : in  File_Type ) return File_Mode;
- procedure Set_Mode ( File : in out File_Type;
-                      Mode : in File_Mode );
+   package Card is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
+   type Header_Type is array (Positive range <>) of Card.Bounded_String;
+   -- Headers stored in text files are lines of max 80 characters
 
- procedure Close ( Fits : in out File_Type );
+   HDU_AfterLast : constant := Positive'Last;
+   -- Write's default behaviour is append a Header after last HDU in file
 
- -- FITS-file level fucntionalities may change size of HDU's
- -- and so HDU's need to be shifted in file
+   ---------------------
+   -- File Management --
+   ---------------------
 
- -- with existing Header
+   procedure Create
+     (Fits : in out File_Type;
+      Mode : in File_Mode;
+      Name : in String;
+      Form : in String := "shared=no"); --[GNAT 9.2 FORM strings]
 
- -- Header definition
- CardSize : constant Positive := 80;
- package SB is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
- type Header_Type is array (Positive range <>) of SB.Bounded_String;
- -- Header is array of lines, each line max 80 chars long
+   procedure Open
+     (Fits : in out File_Type;
+      Mode : in File_Mode;
+      Name : in String;
+      Form : in String := "shared=no"); --[GNAT 9.2 FORM strings]
 
- function Read  ( File    : in  File_Type;
-                  HDU_Num : in  Positive )
-  return Header_Type;
+   procedure Close (Fits : in out File_Type);
 
- HDU_Last : constant := Positive'Last;-- FIXME this id tight to Positive range definition of HDU_Arr
- -- FIXME is this goos idea at all ?
- --   Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
- procedure Write ( File    : in  File_Type;
-                   Header  : in  Header_Type;
-                   HDU_Num : in  Positive := HDU_Last ); -- default: Append
- -- Open   + Out_File   -> Write(...,HDU_Num) truncates FITS-File and appends Header to the truncated end
- -- Open   + Inout_File -> Write(...,HDU_Num) overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
- -- Open/Create + Append -> Write() (call without HDU_Num ) appends to the end
+   function  Mode     (File : in File_Type) return File_Mode;
+   procedure Set_Mode (File : in out File_Type; Mode : in File_Mode);
 
- -- FITS-file structure (HDU's)
+   ---------------------------------
+   -- Input and Output Operations --
+   ---------------------------------
 
- -- FIXME consider to return only one preformatted string per HDU
- MaxAxes : constant Positive := 999; -- NAXIS <= 999 [FITS, Sect 4.4.1]
- type Data_Type is (Float64,Float32,Int16,Int32,Int64);-- encoded in BITPIX as: (-64,-32, 16,32,64)
- type Dim_Type is array (1..MaxAxes) of Natural;
- type HDU_Info is record
-  CardsCnt : Positive;  -- number of cards in this Header
-  Data     : Data_Type; -- data type as given by BITPIX
-  DimSizes : Dim_Type;  -- data dimensions, 0 means dimension not in use
- end record;
- Null_HDU_Info : constant HDU_Info := (1,Int32,(others=>0));
- type All_HDU_Info is array (Positive range <>) of HDU_Info;
+   function  Read (File : in File_Type; HDU_Num : in Positive) return Header_Type;
 
- function  FitsFile_Info ( Fits : File_Type ) return All_HDU_Info;
+   procedure Write
+     (File    : in File_Type;
+      Header  : in Header_Type;
+      HDU_Num : in Positive := HDU_AfterLast ); -- default: Append
 
+   ---------------------------------
+   -- FITS-file structure (HDU's) --
+   ---------------------------------
+
+   type Data_Type is (Int8, Int16, Int32, Int64, Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
+
+   for  Data_Type use
+     (Int8    =>   8, -- Character or unsigned binary integer
+      Int16   =>  16, -- 16-bit two's complement binary integer
+      Int32   =>  32, -- 32-bit two's complement binary integer
+      Int64   =>  64, -- 64-bit two's complement binary integer
+      Float32 => 932, -- IEEE single precision floating point
+      Float64 => 964);-- IEEE double precision floating point
+      -- FIXME [FITS] defines Floats negative -32 -64
+
+   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+
+   type Dim_Type is array (1..MaxAxes) of Natural;
+   type HDU_Info is record
+      CardsCnt : Positive;  -- number of cards in this Header
+      Data     : Data_Type; -- data type as given by BITPIX
+      DimSizes : Dim_Type;  -- data dimensions, 0 means dimension not in use
+   end record;
+
+   Null_HDU_Info : constant HDU_Info := (1,Int32,(others=>0));
+
+   type HDU_Info_Arr is array (Positive range <>) of HDU_Info;
+
+   function List_HDUInfo (File : in File_Type) return HDU_Info_Arr;
 
 private
 

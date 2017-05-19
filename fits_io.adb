@@ -16,6 +16,16 @@
 -- Currently it is implemented as static vector of MaxHDU records.
 -- Should be implemented as dynamic vector of 3..5 record-chunks.
 
+-- FIXME error handling/exceptions; not implemented yet
+
+-- FIXME reconsider Open/Create + File_mode rules / add to doc:
+-- valid combinations:
+-- Open   : In Inout Append
+-- Create : Append
+-- Write behaviour:
+-- Open   + Out_File    -> Write(...,HDU_Num) truncates FITS-File and appends Header to the truncated end
+-- Open   + Inout_File  -> Write(...,HDU_Num) overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
+-- Open/Create + Append -> Write() (call without HDU_Num ) appends to the end
 
 
 with Ada.Text_IO;-- for debug only
@@ -51,12 +61,13 @@ package body FITS_IO is
 
  --
 
- function FitsFile_Info ( Fits : File_Type ) return All_HDU_Info
+ -- FIXME consider to return only one preformatted string per HDU
+ function List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
  is
-  All_HDU : All_HDU_Info( 1 .. Fits.HDU_Cnt ) := (others=>Null_HDU_Info);
+  All_HDU : HDU_Info_Arr( 1 .. File.HDU_Cnt ) := (others=>Null_HDU_Info);
  begin
   return All_HDU;
- end FitsFile_Info;
+ end List_HDUInfo;
 
 
  procedure Copy_HDU (FromFile : File_type; FirstHDU : Positive; LastHDU : Positive;
@@ -175,8 +186,8 @@ package body FITS_IO is
   begin
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
- -- Use System.Storage_Unit to implement the above
- -- FIXME Handle Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+ -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
+ -- FIXME not implemented yet: Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
 
  --
  -- for Open - using existing HDU's
@@ -271,7 +282,7 @@ package body FITS_IO is
    HDUData.HDUPos.DataStart   := HDUData.HDUPos.HeaderStart
                                + HDUData.HDUPos.HeaderSize;
    HDUData.HDUPos.DataSize    := DU_Size;
-   -- FIXME later add HDUData.HDU_Info
+   -- FIXME add HDUData.HDU_Info; not implemented yet
 
    return HDUData;
  end;
@@ -423,9 +434,12 @@ package body FITS_IO is
  -- Inout_Mode updates the HDU given by HDU_Num but only if the size (in blocks) match
  -- Out_Mode will truncate file at HDU_Num and then append the Header
  -- Append_Mode (called without HDU_Num) appends the Header to the end of the file
+ -- Note:
+ -- FIXME HDU_AfterLast is tight to Positive range definition of HDU_Arr
+ -- FIXME is this goos idea at all -> Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
  procedure Write ( File    : in  File_Type;
                    Header  : in  Header_Type;
-                   HDU_Num : in  Positive := HDU_Last )-- default: Append
+                   HDU_Num : in  Positive := HDU_AfterLast )-- default: Append
  is
   HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
@@ -449,7 +463,7 @@ package body FITS_IO is
   -- Note: user cannot supply HDU_Num HDU_Cnt+1 in attempt to do append.
   -- For append Append_Mode must be used. FIXME re-consider this (?).
   if (HDU_Num > File.HDU_Cnt) and
-     (HDU_Num /= HDU_Last)
+     (HDU_Num /= HDU_AfterLast)
   then
    null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
   end if;
@@ -459,7 +473,7 @@ package body FITS_IO is
   -- FIXME note: if User wants update last HDU and sizes differ should we allow ?
   if CurMode = Inout_File
   then
-    null; -- FIXME check sizes for Inout-write ; not implemted yet
+    null; -- FIXME check sizes for Inout-write ; not implemented yet
     -- raise exception if sizes don't match UserMsg: For updating HDU (Inout mode) HDU sizes must match.
   end if;
 
@@ -529,6 +543,7 @@ package body FITS_IO is
  is
   Header : Header_Type(1..1);
  begin
+  -- FIXME Read(Header) not implemented yet
   -- position to HDU_Num HeaderStart
   -- Read (File : in File_Type; NBlocks : in Positive := 1) return BlockArray_Type
   -- convert BlockArray_Type --> HeaderBlocks_Type TBD: FITS_IO has the oposite
@@ -550,7 +565,7 @@ package body FITS_IO is
      CIx := CardsCntInBlock;
     end if;
     declare
-     str : String := SB.To_String(SB.Trim(Header(I), Ada.Strings.Both));
+     str : String := Card.To_String(Card.Trim(Header(I), Ada.Strings.Both));
     begin
      for J in str'Range loop
       HB(BIx)(CIx)(J) := str(J);

@@ -63,7 +63,7 @@ is
  begin
    Ada.Text_IO.Open( FileHandle, Ada.Text_IO.In_File, FileName );
    for I in Header'Range loop
-      Header(I) := SB.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
+      Header(I) := Card.To_Bounded_String(Ada.Text_IO.Get_Line( FileHandle ));
    end loop;
    Ada.Text_IO.Close(FileHandle);
    return Header;
@@ -74,11 +74,11 @@ is
  Mode : Fits_IO.File_Mode := Append_File;
  Name : String    := "test.fits";
  Header : Header_Type :=
-  (SB.To_Bounded_String("BITPIX  = 32"),
-   SB.To_Bounded_String("NAXIS   = 2"),
-   SB.To_Bounded_String("NAXIS1  = 10"),
-   SB.To_Bounded_String("NAXIS2  = 10"),
-   SB.To_Bounded_String("END"));
+  (Card.To_Bounded_String("BITPIX  = 32"),
+   Card.To_Bounded_String("NAXIS   = 2"),
+   Card.To_Bounded_String("NAXIS1  = 10"),
+   Card.To_Bounded_String("NAXIS2  = 10"),
+   Card.To_Bounded_String("END"));
  RealHeader : Header_Type := Read_HeaderFromTextFile("realheader.hdr");
 begin
 
