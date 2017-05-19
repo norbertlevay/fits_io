@@ -106,57 +106,7 @@ private
  type File_Data;
  type File_Type is access File_Data;
 
- -- FITS standard size definitions
-
- BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
- CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
-
- subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
- ENDCard  : Card_Type := "END                                                                             ";
-
- subtype Block_Type is String (1 .. BlockSize );
- type BlockArray_Type is array (Positive range <>) of Block_Type;
-
- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
- EmptyCard  : constant String(1..CardSize) := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
-   -- Header format inside file
-
- function To_HeaderBlocks( Header : Header_Type )
-  return HeaderBlockArray_Type;
-
- -- HDU Records
- -- It is linked list of HDU info about
- -- positions and sizes of HDU's in FITS File.
- -- Open and Write will insert HDU Records into the list
- -- Create initializes an empty list
- -- Close destroys the list
-
- -- low-level file access by Blocks
-
- -- file positioning by Blocks, Index: 1,2,...
-
- function  Index ( File  : in File_Type ) return Positive;
- -- current Index to Block
-
- procedure Set_Index ( File  : in File_Type;
-                       Index : in Positive );
- -- set Index to Block
-
-
- procedure Write ( File    : in File_Type;
-                   Blocks  : in BlockArray_Type;
-                   NBlocks : in Positive := 1);
-
- function  Read ( File    : in  File_Type;
-                  NBlocks : in  Positive := 1)
-  return BlockArray_Type;
-
- procedure Copy_Blocks (FromFile   : in File_Type;
-                        FirstBlock : in Positive; -- Index of First to copy
-                        LastBlock  : in Positive; -- Index of Last to copy
-                        ToFile     : in File_Type) is null;
- -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
+ -- FIXME here would follow list of pragma Inline,
+ -- but since Ada2012 obsolete, add anyway for older compilers
 
 end FITS_IO;
