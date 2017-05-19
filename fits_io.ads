@@ -68,7 +68,7 @@ package FITS_IO is
    procedure Write
      (File    : in File_Type;
       Header  : in Header_Type;
-      HDU_Num : in Positive := HDU_AfterLast ); -- default: Append
+      HDU_Num : in Positive := HDU_AfterLast); -- default: Append
 
    ---------------------------------
    -- FITS-file structure (HDU's) --
@@ -115,12 +115,12 @@ private
  ENDCard  : Card_Type := "END                                                                             ";
 
  subtype Block_Type is String (1 .. BlockSize );
- type BlockArray_Type is array ( Positive range <> ) of Block_Type;
+ type BlockArray_Type is array (Positive range <>) of Block_Type;
 
- type HeaderBlock_Type  is array (1 .. CardsCntInBlock) of String(1..CardSize);
+ type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
  EmptyCard  : constant String(1..CardSize) := (others => ' ');
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
- type HeaderBlocks_Type is array (Positive range <> ) of HeaderBlock_Type;
+ type HeaderBlocks_Type is array (Positive range <>) of HeaderBlock_Type;
    -- Header format inside file
 
  function To_HeaderBlocks( Header : Header_Type )

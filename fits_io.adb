@@ -536,21 +536,95 @@ package body FITS_IO is
   Fits.Mode    := Mode;
  end Create;
 
-
- function Read  ( File    : in  File_Type;
-                  HDU_Num : in  Positive )
-  return Header_Type
+ function CardsCount (HeaderBlocks : HeaderBlocks_Type) return Positive
  is
-  Header : Header_Type(1..1);
+  Count : Positive := 1;
  begin
-  -- FIXME Read(Header) not implemented yet
-  -- position to HDU_Num HeaderStart
-  -- Read (File : in File_Type; NBlocks : in Positive := 1) return BlockArray_Type
-  -- convert BlockArray_Type --> HeaderBlocks_Type TBD: FITS_IO has the oposite
-  -- HDU.To_Header( HeaderBlocks : HeaderBlocks_Type ) return Header_Type
+  for I in HeaderBlocks'Range loop
+   for J in HeaderBlocks(I)'Range loop
+    exit when HeaderBlocks(I)(J) = ENDCard;
+    Count := Count + 1;
+   end loop;
+  end loop;
+  return Count;
+ end CardsCount;
+ -- FIXME we need CardsCount stored in the HeaderBlocks_Type
+
+ -- strip empty spaces from start end end of each line
+ -- strip empty cards after END-card
+ function To_Header( HeaderBlocks : HeaderBlocks_Type ) return Header_Type
+ is
+  H  : Header_Type(1 .. CardsCount(HeaderBlocks));
+  Ix : Positive := 1;
+ begin
+  for I in HeaderBlocks'Range loop
+   for J in HeaderBlocks(I)'Range loop
+    H(Ix) := Card.Trim(Card.To_Bounded_String(HeaderBlocks(I)(J)) , Ada.Strings.Both);
+    exit when HeaderBlocks(I)(J) = ENDCard;
+    Ix := Ix + 1;
+   end loop;
+  end loop;
+  return H;
+ end To_Header;
+
+ function To_HeaderBlocks(Blocks : BlockArray_Type)
+  return HeaderBlocks_Type
+ is
+  HBlocks : HeaderBlocks_Type(Blocks'Range);
+  first,last : Positive;
+ begin
+  for I in Blocks'Range loop
+   for J in HBlocks(I)'Range loop
+    first := 1 + (J-1)*CardSize;
+    last  := first + CardSize - 1;
+    HBlocks(I)(J) := Blocks(I)(first .. last);
+   end loop;
+  end loop;
+  return HBlocks;
+ end To_HeaderBlocks;
+ -- subtype Block_Type is String (1 .. BlockSize );
+ -- type BlockArray_Type is array (Positive range <>) of Block_Type;
+ -- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
+ -- type HeaderBlocks_Type is array (Positive range <>) of HeaderBlock_Type;
+ -- FIXME review Block, HeaderBlock, DataBlock type definitions,
+ -- require too many unnecessary conversions (also see HDU.Read)
+ -- Probably only Header <-> HeaderBlock is justified
+
+ --
+ -- Read header from FITS-file
+ --
+ function Read  ( File    : in  File_Type;
+                  HDU_Num : in  Positive ) return Header_Type
+ is
+  Header : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
+   -- FIXME File_Type::CardsCount not filled in/implemented yet
+ begin
+
+  -- sanity check (like in Write)
+  if (HDU_Num > File.HDU_Cnt) and
+     (HDU_Num /= HDU_AfterLast)
+  then
+   null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
+  end if;
+
+  -- position by HDU_Num in file
+  -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
+  Set_Index(File, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
+
+  -- read and convert to Header
+  declare
+    Blocks : BlockArray_Type := Read (File, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
+    HeaderBlocks : HeaderBlocks_Type := To_HeaderBlocks(Blocks);
+  begin
+    Header := To_Header(HeaderBlocks);
+  end;
+
   return Header;
  end Read;
 
+ --
+ --
+ --
  function To_HeaderBlocks( Header : Header_Type ) return HeaderBlocks_Type
  is
   -- init blocks with space-characters
