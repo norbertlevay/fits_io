@@ -72,8 +72,16 @@ package body FITS_IO is
  -- FIXME consider to return only one preformatted string per HDU
  function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
  is
-  All_HDU : HDU_Info_Arr( 1 .. File.HDU_Cnt ) := (others=>Null_HDU_Info);
+  All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=
+  -- File.HDU_Arr(1 .. File.HDU_Cnt).HDUInfo; FIXME why does not work ?
+  (others=>Null_HDU_Info);
+  Cnt : Natural := 0;
  begin
+  while Cnt <= File.HDU_Cnt
+  loop
+   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
+   Cnt := Cnt + 1;
+  end loop;
   return All_HDU;
  end List_HDUInfo;
 
