@@ -85,15 +85,15 @@ package body FITS_IO is
   return All_HDU;
  end List_HDUInfo;
 
- -- FIXME merge Axes_Type and HDU_Info records
- type Axes_Type is record
-  BitPix : Data_Type;
-  BitPixOctets : Positive; -- size in octets for given BITPIX
-  Naxes  : Natural;
-  Naxis  : Dim_Type;
- end record;
- Null_AxisArray : Dim_Type := (others=> 1);
- Null_Axes : Axes_Type := (int8,1,0, Null_AxisArray);
+ -- FIXME DONE merge Axes_Type and HDU_Info records
+-- type Axes_Type is record
+--  BitPix : Data_Type;
+--  BitPixOctets : Positive; -- size in octets for given BITPIX
+--  Naxes  : Natural;
+--  Naxis  : Dim_Type;
+-- end record;
+-- Null_AxisArray : Dim_Type := (others=> 1);
+-- Null_Axes : Axes_Type := (int8,1,0, Null_AxisArray);
  -- Axis dimesions allow to calculate Data Unit size and position to next HDU in file
 
  -- FITS standard size definitions
@@ -177,21 +177,20 @@ package body FITS_IO is
  --
  -- returns DU-size in Blocks
  --
- function  Calc_DataUnit_Size( AxesDimensions : in Axes_Type )
+ function  Calc_DataUnit_Size( HDUInfo : in HDU_Info )
   return Natural
  is
   DUSize : Natural := 0;
  begin
 
-   if AxesDimensions.Naxes > 0 then
+   if HDUInfo.Naxes > 0 then
      DUSize := 1;
-     for I in 1..AxesDimensions.Naxes loop
-      exit when AxesDimensions.Naxis(I) = 0;
-      DUSize := DUSize * AxesDimensions.Naxis(I);
+     for I in 1..HDUInfo.Naxes loop
+      exit when HDUInfo.Naxis(I) = 0;
+      DUSize := DUSize * HDUInfo.Naxis(I);
      end loop;
      if DUSize /= 0 then
---      DUSize := DUSize * (abs AxesDimensions.BitPix/8);-- 8 bits in Octet
-      DUSize := DUSize * (abs AxesDimensions.BitPixOctets);-- 8 bits in Octet
+      DUSize := DUSize * (abs HDUInfo.BitPixOctets);
       DUSize := 1 + DUSize/BlockSize;
       -- size in Blocks
      end if;
@@ -200,7 +199,7 @@ package body FITS_IO is
   return DUSize;
  end Calc_DataUnit_Size;
 
- function To_DataType( BitPix : in Integer )
+ function  To_DataType( BitPix : in Integer )
   return Data_Type
  is
   bp : Data_Type;
@@ -223,7 +222,7 @@ package body FITS_IO is
  -- parse keywords needed to calculate DU size
  --
  procedure Parse_KeyRecord( Card : in Card_Type;
-                            AxesDimensions  : in out Axes_Type )
+                            HDUInfo  : in out HDU_Info )
  is
   dim : Positive;
  begin
@@ -231,15 +230,15 @@ package body FITS_IO is
    -- pos 31 is comment ' /'
    -- then : pos 10..20 is value
    if    (Card(1..9) = "BITPIX  =") then
-     AxesDimensions.BitPix       := To_DataType(Integer'Value(Card(10..30)));
-     AxesDimensions.BitPixOctets := abs Integer'Value(Card(10..30))/8;
+     HDUInfo.Data         := To_DataType(Integer'Value(Card(10..30)));
+     HDUInfo.BitPixOctets := abs Integer'Value(Card(10..30))/8;
    elsif (Card(1..5) = "NAXIS") then
 
      if (Card(1..9) = "NAXIS   =") then
-         AxesDimensions.Naxes := Positive'Value(Card(10..30));
+         HDUInfo.Naxes := Positive'Value(Card(10..30));
      else
          dim := Positive'Value(Card(6..8));
-         AxesDimensions.Naxis(dim) := Positive'Value(Card(10..30));
+         HDUInfo.Naxis(dim) := Positive'Value(Card(10..30));
      end if;
      -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
      -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
@@ -252,7 +251,7 @@ package body FITS_IO is
  --
  function  Parse_HeaderBlock( Block : in Block_Type ;
                               CardCount : out Positive;
-                              AxesDimensions : in out Axes_Type )
+                              HDUInfo : in out HDU_Info )
   return Boolean
  is
   ENDFound : Boolean := False;
@@ -264,7 +263,7 @@ package body FITS_IO is
   loop
     next := from + CardSize;
     Card := Block( from .. (next - 1) );
-    Parse_KeyRecord( Card, AxesDimensions );
+    Parse_KeyRecord( Card, HDUInfo );
     ENDFound := (Card = ENDCard);
     exit when ENDFound or CardCnt >= CardsCntInBlock;
     CardCnt := CardCnt + 1;
@@ -292,7 +291,8 @@ package body FITS_IO is
    DataStart_Index : Positive;
    DataUnit_Size   : Natural := 0;
 
-   AxesDimensions : Axes_Type;
+--   AxesDimensions : Axes_Type;
+   HDUInfo : HDU_Info;
    Block : BlockArray_Type(1..1);
 
    CurCardCnt : Natural;
@@ -302,7 +302,8 @@ package body FITS_IO is
    while not Ada.Streams.Stream_IO.End_OF_File(File.FitsFile)
    loop
 
-      AxesDimensions := Null_Axes;
+      --AxesDimensions := Null_Axes;
+      HDUInfo := Null_HDU_Info;
 
       -- Header
 
@@ -310,7 +311,8 @@ package body FITS_IO is
 
       loop
          Block := Read( File );
-         EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, AxesDimensions );
+        -- EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, AxesDimensions );
+         EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
          TotCardCnt := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
       end loop;
@@ -318,7 +320,8 @@ package body FITS_IO is
       -- DataUnit
 
       DataStart_Index := Index(File);
-      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+--      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+      DataUnit_Size   := Calc_DataUnit_Size( HDUInfo );
       Set_Index( File, DataStart_Index + DataUnit_Size );
       -- skip data unit
                                                               
@@ -327,9 +330,10 @@ package body FITS_IO is
       File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
       -- store positions of this HDU
+      File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
       File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;
-      File.HDU_Arr(HDU_Cnt).HDUInfo.Data     := AxesDimensions.BitPix;
-      File.HDU_Arr(HDU_Cnt).HDUInfo.DimSizes := AxesDimensions.Naxis;
+--      File.HDU_Arr(HDU_Cnt).HDUInfo.Data     := AxesDimensions.BitPix;
+--      File.HDU_Arr(HDU_Cnt).HDUInfo.Naxis    := AxesDimensions.Naxis;
       -- store other info about this HDU
       File.HDU_Cnt := HDU_Cnt;
 
@@ -352,7 +356,8 @@ package body FITS_IO is
  is
   HDUData : HDU_Data;
 --  HDU_Cnt : Positive;
-  AxesDimensions : Axes_Type;
+--  AxesDimensions : Axes_Type;
+  HDUInfo : HDU_Info;
   DU_Size : Natural := 0;
   Card : String(1..CardSize);
   ENDFound : Boolean := False;
@@ -364,13 +369,15 @@ package body FITS_IO is
       loop
        Card := HeaderBlocks(I)(J);
        CardsCnt := CardsCnt + 1;
-       Parse_KeyRecord( Card, AxesDimensions );
+--       Parse_KeyRecord( Card, AxesDimensions );
+       Parse_KeyRecord( Card, HDUInfo );
        ENDFound := (Card = ENDCard);
      end loop;
      exit when ENDFound;
    end loop;
 
-   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+--   DU_Size := Calc_DataUnit_Size( AxesDimensions );
+   DU_Size := Calc_DataUnit_Size( HDUInfo );
 
    -- FIXME Here enough to set sizes.
    -- Caller will re-set HeaderStart & DataStart
@@ -381,9 +388,10 @@ package body FITS_IO is
 --                               + HDUData.HDUPos.HeaderSize;
    HDUData.HDUPos.DataSize    := DU_Size;
 
+   HDUData.HDUInfo          := HDUInfo;
    HDUData.HDUInfo.CardsCnt := CardsCnt;
-   HDUData.HDUInfo.Data     := AxesDimensions.BitPix;
-   HDUData.HDUInfo.DimSizes := AxesDimensions.Naxis;
+--   HDUData.HDUInfo.Data     := AxesDimensions.BitPix;
+--   HDUData.HDUInfo.Naxis    := AxesDimensions.Naxis;
 
    return HDUData;
  end;

@@ -92,10 +92,12 @@ package FITS_IO is
    type HDU_Info is record
       CardsCnt : Positive;  -- number of cards in this Header
       Data     : Data_Type; -- data type as given by BITPIX
-      DimSizes : Dim_Type;  -- data dimensions, 0 means dimension not in use
+      BitPixOctets : Positive; -- size in octets for given BITPIX
+      Naxes    : Natural;
+      Naxis    : Dim_Type;  -- data dimensions, 0 means dimension not in use
    end record;
 
-   Null_HDU_Info : constant HDU_Info := (1,Int32,(others=>0));
+   Null_HDU_Info : constant HDU_Info := (1,Int32,4,0,(others=>0));
 
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info;
 
