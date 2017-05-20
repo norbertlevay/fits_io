@@ -590,8 +590,12 @@ package body FITS_IO is
   -- FIXME note: if User wants update last HDU and sizes differ should we allow ?
   if CurMode = Inout_File
   then
-    null; -- FIXME check sizes for Inout-write ; not implemented yet
-    -- raise exception if sizes don't match UserMsg: For updating HDU (Inout mode) HDU sizes must match.
+    if File.HDU_Arr(File.HDU_Cnt).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
+    then
+     null;
+     -- FIXME raise exception if sizes don't match
+     -- UserMsg: For updating HDU (Inout mode) HDU sizes must match.
+    end if;
   end if;
 
   -- 1. Set HDUIx and FileIx depending on the situation
