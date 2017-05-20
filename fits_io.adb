@@ -325,12 +325,14 @@ package body FITS_IO is
   DU_Size : Natural := 0;
   Card : String(1..CardSize);
   ENDFound : Boolean := False;
+  CardsCnt : Natural := 0;
  begin
    for I in HeaderBlocks'Range
     loop
      for J in HeaderBlocks(I)'Range
       loop
        Card := HeaderBlocks(I)(J);
+       CardsCnt := CardsCnt + 1;
        Parse_KeyRecord( Card, AxesDimensions );
        ENDFound := (Card = ENDCard);
      end loop;
@@ -344,7 +346,8 @@ package body FITS_IO is
    HDUData.HDUPos.DataStart   := HDUData.HDUPos.HeaderStart
                                + HDUData.HDUPos.HeaderSize;
    HDUData.HDUPos.DataSize    := DU_Size;
-   -- FIXME add HDUData.HDU_Info; not implemented yet
+   -- FIXME add HDUData.HDU_Info; not fully implemented yet
+   HDUData.HDUInfo.CardsCnt := CardsCnt;
 
    return HDUData;
  end;
