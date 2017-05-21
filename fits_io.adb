@@ -33,8 +33,29 @@ with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
+with Ada.Direct_IO;
 
 package body FITS_IO is
+
+ BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
+ subtype Block_Type is String (1 .. BlockSize );
+
+ --------------------------------
+ -- Low level FITS-file access --
+ --------------------------------
+
+ type FITS_Blocks is
+    record
+      Block : Block_Type;
+      -- FIXME this should be base on generic 8-bit octet
+      -- rather then Character ? see Ada definitions
+    end record;
+
+ package LowLevelFITS_IO is new Ada.Direct_IO(FITS_Blocks);
+ -- use LowLevelFITS_IO;
+ -- Now LowLevelFITS_IO.Open .Write .Read .Close possible
+ -- Read(File, Block, BlockIndex)
+
 
  -- HDU positions within FITS-file
 
@@ -98,13 +119,11 @@ package body FITS_IO is
 
  -- FITS standard size definitions
 
- BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
  CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
 
  subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
  ENDCard  : Card_Type := "END                                                                             ";
 
- subtype Block_Type is String (1 .. BlockSize );
  type BlockArray_Type is array (Positive range <>) of Block_Type;
 
  type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
@@ -311,6 +330,7 @@ package body FITS_IO is
 
       loop
          Block := Read( File );
+-- FIXME         LowLevelFITS_IO.Read( Ada.Direct_IO.To_File(File.FitsFile), Block );
         -- EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, AxesDimensions );
          EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
          TotCardCnt := TotCardCnt + CurCardCnt;
