@@ -48,6 +48,11 @@ package body FITS_IO is
 
  -- A, implementation with Direct_IO
 
+ -- [GNAT 9.3 Direct_IO]:
+ -- "... There is no control information of any kind.
+ -- For example, if 32-bit integers are being written, each record takes
+ -- 4-bytes, so the record at index K starts at offset (K-1)*4."
+
  type FITS_Block is
     record
       Block : Block_Type;
@@ -76,7 +81,10 @@ package body FITS_IO is
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
  -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
+
  -- FIXME not implemented yet: Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+ -- [FITS 3.3.2 Primary data array]: "The individual data values shall be stored in big-endian byte order..."
+ -- [FITS 5 Data Representation & 7.3.3]: "Bytes are in big-endian order of decreasing significance."
 
  -- file positioning by Blocks, Index: 1,2,...
 
