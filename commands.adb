@@ -1,5 +1,6 @@
 
 with Ada.Text_IO,-- Ada.Integer_Text_IO,
+     Ada.Strings.Fixed,
      Ada.Streams.Stream_IO,
      GNAT.OS_Lib,
      FITS_IO;
@@ -176,6 +177,27 @@ package body Commands is
   FitsFile : FITS_IO.File_Type;
  begin
    FITS_IO.Open(FitsFile,FITS_IO.In_File,FitsFileName);
+
+   declare
+    HDUInfoArr : FITS_IO.HDU_Info_Arr := FITS_IO.List_HDUInfo (FitsFile);
+   begin
+    for I in HDUInfoArr'Range
+     loop
+       Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
+       Ada.Text_IO.Put("   Cards: " & Integer'Image(HDUInfoArr(I).CardsCnt));
+       Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
+
+       Ada.Text_IO.Put(" ( ");
+       for J in 1 .. (HDUInfoArr(I).Naxes - 1)
+        loop
+         Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(J)) & " x " );
+       end loop;
+       Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
+       Ada.Text_IO.Put_Line(" ) ");
+
+    end loop;
+   end;
+
    FITS_IO.Close(FitsFile);
  end Print_Struct;
 

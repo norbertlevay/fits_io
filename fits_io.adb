@@ -442,7 +442,7 @@ package body FITS_IO is
                   Form : in String   := "shared=no")
  is
  begin
-  Ada.Text_IO.Put_Line("DBG Open: "&Name);
+--  Ada.Text_IO.Put_Line("DBG Open: "&Name);
 
   Fits := new File_Data;
 
@@ -451,7 +451,7 @@ package body FITS_IO is
                 Name,Form);--[GNAT,9.2 FORM strings]
 
   Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
-  Print_FitsFileHandle(Fits);-- debug
+ -- Print_FitsFileHandle(Fits);-- debug
 
   Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile,To_StreamFile_Mode(Mode));
   Fits.Mode := Mode;
@@ -660,7 +660,7 @@ package body FITS_IO is
                     Name : in String;
                     Form : in String    := "shared=no") is
  begin
-  Ada.Text_IO.Put_Line("DBG Create: "&Name);
+--  Ada.Text_IO.Put_Line("DBG Create: "&Name);
   Fits := new File_Data;
   Ada.Streams.Stream_IO.Create( Fits.BlocksFile,
                 To_StreamFile_Mode(Mode),
@@ -723,6 +723,10 @@ package body FITS_IO is
     Blocks : BlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
     HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Blocks);
   begin
+-- debug:
+--    Ada.Text_IO.Put_Line(" H:" & Integer'Image(Header'Length) &
+--                    "    HB: " & Integer'Image(HeaderBlocks'Length) &
+--                    "    HS:"  & Integer'Image(File.HDU_Arr(HDU_Num).HDUPos.HeaderSize));
     Header := To_Header(HeaderBlocks);
   end;
   return Header;
@@ -734,7 +738,7 @@ package body FITS_IO is
   All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=
   -- File.HDU_Arr(1 .. File.HDU_Cnt).HDUInfo; FIXME why does not work ?
   (others=>Null_HDU_Info);
-  Cnt : Natural := 0;
+  Cnt : Positive := 1;
  begin
   while Cnt <= File.HDU_Cnt
   loop
