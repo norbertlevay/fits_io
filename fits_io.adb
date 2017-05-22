@@ -37,25 +37,109 @@ with Ada.Direct_IO;
 
 package body FITS_IO is
 
- BlockSize       : constant Positive := 2880; -- [FITS, Sect xxx]
- subtype Block_Type is String (1 .. BlockSize );
-
  --------------------------------
  -- Low level FITS-file access --
  --------------------------------
 
- type FITS_Blocks is
+ BlockSize : constant Positive := 2880; -- [FITS, Sect 3.1]
+ subtype Block_Type is String (1 .. BlockSize );
+ type BlockArray_Type is array (Positive range <>) of Block_Type;
+
+
+ -- A, implementation with Direct_IO
+
+ type FITS_Block is
     record
       Block : Block_Type;
-      -- FIXME this should be base on generic 8-bit octet
+      -- FIXME this should be based on generic 8-bit octet
       -- rather then Character ? see Ada definitions
     end record;
 
- package LowLevelFITS_IO is new Ada.Direct_IO(FITS_Blocks);
- -- use LowLevelFITS_IO;
- -- Now LowLevelFITS_IO.Open .Write .Read .Close possible
+ package Blocks_IO is new Ada.Direct_IO(FITS_Block);
+ -- use Blocks_IO;
+ -- Now Blocks_IO.Open .Write .Read .Close possible
  -- Read(File, Block, BlockIndex)
 
+
+ -- B, implementation with Stream_IO
+
+ -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
+ -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
+ -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
+ function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
+  begin
+   return (OctetIndex - 1) / BlockSize + 1;
+  end To_BlockIndex;
+
+ function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
+  begin
+   return (BlockIndex - 1) * BlockSize + 1;
+  end To_OctetIndex;
+ -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
+ -- FIXME not implemented yet: Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
+
+ -- file positioning by Blocks, Index: 1,2,...
+
+ function  Index ( File  : in Ada.Streams.Stream_IO.File_Type ) return Positive
+ is
+ begin
+  return To_BlockIndex(Positive(Ada.Streams.Stream_IO.Index( File )));
+  -- FIXME verify this direct conversion Count -> Positive
+ end Index;
+
+ procedure Set_Index ( File  : in Ada.Streams.Stream_IO.File_Type;
+                       Index : in Positive ) -- Block Index
+ is
+ begin
+  Ada.Streams.Stream_IO.Set_Index( File,
+      Ada.Streams.Stream_IO.Positive_Count(To_OctetIndex(Index)) );
+  -- FIXME verify this direct conversion Positive -> Positive_Count
+ end Set_Index;
+
+ procedure Write(File    : in Ada.Streams.Stream_IO.File_Type;
+                 Blocks  : in BlockArray_Type;
+                 NBlocks : in Positive := 1)
+ is
+   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
+            Ada.Streams.Stream_IO.Stream(File);
+ begin
+   BlockArray_Type'Write( FileSA, Blocks );
+ end Write;
+
+ function  Read (File    : in  Ada.Streams.Stream_IO.File_Type;
+                 NBlocks : in  Positive := 1) return BlockArray_Type
+ is
+   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
+            Ada.Streams.Stream_IO.Stream(File);
+   Blocks : BlockArray_Type( 1 .. NBlocks );
+ begin
+   BlockArray_Type'Read( FileSA, Blocks );
+   return Blocks;
+ end Read;
+
+ -- FIXME File_Mode conversions : check this out; is there a better way ?
+ function  To_StreamFile_Mode ( Mode : File_Mode )
+  return Ada.Streams.Stream_IO.File_Mode
+ is
+  StreamMode : Ada.Streams.Stream_IO.File_Mode;
+ begin
+  case Mode is
+   when In_File =>
+    StreamMode := Ada.Streams.Stream_IO.In_File;
+   when Out_File =>
+    StreamMode := Ada.Streams.Stream_IO.Out_File;
+   when Inout_File =>
+    StreamMode := Ada.Streams.Stream_IO.Out_File;
+    -- Stream_IO : switch mode in Open will result in Inout access [GNAT 9.12 Open Modes]
+   when Append_File =>
+    StreamMode := Ada.Streams.Stream_IO.Append_File;
+  end case;
+  return StreamMode;
+ end To_StreamFile_Mode;
+
+  -------------------------
+  -- FITS-File HDU-lists --
+  -------------------------
 
  -- HDU positions within FITS-file
 
@@ -83,48 +167,20 @@ package body FITS_IO is
  type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
 
  type File_Data is record
-  FitsFile : Ada.Streams.Stream_IO.File_Type;
+  BlocksFile : Ada.Streams.Stream_IO.File_Type;
   Mode     : File_Mode;-- FITS_IO Mode
   HDU_Cnt  : Natural;
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
-
- -- FIXME consider to return only one preformatted string per HDU
- function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
- is
-  All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=
-  -- File.HDU_Arr(1 .. File.HDU_Cnt).HDUInfo; FIXME why does not work ?
-  (others=>Null_HDU_Info);
-  Cnt : Natural := 0;
- begin
-  while Cnt <= File.HDU_Cnt
-  loop
-   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
-   Cnt := Cnt + 1;
-  end loop;
-  return All_HDU;
- end List_HDUInfo;
-
- -- FIXME DONE merge Axes_Type and HDU_Info records
--- type Axes_Type is record
---  BitPix : Data_Type;
---  BitPixOctets : Positive; -- size in octets for given BITPIX
---  Naxes  : Natural;
---  Naxis  : Dim_Type;
--- end record;
--- Null_AxisArray : Dim_Type := (others=> 1);
--- Null_Axes : Axes_Type := (int8,1,0, Null_AxisArray);
- -- Axis dimesions allow to calculate Data Unit size and position to next HDU in file
-
- -- FITS standard size definitions
+ ------------------------------------
+ -- FITS standard size definitions --
+ ------------------------------------
 
  CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
 
  subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
  ENDCard  : Card_Type := "END                                                                             ";
-
- type BlockArray_Type is array (Positive range <>) of Block_Type;
 
  type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
  EmptyCard  : constant String(1..CardSize) := (others => ' ');
@@ -132,66 +188,6 @@ package body FITS_IO is
  type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
    -- Header format inside file
 
-
--------------------------------------
--- Low-level file access by Blocks --
--------------------------------------
-
- -- Read/Write implemented with Stream_IO
-
- -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
- -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
- -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
- function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
-  begin
-   return (OctetIndex - 1) / BlockSize + 1;
-  end To_BlockIndex;
-
- function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
-  begin
-   return (BlockIndex - 1) * BlockSize + 1;
-  end To_OctetIndex;
- -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
- -- FIXME not implemented yet: Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
-
- -- file positioning by Blocks, Index: 1,2,...
-
- function  Index ( File  : in File_Type ) return Positive
- is
- begin
-  return To_BlockIndex(Positive(Ada.Streams.Stream_IO.Index( File.FitsFile )));
-  -- FIXME verify this direct conversion Count -> Positive
- end Index;
-
- procedure Set_Index ( File  : in File_Type;
-                       Index : in Positive ) -- Block Index
- is
- begin
-  Ada.Streams.Stream_IO.Set_Index( File.FitsFile,
-      Ada.Streams.Stream_IO.Positive_Count(To_OctetIndex(Index)) );
-  -- FIXME verify this direct conversion Positive -> Positive_Count
- end Set_Index;
-
- procedure Write(File    : in File_Type;
-                 Blocks  : in BlockArray_Type;
-                 NBlocks : in Positive := 1)
- is
-   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
-            Ada.Streams.Stream_IO.Stream(File.FitsFile);
- begin
-   BlockArray_Type'Write( FileSA, Blocks );
- end Write;
-
- function  Read (File    : in  File_Type;
-                 NBlocks : in  Positive := 1) return BlockArray_Type
- is
-   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
-            Ada.Streams.Stream_IO.Stream(File.FitsFile);
-   Blocks : BlockArray_Type( 1 .. NBlocks );
- begin
-   BlockArray_Type'Read( FileSA, Blocks );
-   return Blocks;
- end Read;
 
  --
  -- returns DU-size in Blocks
@@ -297,10 +293,6 @@ package body FITS_IO is
  --
  procedure Parse_HDU_Positions ( File : in out File_Type )
  is
-   FitsSA  : Ada.Streams.Stream_IO.Stream_Access :=
-             Ada.Streams.Stream_IO.Stream( File.FitsFile );
-   -- HDU_Arr : HDU_Data_Array_Type;
-
    -- controlling the loops
    HDU_Cnt : Positive := 1;
    EndCardFound : Boolean := false;
@@ -318,20 +310,18 @@ package body FITS_IO is
    TotCardCnt : Natural := 0;
  begin
 
-   while not Ada.Streams.Stream_IO.End_OF_File(File.FitsFile)
+   while not Ada.Streams.Stream_IO.End_OF_File(File.BlocksFile)
    loop
 
-      --AxesDimensions := Null_Axes;
       HDUInfo := Null_HDU_Info;
 
       -- Header
 
-      HeadStart_Index := Index( File );
+      HeadStart_Index := Index( File.BlocksFile );
 
       loop
-         Block := Read( File );
--- FIXME         LowLevelFITS_IO.Read( Ada.Direct_IO.To_File(File.FitsFile), Block );
-        -- EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, AxesDimensions );
+         Block := Read( File.BlocksFile );
+-- FIXME         Blocks_IO.Read( Ada.Direct_IO.To_File(File.BlocksFile), Block );
          EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
          TotCardCnt := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
@@ -339,10 +329,9 @@ package body FITS_IO is
 
       -- DataUnit
 
-      DataStart_Index := Index(File);
---      DataUnit_Size   := Calc_DataUnit_Size( AxesDimensions );
+      DataStart_Index := Index(File.BlocksFile);
       DataUnit_Size   := Calc_DataUnit_Size( HDUInfo );
-      Set_Index( File, DataStart_Index + DataUnit_Size );
+      Set_Index( File.BlocksFile, DataStart_Index + DataUnit_Size );
       -- skip data unit
                                                               
       File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
@@ -439,26 +428,6 @@ package body FITS_IO is
   Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
  end;
 
- -- FIXME File_Mode conversions : check this out; is there a better way ?
- function  To_StreamFile_Mode ( Mode : File_Mode )
-  return Ada.Streams.Stream_IO.File_Mode
- is
-  StreamMode : Ada.Streams.Stream_IO.File_Mode;
- begin
-  case Mode is
-   when In_File =>
-    StreamMode := Ada.Streams.Stream_IO.In_File;
-   when Out_File =>
-    StreamMode := Ada.Streams.Stream_IO.Out_File;
-   when Inout_File =>
-    StreamMode := Ada.Streams.Stream_IO.Out_File;-- Stream_IO : switch mode will result in Inout access
-   when Append_File =>
-    StreamMode := Ada.Streams.Stream_IO.Append_File;
-  end case;
-  return StreamMode;
- end To_StreamFile_Mode;
-
-
  procedure Open ( Fits : in out File_Type;
                   Mode : in File_Mode;
                   Name : in String;
@@ -469,14 +438,14 @@ package body FITS_IO is
 
   Fits := new File_Data;
 
-  Ada.Streams.Stream_IO.Open( Fits.FitsFile,
+  Ada.Streams.Stream_IO.Open( Fits.BlocksFile,
                 Ada.Streams.Stream_IO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
 
   Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
   Print_FitsFileHandle(Fits);-- debug
 
-  Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile,To_StreamFile_Mode(Mode));
+  Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile,To_StreamFile_Mode(Mode));
   Fits.Mode := Mode;
  end Open;
 
@@ -486,7 +455,7 @@ package body FITS_IO is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
                                             (File_Data, File_Type);
  begin
-  Ada.Streams.Stream_IO.Close(Fits.FitsFile);
+  Ada.Streams.Stream_IO.Close(Fits.BlocksFile);
   Fits.HDU_Cnt := 0;-- not needed
   Delete_FileType(Fits);
  end Close;
@@ -495,7 +464,7 @@ package body FITS_IO is
                       Mode : in File_Mode ) is
  begin
   File.Mode := Mode;
-  Ada.Streams.Stream_IO.Set_Mode(File.FitsFile,To_StreamFile_Mode(File.Mode));
+  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(File.Mode));
  end Set_Mode;
 
  function  Mode ( File : in  File_Type )
@@ -658,8 +627,8 @@ package body FITS_IO is
   end if;
 
   -- 2, Write data to file
-  Set_Index(File,FileIx);
-  Write(File, To_BlockArray(HeaderBlocks));
+  Set_Index(File.BlocksFile,FileIx);
+  Write(File.BlocksFile, To_BlockArray(HeaderBlocks));
   -- FIXME define convertible Header <-> Block arrays is possible ?
 
   -- 3, Update File.HDU_Arr if write successful...
@@ -685,11 +654,11 @@ package body FITS_IO is
  begin
   Ada.Text_IO.Put_Line("DBG Create: "&Name);
   Fits := new File_Data;
-  Ada.Streams.Stream_IO.Create( Fits.FitsFile,
+  Ada.Streams.Stream_IO.Create( Fits.BlocksFile,
                 To_StreamFile_Mode(Mode),
                 Name,Form);
   Fits.HDU_Cnt := 0;-- init HDU_Arr
-  Ada.Streams.Stream_IO.Set_Mode(Fits.FitsFile, To_StreamFile_Mode(Mode));
+  Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile, To_StreamFile_Mode(Mode));
   Fits.Mode    := Mode;
  end Create;
 
@@ -740,16 +709,32 @@ package body FITS_IO is
   end if;
   -- position by HDU_Num in file
   -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
-  Set_Index(File, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
+  Set_Index(File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
   -- read and convert to Header
   declare
-    Blocks : BlockArray_Type := Read (File, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
+    Blocks : BlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
     HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Blocks);
   begin
     Header := To_Header(HeaderBlocks);
   end;
   return Header;
  end Read;
+
+ -- FIXME consider to return only one preformatted string per HDU
+ function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
+ is
+  All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=
+  -- File.HDU_Arr(1 .. File.HDU_Cnt).HDUInfo; FIXME why does not work ?
+  (others=>Null_HDU_Info);
+  Cnt : Natural := 0;
+ begin
+  while Cnt <= File.HDU_Cnt
+  loop
+   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
+   Cnt := Cnt + 1;
+  end loop;
+  return All_HDU;
+ end List_HDUInfo;
 
  -- FIXME is this needed ?
  procedure Copy_Blocks (FromFile   : in File_Type;
