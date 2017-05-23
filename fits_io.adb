@@ -322,6 +322,8 @@ package body FITS_IO is
    loop
 
       HDUInfo := Null_HDU_Info;
+      CurCardCnt := 0;
+      TotCardCnt := 0;
 
       -- Header
 
@@ -725,6 +727,7 @@ package body FITS_IO is
   begin
 -- debug:
 --    Ada.Text_IO.Put_Line(" H:" & Integer'Image(Header'Length) &
+--                    "HStart: " & Integer'Image(File.HDU_Arr(HDU_Num).HDUPos.HeaderStart) &
 --                    "    HB: " & Integer'Image(HeaderBlocks'Length) &
 --                    "    HS:"  & Integer'Image(File.HDU_Arr(HDU_Num).HDUPos.HeaderSize));
     Header := To_Header(HeaderBlocks);
