@@ -219,7 +219,7 @@ package body FITS_IO is
 
 
  --
- -- returns DU-size in Blocks
+ -- returns DU-size in Blocks [FITS 4.4.1.1 Primary Header,(1)]
  --
  function  Calc_DataUnit_Size( HDUInfo : in HDU_Info_Type )
   return Natural
@@ -236,7 +236,6 @@ package body FITS_IO is
      if DUSize /= 0 then
       DUSize := DUSize * (abs HDUInfo.BitPixOctets);
       DUSize := 1 + DUSize/BlockSize;
-      -- size in Blocks
      end if;
    end if;
 
@@ -402,6 +401,7 @@ package body FITS_IO is
   ENDFound : Boolean := False;
   CardsCnt : Natural := 0;
  begin
+
    for I in HeaderBlocks'Range
     loop
      for J in HeaderBlocks(I)'Range
@@ -441,18 +441,12 @@ package body FITS_IO is
                   Form : in String   := "shared=no")
  is
  begin
-
   Fits := new File_Type_Record;
-
   Ada.Streams.Stream_IO.Open( Fits.BlocksFile,
                 Ada.Streams.Stream_IO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
-
   Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
-
-  Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile,To_StreamFile_Mode(Mode));
-  Fits.Mode := Mode;
-
+  Set_Mode(Fits, Mode);
  end Open;
 
  --
@@ -472,8 +466,8 @@ package body FITS_IO is
  procedure Set_Mode ( File : in out File_Type;
                       Mode : in File_Mode ) is
  begin
+  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
   File.Mode := Mode;
-  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(File.Mode));
  end Set_Mode;
 
  --
@@ -657,8 +651,7 @@ package body FITS_IO is
                 To_StreamFile_Mode(Mode),
                 Name,Form);
   Fits.HDU_Cnt := 0; -- init HDU_Arr
-  Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile, To_StreamFile_Mode(Mode));
-  Fits.Mode := Mode;
+  Set_Mode(Fits, Mode);
  end Create;
 
  function  CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
