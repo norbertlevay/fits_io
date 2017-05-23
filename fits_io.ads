@@ -93,7 +93,7 @@ package FITS_IO is
       CardsCnt : Positive;  -- number of cards in this Header
       Data     : Data_Type; -- data type as given by BITPIX
       BitPixOctets : Positive; -- size in octets for given BITPIX
-      Naxes    : Natural;
+      Naxes    : Natural;   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies that no data follow the header in the HDU."
       Naxis    : Dim_Type;  -- data dimensions, 0 means dimension not in use
    end record;
 

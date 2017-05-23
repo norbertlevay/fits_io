@@ -185,15 +185,17 @@ package body Commands is
      loop
        Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
        Ada.Text_IO.Put("   Cards: " & Integer'Image(HDUInfoArr(I).CardsCnt));
-       Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
 
-       Ada.Text_IO.Put(" ( ");
-       for J in 1 .. (HDUInfoArr(I).Naxes - 1)
-        loop
-         Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(J)) & " x " );
-       end loop;
-       Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
-       Ada.Text_IO.Put_Line(" ) ");
+       if HDUInfoArr(I).Naxes > 0 then
+        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
+        Ada.Text_IO.Put(" ( ");
+        for J in 1 .. (HDUInfoArr(I).Naxes - 1)
+         loop
+          Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(J)) & " x " );
+        end loop;
+        Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
+        Ada.Text_IO.Put_Line(" ) ");
+       end if;
 
     end loop;
    end;
