@@ -9,12 +9,10 @@
 -- Currently implemented with Stream_IO. Possible with Direct_IO which would
 -- eliminate block position calculations.
 --
--- 2, HDU information vector
+-- 2, FITS-File HDU-lists
 -- This is a vector of structures which store HDU's positions and sizes
 -- (and other 'useful' info). It is part of File-handle record (FIST_IO.File_Type)
 -- and is filled in Open/Create and Write, and accessed in Read.
--- Currently it is implemented as static vector of MaxHDU records.
--- Should be implemented as dynamic vector of 3..5 record-chunks.
 
 -- FIXME error handling/exceptions; not implemented yet
 
@@ -149,58 +147,81 @@ package body FITS_IO is
   -- FITS-File HDU-lists --
   -------------------------
 
- -- HDU positions within FITS-file
-
  -- HDU Records
  -- It is linked list of HDU info about
  -- positions and sizes of HDU's in FITS File.
  -- Open and Write will insert HDU Records into the list
  -- Create initializes an empty list
  -- Close destroys the list
+ --
+ -- FIXME: Currently it is implemented as static vector of MaxHDU records.
+ -- Should be implemented as dynamic vector of 3..5 record-chunks, or a list.
 
- type HDU_Pos is record
+ type HDU_Pos_Type is record
   HeaderStart : Positive; -- BlockIndex where header starts with the FitsFile
   HeaderSize  : Positive; -- Header size in Blocks (0 not allowed, HDU starts always with Header)
   DataStart   : Positive; -- BlockIndex where header starts with the FitsFile
   DataSize    : Natural;  -- Data size in Blocks (0 allowed, Primary HDU may have no data)
  end record;
 
- -- File_Type will hold to array of those above for each HDU in FITS-file
+ type HDU_Data is record
+  HDUPos  : HDU_Pos_Type;
+  HDUInfo : HDU_Info_Type; -- part of external API (.ads)
+ end record;
 
  MaxHDU : constant Positive := 10;
- type HDU_Data is record
-  HDUPos  : HDU_Pos;
-  HDUInfo : HDU_Info;
- end record;
  type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
 
- type File_Data is record
+ type File_Type_Record is record
   BlocksFile : Ada.Streams.Stream_IO.File_Type;
-  Mode     : File_Mode;-- FITS_IO Mode
-  HDU_Cnt  : Natural;
+  Mode       : File_Mode;-- FITS_IO.Mode
+  HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
- ------------------------------------
- -- FITS standard size definitions --
- ------------------------------------
+ -- for debug only
+ procedure Print_FitsFileHandle (Fits : in File_Type) is
+  FileSize : Positive;
+ begin
+  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
+--  for I in Fits.HDU_Arr'Range -- this shows also not used entries
+  for I in 1..Fits.HDU_Cnt
+  loop
+   Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
+   Ada.Text_IO.Put(" H: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
+   Ada.Text_IO.Put(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
 
- CardsCntInBlock : constant Positive := BlockSize / CardSize; -- 36 cards per block
+   Ada.Text_IO.Put(" DU: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
+   Ada.Text_IO.Put_Line(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
+  end loop;
+  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
+  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
+ end;
 
- subtype Card_Type is String(1..CardSize); -- makes sure index start with 1
- ENDCard  : Card_Type := "END                                                                             ";
 
- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
- EmptyCard  : constant String(1..CardSize) := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+ --------------------------------------------------
+ -- Header definition as stored inside FITS-file --
+ --------------------------------------------------
+
+ CardsCntInBlock : constant Positive := BlockSize / CardSize;
+ -- [FITS 3.3.1 Primary Header] 36 cards per block
+
+ subtype Card_Type is String(1..CardSize);
+ -- makes sure index start with 1
+
+ type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
  type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
    -- Header format inside file
+
+ ENDCard    : constant Card_Type := "END                                                                             ";
+ EmptyCard  : constant Card_Type := (others => ' ');
+ EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
 
 
  --
  -- returns DU-size in Blocks
  --
- function  Calc_DataUnit_Size( HDUInfo : in HDU_Info )
+ function  Calc_DataUnit_Size( HDUInfo : in HDU_Info_Type )
   return Natural
  is
   DUSize : Natural := 0;
@@ -245,10 +266,11 @@ package body FITS_IO is
  -- parse keywords needed to calculate DU size
  --
  procedure Parse_KeyRecord( Card : in Card_Type;
-                            HDUInfo  : in out HDU_Info )
+                            HDUInfo  : in out HDU_Info_Type )
  is
   dim : Positive;
  begin
+   -- [FITS 4.1.2 Components]:
    -- pos 9..10 is '= '
    -- pos 31 is comment ' /'
    -- then : pos 10..20 is value
@@ -274,7 +296,7 @@ package body FITS_IO is
  --
  function  Parse_HeaderBlock( Block : in Block_Type ;
                               CardCount : out Positive;
-                              HDUInfo : in out HDU_Info )
+                              HDUInfo : in out HDU_Info_Type )
   return Boolean
  is
   ENDFound : Boolean := False;
@@ -310,11 +332,10 @@ package body FITS_IO is
    DataStart_Index : Positive;
    DataUnit_Size   : Natural := 0;
 
---   AxesDimensions : Axes_Type;
-   HDUInfo : HDU_Info;
+   HDUInfo : HDU_Info_Type;
    Block : BlockArray_Type(1..1);
 
-   CurCardCnt : Natural;
+   CurCardCnt : Natural; -- written by Parse_HeaderBlock
    TotCardCnt : Natural := 0;
  begin
 
@@ -322,7 +343,6 @@ package body FITS_IO is
    loop
 
       HDUInfo := Null_HDU_Info;
-      CurCardCnt := 0;
       TotCardCnt := 0;
 
       -- Header
@@ -349,17 +369,19 @@ package body FITS_IO is
       File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
       -- store positions of this HDU
+
       File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
       File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;
---      File.HDU_Arr(HDU_Cnt).HDUInfo.Data     := AxesDimensions.BitPix;
---      File.HDU_Arr(HDU_Cnt).HDUInfo.Naxis    := AxesDimensions.Naxis;
       -- store other info about this HDU
+
       File.HDU_Cnt := HDU_Cnt;
 
       HDU_Cnt := HDU_Cnt + 1;
       -- next HDU
 
    end loop;
+
+  --Print_FitsFileHandle(File);-- debug
 
   end Parse_HDU_Positions;
 
@@ -369,16 +391,14 @@ package body FITS_IO is
  -- Open/Create inits File.HDU_Arr <- sets correct File-Index
  -- Write takes and converts Header_Type --> HeaderBlockArray_Type
  -- writes the header into the file
- -- if write success calls this Parse_HDU_positions():
+ -- if write success calls this Parse_HDU_Data
  function  Parse_HDU_Data( HeaderBlocks : in HeaderBlockArray_Type)
   return HDU_Data
  is
-  HDUData : HDU_Data;
---  HDU_Cnt : Positive;
---  AxesDimensions : Axes_Type;
-  HDUInfo : HDU_Info;
-  DU_Size : Natural := 0;
-  Card : String(1..CardSize);
+  HDUData  : HDU_Data;
+  HDUInfo  : HDU_Info_Type;
+  DU_Size  : Natural := 0;
+  Card     : String(1..CardSize);
   ENDFound : Boolean := False;
   CardsCnt : Natural := 0;
  begin
@@ -388,14 +408,12 @@ package body FITS_IO is
       loop
        Card := HeaderBlocks(I)(J);
        CardsCnt := CardsCnt + 1;
---       Parse_KeyRecord( Card, AxesDimensions );
        Parse_KeyRecord( Card, HDUInfo );
        ENDFound := (Card = ENDCard);
      end loop;
      exit when ENDFound;
    end loop;
 
---   DU_Size := Calc_DataUnit_Size( AxesDimensions );
    DU_Size := Calc_DataUnit_Size( HDUInfo );
 
    -- FIXME Here enough to set sizes.
@@ -409,34 +427,13 @@ package body FITS_IO is
 
    HDUData.HDUInfo          := HDUInfo;
    HDUData.HDUInfo.CardsCnt := CardsCnt;
---   HDUData.HDUInfo.Data     := AxesDimensions.BitPix;
---   HDUData.HDUInfo.Naxis    := AxesDimensions.Naxis;
 
    return HDUData;
  end;
 
----------------
--- Interface --
----------------
-
- -- for debug only
- procedure Print_FitsFileHandle (Fits : in File_Type) is
-  FileSize : Positive;
- begin
-  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
---  for I in Fits.HDU_Arr'Range -- this shows also not used entries
-  for I in 1..Fits.HDU_Cnt
-  loop
-   Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
-   Ada.Text_IO.Put(" H: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
-   Ada.Text_IO.Put(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
-
-   Ada.Text_IO.Put(" DU: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
-   Ada.Text_IO.Put_Line(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
-  end loop;
-  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
-  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
- end;
+ ---------------
+ -- Interface --
+ ---------------
 
  procedure Open ( Fits : in out File_Type;
                   Mode : in File_Mode;
@@ -444,32 +441,34 @@ package body FITS_IO is
                   Form : in String   := "shared=no")
  is
  begin
---  Ada.Text_IO.Put_Line("DBG Open: "&Name);
 
-  Fits := new File_Data;
+  Fits := new File_Type_Record;
 
   Ada.Streams.Stream_IO.Open( Fits.BlocksFile,
                 Ada.Streams.Stream_IO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
 
   Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
- -- Print_FitsFileHandle(Fits);-- debug
 
   Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile,To_StreamFile_Mode(Mode));
   Fits.Mode := Mode;
+
  end Open;
 
-
-
+ --
+ --
+ --
  procedure Close ( Fits : in out File_Type ) is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
-                                            (File_Data, File_Type);
+                                            (File_Type_Record, File_Type);
  begin
   Ada.Streams.Stream_IO.Close(Fits.BlocksFile);
-  Fits.HDU_Cnt := 0;-- not needed
   Delete_FileType(Fits);
  end Close;
 
+ --
+ --
+ --
  procedure Set_Mode ( File : in out File_Type;
                       Mode : in File_Mode ) is
  begin
@@ -477,11 +476,18 @@ package body FITS_IO is
   Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(File.Mode));
  end Set_Mode;
 
+ --
+ --
+ --
  function  Mode ( File : in  File_Type )
   return File_Mode is
  begin
   return File.Mode;
  end Mode;
+
+ --
+ -- HeaderBlock <-> Block conversions
+ --
 
  function  To_HeaderBlockType is
     new Ada.Unchecked_Conversion (Block_Type, HeaderBlock_Type);
@@ -516,31 +522,16 @@ package body FITS_IO is
    end loop;
    return BA;
   end To_BlockArray;
--- function  To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
---  return BlockArray_Type
---  is
---    BA : BlockArray_Type(HeaderBlocks'Range);
---    first, last : Positive;
---  begin
---   for I in HeaderBlocks'Range loop     -- N blocks of
---    for J in HeaderBlocks(I)'Range loop -- 36 cards
---      first := (J-1)*CardSize + 1;
---      last  := first + CardSize - 1;
---      BA(I)(first..last) := HeaderBlocks(I)(J)(1..CardSize); -- copy one card
---    end loop;
---   end loop;
---   return BA;
---  end To_BlockArray;
 
  --
- --
+ -- convert external Header represenation to FITS-internal format
  --
  function  To_HeaderBlocks( Header : Header_Type ) return HeaderBlockArray_Type
  is
   -- init blocks with space-characters
   HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
-  Ix : Positive := 1;-- index in header
-  BIx,Cix : Natural;-- block-index, card-index
+  Ix : Positive := 1; -- index in header
+  BIx, Cix : Natural; -- block-index, card-index
  begin
   for I in Header'Range loop
     BIx := 1 + (Ix-1) /  CardsCntInBlock;
@@ -558,7 +549,6 @@ package body FITS_IO is
     end;
     Ix := Ix + 1;
   end loop;
-  -- debug Print_HeaderBlocks(HB);
   return HB;
  end To_HeaderBlocks;
 
@@ -662,14 +652,13 @@ package body FITS_IO is
                     Name : in String;
                     Form : in String    := "shared=no") is
  begin
---  Ada.Text_IO.Put_Line("DBG Create: "&Name);
-  Fits := new File_Data;
+  Fits := new File_Type_Record;
   Ada.Streams.Stream_IO.Create( Fits.BlocksFile,
                 To_StreamFile_Mode(Mode),
                 Name,Form);
-  Fits.HDU_Cnt := 0;-- init HDU_Arr
+  Fits.HDU_Cnt := 0; -- init HDU_Arr
   Ada.Streams.Stream_IO.Set_Mode(Fits.BlocksFile, To_StreamFile_Mode(Mode));
-  Fits.Mode    := Mode;
+  Fits.Mode := Mode;
  end Create;
 
  function  CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
@@ -686,6 +675,10 @@ package body FITS_IO is
  end CardsCount;
  -- FIXME we need CardsCount stored in the HeaderBlockArray_Type
 
+
+ --
+ -- convert internal Header format to external Header representation
+ --
  -- strip empty spaces from start end end of each line
  -- strip empty cards after END-card
  function  To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
@@ -711,31 +704,32 @@ package body FITS_IO is
  is
   Header : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
  begin
+
   -- sanity check (like in Write)
   if (HDU_Num > File.HDU_Cnt) and
      (HDU_Num /= HDU_AfterLast)
   then
    null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
   end if;
+
   -- position by HDU_Num in file
   -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
   Set_Index(File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
+
   -- read and convert to Header
   declare
     Blocks : BlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
     HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Blocks);
   begin
--- debug:
---    Ada.Text_IO.Put_Line(" H:" & Integer'Image(Header'Length) &
---                    "HStart: " & Integer'Image(File.HDU_Arr(HDU_Num).HDUPos.HeaderStart) &
---                    "    HB: " & Integer'Image(HeaderBlocks'Length) &
---                    "    HS:"  & Integer'Image(File.HDU_Arr(HDU_Num).HDUPos.HeaderSize));
     Header := To_Header(HeaderBlocks);
   end;
+
   return Header;
  end Read;
 
- -- FIXME consider to return only one preformatted string per HDU
+ --
+ --
+ --
  function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
  is
   All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=

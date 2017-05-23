@@ -89,7 +89,7 @@ package FITS_IO is
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
 
    type Dim_Type is array (1..MaxAxes) of Natural;
-   type HDU_Info is record
+   type HDU_Info_Type is record
       CardsCnt : Positive;  -- number of cards in this Header
       Data     : Data_Type; -- data type as given by BITPIX
       BitPixOctets : Positive; -- size in octets for given BITPIX
@@ -97,16 +97,16 @@ package FITS_IO is
       Naxis    : Dim_Type;  -- data dimensions, 0 means dimension not in use
    end record;
 
-   Null_HDU_Info : constant HDU_Info := (1,Int32,4,0,(others=>0));
+   Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
 
-   type HDU_Info_Arr is array (Positive range <>) of HDU_Info;
+   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 
    function List_HDUInfo (File : in File_Type) return HDU_Info_Arr;
 
 private
 
- type File_Data;
- type File_Type is access File_Data;
+ type File_Type_Record;
+ type File_Type is access File_Type_Record;
 
  -- FIXME here would follow list of pragma Inline,
  -- but since Ada2012 obsolete, add anyway for older compilers
