@@ -184,7 +184,7 @@ package body Commands is
     for I in HDUInfoArr'Range
      loop
        Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
-       Ada.Text_IO.Put("   Cards: " & Integer'Image(HDUInfoArr(I).CardsCnt));
+       Ada.Text_IO.Put("   Cards: " & Ada.Strings.Fixed.Tail(Integer'Image(HDUInfoArr(I).CardsCnt),5,' ') );
 
        if HDUInfoArr(I).Naxes > 0 then
         Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
