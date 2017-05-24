@@ -27,6 +27,7 @@ procedure main is
  begin
    Put_Line("Version: " & Version);New_Line;
    Put_Line("Usage:");New_Line;
+   Put_Line(" fits info   [options] <fitsfilename>                   prints HDU info");
    Put_Line(" fits header [options] <fitsfilename>                   prints header");
    Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into fits-file");
    New_Line;
