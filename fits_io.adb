@@ -439,49 +439,31 @@ package body FITS_IO is
  -- Interface --
  ---------------
 
- procedure Open ( Fits : in out File_Type;
+ procedure Open ( File : in out File_Type;
                   Mode : in File_Mode;
                   Name : in String;
                   Form : in String   := "shared=no")
  is
  begin
-  Fits := new File_Type_Record;
-  Ada.Streams.Stream_IO.Open( Fits.BlocksFile,
+  File := new File_Type_Record;
+  Ada.Streams.Stream_IO.Open( File.BlocksFile,
                 Ada.Streams.Stream_IO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
-  Parse_HDU_Positions ( Fits ); -- Fills in HDU data to File
-  Set_Mode(Fits, Mode);
+  Parse_HDU_Positions ( File ); -- Fills in HDU data to File
+  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
+  File.Mode := Mode;
  end Open;
 
  --
  --
  --
- procedure Close ( Fits : in out File_Type ) is
+ procedure Close ( File : in out File_Type ) is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
                                             (File_Type_Record, File_Type);
  begin
-  Ada.Streams.Stream_IO.Close(Fits.BlocksFile);
-  Delete_FileType(Fits);
+  Ada.Streams.Stream_IO.Close(File.BlocksFile);
+  Delete_FileType(File);
  end Close;
-
- --
- --
- --
- procedure Set_Mode ( File : in out File_Type;
-                      Mode : in File_Mode ) is
- begin
-  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
-  File.Mode := Mode;
- end Set_Mode;
-
- --
- --
- --
- function  Mode ( File : in  File_Type )
-  return File_Mode is
- begin
-  return File.Mode;
- end Mode;
 
  --
  -- HeaderBlock <-> Block conversions
@@ -563,7 +545,7 @@ package body FITS_IO is
  is
   HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlocks(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
-  CurMode      : File_Mode := Mode(File);
+  CurMode      : File_Mode := File.Mode;
   HDUIx,FileIx : Positive;
   -- Fits File consists of sequence of HDU's with
   --   different size numbered by HDU-index: 1,2.3...
@@ -645,17 +627,18 @@ package body FITS_IO is
  -- if Mode Out_File   : write will create first HDU of a new file
  -- if Mode Append_Mode: write will create new HDU at the end of a file
  -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
- procedure Create ( Fits : in out File_Type;
+ procedure Create ( File : in out File_Type;
                     Mode : in File_Mode;
                     Name : in String;
                     Form : in String    := "shared=no") is
  begin
-  Fits := new File_Type_Record;
-  Ada.Streams.Stream_IO.Create( Fits.BlocksFile,
+  File := new File_Type_Record;
+  Ada.Streams.Stream_IO.Create( File.BlocksFile,
                 To_StreamFile_Mode(Mode),
                 Name,Form);
-  Fits.HDU_Cnt := 0; -- init HDU_Arr
-  Set_Mode(Fits, Mode);
+  File.HDU_Cnt := 0; -- init HDU_Arr
+  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
+  File.Mode := Mode;
  end Create;
 
  function  CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
