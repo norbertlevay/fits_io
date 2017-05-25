@@ -36,6 +36,9 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 
+ with Interfaces;-- DataUnit definitions
+
+
 package body FITS_IO is
 
  BlockSize : constant Positive := 2880; -- [FITS, Sect 3.1]
@@ -159,6 +162,17 @@ package body FITS_IO is
   FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
   Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
  end;
+
+ -- FIXME is this needed ?
+ procedure Copy_Blocks (FromFile   : in File_Type;
+                        FirstBlock : in Positive; -- Index of First to copy
+                        LastBlock  : in Positive; -- Index of Last to copy
+                        ToFile     : in File_Type)
+ is
+ begin
+  null;
+ end Copy_Blocks;
+ -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
 
 
  --------------------------------------------------
@@ -457,7 +471,9 @@ package body FITS_IO is
  --
  -- convert external Header represenation to FITS-internal format
  --
- function  To_HeaderBlocks( Header : Header_Type ) return HeaderBlockArray_Type
+ -- add space so that each card is 80 chars long
+ -- make sure after END block is cleaned
+ function  To_HeaderBlockArray( Header : Header_Type ) return HeaderBlockArray_Type
  is
   -- init blocks with space-characters
   HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
@@ -481,7 +497,7 @@ package body FITS_IO is
     Ix := Ix + 1;
   end loop;
   return HB;
- end To_HeaderBlocks;
+ end To_HeaderBlockArray;
 
  -- behaviour depends on Mode in Open/Create
  -- Inout_Mode updates the HDU given by HDU_Num but only if the size (in blocks) match
@@ -494,7 +510,7 @@ package body FITS_IO is
                    Header  : in  Header_Type;
                    HDU_Num : in  Positive := HDU_AfterLast )-- default: Append
  is
-  HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlocks(Header);
+  HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
   CurMode      : File_Mode := File.Mode;
   HDUIx,FileIx : Positive;
@@ -676,23 +692,68 @@ package body FITS_IO is
   return All_HDU;
  end List_HDUInfo;
 
- -- FIXME is this needed ?
- procedure Copy_Blocks (FromFile   : in File_Type;
-                        FirstBlock : in Positive; -- Index of First to copy
-                        LastBlock  : in Positive; -- Index of Last to copy
-                        ToFile     : in File_Type)
- is
- begin
-  null;
- end Copy_Blocks;
- -- copy FromFile( FirstBlock .. LastBlock ) --> ToFile
 
- -- FIXME is this needed ?
- procedure Copy_HDU (FromFile : File_type; FirstHDU : Positive; LastHDU : Positive;
-                     ToFile   : File_type)
+  -----------------
+  -- Data Access --
+  -----------------
+
+ type Int8Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_8;
+ pragma Pack (Int8Arr_Type);
+
+ type Int16Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_16;
+ pragma Pack (Int16Arr_Type);
+
+ type Int32Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_32;
+ pragma Pack (Int32Arr_Type);
+
+ type Int64Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_64;
+ pragma Pack (Int64Arr_Type);
+
+ type Float32Arr_Type is
+   array ( Natural range <> ) of Float; --FIXME verify size
+ pragma Pack (Float32Arr_Type);
+
+ type Float64Arr_Type is
+   array ( Natural range <> ) of Long_Float;--FIXME verify size
+ pragma Pack (Float64Arr_Type);
+
+ type DataArray_Type ( Option : Data_Type ;
+                       Length : Natural ) is
+   record
+     case Option is
+      when Int8  => DataInt8  : Int8Arr_Type (1 .. Length);
+      when Int16 => DataInt16 : Int16Arr_Type(1 .. Length);
+      when Int32 => DataInt32 : Int32Arr_Type(1 .. Length);
+      when Int64 => DataInt64 : Int64Arr_Type(1 .. Length);
+      when Float32 => DataFloat32 : Float32Arr_Type(1 .. Length);
+      when Float64 => DataFloat64 : Float64Arr_Type(1 .. Length);
+     end case;
+   end record;
+
+ -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types
+ --       or B: Write by generic Blocks and convert to HeaderBlockArr and DataBlockArr <- like until now for header
+ -- Below attempt on A:
+
+ procedure WriteData(File    : in SIO.File_Type;
+                     Blocks  : in DataArray_Type)
  is
  begin
-  null;
- end;
+   DataArray_Type'Write( SIO.Stream(File), Blocks );
+ end WriteData;
+
+ function  ReadData(File    : in  SIO.File_Type;
+                    NBlocks : in  Positive := 1) return DataArray_Type
+ is
+   Blocks : DataArray_Type( Int8 , NBlocks );
+ begin
+   -- FIXME sizes/types incorrect NBlocks
+   DataArray_Type'Read( SIO.Stream(File), Blocks );
+   return Blocks;
+ end ReadData;
+
 
 end FITS_IO;
