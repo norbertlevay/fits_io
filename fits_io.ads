@@ -26,6 +26,16 @@ package FITS_IO is
 
    type File_Mode is (In_File, Inout_File, Out_File, Append_File);
 
+   --  The following representation clause allows the use of unchecked
+   --  conversion for rapid translation between the File_Mode type
+   --  used in this package and System.File_IO.
+
+   for File_Mode use
+     (In_File     => 0,  -- System.File_IO.File_Mode'Pos (In_File)
+      Inout_File  => 1,  -- System.File_IO.File_Mode'Pos (Inout_File);
+      Out_File    => 2,  -- System.File_IO.File_Mode'Pos (Out_File)
+      Append_File => 3); -- System.File_IO.File_Mode'Pos (Append_File)
+
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
 

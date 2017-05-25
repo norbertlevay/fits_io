@@ -123,25 +123,29 @@ package body FITS_IO is
    return Blocks;
  end Read;
 
+ function To_StreamFile_Mode is new Ada.Unchecked_Conversion (File_Mode, Ada.Streams.Stream_IO.File_Mode);
+ function To_FITSIOFile_Mode is new Ada.Unchecked_Conversion (Ada.Streams.Stream_IO.File_Mode, File_Mode);
+-- use type FCB.File_Mode; FIXME?? see -> a-ststio.adb
+
  -- FIXME File_Mode conversions : check this out; is there a better way ?
- function  To_StreamFile_Mode ( Mode : File_Mode )
-  return Ada.Streams.Stream_IO.File_Mode
- is
-  StreamMode : Ada.Streams.Stream_IO.File_Mode;
- begin
-  case Mode is
-   when In_File =>
-    StreamMode := Ada.Streams.Stream_IO.In_File;
-   when Out_File =>
-    StreamMode := Ada.Streams.Stream_IO.Out_File;
-   when Inout_File =>
-    StreamMode := Ada.Streams.Stream_IO.Out_File;
-    -- Stream_IO : switch mode in Open will result in Inout access [GNAT 9.12 Open Modes]
-   when Append_File =>
-    StreamMode := Ada.Streams.Stream_IO.Append_File;
-  end case;
-  return StreamMode;
- end To_StreamFile_Mode;
+-- function  To_StreamFile_Mode ( Mode : File_Mode )
+--  return Ada.Streams.Stream_IO.File_Mode
+-- is
+--  StreamMode : Ada.Streams.Stream_IO.File_Mode;
+-- begin
+--  case Mode is
+--   when In_File =>
+--    StreamMode := Ada.Streams.Stream_IO.In_File;
+--   when Out_File =>
+--    StreamMode := Ada.Streams.Stream_IO.Out_File;
+--   when Inout_File =>
+--    StreamMode := Ada.Streams.Stream_IO.Out_File;
+--    -- Stream_IO : switch mode in Open will result in Inout access [GNAT 9.12 Open Modes]
+--   when Append_File =>
+--    StreamMode := Ada.Streams.Stream_IO.Append_File;
+--  end case;
+--  return StreamMode;
+-- end To_StreamFile_Mode;
 
   -------------------------
   -- FITS-File HDU-lists --
