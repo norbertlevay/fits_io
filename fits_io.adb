@@ -312,7 +312,6 @@ package body FITS_IO is
 
       loop
          Block := Read( File.BlocksFile );
--- FIXME         Blocks_IO.Read( Ada.Direct_IO.To_File(File.BlocksFile), Block );
          EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
          TotCardCnt := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
@@ -432,13 +431,7 @@ package body FITS_IO is
 
  function  To_BlockType is
     new Ada.Unchecked_Conversion (HeaderBlock_Type, Block_Type);
- -- subtype Block_Type is String (1 .. BlockSize );
- -- type BlockArray_Type is array (Positive range <>) of Block_Type;
- -- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of String(1..CardSize);
- -- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
- -- FIXME review Block, HeaderBlock, DataBlock type definitions,
- -- require too many unnecessary conversions (also see HDU.Read)
- -- Probably only Header <-> HeaderBlock is justified
+
  function  To_HeaderBlockArray(Blocks : BlockArray_Type)
   return HeaderBlockArray_Type
  is

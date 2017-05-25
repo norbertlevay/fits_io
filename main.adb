@@ -27,7 +27,7 @@ procedure main is
  begin
    Put_Line("Version: " & Version);New_Line;
    Put_Line("Usage:");New_Line;
-   Put_Line(" fits info   [options] <fitsfilename>                   prints HDU info");
+   Put_Line(" fits info             <fitsfilename>                   prints HDU info");
    Put_Line(" fits header [options] <fitsfilename>                   prints header");
    Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into fits-file");
    New_Line;
@@ -35,6 +35,7 @@ procedure main is
    Put_Line(" --hdu N     HDU-number: 1,2,3,... Default is 1 = Primary Header.");
    New_Line;
    Put_Line("Notes:");
+   Put_Line(" HDU info:        No of Cards, Data Type, ( axes dimensions ).");
    Put_Line(" <headerfilename> is text file with one fits-keyword record per line");
    Put_Line("                  last line must start with three letters: 'END'.");
    New_Line;
