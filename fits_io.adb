@@ -8,6 +8,10 @@
 -- The layer provides positioning by blocks, read and write.
 -- Currently implemented with Stream_IO. Possible with Direct_IO which would
 -- eliminate block position calculations.
+-- However Direct_IO does not allow to write more blocks with one write so needs cycle,
+-- and Read is procedure not a function, then cannot initialize unconstrained arrays,
+-- and so also needs cycle by Block.
+-- Decided in favour of Stream_IO.
 --
 -- 2, FITS-File HDU-lists
 -- This is a vector of structures which store HDU's positions and sizes
@@ -42,29 +46,6 @@ package body FITS_IO is
  BlockSize : constant Positive := 2880; -- [FITS, Sect 3.1]
  subtype Block_Type is String (1 .. BlockSize );
  type BlockArray_Type is array (Positive range <>) of Block_Type;
-
-
- -- A, implementation with Direct_IO
-
- -- [GNAT 9.3 Direct_IO]:
- -- "... There is no control information of any kind.
- -- For example, if 32-bit integers are being written, each record takes
- -- 4-bytes, so the record at index K starts at offset (K-1)*4."
-
- type FITS_Block is
-    record
-      Block : Block_Type;
-      -- FIXME this should be based on generic 8-bit octet
-      -- rather then Character ? see Ada definitions
-    end record;
-
- package Blocks_IO is new Ada.Direct_IO(FITS_Block);
- -- use Blocks_IO;
- -- Now Blocks_IO.Open .Write .Read .Close possible
- -- Read(File, Block, BlockIndex)
-
-
- -- B, implementation with Stream_IO
 
  -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
  -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
@@ -123,8 +104,8 @@ package body FITS_IO is
    return Blocks;
  end Read;
 
- function To_StreamFile_Mode is new Ada.Unchecked_Conversion (File_Mode, Ada.Streams.Stream_IO.File_Mode);
- function To_FITSIOFile_Mode is new Ada.Unchecked_Conversion (Ada.Streams.Stream_IO.File_Mode, File_Mode);
+ function  To_StreamFile_Mode is new Ada.Unchecked_Conversion (File_Mode, Ada.Streams.Stream_IO.File_Mode);
+ function  To_FITSIOFile_Mode is new Ada.Unchecked_Conversion (Ada.Streams.Stream_IO.File_Mode, File_Mode);
 -- use type FCB.File_Mode; FIXME?? see -> a-ststio.adb
 
  -- FIXME File_Mode conversions : check this out; is there a better way ?
