@@ -35,21 +35,28 @@ with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
-with Ada.Direct_IO;
 
 package body FITS_IO is
-
- --------------------------------
- -- Low level FITS-file access --
- --------------------------------
 
  BlockSize : constant Positive := 2880; -- [FITS, Sect 3.1]
  subtype Block_Type is String (1 .. BlockSize );
  type BlockArray_Type is array (Positive range <>) of Block_Type;
 
+ ------------------------------------------
+ -- Low level FITS-file access by Blocks --
+ ------------------------------------------
+
+ package SIO renames Ada.Streams.Stream_IO;
+
+ function  To_SIO is new Ada.Unchecked_Conversion (File_Mode, SIO.File_Mode);
+-- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, File_Mode);
+-- use type FCB.File_Mode; FIXME ?? see -> a-ststio.adb
+
+ -- Terminology: Byte - Storage_Unit - Stream_Element
  -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
  -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
  -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
+
  function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
    return (OctetIndex - 1) / BlockSize + 1;
@@ -61,72 +68,42 @@ package body FITS_IO is
   end To_OctetIndex;
  -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
 
+ function  Index ( File  : in SIO.File_Type ) return Positive
+ is
+ begin
+  return To_BlockIndex(Positive(SIO.Index( File )));
+  -- FIXME verify this direct conversion Count -> Positive
+ end Index;
+
+ procedure Set_Index ( File  : in SIO.File_Type;
+                       Index : in Positive ) -- Block Index
+ is
+ begin
+  SIO.Set_Index( File,
+      SIO.Positive_Count(To_OctetIndex(Index)) );
+  -- FIXME verify this direct conversion Positive -> Positive_Count
+ end Set_Index;
+
  -- FIXME not implemented yet: Endianess: System.Bit_Order : High_Order_First(=BigEndian) Low_Order_First Default_Bit_Order
  -- [FITS 3.3.2 Primary data array]: "The individual data values shall be stored in big-endian byte order..."
  -- [FITS 5 Data Representation & 7.3.3]: "Bytes are in big-endian order of decreasing significance."
 
- -- file positioning by Blocks, Index: 1,2,...
-
- function  Index ( File  : in Ada.Streams.Stream_IO.File_Type ) return Positive
+ procedure Write(File    : in SIO.File_Type;
+                 Blocks  : in BlockArray_Type)
  is
  begin
-  return To_BlockIndex(Positive(Ada.Streams.Stream_IO.Index( File )));
-  -- FIXME verify this direct conversion Count -> Positive
- end Index;
-
- procedure Set_Index ( File  : in Ada.Streams.Stream_IO.File_Type;
-                       Index : in Positive ) -- Block Index
- is
- begin
-  Ada.Streams.Stream_IO.Set_Index( File,
-      Ada.Streams.Stream_IO.Positive_Count(To_OctetIndex(Index)) );
-  -- FIXME verify this direct conversion Positive -> Positive_Count
- end Set_Index;
-
- procedure Write(File    : in Ada.Streams.Stream_IO.File_Type;
-                 Blocks  : in BlockArray_Type;
-                 NBlocks : in Positive := 1)
- is
-   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
-            Ada.Streams.Stream_IO.Stream(File);
- begin
-   BlockArray_Type'Write( FileSA, Blocks );
+   BlockArray_Type'Write( SIO.Stream(File), Blocks );
  end Write;
 
- function  Read (File    : in  Ada.Streams.Stream_IO.File_Type;
+ function  Read (File    : in  SIO.File_Type;
                  NBlocks : in  Positive := 1) return BlockArray_Type
  is
-   FileSA : Ada.Streams.Stream_IO.Stream_Access :=
-            Ada.Streams.Stream_IO.Stream(File);
    Blocks : BlockArray_Type( 1 .. NBlocks );
  begin
-   BlockArray_Type'Read( FileSA, Blocks );
+   BlockArray_Type'Read( SIO.Stream(File), Blocks );
    return Blocks;
  end Read;
 
- function  To_StreamFile_Mode is new Ada.Unchecked_Conversion (File_Mode, Ada.Streams.Stream_IO.File_Mode);
- function  To_FITSIOFile_Mode is new Ada.Unchecked_Conversion (Ada.Streams.Stream_IO.File_Mode, File_Mode);
--- use type FCB.File_Mode; FIXME?? see -> a-ststio.adb
-
- -- FIXME File_Mode conversions : check this out; is there a better way ?
--- function  To_StreamFile_Mode ( Mode : File_Mode )
---  return Ada.Streams.Stream_IO.File_Mode
--- is
---  StreamMode : Ada.Streams.Stream_IO.File_Mode;
--- begin
---  case Mode is
---   when In_File =>
---    StreamMode := Ada.Streams.Stream_IO.In_File;
---   when Out_File =>
---    StreamMode := Ada.Streams.Stream_IO.Out_File;
---   when Inout_File =>
---    StreamMode := Ada.Streams.Stream_IO.Out_File;
---    -- Stream_IO : switch mode in Open will result in Inout access [GNAT 9.12 Open Modes]
---   when Append_File =>
---    StreamMode := Ada.Streams.Stream_IO.Append_File;
---  end case;
---  return StreamMode;
--- end To_StreamFile_Mode;
 
   -------------------------
   -- FITS-File HDU-lists --
@@ -158,7 +135,7 @@ package body FITS_IO is
  type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
 
  type File_Type_Record is record
-  BlocksFile : Ada.Streams.Stream_IO.File_Type;
+  BlocksFile : SIO.File_Type;
   Mode       : File_Mode;-- FITS_IO.Mode
   HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
   HDU_Arr  : HDU_Data_Array_Type;
@@ -323,7 +300,7 @@ package body FITS_IO is
    TotCardCnt : Natural := 0;
  begin
 
-   while not Ada.Streams.Stream_IO.End_OF_File(File.BlocksFile)
+   while not SIO.End_OF_File(File.BlocksFile)
    loop
 
       HDUInfo := Null_HDU_Info;
@@ -427,11 +404,11 @@ package body FITS_IO is
  is
  begin
   File := new File_Type_Record;
-  Ada.Streams.Stream_IO.Open( File.BlocksFile,
-                Ada.Streams.Stream_IO.In_File,
+  SIO.Open( File.BlocksFile,
+                SIO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
   Parse_HDU_Positions ( File ); -- Fills in HDU data to File
-  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
+  SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
   File.Mode := Mode;
  end Open;
 
@@ -442,7 +419,7 @@ package body FITS_IO is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
                                             (File_Type_Record, File_Type);
  begin
-  Ada.Streams.Stream_IO.Close(File.BlocksFile);
+  SIO.Close(File.BlocksFile);
   Delete_FileType(File);
  end Close;
 
@@ -614,11 +591,11 @@ package body FITS_IO is
                     Form : in String    := "shared=no") is
  begin
   File := new File_Type_Record;
-  Ada.Streams.Stream_IO.Create( File.BlocksFile,
-                To_StreamFile_Mode(Mode),
+  SIO.Create( File.BlocksFile,
+                To_SIO(Mode),
                 Name,Form);
   File.HDU_Cnt := 0; -- init HDU_Arr
-  Ada.Streams.Stream_IO.Set_Mode(File.BlocksFile,To_StreamFile_Mode(Mode));
+  SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
   File.Mode := Mode;
  end Create;
 
