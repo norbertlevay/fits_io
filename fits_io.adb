@@ -697,6 +697,12 @@ package body FITS_IO is
   -- Data Access --
   -----------------
 
+  -- FITS defines data of any dimensionality of 6 data types.
+  -- At this user-level, the interface offers 1dimensional array of any of the 6 types.
+  -- Positioning in this 1D-array (and so creating the N-dimensional space) is next level
+  -- and not handled here. (FITS_IO.Data).
+  -- Similarly, parsing the Header is in other, next level packages. (FITS_IO.Header)
+
  type Int8Arr_Type is
    array ( Natural range <> ) of Interfaces.Integer_8;
  pragma Pack (Int8Arr_Type);
@@ -734,9 +740,14 @@ package body FITS_IO is
      end case;
    end record;
 
- -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types
- --       or B: Write by generic Blocks and convert to HeaderBlockArr and DataBlockArr <- like until now for header
+ -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types similarly Read...
+ --       or B: Read/Write by generic Blocks and convert to HeaderBlockArr and DataBlockArr
+
+ -- Current implementation o Header Read/Write is attmpt on B.
  -- Below attempt on A:
+
+ ----------------------------------------------
+ -- low-level Read/Write: should work by Blocks
 
  procedure WriteData(File    : in SIO.File_Type;
                      Blocks  : in DataArray_Type)
@@ -754,6 +765,34 @@ package body FITS_IO is
    DataArray_Type'Read( SIO.Stream(File), Blocks );
    return Blocks;
  end ReadData;
+
+ -------------------------------------------
+ -- user level Read/Write: works by DataType
+
+ -- from HDU_Num DataUnit, read Length number of DataType
+ -- from FromOffset relative to begining of the DataUnit
+ function  Read (File       : in File_Type;
+                 HDU_Num    : in Positive;
+                 DataType   : in Data_Type;
+                 FromOffset : in Positive;
+                 Length     : in Positive ) return DataArray_Type
+ is
+  Data : DataArray_Type(Int8,0);-- FIXME
+ begin
+  return Data;
+ end Read;
+
+ -- into HDU_Num DataUnit, write the Data
+ -- to ToOffset relative to begining of the DataUnit
+ -- Data must fit into the DataUnit as defined by the Header
+ procedure Write (File : in File_Type;
+                  HDU_Num  : in Positive;
+                  ToOffset : in Positive;
+                  Data     : in DataArray_Type )
+ is
+ begin
+  null;
+ end Write;
 
 
 end FITS_IO;
