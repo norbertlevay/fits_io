@@ -703,6 +703,13 @@ package body FITS_IO is
   -- and not handled here. (FITS_IO.Data).
   -- Similarly, parsing the Header is in other, next level packages. (FITS_IO.Header)
 
+  -- This level only checks that the written data is not longer then determined by Header,
+  -- in particular: begining of the HDU (HDU_Pos.HeaderStart) and HDU_Pos.DataStart & .DataSize.
+  -- Any attempt to write outside this region should raise exception.
+
+  -- How to control truncate-at-write? When to allow, when to raise exception ?
+  -- Higher-level issue or should be handled at this level ?
+
  type Int8Arr_Type is
    array ( Natural range <> ) of Interfaces.Integer_8;
  pragma Pack (Int8Arr_Type);
@@ -731,14 +738,34 @@ package body FITS_IO is
                        Length : Natural ) is
    record
      case Option is
-      when Int8  => DataInt8  : Int8Arr_Type (1 .. Length);
-      when Int16 => DataInt16 : Int16Arr_Type(1 .. Length);
-      when Int32 => DataInt32 : Int32Arr_Type(1 .. Length);
-      when Int64 => DataInt64 : Int64Arr_Type(1 .. Length);
-      when Float32 => DataFloat32 : Float32Arr_Type(1 .. Length);
-      when Float64 => DataFloat64 : Float64Arr_Type(1 .. Length);
+      when Int8  => ArrInt8  : Int8Arr_Type (1 .. Length);
+      when Int16 => ArrInt16 : Int16Arr_Type(1 .. Length);
+      when Int32 => ArrInt32 : Int32Arr_Type(1 .. Length);
+      when Int64 => ArrInt64 : Int64Arr_Type(1 .. Length);
+      when Float32 => ArrFloat32 : Float32Arr_Type(1 .. Length);
+      when Float64 => ArrFloat64 : Float64Arr_Type(1 .. Length);
      end case;
    end record;
+   -- FIXME check record'Size -> does it change with option?
+   -- It was meant originally to define DataBlock which would always be 2880
+   -- Consider to inherit it from Ada.Stream and do own 'Read/'Write funcs
+   -- which will read/write only data not the Option discriminator
+
+  function Length( Data: in DataArray_Type) return Natural
+   is
+    len : Natural;
+  begin
+     case Data.Option is
+      when Int8  => len := Data.ArrInt8'Length;
+      when Int16 => len := Data.ArrInt16'Length;
+      when Int32 => len := Data.ArrInt32'Length;
+      when Int64 => len := Data.ArrInt64'Length;
+      when Float32 => len := Data.ArrFloat32'Length;
+      when Float64 => len := Data.ArrFloat64'Length;
+     end case;
+     return len;
+  end Length;
+  -- FIXME the need for this is weird...
 
  -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types similarly Read...
  --       or B: Read/Write by generic Blocks and convert to HeaderBlockArr and DataBlockArr
@@ -747,7 +774,7 @@ package body FITS_IO is
  -- Below attempt on A:
 
  ----------------------------------------------
- -- low-level Read/Write: should work by Blocks
+ -- low-level Read/Write: should work by Blocks <-- probably not needed
 
  procedure WriteData(File    : in SIO.File_Type;
                      Blocks  : in DataArray_Type)
@@ -769,29 +796,97 @@ package body FITS_IO is
  -------------------------------------------
  -- user level Read/Write: works by DataType
 
+ -- FIXME should this check be done in To_SIO ? e.g. would do both: convert and check
+ function  Is_Inside_DU(File     : in File_Type;
+                        HDU_Num  : in Positive;  -- 1,2,3...
+                        Start    : in Positive;  -- first DataType position where Write/Read
+                        DataType : in Data_Type; -- DataType to dtermine size
+                        Length   : in Positive)  -- number of DataType elements written/read
+  return Boolean
+ is
+  DataEnd : Positive := Start + (DataType'Size/8) * Length;
+  DUEnd   : Positive := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
+  Inside  : Boolean  := DataEnd <= DUEnd ;
+ begin
+  return Inside;
+ end Is_Inside_DU;
+
+
+ -- convert to SIO file position, relative to begining of the file
+ function  To_SIO(File       : in File_Type;
+                  HDU_Num    : in Positive;  -- 1,2,3...
+                  DataType   : in Data_Type;
+                  FromOffset : in Positive)  -- in units of DataType
+  return SIO.Positive_Count
+ is
+  -- FIXME BlockSize must be in units of Stream Element_Size
+  -- FIXME check converions Positive_Count -> Integer
+  DUStart    : Positive := BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataStart;
+  DataOffset : Positive := (DataType'Size/8) * FromOffset;
+  Offset     : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);
+ begin
+   -- FIXME check HDU_Num not outside of the range?
+  return Offset;
+ end To_SIO;
+
+
  -- from HDU_Num DataUnit, read Length number of DataType
  -- from FromOffset relative to begining of the DataUnit
  function  Read (File       : in File_Type;
-                 HDU_Num    : in Positive;
+                 HDU_Num    : in Positive;  -- 1,2,3...
                  DataType   : in Data_Type;
-                 FromOffset : in Positive;
-                 Length     : in Positive ) return DataArray_Type
+                 FromOffset : in Positive;  -- in units of DataType
+                 Length     : in Positive ) -- in units of DataType
+  return DataArray_Type
  is
-  Data : DataArray_Type(Int8,0);-- FIXME
+  Data : DataArray_Type(DataType,Length);
+  To   : SIO.Positive_Count := To_SIO(File,HDU_Num,DataType,FromOffset);
  begin
+
+   -- Do we need this check for read ?
+   if not Is_Inside_DU(File,HDU_Num,Positive(To),DataType,Length) then
+     null;
+     -- FIXME ?? check if [HDU_Num,ToOffset,Data'Length] is
+     -- within DataUnit limits. Raise exception if attempting to read
+     -- outside this file-area ?
+     -- Or Read less then Length ? Caller can do Data'Length =? Length
+   end if;
+
+   -- convert FromOffset to SIO-Offset
+   SIO.Set_Index (File.BlocksFile, To);
+
+   DataArray_Type'Read( SIO.Stream(File.BlocksFile), Data );
   return Data;
  end Read;
 
  -- into HDU_Num DataUnit, write the Data
  -- to ToOffset relative to begining of the DataUnit
  -- Data must fit into the DataUnit as defined by the Header
- procedure Write (File : in File_Type;
-                  HDU_Num  : in Positive;
-                  ToOffset : in Positive;
-                  Data     : in DataArray_Type )
+ procedure Write (File     : in File_Type;
+                  HDU_Num  : in Positive;        -- 1,2,3...
+                  ToOffset : in Positive;        -- in units of DataType
+                  Data     : in DataArray_Type ) -- has length Length(Data)
  is
+  To   : SIO.Positive_Count := To_SIO(File,HDU_Num,Data.Option,ToOffset);
  begin
-  null;
+
+   if not Is_Inside_DU(File,HDU_Num,Positive(To),Data.Option,Length(Data)) then
+     null;
+     -- FIXME check if [HDU_Num,ToOffset,Data'Length] is
+     -- within DataUnit limits. Raise exception if attempting to write
+     -- outside this file-area.
+   end if;
+
+   -- convert ToOffset to SIO-Offset
+   SIO.Set_Index (File.BlocksFile, To);
+
+   -- FIXME this will write also Data.Option
+   -- worakaround is to use Pragma C-style which creates a
+   -- C-style union and so Option is not written only data:
+   -- add these after record definition:
+   -- pragma Unchecked_Union (Union);
+   -- pragma Convention (C, Union);    -- optional, only if interfacing C-lang
+   DataArray_Type'Write( SIO.Stream(File.BlocksFile), Data );
  end Write;
 
 
