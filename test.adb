@@ -89,6 +89,8 @@ is
                            ArrInt8 => (16#7F#,2,3,4,5,16#7F#));
                          --  ArrFloat32 => (1.0E1,1.0E2,1.0E3,1.0E4,1.0E5,1.0E6));
 
+ Data2 : DataArray_Type(int8,6);
+
 begin
 
  Ada.Text_IO.Put_Line("DataType enum " & Integer'Image(Data.Option'Size));
@@ -99,6 +101,10 @@ begin
  Ada.Text_IO.Put_Line("float32 " & Integer'Image(Float'Size));
  Ada.Text_IO.Put_Line("float64 " & Integer'Image(Long_Float'Size));
 
+ for I in 1..6 loop
+  Data2.ArrInt8(I) := Interfaces.Integer_8(2*I);
+ end loop;
+
 
  Create (Fits, Mode, Name);
 -- Ada.Text_IO.Put_Line("Write Primary Header...");
@@ -108,8 +114,19 @@ begin
  Write (Fits, Header, 1);
 
  Ada.Text_IO.Put_Line("Write Data to 1st HDU...");
- Write (Fits,1, 1,Data);
+ Write (Fits,1, 1,Data2);
 
+ Close(Fits);
+
+ Ada.Text_IO.Put_Line("Re-open file and Read 1st HDU...");
+ Open (Fits, In_File, Name);
+ declare
+  dr : DataArray_Type := Read (Fits,1,int8,1,6 );
+ begin
+  for I in 1..6 loop
+   Ada.Text_IO.Put_Line(Integer'Image(I) & "> " & Interfaces.Integer_8'Image(dr.ArrInt8(I)));
+  end loop;
+ end;
  Close(Fits);
 
  --
