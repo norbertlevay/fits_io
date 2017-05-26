@@ -8,6 +8,7 @@ with
     Ada.Command_Line,
     Ada.Strings.Unbounded,
     Ada.Strings.Bounded,
+    Interfaces,
     GNAT.Traceback.Symbolic;
 
 
@@ -74,19 +75,40 @@ is
  Mode : Fits_IO.File_Mode := Append_File;
  Name : String    := "test.fits";
  Header : Header_Type :=
-  (Card.To_Bounded_String("BITPIX  = 32"),
+  (Card.To_Bounded_String("BITPIX  = 8"),
    Card.To_Bounded_String("NAXIS   = 2"),
-   Card.To_Bounded_String("NAXIS1  = 10"),
-   Card.To_Bounded_String("NAXIS2  = 10"),
+   Card.To_Bounded_String("NAXIS1  = 2"),
+   Card.To_Bounded_String("NAXIS2  = 3"),
    Card.To_Bounded_String("END"));
  RealHeader : Header_Type := Read_HeaderFromTextFile("realheader.hdr");
+
+ Data : DataArray_Type := (Option   => int8,
+                           Length   => 6,
+                         --  ArrInt32 => (16#7FFFFFFF#,2,3,4,5,16#7FFFFFFF#));
+                         --  ArrInt16 => (16#7FFF#,2,3,4,5,16#7FFF#));
+                           ArrInt8 => (16#7F#,2,3,4,5,16#7F#));
+                         --  ArrFloat32 => (1.0E1,1.0E2,1.0E3,1.0E4,1.0E5,1.0E6));
+
 begin
 
+ Ada.Text_IO.Put_Line("DataType enum " & Integer'Image(Data.Option'Size));
+ Ada.Text_IO.Put_Line("int8 " & Integer'Image(Interfaces.Integer_8'Size));
+ Ada.Text_IO.Put_Line("int16 " & Integer'Image(Interfaces.Integer_16'Size));
+ Ada.Text_IO.Put_Line("int32 " & Integer'Image(Interfaces.Integer_32'Size));
+ Ada.Text_IO.Put_Line("int64 " & Integer'Image(Interfaces.Integer_64'Size));
+ Ada.Text_IO.Put_Line("float32 " & Integer'Image(Float'Size));
+ Ada.Text_IO.Put_Line("float64 " & Integer'Image(Long_Float'Size));
+
+
  Create (Fits, Mode, Name);
- Ada.Text_IO.Put_Line("Write Primary Header...");
- Write (Fits, RealHeader);
- Ada.Text_IO.Put_Line("Write Header to 2nd HDU...");
- Write (Fits, Header, 2);
+-- Ada.Text_IO.Put_Line("Write Primary Header...");
+-- Write (Fits, RealHeader);
+
+ Ada.Text_IO.Put_Line("Write Header to 1st HDU...");
+ Write (Fits, Header, 1);
+
+ Ada.Text_IO.Put_Line("Write Data to 1st HDU...");
+ Write (Fits,1, 1,Data);
 
  Close(Fits);
 

@@ -20,6 +20,9 @@
 with Ada.Strings.Bounded;
  -- for Header definition
 
+with Interfaces;
+ -- for DataUnit definitions
+
 package FITS_IO is
 
    type File_Type is limited private;
@@ -109,6 +112,62 @@ package FITS_IO is
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 
    function List_HDUInfo (File : in File_Type) return HDU_Info_Arr;
+
+   -----------------
+   -- Data access --
+   -----------------
+
+ type Int8Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_8;
+ pragma Pack (Int8Arr_Type);
+
+ type Int16Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_16;
+ pragma Pack (Int16Arr_Type);
+
+ type Int32Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_32;
+ pragma Pack (Int32Arr_Type);
+
+ type Int64Arr_Type is
+   array ( Natural range <> ) of Interfaces.Integer_64;
+ pragma Pack (Int64Arr_Type);
+
+ type Float32Arr_Type is
+   array ( Natural range <> ) of Float; --FIXME verify size
+ pragma Pack (Float32Arr_Type);
+
+ type Float64Arr_Type is
+   array ( Natural range <> ) of Long_Float;--FIXME verify size
+ pragma Pack (Float64Arr_Type);
+
+ type DataArray_Type ( Option : Data_Type ;
+                       Length : Natural ) is
+   record
+     case Option is
+      when Int8  => ArrInt8  : Int8Arr_Type (1 .. Length);
+      when Int16 => ArrInt16 : Int16Arr_Type(1 .. Length);
+      when Int32 => ArrInt32 : Int32Arr_Type(1 .. Length);
+      when Int64 => ArrInt64 : Int64Arr_Type(1 .. Length);
+      when Float32 => ArrFloat32 : Float32Arr_Type(1 .. Length);
+      when Float64 => ArrFloat64 : Float64Arr_Type(1 .. Length);
+     end case;
+   end record;
+
+   function  Read (File       : in File_Type;
+                   HDU_Num    : in Positive;  -- 1,2,3...
+                   DataType   : in Data_Type;
+                   FromOffset : in Positive;  -- in units of DataType
+                   Length     : in Positive ) -- in units of DataType
+    return DataArray_Type;
+
+   procedure Write (File     : in File_Type;
+                    HDU_Num  : in Positive;        -- 1,2,3...
+                    ToOffset : in Positive;        -- in units of DataType
+                    Data     : in DataArray_Type ); -- has length Length(Data)
+
+
+
 
 private
 

@@ -36,7 +36,6 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 
- with Interfaces;-- DataUnit definitions
 
 
 package body FITS_IO is
@@ -710,42 +709,6 @@ package body FITS_IO is
   -- How to control truncate-at-write? When to allow, when to raise exception ?
   -- Higher-level issue or should be handled at this level ?
 
- type Int8Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_8;
- pragma Pack (Int8Arr_Type);
-
- type Int16Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_16;
- pragma Pack (Int16Arr_Type);
-
- type Int32Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_32;
- pragma Pack (Int32Arr_Type);
-
- type Int64Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_64;
- pragma Pack (Int64Arr_Type);
-
- type Float32Arr_Type is
-   array ( Natural range <> ) of Float; --FIXME verify size
- pragma Pack (Float32Arr_Type);
-
- type Float64Arr_Type is
-   array ( Natural range <> ) of Long_Float;--FIXME verify size
- pragma Pack (Float64Arr_Type);
-
- type DataArray_Type ( Option : Data_Type ;
-                       Length : Natural ) is
-   record
-     case Option is
-      when Int8  => ArrInt8  : Int8Arr_Type (1 .. Length);
-      when Int16 => ArrInt16 : Int16Arr_Type(1 .. Length);
-      when Int32 => ArrInt32 : Int32Arr_Type(1 .. Length);
-      when Int64 => ArrInt64 : Int64Arr_Type(1 .. Length);
-      when Float32 => ArrFloat32 : Float32Arr_Type(1 .. Length);
-      when Float64 => ArrFloat64 : Float64Arr_Type(1 .. Length);
-     end case;
-   end record;
    -- FIXME check record'Size -> does it change with option?
    -- It was meant originally to define DataBlock which would always be 2880
    -- Consider to inherit it from Ada.Stream and do own 'Read/'Write funcs
@@ -765,6 +728,21 @@ package body FITS_IO is
      end case;
      return len;
   end Length;
+  -- FIXME the need for this is weird...
+  function Size( dt: in Data_Type) return Natural
+   is
+    len : Natural;
+  begin
+     case dt is
+      when Int8  => len := Interfaces.Integer_8'Size;
+      when Int16 => len := Interfaces.Integer_16'Size;
+      when Int32 => len := Interfaces.Integer_32'Size;
+      when Int64 => len := Interfaces.Integer_64'Size;
+      when Float32 => len := Float'Size;
+      when Float64 => len := Long_Float'Size;
+     end case;
+     return len;
+  end Size;
   -- FIXME the need for this is weird...
 
  -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types similarly Read...
@@ -804,7 +782,7 @@ package body FITS_IO is
                         Length   : in Positive)  -- number of DataType elements written/read
   return Boolean
  is
-  DataEnd : Positive := Start + (DataType'Size/8) * Length;
+  DataEnd : Positive := Start + (Size(DataType)/8) * Length;
   DUEnd   : Positive := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
   Inside  : Boolean  := DataEnd <= DUEnd ;
  begin
@@ -821,8 +799,8 @@ package body FITS_IO is
  is
   -- FIXME BlockSize must be in units of Stream Element_Size
   -- FIXME check converions Positive_Count -> Integer
-  DUStart    : Positive := BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataStart;
-  DataOffset : Positive := (DataType'Size/8) * FromOffset;
+  DUStart    : Positive := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
+  DataOffset : Natural := (Size(DataType)/8) * (FromOffset - 1);
   Offset     : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);
  begin
    -- FIXME check HDU_Num not outside of the range?
@@ -884,10 +862,9 @@ package body FITS_IO is
    -- worakaround is to use Pragma C-style which creates a
    -- C-style union and so Option is not written only data:
    -- add these after record definition:
-   -- pragma Unchecked_Union (Union);
+   -- pragma Unchecked_Union (DataArray_Type);
    -- pragma Convention (C, Union);    -- optional, only if interfacing C-lang
    DataArray_Type'Write( SIO.Stream(File.BlocksFile), Data );
  end Write;
-
 
 end FITS_IO;
