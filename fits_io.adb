@@ -791,20 +791,20 @@ package body FITS_IO is
 
 
  -- convert to SIO file position, relative to begining of the file
- function  To_SIO(File       : in File_Type;
-                  HDU_Num    : in Positive;  -- 1,2,3...
-                  DataType   : in Data_Type;
-                  FromOffset : in Positive)  -- in units of DataType
+ function  To_SIO(File     : in File_Type;
+                  HDU_Num  : in Positive;  -- 1,2,3...
+                  DataType : in Data_Type;
+                  Offset   : in Positive)  -- in units of DataType
   return SIO.Positive_Count
  is
   -- FIXME BlockSize must be in units of Stream Element_Size
   -- FIXME check converions Positive_Count -> Integer
   DUStart    : Positive := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
-  DataOffset : Natural := (Size(DataType)/8) * (FromOffset - 1);
-  Offset     : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);
+  DataOffset : Natural := (Size(DataType)/8) * (Offset - 1);
+  SioOffset  : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);
  begin
    -- FIXME check HDU_Num not outside of the range?
-  return Offset;
+  return SioOffset;
  end To_SIO;
 
 
