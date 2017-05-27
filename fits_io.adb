@@ -44,9 +44,24 @@ package body FITS_IO is
  subtype Block_Type is String (1 .. BlockSize );
  type BlockArray_Type is array (Positive range <>) of Block_Type;
 
- ------------------------------------------
- -- Low level FITS-file access by Blocks --
- ------------------------------------------
+ ---------------------------------------------------
+ -- Low level FITS-Headers access by HeaderBlocks --
+ ---------------------------------------------------
+
+ CardsCntInBlock : constant Positive := BlockSize / CardSize;
+ -- [FITS 3.3.1 Primary Header] 36 cards per block
+
+ subtype Card_Type is String(1..CardSize);
+ -- makes sure index start with 1
+
+ type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
+ type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
+   -- Header format inside file
+
+ ENDCard    : constant Card_Type := "END                                                                             ";
+ EmptyCard  : constant Card_Type := (others => ' ');
+ EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
+
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -91,18 +106,18 @@ package body FITS_IO is
  -- [FITS 5 Data Representation & 7.3.3]: "Bytes are in big-endian order of decreasing significance."
 
  procedure Write(File    : in SIO.File_Type;
-                 Blocks  : in BlockArray_Type)
+                 Blocks  : in HeaderBlockArray_Type)
  is
  begin
-   BlockArray_Type'Write( SIO.Stream(File), Blocks );
+   HeaderBlockArray_Type'Write( SIO.Stream(File), Blocks );
  end Write;
 
  function  Read (File    : in  SIO.File_Type;
-                 NBlocks : in  Positive := 1) return BlockArray_Type
+                 NBlocks : in  Positive := 1) return HeaderBlockArray_Type
  is
-   Blocks : BlockArray_Type( 1 .. NBlocks );
+   Blocks : HeaderBlockArray_Type( 1 .. NBlocks );
  begin
-   BlockArray_Type'Read( SIO.Stream(File), Blocks );
+   HeaderBlockArray_Type'Read( SIO.Stream(File), Blocks );
    return Blocks;
  end Read;
 
@@ -177,21 +192,6 @@ package body FITS_IO is
  --------------------------------------------------
  -- Header definition as stored inside FITS-file --
  --------------------------------------------------
-
- CardsCntInBlock : constant Positive := BlockSize / CardSize;
- -- [FITS 3.3.1 Primary Header] 36 cards per block
-
- subtype Card_Type is String(1..CardSize);
- -- makes sure index start with 1
-
- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
-   -- Header format inside file
-
- ENDCard    : constant Card_Type := "END                                                                             ";
- EmptyCard  : constant Card_Type := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
-
 
  --
  -- returns DU-size in Blocks [FITS 4.4.1.1 Primary Header,(1)]
@@ -268,7 +268,7 @@ package body FITS_IO is
  --
  -- walk through each HeaderBlock
  --
- function  Parse_HeaderBlock( Block : in Block_Type ;
+ function  Parse_HeaderBlock( Block : in HeaderBlock_Type ;
                               CardCount : out Positive;
                               HDUInfo : in out HDU_Info_Type )
   return Boolean
@@ -276,17 +276,14 @@ package body FITS_IO is
   ENDFound : Boolean := False;
   Card     : Card_Type;
   CardCnt  : Positive := 1;
-  from     : Positive := 1;
-  next     : Positive := 1;
  begin
-  loop
-    next := from + CardSize;
-    Card := Block( from .. (next - 1) );
+
+  for I in Block'Range loop
+    Card := Block( I );
     Parse_KeyRecord( Card, HDUInfo );
     ENDFound := (Card = ENDCard);
     exit when ENDFound or CardCnt >= CardsCntInBlock;
     CardCnt := CardCnt + 1;
-    from := next;
   end loop;
   CardCount := CardCnt;
   return ENDFound;
@@ -307,7 +304,7 @@ package body FITS_IO is
    DataUnit_Size   : Natural := 0;
 
    HDUInfo : HDU_Info_Type;
-   Block : BlockArray_Type(1..1);
+   Block : HeaderBlockArray_Type(1..1);
 
    CurCardCnt : Natural; -- written by Parse_HeaderBlock
    TotCardCnt : Natural := 0;
@@ -436,38 +433,6 @@ package body FITS_IO is
  end Close;
 
  --
- -- HeaderBlock <-> Block conversions
- --
-
- function  To_HeaderBlockType is
-    new Ada.Unchecked_Conversion (Block_Type, HeaderBlock_Type);
-
- function  To_BlockType is
-    new Ada.Unchecked_Conversion (HeaderBlock_Type, Block_Type);
-
- function  To_HeaderBlockArray(Blocks : BlockArray_Type)
-  return HeaderBlockArray_Type
- is
-  HBlocks : HeaderBlockArray_Type(Blocks'Range);
- begin
-  for I in Blocks'Range loop
-    HBlocks(I) := To_HeaderBlockType(Blocks(I));
-  end loop;
-  return HBlocks;
- end To_HeaderBlockArray;
-
- function  To_BlockArray(HeaderBlocks : HeaderBlockArray_Type )
-  return BlockArray_Type
-  is
-    BA : BlockArray_Type(HeaderBlocks'Range);
-  begin
-   for I in HeaderBlocks'Range loop
-      BA(I) := To_BlockType(HeaderBlocks(I));
-   end loop;
-   return BA;
-  end To_BlockArray;
-
- --
  -- convert external Header represenation to FITS-internal format
  --
  -- add space so that each card is 80 chars long
@@ -574,7 +539,7 @@ package body FITS_IO is
 
   -- 2, Write data to file
   Set_Index(File.BlocksFile,FileIx);
-  Write(File.BlocksFile, To_BlockArray(HeaderBlocks));
+  Write(File.BlocksFile, HeaderBlocks);
   -- FIXME define convertible Header <-> Block arrays is possible ?
 
   -- 3, Update File.HDU_Arr if write successful...
@@ -664,8 +629,7 @@ package body FITS_IO is
 
   -- read and convert to Header
   declare
-    Blocks : BlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
-    HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Blocks);
+    HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
   begin
     Header := To_Header(HeaderBlocks);
   end;
