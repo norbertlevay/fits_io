@@ -117,56 +117,46 @@ package FITS_IO is
    -- Data access --
    -----------------
 
- type Int8Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_8;
- pragma Pack (Int8Arr_Type);
+   type Int8Arr_Type    is array ( Natural range <> ) of Interfaces.Integer_8;
+   type Int16Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_16;
+   type Int32Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_32;
+   type Int64Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_64;
+   type Float32Arr_Type is array ( Natural range <> ) of Float;
+   type Float64Arr_Type is array ( Natural range <> ) of Long_Float;
+    --FIXME verify size Float & Long_Float BitSize
+   type DataArray_Type ( Option : Data_Type ;
+                         Length : Natural ) is
+     record
+       case Option is
+       when Int8  =>   Int8Arr    : Int8Arr_Type (1 .. Length);
+       when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
+       when Int32 =>   Int32Arr   : Int32Arr_Type(1 .. Length);
+       when Int64 =>   Int64Arr   : Int64Arr_Type(1 .. Length);
+       when Float32 => Float32Arr : Float32Arr_Type(1 .. Length);
+       when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
+      end case;
+     end record;
 
- type Int16Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_16;
- pragma Pack (Int16Arr_Type);
+   pragma Pack (Int8Arr_Type);
+   pragma Pack (Int16Arr_Type);
+   pragma Pack (Int32Arr_Type);
+   pragma Pack (Int64Arr_Type);
+   pragma Pack (Float32Arr_Type);
+   pragma Pack (Float64Arr_Type);
 
- type Int32Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_32;
- pragma Pack (Int32Arr_Type);
-
- type Int64Arr_Type is
-   array ( Natural range <> ) of Interfaces.Integer_64;
- pragma Pack (Int64Arr_Type);
-
- type Float32Arr_Type is
-   array ( Natural range <> ) of Float; --FIXME verify size
- pragma Pack (Float32Arr_Type);
-
- type Float64Arr_Type is
-   array ( Natural range <> ) of Long_Float;--FIXME verify size
- pragma Pack (Float64Arr_Type);
-
- type DataArray_Type ( Option : Data_Type ;
-                       Length : Natural ) is
-   record
-     case Option is
-      when Int8  => ArrInt8  : Int8Arr_Type (1 .. Length);
-      when Int16 => ArrInt16 : Int16Arr_Type(1 .. Length);
-      when Int32 => ArrInt32 : Int32Arr_Type(1 .. Length);
-      when Int64 => ArrInt64 : Int64Arr_Type(1 .. Length);
-      when Float32 => ArrFloat32 : Float32Arr_Type(1 .. Length);
-      when Float64 => ArrFloat64 : Float64Arr_Type(1 .. Length);
-     end case;
-   end record;
-
-   function  Read (File       : in File_Type;
-                   HDU_Num    : in Positive;  -- 1,2,3...
-                   DataType   : in Data_Type;
-                   FromOffset : in Positive;  -- in units of DataType
-                   Length     : in Positive ) -- in units of DataType
+   function  Read
+     (File       : in File_Type;
+      HDU_Num    : in Positive;  -- 1,2,3...
+      DataType   : in Data_Type;
+      FromOffset : in Positive;  -- in units of DataType
+      Length     : in Positive ) -- in units of DataType
     return DataArray_Type;
 
-   procedure Write (File     : in File_Type;
-                    HDU_Num  : in Positive;        -- 1,2,3...
-                    ToOffset : in Positive;        -- in units of DataType
-                    Data     : in DataArray_Type ); -- has length Length(Data)
-
-
+   procedure Write
+     (File     : in File_Type;
+      HDU_Num  : in Positive;         -- 1,2,3...
+      ToOffset : in Positive;         -- in units of DataType
+      Data     : in DataArray_Type ); -- has length Length(Data)
 
 
 private

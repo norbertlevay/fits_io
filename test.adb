@@ -84,10 +84,10 @@ is
 
  Data : DataArray_Type := (Option   => int8,
                            Length   => 6,
-                         --  ArrInt32 => (16#7FFFFFFF#,2,3,4,5,16#7FFFFFFF#));
-                         --  ArrInt16 => (16#7FFF#,2,3,4,5,16#7FFF#));
-                           ArrInt8 => (16#7F#,2,3,4,5,16#7F#));
-                         --  ArrFloat32 => (1.0E1,1.0E2,1.0E3,1.0E4,1.0E5,1.0E6));
+                         --  Int32Arr => (16#7FFFFFFF#,2,3,4,5,16#7FFFFFFF#));
+                         --  Int16Arr => (16#7FFF#,2,3,4,5,16#7FFF#));
+                           Int8Arr => (16#7F#,2,3,4,5,16#7F#));
+                         --  Float32Arr => (1.0E1,1.0E2,1.0E3,1.0E4,1.0E5,1.0E6));
 
  Data2 : DataArray_Type(int8,6);
 
@@ -102,7 +102,7 @@ begin
  Ada.Text_IO.Put_Line("float64 " & Integer'Image(Long_Float'Size));
 
  for I in 1..6 loop
-  Data2.ArrInt8(I) := Interfaces.Integer_8(2*I);
+  Data2.Int8Arr(I) := Interfaces.Integer_8(2*I);
  end loop;
 
 
@@ -124,7 +124,7 @@ begin
   dr : DataArray_Type := Read (Fits,1,int8,1,6 );
  begin
   for I in 1..6 loop
-   Ada.Text_IO.Put_Line(Integer'Image(I) & "> " & Interfaces.Integer_8'Image(dr.ArrInt8(I)));
+   Ada.Text_IO.Put_Line(Integer'Image(I) & "> " & Interfaces.Integer_8'Image(dr.Int8Arr(I)));
   end loop;
  end;
  Close(Fits);

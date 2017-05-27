@@ -719,12 +719,12 @@ package body FITS_IO is
     len : Natural;
   begin
      case Data.Option is
-      when Int8  => len := Data.ArrInt8'Length;
-      when Int16 => len := Data.ArrInt16'Length;
-      when Int32 => len := Data.ArrInt32'Length;
-      when Int64 => len := Data.ArrInt64'Length;
-      when Float32 => len := Data.ArrFloat32'Length;
-      when Float64 => len := Data.ArrFloat64'Length;
+      when Int8  =>   len := Data.Int8Arr'Length;
+      when Int16 =>   len := Data.Int16Arr'Length;
+      when Int32 =>   len := Data.Int32Arr'Length;
+      when Int64 =>   len := Data.Int64Arr'Length;
+      when Float32 => len := Data.Float32Arr'Length;
+      when Float64 => len := Data.Float64Arr'Length;
      end case;
      return len;
   end Length;
