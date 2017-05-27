@@ -91,10 +91,22 @@ is
 
  Data2 : DataArray_Type(int8,6);
 
+ -- just for print sizes
+ DataInt8  : DataArray_Type(int8, 10);
+ DataInt16 : DataArray_Type(int16,10);
+ DataInt32 : DataArray_Type(int32,10);
+
 begin
 
- Ada.Text_IO.Put_Line("DataType enum " & Integer'Image(Data.Option'Size));
- Ada.Text_IO.Put_Line("int8 " & Integer'Image(Interfaces.Integer_8'Size));
+ Ada.Text_IO.Put_Line("DataType   size " & Integer'Image(Data.Option'Size));
+ Ada.Text_IO.Put_Line("Var-record size 10xInt8  " & Integer'Image(DataInt8'Size));
+ Ada.Text_IO.Put_Line("     Array size 10xInt8  " & Integer'Image(DataInt8.Int8Arr'Size));
+ Ada.Text_IO.Put_Line("Var-record size 10xInt16 " & Integer'Image(DataInt16'Size));
+ Ada.Text_IO.Put_Line("     Array size 10xInt16 " & Integer'Image(DataInt16.Int16Arr'Size));
+ Ada.Text_IO.Put_Line("Var-record size 10xInt32 " & Integer'Image(DataInt32'Size));
+ Ada.Text_IO.Put_Line("     Array size 10xInt32 " & Integer'Image(DataInt32.Int32Arr'Size));
+
+ Ada.Text_IO.Put_Line("int8  " & Integer'Image(Interfaces.Integer_8'Size));
  Ada.Text_IO.Put_Line("int16 " & Integer'Image(Interfaces.Integer_16'Size));
  Ada.Text_IO.Put_Line("int32 " & Integer'Image(Interfaces.Integer_32'Size));
  Ada.Text_IO.Put_Line("int64 " & Integer'Image(Interfaces.Integer_64'Size));

@@ -137,13 +137,6 @@ package FITS_IO is
       end case;
      end record;
 
-   pragma Pack (Int8Arr_Type);
-   pragma Pack (Int16Arr_Type);
-   pragma Pack (Int32Arr_Type);
-   pragma Pack (Int64Arr_Type);
-   pragma Pack (Float32Arr_Type);
-   pragma Pack (Float64Arr_Type);
-
    function  Read
      (File       : in File_Type;
       HDU_Num    : in Positive;  -- 1,2,3...
@@ -166,5 +159,15 @@ private
 
  -- FIXME here would follow list of pragma Inline,
  -- but since Ada2012 obsolete, add anyway for older compilers
+
+--   pragma Pack (Int8Arr_Type);
+--   pragma Pack (Int16Arr_Type);
+--   pragma Pack (Int32Arr_Type);
+--   pragma Pack (Int64Arr_Type);
+--   pragma Pack (Float32Arr_Type);
+--   pragma Pack (Float64Arr_Type);
+--   pragma Pack (DataArray_Type);
+     -- FIXME seems not to affect Size (see test.adb). Clarify:
+     -- Is packing guaranteed by Ada, GNAT or ?
 
 end FITS_IO;
