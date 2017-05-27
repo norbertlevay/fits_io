@@ -714,35 +714,35 @@ package body FITS_IO is
    -- Consider to inherit it from Ada.Stream and do own 'Read/'Write funcs
    -- which will read/write only data not the Option discriminator
 
-  function Length( Data: in DataArray_Type) return Natural
-   is
-    len : Natural;
-  begin
-     case Data.Option is
-      when Int8  =>   len := Data.Int8Arr'Length;
-      when Int16 =>   len := Data.Int16Arr'Length;
-      when Int32 =>   len := Data.Int32Arr'Length;
-      when Int64 =>   len := Data.Int64Arr'Length;
-      when Float32 => len := Data.Float32Arr'Length;
-      when Float64 => len := Data.Float64Arr'Length;
-     end case;
-     return len;
-  end Length;
-  -- FIXME the need for this is weird...
-  function Size( dt: in Data_Type) return Natural
-   is
-    len : Natural;
-  begin
-     case dt is
-      when Int8  => len := Interfaces.Integer_8'Size;
-      when Int16 => len := Interfaces.Integer_16'Size;
-      when Int32 => len := Interfaces.Integer_32'Size;
-      when Int64 => len := Interfaces.Integer_64'Size;
-      when Float32 => len := Float'Size;
-      when Float64 => len := Long_Float'Size;
-     end case;
-     return len;
-  end Size;
+ function  Length( Data: in DataArray_Type) return Natural
+  is
+   len : Natural;
+ begin
+    case Data.Option is
+     when Int8  =>   len := Data.Int8Arr'Length;
+     when Int16 =>   len := Data.Int16Arr'Length;
+     when Int32 =>   len := Data.Int32Arr'Length;
+     when Int64 =>   len := Data.Int64Arr'Length;
+     when Float32 => len := Data.Float32Arr'Length;
+     when Float64 => len := Data.Float64Arr'Length;
+    end case;
+    return len;
+ end Length;
+ -- FIXME the need for this is weird...
+ function  Size( dt: in Data_Type) return Natural
+  is
+   len : Natural;
+ begin
+    case dt is
+     when Int8  => len := Interfaces.Integer_8'Size;
+     when Int16 => len := Interfaces.Integer_16'Size;
+     when Int32 => len := Interfaces.Integer_32'Size;
+     when Int64 => len := Interfaces.Integer_64'Size;
+     when Float32 => len := Float'Size;
+     when Float64 => len := Long_Float'Size;
+    end case;
+    return len;
+ end Size;
   -- FIXME the need for this is weird...
 
  -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types similarly Read...
