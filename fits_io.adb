@@ -74,6 +74,14 @@ package body FITS_IO is
  -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
  -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
 
+-- What Index points to is in Ada but currently removed (overstriked):
+-- [AdaA.12.1 The Package Streams.Stream_IO]:
+--   {8652/0055} The Index function returns the current file index, as a count (in stream elements) from the beginning of the file. The position of the first element in the file is 1.
+-- 31.a/1
+-- This paragraph was deleted. Ramification: The notion of Index for Stream_IO is analogous
+-- to that of Index in Direct_IO, except that the former is measured in Stream_Element units,
+-- whereas the latter is in terms of Element_Type values.
+
  function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
    return (OctetIndex - 1) / BlockSize + 1;

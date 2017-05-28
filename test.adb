@@ -8,6 +8,7 @@ with
     Ada.Command_Line,
     Ada.Strings.Unbounded,
     Ada.Strings.Bounded,
+    System,
     Interfaces,
     GNAT.Traceback.Symbolic;
 
@@ -98,6 +99,14 @@ is
 
 begin
 
+-- Ada.Text_IO.Put_Line("Name   " & System.Name);
+ Ada.Text_IO.Put_Line("Default_Bit_Order " & System.Bit_Order'Image(System.Default_Bit_Order));
+ Ada.Text_IO.Put_Line("Endianness   " & System.Bit_Order'Image(DataArray_Type'Bit_Order));
+ Ada.Text_IO.Put_Line("Storage_Unit " & Integer'Image(System.Storage_Unit));
+ Ada.Text_IO.Put_Line("Word_Size    " & Integer'Image(System.Word_Size));
+-- not very useful [Ada] Ada.Text_IO.Put_Line("Memory_Size  " & Long_Long_Integer'Image(System.Memory_Size));
+
+ Ada.Text_IO.Put_Line("Alignment       " & Integer'Image(DataArray_Type'Alignment));
  Ada.Text_IO.Put_Line("DataType   size " & Integer'Image(Data.Option'Size));
  Ada.Text_IO.Put_Line("Var-record size 10xInt8  " & Integer'Image(DataInt8'Size));
  Ada.Text_IO.Put_Line("     Array size 10xInt8  " & Integer'Image(DataInt8.Int8Arr'Size));
