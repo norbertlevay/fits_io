@@ -121,9 +121,9 @@ package FITS_IO is
    type Int16Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_32;
    type Int64Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_64;
-   type Float32Arr_Type is array ( Natural range <> ) of Float;
-   type Float64Arr_Type is array ( Natural range <> ) of Long_Float;
-    --FIXME verify size Float & Long_Float BitSize
+   type Float32Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_32;
+   type Float64Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_64;
+
    type DataArray_Type ( Option : Data_Type ;
                          Length : Natural ) is
      record

@@ -104,6 +104,7 @@ begin
  Ada.Text_IO.Put_Line("Endianness   " & System.Bit_Order'Image(DataArray_Type'Bit_Order));
  Ada.Text_IO.Put_Line("Storage_Unit " & Integer'Image(System.Storage_Unit));
  Ada.Text_IO.Put_Line("Word_Size    " & Integer'Image(System.Word_Size));
+ Ada.Text_IO.Put_Line("Address_Size    " & Integer'Image(Standard'Address_Size));
 -- not very useful [Ada] Ada.Text_IO.Put_Line("Memory_Size  " & Long_Long_Integer'Image(System.Memory_Size));
 
  Ada.Text_IO.Put_Line("Alignment       " & Integer'Image(DataArray_Type'Alignment));
@@ -119,8 +120,8 @@ begin
  Ada.Text_IO.Put_Line("int16 " & Integer'Image(Interfaces.Integer_16'Size));
  Ada.Text_IO.Put_Line("int32 " & Integer'Image(Interfaces.Integer_32'Size));
  Ada.Text_IO.Put_Line("int64 " & Integer'Image(Interfaces.Integer_64'Size));
- Ada.Text_IO.Put_Line("float32 " & Integer'Image(Float'Size));
- Ada.Text_IO.Put_Line("float64 " & Integer'Image(Long_Float'Size));
+ Ada.Text_IO.Put_Line("float32 " & Integer'Image(Interfaces.IEEE_Float_32'Size));
+ Ada.Text_IO.Put_Line("float64 " & Integer'Image(Interfaces.IEEE_Float_64'Size));
 
  for I in 1..6 loop
   Data2.Int8Arr(I) := Interfaces.Integer_8(2*I);

@@ -74,6 +74,9 @@ package body FITS_IO is
  -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
  -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
 
+ -- [FITS 2.2 Defined Terms] "Byte An ordered sequence of eight consecutive bits treated as a single entity."
+ -- [FITS 3.1 Overall file structure] "...FITS blocks which are each 2880 bytes (23040 bits) in length."
+
 -- What Index points to is in Ada but currently removed (overstriked):
 -- [AdaA.12.1 The Package Streams.Stream_IO]:
 --   {8652/0055} The Index function returns the current file index, as a count (in stream elements) from the beginning of the file. The position of the first element in the file is 1.
