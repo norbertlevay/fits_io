@@ -132,7 +132,7 @@ package body FITS_IO is
  pragma Inline (Index);
  pragma Inline (Set_Index);
 
- -- FIXME not implemented yet:
+ -- FIXME endianness not implemented yet:
  -- Ada's Bit_Order uses big/little endianness with reference to bit-ordering, not byte ordering.
  -- [Ada 13.5.3 Bit Ordering] High_Order_First = big-endian, Low_Order_First  = little-endian
  -- Byte ordering (swapping if needed) supported by [GNAT] attrib Scalar_Storage_Order:
@@ -582,7 +582,6 @@ package body FITS_IO is
   -- 2, Write data to file
   Set_Index(File.BlocksFile,FileIx);
   Write(File.BlocksFile, HeaderBlocks);
-  -- FIXME define convertible Header <-> Block arrays is possible ?
 
   -- 3, Update File.HDU_Arr if write successful...
   File.HDU_Arr(HDUIx).HDUPos.HeaderStart := FileIx; -- FIXME what does Parse_HDU_Data() do?
@@ -749,32 +748,6 @@ package body FITS_IO is
  end Size;
   -- FIXME the need for this is weird...
 
- -- consider A: WriteData() WriteHeader() & use Data/Header Arr Types similarly Read...
- --       or B: Read/Write by generic Blocks and convert to HeaderBlockArr and DataBlockArr
-
- -- Current implementation o Header Read/Write is attmpt on B.
- -- Below attempt on A:
-
- ----------------------------------------------
- -- low-level Read/Write: should work by Blocks <-- probably not needed
-
- procedure WriteData(File    : in SIO.File_Type;
-                     Blocks  : in DataArray_Type)
- is
- begin
-   DataArray_Type'Write( SIO.Stream(File), Blocks );
- end WriteData;
-
- function  ReadData(File    : in  SIO.File_Type;
-                    NBlocks : in  Positive := 1) return DataArray_Type
- is
-   Blocks : DataArray_Type( Int8 , NBlocks );
- begin
-   -- FIXME sizes/types incorrect NBlocks
-   DataArray_Type'Read( SIO.Stream(File), Blocks );
-   return Blocks;
- end ReadData;
-
  -------------------------------------------
  -- user level Read/Write: works by DataType
 
@@ -825,13 +798,11 @@ package body FITS_IO is
   To   : SIO.Positive_Count := To_SIO(File,HDU_Num,DataType,FromOffset);
  begin
 
-   -- Do we need this check for read ?
    if not Is_Inside_DU(File,HDU_Num,Positive(To),DataType,Length) then
      null;
-     -- FIXME ?? check if [HDU_Num,ToOffset,Data'Length] is
-     -- within DataUnit limits. Raise exception if attempting to read
-     -- outside this file-area ?
-     -- Or Read less then Length ? Caller can do Data'Length =? Length
+     -- FIXME check if [HDU_Num,ToOffset,Data'Length] is
+     -- within DataUnit limits. Raise exception if attempting to write
+     -- outside this file-area.
    end if;
 
    -- convert FromOffset to SIO-Offset
@@ -862,7 +833,7 @@ package body FITS_IO is
    -- convert ToOffset to SIO-Offset
    SIO.Set_Index (File.BlocksFile, To);
 
-   -- FIXME this will write also Data.Option
+   -- FIXME clarify: will this write also Data.Option (and Length) ?
    -- worakaround is to use Pragma C-style which creates a
    -- C-style union and so Option is not written only data:
    -- add these after record definition:
