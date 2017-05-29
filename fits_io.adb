@@ -94,6 +94,13 @@ package body FITS_IO is
 -- The predefined type Character is a character type whose values correspond to the 256 code points of Row 00 (also known as Latin-1) of the ISO/IEC 10646:2011 Basic Multilingual Plane (BMP).
 -- See [Ada A.1 tha Package Standard]-> type Character is (....256 chars listed );
 
+ -- FIXME not implemented yet: Use System.Storage_Unit to implement BlockIndex<->OctetIndex calc
+ -- Bloc_Size in Storage units:
+ -- BlockSize is in FITS-Bytes (=8bits)
+ -- BlockSize_SU := BlockSize / (System.Storage_Unit/8)
+ -- this would work for multiple 16 32 ... Storage_Unit's: yields correct addressing,
+ -- but how to guarantee that Read/Write will put 2 FITS-Characters into one 16-bit character for instance?
+
  function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
    return (OctetIndex - 1) / BlockSize + 1;
@@ -103,7 +110,9 @@ package body FITS_IO is
   begin
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
- -- FIXME not implemented yet: Use System.Storage_Unit to implement the above
+ -- Note since Ada2012 pragma Inline obsolete, add anyway for older compilers
+ pragma Inline (To_BlockIndex);
+ pragma Inline (To_OctetIndex);
 
  function  Index ( File  : in SIO.File_Type ) return Positive
  is
@@ -120,6 +129,8 @@ package body FITS_IO is
       SIO.Positive_Count(To_OctetIndex(Index)) );
   -- FIXME verify this direct conversion Positive -> Positive_Count
  end Set_Index;
+ pragma Inline (Index);
+ pragma Inline (Set_Index);
 
  -- FIXME not implemented yet:
  -- Ada's Bit_Order uses big/little endianness with reference to bit-ordering, not byte ordering.

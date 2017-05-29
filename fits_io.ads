@@ -157,9 +157,6 @@ private
  type File_Type_Record;
  type File_Type is access File_Type_Record;
 
- -- FIXME here would follow list of pragma Inline,
- -- but since Ada2012 obsolete, add anyway for older compilers
-
 --   pragma Pack (Int8Arr_Type);
 --   pragma Pack (Int16Arr_Type);
 --   pragma Pack (Int32Arr_Type);
