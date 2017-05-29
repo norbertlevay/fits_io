@@ -1,3 +1,7 @@
+-- refs:
+-- http://goanna.cs.rmit.edu.au/~dale/ada/aln.html
+-- https://www.dwheeler.com/lovelace/
+
 with
     Build_Date,
     Commands,
