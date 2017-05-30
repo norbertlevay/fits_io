@@ -4,10 +4,10 @@
 -- Current implementation is based on two elements:
 --
 -- 1, Low-level FITS-file access
--- This presents a FITS-file as array of 2880-blocks.
+-- This presents a FITS-file as array of blocks, each block having 2880 octets.
 -- The layer provides positioning by blocks, read and write.
--- Currently implemented with Stream_IO. Possible with Direct_IO which would
--- eliminate block position calculations.
+-- Currently implemented with Stream_IO.
+-- Possible with Direct_IO which would eliminate block position calculations.
 -- However Direct_IO does not allow to write more blocks with one write so needs cycle,
 -- and Read is procedure not a function, then cannot initialize unconstrained arrays,
 -- and so also needs cycle by Block.
@@ -69,37 +69,7 @@ package body FITS_IO is
 -- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, File_Mode);
 -- use type FCB.File_Mode; FIXME ?? see -> a-ststio.adb
 
- -- Terminology: Byte - Storage_Unit - Stream_Element
- -- [GNAT,9.8 Stream_IO] "The type Stream_Element is simply a byte."
- -- [Ada2005, 13.7 The Package 'System'] "Storage_Unit The number of bits per storage element."
- -- [GNAT,2 Implementation Defined Atrributes ->Bit] "...from System.Storage_Unit (=Byte)..."
-
- -- [FITS 2.2 Defined Terms] "Byte An ordered sequence of eight consecutive bits treated as a single entity."
- -- [FITS 3.1 Overall file structure] "...FITS blocks which are each 2880 bytes (23040 bits) in length."
-
--- What Index points to is in Ada but currently removed (overstriked):
--- [AdaA.12.1 The Package Streams.Stream_IO]:
---   {8652/0055} The Index function returns the current file index, as a count (in stream elements) from the beginning of the file. The position of the first element in the file is 1.
--- 31.a/1
--- This paragraph was deleted. Ramification: The notion of Index for Stream_IO is analogous
--- to that of Index in Direct_IO, except that the former is measured in Stream_Element units,
--- whereas the latter is in terms of Element_Type values.
-
--- [GNAT Determining the Representation Chosen by GNAT] -gnatR switch prints GNAT representation of types
-
--- Character: in Ada an enum of 256 literal chars, in GNAT such maps to 8bits :
--- [GNAT 11.1 Interfacing to C] Without pragma Convention C, Ada enumeration types map to 8, 16, or 32 bits
--- ... depending on the number of values passed.
--- [Ada] "An enumeration type is said to be a character type if at least one of its enumeration literals is a character_literal."
--- The predefined type Character is a character type whose values correspond to the 256 code points of Row 00 (also known as Latin-1) of the ISO/IEC 10646:2011 Basic Multilingual Plane (BMP).
--- See [Ada A.1 tha Package Standard]-> type Character is (....256 chars listed );
-
- -- FIXME not implemented yet: Use System.Storage_Unit to implement BlockIndex<->OctetIndex calc
- -- Bloc_Size in Storage units:
- -- BlockSize is in FITS-Bytes (=8bits)
- -- BlockSize_SU := BlockSize / (System.Storage_Unit/8)
- -- this would work for multiple 16 32 ... Storage_Unit's: yields correct addressing,
- -- but how to guarantee that Read/Write will put 2 FITS-Characters into one 16-bit character for instance?
+ -- positioning in file
 
  function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
   begin
@@ -132,21 +102,9 @@ package body FITS_IO is
  pragma Inline (Index);
  pragma Inline (Set_Index);
 
- -- FIXME endianness not implemented yet:
- -- Ada's Bit_Order uses big/little endianness with reference to bit-ordering, not byte ordering.
- -- [Ada 13.5.3 Bit Ordering] High_Order_First = big-endian, Low_Order_First  = little-endian
- -- Byte ordering (swapping if needed) supported by [GNAT] attrib Scalar_Storage_Order:
- -- [GNAT 2 Implementation Defined Attributes] 'Scalar_Storage_Order has same values as Ada's Bit_Order.
- -- gnatmake: says it is unrecognized attrib: for DataArray_Type'Scalar_Storage_Order use System.High_Order_First;
- -- [GNAT] "Note that the scalar storage order only affects the in-memory data representation.
- -- It has no effect on the representation used by stream attributes."
- -- [FITS 3.3.2 Primary data array]: "The individual data values shall be stored in big-endian byte order..."
- -- [FITS 5 Data Representation & 7.3.3]: "Bytes are in big-endian order of decreasing significance."
- -- [FITS 5 ] "Bytes are in big-endian order of decreasing significance.
- -- The byte that includes the sign bit shall be first, and the byte that
- -- has the ones bit shall be last."
- -- Note: Byte is defined by [FITS] as 8bits.
-
+ --
+ --
+ --
  procedure Write(File    : in SIO.File_Type;
                  Blocks  : in HeaderBlockArray_Type)
  is
