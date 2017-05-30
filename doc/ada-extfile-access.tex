@@ -207,6 +207,16 @@ Implement as much as Direct\_IO, Stream\_IO (or othe Ada I/O libs) C-Streams ass
  -- but how to guarantee that Read/Write will put 2 FITS-Characters into one 16-bit character for instance?
 \end{verbatim}
 
+Also see: Ada.Stream
+
+\begin{minted}{ada}
+   type Stream_Element_Offset is range
+     -(2 ** (Standard'Address_Size - 1)) ..
+     +(2 ** (Standard'Address_Size - 1)) - 1;
+\end{minted}
+
+
+
 
 
 \subsection{Endianness}
