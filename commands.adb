@@ -180,15 +180,22 @@ package body Commands is
 
    declare
     HDUInfoArr : FITS_IO.HDU_Info_Arr := FITS_IO.List_HDUInfo (FitsFile);
+    FreeSlotCnt : Natural;
    begin
     for I in HDUInfoArr'Range
      loop
+       -- calc free slots
+       FreeSlotCnt := 36 - (HDUInfoArr(I).CardsCnt mod 36);
+       -- mod is 0 when Block has 36 cards e.g. is full
+       if FreeSlotCnt = 36 then
+        FreeSlotCnt := 0;
+       end if;
+
        Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
        Ada.Text_IO.Put("   Cards: " &
                        Ada.Strings.Fixed.Tail(Integer'Image(HDUInfoArr(I).CardsCnt),5,' ') &
-                       " (" &
-                       Ada.Strings.Fixed.Tail(Integer'Image(HDUInfoArr(I).CardsCnt mod 36),2,' ')
-                       & ")" );
+                       " EmptyCardSlots: " &
+                       Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
 
        if HDUInfoArr(I).Naxes > 0 then
         Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
