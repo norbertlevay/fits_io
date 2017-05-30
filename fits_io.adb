@@ -7,6 +7,7 @@
 -- This presents a FITS-file as array of blocks, each block having 2880 octets.
 -- The layer provides positioning by blocks, read and write.
 -- Currently implemented with Stream_IO.
+--
 -- Possible with Direct_IO which would eliminate block position calculations.
 -- However Direct_IO does not allow to write more blocks with one write so needs cycle,
 -- and Read is procedure not a function, then cannot initialize unconstrained arrays,
@@ -26,18 +27,13 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 
-
-
 package body FITS_IO is
-
- BlockSize : constant Positive := 2880; -- [FITS, Sect 3.1]
- subtype Block_Type is String (1 .. BlockSize );
- type BlockArray_Type is array (Positive range <>) of Block_Type;
 
  ---------------------------------------------------
  -- Low level FITS-Headers access by HeaderBlocks --
  ---------------------------------------------------
 
+ BlockSize       : constant Positive := 2880; -- [FITS, Sect 3.1]
  CardsCntInBlock : constant Positive := BlockSize / CardSize;
  -- [FITS 3.3.1 Primary Header] 36 cards per block
 
@@ -46,12 +42,11 @@ package body FITS_IO is
 
  type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
  type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
-   -- Header format inside file
+   -- Header format inside FITS-file
 
  ENDCard    : constant Card_Type := "END                                                                             ";
  EmptyCard  : constant Card_Type := (others => ' ');
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
-
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -78,7 +73,7 @@ package body FITS_IO is
  is
  begin
   return To_BlockIndex(Positive(SIO.Index( File )));
-  -- FIXME verify this direct conversion Count -> Positive
+  -- FIXME verify this direct conversion Count -> Positive -> how is it in Direct_IO ?
  end Index;
 
  procedure Set_Index ( File  : in SIO.File_Type;
@@ -423,10 +418,10 @@ package body FITS_IO is
  end Close;
 
  --
- -- convert external Header represenation to FITS-internal format
+ -- convert external Header represenation to FITS-internal format:
+ -- * add space so that each card is 80 chars long
+ -- * make sure space after END card is cleaned
  --
- -- add space so that each card is 80 chars long
- -- make sure after END block is cleaned
  function  To_HeaderBlockArray( Header : Header_Type ) return HeaderBlockArray_Type
  is
   -- init blocks with space-characters
@@ -578,9 +573,9 @@ package body FITS_IO is
 
  --
  -- convert internal Header format to external Header representation
+ -- * strip empty spaces from start end end of each line
+ -- * strip empty cards after END-card
  --
- -- strip empty spaces from start end end of each line
- -- strip empty cards after END-card
  function  To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
  is
   H  : Header_Type(1 .. CardsCount(HeaderBlocks));
