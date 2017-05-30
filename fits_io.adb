@@ -20,16 +20,6 @@
 
 -- FIXME error handling/exceptions; not implemented yet
 
--- FIXME reconsider Open/Create + File_mode rules / add to doc:
--- valid combinations:
--- Open   : In Inout Append
--- Create : Append
--- Write behaviour:
--- Open   + Out_File    -> Write(...,HDU_Num) truncates FITS-File and appends Header to the truncated end
--- Open   + Inout_File  -> Write(...,HDU_Num) overwrites HDU if sizes match (sizes counted in Blocks = 2880bytes)
--- Open/Create + Append -> Write() (call without HDU_Num ) appends to the end
-
-
 with Ada.Text_IO;-- for debug only
 with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
