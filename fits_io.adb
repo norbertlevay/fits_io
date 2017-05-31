@@ -22,7 +22,7 @@
 -- FIXME error handling/exceptions; not implemented yet
 
 with Ada.Text_IO;-- for debug only
-with Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
@@ -33,56 +33,65 @@ package body FITS_IO is
  -- Low level FITS-Headers access by HeaderBlocks --
  ---------------------------------------------------
 
- BlockSize       : constant Positive := 2880; -- [FITS, Sect 3.1]
- CardsCntInBlock : constant Positive := BlockSize / CardSize;
- -- [FITS 3.3.1 Primary Header] 36 cards per block
+ package SIO renames Ada.Streams.Stream_IO;
+
+ type Count is new SIO.Count;
+ -- OR like Ada.Direct_IO  - System.Direct_IO:
+ -- type Count is range 0 .. Ada.Streams.Stream_IO.Count'Last;
+ -- with new: inherits operations
+
+ subtype Positive_Count is Count range 1 .. Count'Last;
+ -- FIXME we use Count whenever zero value is needed - consider introduce Natural_Count ?
+ -- Why not done in standard *_IO packages? computaions may result in negative numbers?
+
+ BlockSize       : constant Positive_Count := 2880; -- [FITS, Sect 3.1]
+ CardsCntInBlock : constant Positive_Count := BlockSize / Positive_Count(CardSize);
+ -- [FITS 3.3.1 Primary Header] 36 cards per block        FIXME conversion Positive_Count
 
  subtype Card_Type is String(1..CardSize);
  -- makes sure index start with 1
 
  type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
- type HeaderBlockArray_Type is array (Positive range <>) of HeaderBlock_Type;
+ type HeaderBlockArray_Type is array (Positive_Count range <>) of HeaderBlock_Type;
    -- Header format inside FITS-file
 
  ENDCard    : constant Card_Type := "END                                                                             ";
  EmptyCard  : constant Card_Type := (others => ' ');
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
 
- package SIO renames Ada.Streams.Stream_IO;
-
  function  To_SIO is new Ada.Unchecked_Conversion (File_Mode, SIO.File_Mode);
--- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, File_Mode);
--- use type FCB.File_Mode; FIXME ?? see -> a-ststio.adb
+ -- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, File_Mode);
+ -- use type FCB.File_Mode; FIXME ?? see -> a-ststio.adb
 
  -- positioning in file
 
- function  To_BlockIndex( OctetIndex : in  Positive ) return Positive is
+ function  To_BlockIndex( OctetIndex : in  Positive_Count ) return Positive_Count is
   begin
    return (OctetIndex - 1) / BlockSize + 1;
   end To_BlockIndex;
 
- function  To_OctetIndex( BlockIndex : in  Positive ) return Positive is
+ function  To_OctetIndex( BlockIndex : in  Positive_Count ) return Positive_Count is
   begin
    return (BlockIndex - 1) * BlockSize + 1;
   end To_OctetIndex;
- -- Note since Ada2012 pragma Inline obsolete, add anyway for older compilers
+
  pragma Inline (To_BlockIndex);
  pragma Inline (To_OctetIndex);
+ -- Note: since Ada2012 pragma Inline obsolete, add anyway for older compilers
 
- function  Index ( File  : in SIO.File_Type ) return Positive
+ function  Index ( File  : in SIO.File_Type ) return Positive_Count
  is
  begin
-  return To_BlockIndex(Positive(SIO.Index( File )));
-  -- FIXME verify this direct conversion Count -> Positive -> how is it in Direct_IO ?
+  return To_BlockIndex(Positive_Count(SIO.Index( File )));
+  -- FIXME conv Sio - Fitsio Positive_Count
  end Index;
 
  procedure Set_Index ( File  : in SIO.File_Type;
-                       Index : in Positive ) -- Block Index
+                       Index : in Positive_Count ) -- Block Index
  is
  begin
-  SIO.Set_Index( File,
-      SIO.Positive_Count(To_OctetIndex(Index)) );
-  -- FIXME verify this direct conversion Positive -> Positive_Count
+  SIO.Set_Index( File, SIO.Positive_Count( To_OctetIndex(Index) ) );
+  -- FIXME conv Sio - Fitsio Positive_Count
  end Set_Index;
  pragma Inline (Index);
  pragma Inline (Set_Index);
@@ -98,7 +107,7 @@ package body FITS_IO is
  end Write;
 
  function  Read (File    : in  SIO.File_Type;
-                 NBlocks : in  Positive := 1) return HeaderBlockArray_Type
+                 NBlocks : in  Positive_Count := 1) return HeaderBlockArray_Type
  is
    Blocks : HeaderBlockArray_Type( 1 .. NBlocks );
  begin
@@ -122,10 +131,10 @@ package body FITS_IO is
  -- Should be implemented as dynamic vector of 3..5 record-chunks, or a list.
 
  type HDU_Pos_Type is record
-  HeaderStart : Positive; -- BlockIndex where header starts with the FitsFile
-  HeaderSize  : Positive; -- Header size in Blocks (0 not allowed, HDU starts always with Header)
-  DataStart   : Positive; -- BlockIndex where header starts with the FitsFile
-  DataSize    : Natural;  -- Data size in Blocks (0 allowed, Primary HDU may have no data)
+  HeaderStart : Positive_Count; -- BlockIndex where header starts with the FitsFile
+  HeaderSize  : Positive_Count; -- Header size in Blocks (0 not allowed, HDU starts always with Header)
+  DataStart   : Positive_Count; -- BlockIndex where header starts with the FitsFile
+  DataSize    : Count;    -- Data size in Blocks (0 allowed, Primary HDU may have no data)
  end record;
 
  type HDU_Data is record
@@ -133,33 +142,33 @@ package body FITS_IO is
   HDUInfo : HDU_Info_Type; -- part of external API (.ads)
  end record;
 
- MaxHDU : constant Positive := 10;
- type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
+ MaxHDU : constant Positive_Count := 10;
+ type HDU_Data_Array_Type is array (Positive_Count range 1 .. MaxHDU) of HDU_Data;
 
  type File_Type_Record is record
   BlocksFile : SIO.File_Type;
   Mode       : File_Mode;-- FITS_IO.Mode
-  HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
+  HDU_Cnt  : Count; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
   HDU_Arr  : HDU_Data_Array_Type;
  end record;
 
  -- for debug only
  procedure Print_FitsFileHandle (Fits : in File_Type) is
-  FileSize : Positive;
+  FileSize : Positive_Count;
  begin
-  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
+  Ada.Text_IO.Put_Line("HDU_Cnt : " & Count'Image(Fits.HDU_Cnt));
 --  for I in Fits.HDU_Arr'Range -- this shows also not used entries
   for I in 1..Fits.HDU_Cnt
   loop
-   Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
-   Ada.Text_IO.Put(" H: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
-   Ada.Text_IO.Put(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
+   Ada.Text_IO.Put("HDU#" & Positive_Count'Image(I) );
+   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
+   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
 
-   Ada.Text_IO.Put(" DU: " & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
-   Ada.Text_IO.Put_Line(" (" & Integer'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
+   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
+   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
   end loop;
   FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
-  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Integer'Image(FileSize));
+  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
  end;
 
  -- FIXME is this needed ?
@@ -182,19 +191,19 @@ package body FITS_IO is
  -- returns DU-size in Blocks [FITS 4.4.1.1 Primary Header,(1)]
  --
  function  Calc_DataUnit_Size( HDUInfo : in HDU_Info_Type )
-  return Natural
+  return Count
  is
-  DUSize : Natural := 0;
+  DUSize : Count := 0;
  begin
 
    if HDUInfo.Naxes > 0 then
      DUSize := 1;
      for I in 1..HDUInfo.Naxes loop
       exit when HDUInfo.Naxis(I) = 0;
-      DUSize := DUSize * HDUInfo.Naxis(I);
+      DUSize := DUSize * Count(HDUInfo.Naxis(I));--FIXME conv Positive_Count
      end loop;
      if DUSize /= 0 then
-      DUSize := DUSize * (abs HDUInfo.BitPixOctets);
+      DUSize := DUSize * Positive_Count(abs (HDUInfo.BitPix)/8);--FIXME conv Positive_Count
       DUSize := 1 + DUSize/BlockSize;
      end if;
    end if;
@@ -202,10 +211,10 @@ package body FITS_IO is
   return DUSize;
  end Calc_DataUnit_Size;
 
- function  To_DataType( BitPix : in Integer )
-  return Data_Type
+ function  To_BITPIXType( BitPix : in Integer )
+  return BITPIX_Type
  is
-  bp : Data_Type;
+  bp : BITPIX_Type;
  begin
   case BitPix is
   when   8 => bp := Int8;
@@ -219,7 +228,7 @@ package body FITS_IO is
    -- FIXME raise exception "out of range"
   end case;
   return bp;
- end To_DataType;
+ end To_BITPIXType;
 
  --
  -- parse keywords needed to calculate DU size
@@ -234,8 +243,8 @@ package body FITS_IO is
    -- pos 31 is comment ' /'
    -- then : pos 10..20 is value
    if    (Card(1..9) = "BITPIX  =") then
-     HDUInfo.Data         := To_DataType(Integer'Value(Card(10..30)));
-     HDUInfo.BitPixOctets := abs Integer'Value(Card(10..30))/8;
+     HDUInfo.Data   := To_BITPIXType(Integer'Value(Card(10..30)));
+     HDUInfo.BitPix := abs Integer'Value(Card(10..30));
    elsif (Card(1..5) = "NAXIS") then
 
      if (Card(1..9) = "NAXIS   =") then
@@ -254,13 +263,13 @@ package body FITS_IO is
  -- walk through each HeaderBlock
  --
  function  Parse_HeaderBlock( Block : in HeaderBlock_Type ;
-                              CardCount : out Positive;
+                              CardCount : out Positive_Count;
                               HDUInfo : in out HDU_Info_Type )
   return Boolean
  is
   ENDFound : Boolean := False;
   Card     : Card_Type;
-  CardCnt  : Positive := 1;
+  CardCnt  : Positive_Count := 1;
  begin
 
   for I in Block'Range loop
@@ -280,19 +289,19 @@ package body FITS_IO is
  procedure Parse_HDU_Positions ( File : in out File_Type )
  is
    -- controlling the loops
-   HDU_Cnt : Positive := 1;
+   HDU_Cnt : Positive_Count := 1;
    EndCardFound : Boolean := false;
 
    -- positions & size in file
-   HeadStart_Index : Positive;
-   DataStart_Index : Positive;
-   DataUnit_Size   : Natural := 0;
+   HeadStart_Index : Positive_Count;
+   DataStart_Index : Positive_Count;
+   DataUnit_Size   : Count := 0;
 
    HDUInfo : HDU_Info_Type;
    Block : HeaderBlockArray_Type(1..1);
 
-   CurCardCnt : Natural; -- written by Parse_HeaderBlock
-   TotCardCnt : Natural := 0;
+   CurCardCnt : Positive_Count; -- written by Parse_HeaderBlock represents card-slots read/parsed
+   TotCardCnt : Count := 0;
  begin
 
    while not SIO.End_OF_File(File.BlocksFile)
@@ -326,7 +335,7 @@ package body FITS_IO is
       -- store positions of this HDU
 
       File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
-      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;
+      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := Positive(TotCardCnt);--FIXME conv Positive_Count
       -- store other info about this HDU
 
       File.HDU_Cnt := HDU_Cnt;
@@ -352,7 +361,7 @@ package body FITS_IO is
  is
   HDUData  : HDU_Data;
   HDUInfo  : HDU_Info_Type;
-  DU_Size  : Natural := 0;
+  DU_Size  : Count := 0;
   Card     : String(1..CardSize);
   ENDFound : Boolean := False;
   CardsCnt : Natural := 0;
@@ -426,8 +435,8 @@ package body FITS_IO is
  is
   -- init blocks with space-characters
   HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
-  Ix : Positive := 1; -- index in header
-  BIx, Cix : Natural; -- block-index, card-index
+  Ix : Positive_Count := 1; -- index in header
+  BIx, Cix : Count; -- block-index, card-index
  begin
   for I in Header'Range loop
     BIx := 1 + (Ix-1) /  CardsCntInBlock;
@@ -455,19 +464,20 @@ package body FITS_IO is
  -- Note:
  -- FIXME HDU_AfterLast is tight to Positive range definition of HDU_Arr
  -- FIXME is this goos idea at all -> Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
- procedure Write ( File    : in  File_Type;
-                   Header  : in  Header_Type;
-                   HDU_Num : in  Positive := HDU_AfterLast )-- default: Append
+ procedure Write ( File       : in  File_Type;
+                   Header     : in  Header_Type;
+                   HDU_Number : in  Positive := HDU_AfterLast )-- default: Append
  is
   HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Header);
   HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
   CurMode      : File_Mode := File.Mode;
-  HDUIx,FileIx : Positive;
+  HDUIx,FileIx : Positive_Count;
   -- Fits File consists of sequence of HDU's with
   --   different size numbered by HDU-index: 1,2.3...
   -- File.HDU_Arr connects FileIx and HDUIx where:
   --   FileIx is position of the HDU in file given blocks
   --   HDUIx  is the HDU-index itself
+  HDU_Num : Positive_Count := Positive_Count(HDU_Number);-- FIXME conv Positive_Count
  begin
 
   -- 0. Sanity checks on HDU_Num
@@ -510,7 +520,7 @@ package body FITS_IO is
    -- updating existing (non-empty) file
    case CurMode is
      when Inout_File|Out_File =>
-       HDUIx  := HDU_Num;
+       HDUIx  := Positive_Count(HDU_Num);--FIXME conv Positive_Count
        FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
      when Append_File =>
        HDUIx  := File.HDU_Cnt + 1;
@@ -594,9 +604,10 @@ package body FITS_IO is
  --
  -- Read header from FITS-file
  --
- function  Read ( File    : in  File_Type;
-                  HDU_Num : in  Positive ) return Header_Type
+ function  Read ( File       : in  File_Type;
+                  HDU_Number : in  Positive ) return Header_Type
  is
+  HDU_Num : Positive_Count := Positive_Count(HDU_Number);-- FIXME conv Positive_Count
   Header : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
  begin
 
@@ -626,14 +637,14 @@ package body FITS_IO is
  --
  function  List_HDUInfo ( File : File_Type ) return HDU_Info_Arr
  is
-  All_HDU : HDU_Info_Arr(1 .. File.HDU_Cnt) :=
+  All_HDU : HDU_Info_Arr(1 .. Positive(File.HDU_Cnt)) := -- FIXME conv Positive_Count
   -- File.HDU_Arr(1 .. File.HDU_Cnt).HDUInfo; FIXME why does not work ?
   (others=>Null_HDU_Info);
-  Cnt : Positive := 1;
+  Cnt : Positive_Count := 1;
  begin
   while Cnt <= File.HDU_Cnt
   loop
-   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
+   All_HDU( Positive(Cnt) ) := File.HDU_Arr(Cnt).HDUInfo;-- FIXME conv Positive_Count
    Cnt := Cnt + 1;
   end loop;
   return All_HDU;
@@ -675,9 +686,9 @@ package body FITS_IO is
     return len;
  end Length;
  -- FIXME the need for this is weird...
- function  Size( dt: in Data_Type) return Natural
+ function  Size( dt: in BITPIX_Type) return Count
   is
-   len : Natural;
+   len : Count;
  begin
     case dt is
      when Int8  => len := Interfaces.Integer_8'Size;
@@ -696,14 +707,14 @@ package body FITS_IO is
 
  -- FIXME should this check be done in To_SIO ? e.g. would do both: convert and check
  function  Is_Inside_DU(File     : in File_Type;
-                        HDU_Num  : in Positive;  -- 1,2,3...
-                        Start    : in Positive;  -- first DataType position where Write/Read
-                        DataType : in Data_Type; -- DataType to dtermine size
-                        Length   : in Positive)  -- number of DataType elements written/read
+                        HDU_Num  : in Positive_Count;  -- 1,2,3...
+                        Start    : in Positive_Count;  -- first DataType position where Write/Read
+                        DataType : in BITPIX_Type;     -- DataType to dtermine size
+                        Length   : in Positive_Count)  -- number of DataType elements written/read
   return Boolean
  is
-  DataEnd : Positive := Start + (Size(DataType)/8) * Length;
-  DUEnd   : Positive := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
+  DataEnd : Positive_Count := Start + (Size(DataType)/8) * Length;
+  DUEnd   : Positive_Count := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
   Inside  : Boolean  := DataEnd <= DUEnd ;
  begin
   return Inside;
@@ -712,16 +723,15 @@ package body FITS_IO is
 
  -- convert to SIO file position, relative to begining of the file
  function  To_SIO(File     : in File_Type;
-                  HDU_Num  : in Positive;  -- 1,2,3...
-                  DataType : in Data_Type;
-                  Offset   : in Positive)  -- in units of DataType
+                  HDU_Num  : in Positive_Count;  -- 1,2,3...
+                  DataType : in BITPIX_Type;
+                  Offset   : in Positive_Count)  -- in units of DataType
   return SIO.Positive_Count
  is
   -- FIXME BlockSize must be in units of Stream Element_Size
-  -- FIXME check converions Positive_Count -> Integer
-  DUStart    : Positive := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
-  DataOffset : Natural := (Size(DataType)/8) * (Offset - 1);
-  SioOffset  : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);
+  DUStart    : Positive_Count := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
+  DataOffset : Count := (Size(DataType)/8) * (Offset - 1);
+  SioOffset  : SIO.Positive_Count := SIO.Positive_Count(DUStart + DataOffset);-- FIXME conv Sio Fitsio Positive_Count
  begin
    -- FIXME check HDU_Num not outside of the range?
   return SioOffset;
@@ -732,23 +742,26 @@ package body FITS_IO is
  -- from FromOffset relative to begining of the DataUnit
  function  Read (File       : in File_Type;
                  HDU_Num    : in Positive;  -- 1,2,3...
-                 DataType   : in Data_Type;
+                 DataType   : in BITPIX_Type;
                  FromOffset : in Positive;  -- in units of DataType
                  Length     : in Positive ) -- in units of DataType
   return DataArray_Type
  is
   Data : DataArray_Type(DataType,Length);
-  To   : SIO.Positive_Count := To_SIO(File,HDU_Num,DataType,FromOffset);
+   -- convert FromOffset to SIO-Offset
+  To   : SIO.Positive_Count := To_SIO(File,Positive_Count(HDU_Num), -- FIXME conv Positive_Count
+                                      DataType,Positive_Count(FromOffset));
  begin
 
-   if not Is_Inside_DU(File,HDU_Num,Positive(To),DataType,Length) then
+   if not Is_Inside_DU(File,Positive_Count(HDU_Num),  -- FIXME conv Positive_Count
+                            Positive_Count(To),
+                            DataType,Positive_Count(Length)) then
      null;
      -- FIXME check if [HDU_Num,ToOffset,Data'Length] is
      -- within DataUnit limits. Raise exception if attempting to write
      -- outside this file-area.
    end if;
 
-   -- convert FromOffset to SIO-Offset
    SIO.Set_Index (File.BlocksFile, To);
 
    DataArray_Type'Read( SIO.Stream(File.BlocksFile), Data );
@@ -763,10 +776,12 @@ package body FITS_IO is
                   ToOffset : in Positive;        -- in units of DataType
                   Data     : in DataArray_Type ) -- has length Length(Data)
  is
-  To   : SIO.Positive_Count := To_SIO(File,HDU_Num,Data.Option,ToOffset);
+  To   : SIO.Positive_Count := To_SIO(File,Positive_Count(HDU_Num),
+                                      Data.Option,Positive_Count(ToOffset));--FIXME conv Positive_Count
  begin
 
-   if not Is_Inside_DU(File,HDU_Num,Positive(To),Data.Option,Length(Data)) then
+   if not Is_Inside_DU(File,Positive_Count(HDU_Num),Positive_Count(To), -- FIXME conv Positive_Count
+                            Data.Option,Positive_Count(Length(Data))) then
      null;
      -- FIXME check if [HDU_Num,ToOffset,Data'Length] is
      -- within DataUnit limits. Raise exception if attempting to write

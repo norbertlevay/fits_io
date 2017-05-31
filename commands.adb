@@ -198,7 +198,7 @@ package body Commands is
                        Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
 
        if HDUInfoArr(I).Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.Data_Type'Image(HDUInfoArr(I).Data),8,' ') );
+        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.BITPIX_Type'Image(HDUInfoArr(I).Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfoArr(I).Naxes - 1)
          loop

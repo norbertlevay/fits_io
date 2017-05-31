@@ -73,21 +73,21 @@ package FITS_IO is
    -- Input and Output Operations --
    ---------------------------------
 
-   function  Read (File : in File_Type; HDU_Num : in Positive) return Header_Type;
+   function  Read (File : in File_Type; HDU_Number : in Positive) return Header_Type;
 
    procedure Write
-     (File    : in File_Type;
-      Header  : in Header_Type;
-      HDU_Num : in Positive := HDU_AfterLast); -- default: Append
+     (File       : in File_Type;
+      Header     : in Header_Type;
+      HDU_Number : in Positive := HDU_AfterLast); -- default: Append
 
    ---------------------------------
    -- FITS-file structure (HDU's) --
    ---------------------------------
 
-   type Data_Type is (Int8, Int16, Int32, Int64, Float32, Float64);
+   type BITPIX_Type is (Int8, Int16, Int32, Int64, Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
 
-   for  Data_Type use
+   for  BITPIX_Type use
      (Int8    =>   8, -- Character or unsigned binary integer
       Int16   =>  16, -- 16-bit two's complement binary integer
       Int32   =>  32, -- 32-bit two's complement binary integer
@@ -97,14 +97,17 @@ package FITS_IO is
       -- FIXME [FITS] defines Floats negative -32 -64
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
+   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+   -- that no data follow the header in the HDU."
 
    type Dim_Type is array (1..MaxAxes) of Natural;
    type HDU_Info_Type is record
-      CardsCnt : Positive;  -- number of cards in this Header
-      Data     : Data_Type; -- data type as given by BITPIX
-      BitPixOctets : Positive; -- size in octets for given BITPIX
-      Naxes    : Natural;   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies that no data follow the header in the HDU."
-      Naxis    : Dim_Type;  -- data dimensions, 0 means dimension not in use
+      CardsCnt : Positive;    -- number of cards in this Header
+      Data     : BITPIX_Type; -- data type as given by BITPIX
+      BitPix   : Positive;    -- BITPIX from Header (data size in bits)
+      Naxes    : NAXIS_Type;  -- NAXIS  from header
+      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
    end record;
 
    Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
@@ -124,7 +127,7 @@ package FITS_IO is
    type Float32Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_64;
 
-   type DataArray_Type ( Option : Data_Type ;
+   type DataArray_Type ( Option : BITPIX_Type ;
                          Length : Natural ) is
      record
        case Option is
@@ -140,7 +143,7 @@ package FITS_IO is
    function  Read
      (File       : in File_Type;
       HDU_Num    : in Positive;  -- 1,2,3...
-      DataType   : in Data_Type;
+      DataType   : in BITPIX_Type;
       FromOffset : in Positive;  -- in units of DataType
       Length     : in Positive ) -- in units of DataType
     return DataArray_Type;

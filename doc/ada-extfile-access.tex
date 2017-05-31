@@ -17,6 +17,8 @@
 %\newcommand{\code}[1]{ \texttt{ \detokenize{#1} } }
 \newcommand{\fixme}[1]{\textbf{\textcolor{red}{FIXME #1}}}
 
+%\newcommand{\adacode}[1]{\begin{minted}{ada}{#1}\end{minted}}
+
 \begin{document}
 
 %\printsummary
@@ -207,7 +209,9 @@ Implement as much as Direct\_IO, Stream\_IO (or othe Ada I/O libs) C-Streams ass
  -- but how to guarantee that Read/Write will put 2 FITS-Characters into one 16-bit character for instance?
 \end{verbatim}
 
-Also see: Ada.Stream
+\subsection{Derivation of Positive\_Count type used for Index}
+
+In Ada.Streams :
 
 \begin{minted}{ada}
    type Stream_Element_Offset is range
@@ -215,6 +219,55 @@ Also see: Ada.Stream
      +(2 ** (Standard'Address_Size - 1)) - 1;
 \end{minted}
 
+where \textbf{Address Size} is [GNAT 2. Implementation defined attributes]:
+
+Standard'Address\_Size (Standard is the only allowed prefix) is a static constant giving
+the number of bits in an Address. It is the same value as System.Address'Size, but has
+the advantage of being static, while a direct reference to System.Address’Size is non-static
+because Address is a private type.
+
+
+And then in Ada.Streams.Stream\_IO :
+
+\begin{minted}{ada}
+   type Count is new Stream_Element_Offset
+     range 0 .. Stream_Element_Offset'Last;
+
+   subtype Positive_Count is Count range 1 .. Count'Last;
+   --  Index into file, in stream elements
+\end{minted}
+
+However in System.Direct\_IO:
+
+\begin{minted}{ada}
+   subtype Count is Interfaces.C_Streams.long;
+   --  The Count type in each instantiation is derived from this type
+
+   subtype Positive_Count is Count range 1 .. Count'Last;
+
+   type Direct_AFCB is new FCB.AFCB with record
+      Index : Count := 1;
+      --  Current Index value
+
+      Bytes : Interfaces.C_Streams.size_t;
+      --  Length of item in bytes (set from inside generic template)
+
+      Last_Op : Operation := Op_Other;
+      --  Last operation performed on file, used to avoid unnecessary
+      --  repositioning between successive read or write operations.
+   end record;
+
+   type File_Type is access all Direct_AFCB;
+   --  File_Type in individual instantiations is derived from this type
+\end{minted}
+
+and finally in Ada.Direct\_IO:
+
+\begin{minted}{ada}
+   type Count is range 0 .. System.Direct_IO.Count'Last;
+
+   subtype Positive_Count is Count range 1 .. Count'Last;
+\end{minted}
 
 
 
