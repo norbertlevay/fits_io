@@ -127,7 +127,7 @@ begin
  Ada.Text_IO.Put_Line("float32 " & Integer'Image(Interfaces.IEEE_Float_32'Size));
  Ada.Text_IO.Put_Line("float64 " & Integer'Image(Interfaces.IEEE_Float_64'Size));
 
- for I in 1..6 loop
+ for I in Fits_IO.Positive_Count range 1..6 loop
   Data2.Int8Arr(I) := Interfaces.Integer_8(2*I);
  end loop;
 
@@ -149,8 +149,8 @@ begin
  declare
   dr : DataArray_Type := Read (Fits,1,int8,1,6 );
  begin
-  for I in 1..6 loop
-   Ada.Text_IO.Put_Line(Integer'Image(I) & "> " & Interfaces.Integer_8'Image(dr.Int8Arr(I)));
+  for I in Fits_IO.Positive_Count range 1..6 loop
+   Ada.Text_IO.Put_Line(Fits_IO.Positive_Count'Image(I) & "> " & Interfaces.Integer_8'Image(dr.Int8Arr(I)));
   end loop;
  end;
  Close(Fits);

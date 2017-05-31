@@ -202,9 +202,9 @@ package body Commands is
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfoArr(I).Naxes - 1)
          loop
-          Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(J)) & " x " );
+          Ada.Text_IO.Put(Fits_IO.Count'Image(HDUInfoArr(I).Naxis(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(Integer'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
+        Ada.Text_IO.Put(Fits_IO.Count'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
 

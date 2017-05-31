@@ -21,9 +21,14 @@ with Ada.Strings.Bounded;
  -- for Header definition
 
 with Interfaces;
- -- for DataUnit definitions
+with Ada.Streams.Stream_IO;
+ -- both for DataUnit definitions
 
 package FITS_IO is
+
+   type Count is new Ada.Streams.Stream_IO.Count;
+
+   subtype Positive_Count is Count range 1 .. Count'Last;
 
    type File_Type is limited private;
 
@@ -73,12 +78,12 @@ package FITS_IO is
    -- Input and Output Operations --
    ---------------------------------
 
-   function  Read (File : in File_Type; HDU_Number : in Positive) return Header_Type;
+   function  Read (File : in File_Type; HDU_Num : in Positive) return Header_Type;
 
    procedure Write
-     (File       : in File_Type;
-      Header     : in Header_Type;
-      HDU_Number : in Positive := HDU_AfterLast); -- default: Append
+     (File    : in out File_Type;
+      Header  : in Header_Type;
+      HDU_Num : in Positive := HDU_AfterLast); -- default: Append
 
    ---------------------------------
    -- FITS-file structure (HDU's) --
@@ -101,7 +106,7 @@ package FITS_IO is
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
-   type Dim_Type is array (1..MaxAxes) of Natural;
+   type Dim_Type is array (1..MaxAxes) of Count;-- FITS poses no limit on max value of NAXISi
    type HDU_Info_Type is record
       CardsCnt : Positive;    -- number of cards in this Header
       Data     : BITPIX_Type; -- data type as given by BITPIX
@@ -120,15 +125,15 @@ package FITS_IO is
    -- Data access --
    -----------------
 
-   type Int8Arr_Type    is array ( Natural range <> ) of Interfaces.Integer_8;
-   type Int16Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_16;
-   type Int32Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_32;
-   type Int64Arr_Type   is array ( Natural range <> ) of Interfaces.Integer_64;
-   type Float32Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_32;
-   type Float64Arr_Type is array ( Natural range <> ) of Interfaces.IEEE_Float_64;
+   type Int8Arr_Type    is array ( Positive_Count range <> ) of Interfaces.Integer_8;
+   type Int16Arr_Type   is array ( Positive_Count range <> ) of Interfaces.Integer_16;
+   type Int32Arr_Type   is array ( Positive_Count range <> ) of Interfaces.Integer_32;
+   type Int64Arr_Type   is array ( Positive_Count range <> ) of Interfaces.Integer_64;
+   type Float32Arr_Type is array ( Positive_Count range <> ) of Interfaces.IEEE_Float_32;
+   type Float64Arr_Type is array ( Positive_Count range <> ) of Interfaces.IEEE_Float_64;
 
    type DataArray_Type ( Option : BITPIX_Type ;
-                         Length : Natural ) is
+                         Length : Positive_Count ) is
      record
        case Option is
        when Int8  =>   Int8Arr    : Int8Arr_Type (1 .. Length);
@@ -142,16 +147,16 @@ package FITS_IO is
 
    function  Read
      (File       : in File_Type;
-      HDU_Num    : in Positive;  -- 1,2,3...
+      HDU_Num    : in Positive;        -- 1,2,3...
       DataType   : in BITPIX_Type;
-      FromOffset : in Positive;  -- in units of DataType
-      Length     : in Positive ) -- in units of DataType
+      FromOffset : in Positive_Count;  -- in units of DataType
+      Length     : in Positive_Count ) -- in units of DataType
     return DataArray_Type;
 
    procedure Write
      (File     : in File_Type;
       HDU_Num  : in Positive;         -- 1,2,3...
-      ToOffset : in Positive;         -- in units of DataType
+      ToOffset : in Positive_Count;   -- in units of DataType
       Data     : in DataArray_Type ); -- has length Length(Data)
 
 

@@ -235,6 +235,36 @@ And then in Ada.Streams.Stream\_IO :
 
    subtype Positive_Count is Count range 1 .. Count'Last;
    --  Index into file, in stream elements
+
+
+   procedure Set_Index (File : File_Type; To : Positive_Count);
+
+   function Index (File : File_Type) return Positive_Count;
+   function Size  (File : File_Type) return Count;
+
+
+
+   type Stream_AFCB is new FCB.AFCB with record
+      Index : Count := 1;
+      --  Current Index value
+
+      File_Size : Stream_Element_Offset := -1;
+      --  Cached value of File_Size, so that we do not keep recomputing it
+      --  when not necessary (otherwise End_Of_File becomes gruesomely slow).
+      --  A value of minus one means that there is no cached value.
+
+      Last_Op : Operation := Op_Other;
+      --  Last operation performed on file, used to avoid unnecessary
+      --  repositioning between successive read or write operations.
+
+      Update_Mode : Boolean := False;
+      --  Set if the mode is changed from write to read or vice versa.
+      --  Indicates that the file has been reopened in update mode.
+
+   end record;
+
+   type File_Type is access all Stream_AFCB;
+
 \end{minted}
 
 However in System.Direct\_IO:
@@ -267,6 +297,14 @@ and finally in Ada.Direct\_IO:
    type Count is range 0 .. System.Direct_IO.Count'Last;
 
    subtype Positive_Count is Count range 1 .. Count'Last;
+
+   type File_Type is new System.Direct_IO.File_Type;
+
+   procedure Set_Index (File : File_Type; To : Positive_Count);
+
+   function Index (File : File_Type) return Positive_Count;
+   function Size  (File : File_Type) return Count;
+
 \end{minted}
 
 
