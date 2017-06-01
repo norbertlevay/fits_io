@@ -295,6 +295,29 @@ package body FITS_IO is
  end Parse_HeaderBlock;
 
  --
+ -- from parsed HDU-info calc HDU positions
+ --
+ function HDU_Info2Pos (HDUStart_BlockIndex : in Positive_Count; HDUInfo : in HDU_Info_Type )
+  return HDU_Pos_Type
+ is
+  HDUPos : HDU_Pos_Type;
+  DataUnit_Size : Count := Calc_DataUnit_Size( HDUInfo );
+  -- from parsed [BITPIX,NAXIS,NAXISi] keywords calc DataUnit size
+ begin
+
+  HDUPos.HeaderStart := HDUStart_BlockIndex;
+  HDUPos.HeaderSize  := 1 + Positive_Count(HDUInfo.CardsCnt) / CardsCntInBlock;
+   -- FIXME conv Positive_Count: problem if Positive'Last > Positive_Count'Last
+   -- problem somewhat artificial: in practice CardsCount << then any of the above.
+   -- nevertheless there is no rule -> how to deal with such situations?
+  HDUPos.DataStart   := HDUPos.HeaderStart + HDUPos.HeaderSize;
+  HDUPos.DataSize    := DataUnit_Size;
+  -- all HDU start indexes and size in Blocks
+
+  return HDUPos;
+ end HDU_Info2Pos;
+
+ --
  -- for Open - using existing HDU's
  --
  procedure Parse_HDU_Positions ( File : in out File_Type )
@@ -305,8 +328,7 @@ package body FITS_IO is
 
    -- positions & size in file
    HeadStart_Index : Positive_Count;
-   DataStart_Index : Positive_Count;
-   DataUnit_Size   : Count := 0;
+   Next_HDU_Index  : Positive_Count;
 
    HDUInfo : HDU_Info_Type;
    Block : HeaderBlockArray_Type(1..1);
@@ -336,33 +358,25 @@ package body FITS_IO is
 
       -- DataUnit
 
+      HDUInfo.CardsCnt := TotCardCnt;-- FIXME Natural to Positive conversion
+
+      -- HDU info cllected now store it to File_Type
+
       File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
-      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;-- FIXME Natural to Positive conversion
-
-      -- from HDUInfo fill-in HDUPos
-
-      DataUnit_Size := Calc_DataUnit_Size( HDUInfo );
-      -- from HDUInfo it is possible to calc Header and DataUnit size
-      -- to fill-in HDU-Pos we need HeadStart_Index
-
-      DataStart_Index := BlockIndex(File.BlocksFile);
-
-      File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
-      File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
-      File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
-      File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+      File.HDU_Arr(HDU_Cnt).HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
       File.HDU_Cnt := HDU_Cnt;
-      -- store positions of this HDU
 
-      Set_BlockIndex( File.BlocksFile, DataStart_Index + DataUnit_Size );
-      -- skip data unit
+      -- skip data unit for next HDU-read
+
+      Next_HDU_Index := File.HDU_Arr(HDU_Cnt).HDUPos.DataStart + File.HDU_Arr(HDU_Cnt).HDUPos.DataSize;
+      Set_BlockIndex( File.BlocksFile, Next_HDU_Index );
 
       HDU_Cnt := HDU_Cnt + 1;
       -- next HDU
 
    end loop;
 
-  --Print_FitsFileHandle(File);-- debug
+  -- Print_FitsFileHandle(File);-- debug
 
   end Parse_HDU_Positions;
 
