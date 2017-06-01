@@ -297,7 +297,7 @@ package body FITS_IO is
  --
  -- from parsed HDU-info calc HDU positions
  --
- function HDU_Info2Pos (HDUStart_BlockIndex : in Positive_Count; HDUInfo : in HDU_Info_Type )
+ function  HDU_Info2Pos (HDUStart_BlockIndex : in Positive_Count; HDUInfo : in HDU_Info_Type )
   return HDU_Pos_Type
  is
   HDUPos : HDU_Pos_Type;
@@ -386,13 +386,11 @@ package body FITS_IO is
  -- Open/Create inits File.HDU_Arr <- sets correct File-Index
  -- Write takes and converts Header_Type --> HeaderBlockArray_Type
  -- writes the header into the file
- -- if write success calls this Parse_HDU_Data
- function  Parse_HDU_Data( HeaderBlocks : in HeaderBlockArray_Type)
-  return HDU_Data
+ -- if write success calls this Parse_HDU_Info & HDU_Info2Pos
+ function  Parse_HDU_Info( HeaderBlocks : in HeaderBlockArray_Type)
+  return HDU_Info_Type
  is
-  HDUData  : HDU_Data;
   HDUInfo  : HDU_Info_Type;
-  DU_Size  : Count := 0;
   ENDFound : Boolean := False;
   CurCardCnt : Positive; -- written by Parse_HeaderBlock represents card-slots read/parsed
   TotCardCnt : Natural := 0;
@@ -405,24 +403,11 @@ package body FITS_IO is
      exit when ENDFound;
    end loop;
 
-   HDUData.HDUInfo          := HDUInfo;
-   HDUData.HDUInfo.CardsCnt := TotCardCnt;
+   HDUInfo          := HDUInfo;
+   HDUInfo.CardsCnt := TotCardCnt;
 
-   -- from HDUInfo start filling in HDUPos
-   DU_Size := Calc_DataUnit_Size( HDUInfo );
-
-   HDUData.HDUPos.DataSize    := DU_Size;
-
-   -- FIXME Here enough to set sizes.
-   -- Caller will re-set HeaderStart & DataStart
-   -- when inseting HDU into file.
---   HDUData.HDUPos.HeaderStart := 1;
-   HDUData.HDUPos.HeaderSize := HeaderBlocks'Length;
---   HDUData.HDUPos.DataStart   := HDUData.HDUPos.HeaderStart
---                               + HDUData.HDUPos.HeaderSize;
-
-   return HDUData;
- end Parse_HDU_Data;
+   return HDUInfo;
+ end Parse_HDU_Info;
 
  ---------------
  -- Interface --
@@ -496,7 +481,7 @@ package body FITS_IO is
                    HDU_Num : in Positive := HDU_AfterLast )-- default: Append
  is
   HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Header);
-  HDUData      : HDU_Data  := Parse_HDU_Data( HeaderBlocks );
+  HDUInfo      : HDU_Info_Type := Parse_HDU_Info( HeaderBlocks );
   CurMode      : File_Mode := File.Mode;
   HDUIx  : Positive;
   FileIx : Positive_Count;
@@ -564,10 +549,8 @@ package body FITS_IO is
   Write(File.BlocksFile, HeaderBlocks);
 
   -- 3, Update File.HDU_Arr if write successful...
-  File.HDU_Arr(HDUIx).HDUPos.HeaderStart := FileIx; -- FIXME what does Parse_HDU_Data() do?
-  File.HDU_Arr(HDUIx).HDUPos.HeaderSize  := HDUData.HDUPos.HeaderSize;
-  File.HDU_Arr(HDUIx).HDUPos.DataStart   := FileIx + HDUData.HDUPos.HeaderSize;
-  File.HDU_Arr(HDUIx).HDUPos.DataSize    := HDUData.HDUPos.DataSize;
+  File.HDU_Arr(HDUIx).HDUPos := HDU_Info2Pos(FileIx,HDUInfo);
+
   -- HDUIx is now last HDU, except in Inout case
   if CurMode /= Inout_File then
    File.HDU_Cnt := HDUIx;
