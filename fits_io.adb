@@ -403,7 +403,6 @@ package body FITS_IO is
      exit when ENDFound;
    end loop;
 
-   HDUInfo          := HDUInfo;
    HDUInfo.CardsCnt := TotCardCnt;
 
    return HDUInfo;
