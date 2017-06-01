@@ -327,6 +327,8 @@ package body FITS_IO is
 
       loop
          Block        := Read( File.BlocksFile );
+          -- raises exception when EOF reached, if not FITS-file
+          -- FIXME ? it is ok, but might waste long time parsing big non-FITS file
          EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
          TotCardCnt   := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
@@ -334,22 +336,26 @@ package body FITS_IO is
 
       -- DataUnit
 
+      File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
+      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;-- FIXME Natural to Positive conversion
+
+      -- from HDUInfo fill-in HDUPos
+
+      DataUnit_Size := Calc_DataUnit_Size( HDUInfo );
+      -- from HDUInfo it is possible to calc Header and DataUnit size
+      -- to fill-in HDU-Pos we need HeadStart_Index
+
       DataStart_Index := BlockIndex(File.BlocksFile);
-      DataUnit_Size   := Calc_DataUnit_Size( HDUInfo );
-      Set_BlockIndex( File.BlocksFile, DataStart_Index + DataUnit_Size );
-      -- skip data unit
-                                                              
+
       File.HDU_Arr(HDU_Cnt).HDUPos.HeaderStart := HeadStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.HeaderSize  := DataStart_Index - HeadStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.DataStart   := DataStart_Index;
       File.HDU_Arr(HDU_Cnt).HDUPos.DataSize    := DataUnit_Size;
+      File.HDU_Cnt := HDU_Cnt;
       -- store positions of this HDU
 
-      File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
-      File.HDU_Arr(HDU_Cnt).HDUInfo.CardsCnt := TotCardCnt;-- FIXME Natural to Positive conversion
-      -- store other info about this HDU
-
-      File.HDU_Cnt := HDU_Cnt;
+      Set_BlockIndex( File.BlocksFile, DataStart_Index + DataUnit_Size );
+      -- skip data unit
 
       HDU_Cnt := HDU_Cnt + 1;
       -- next HDU
@@ -373,39 +379,36 @@ package body FITS_IO is
   HDUData  : HDU_Data;
   HDUInfo  : HDU_Info_Type;
   DU_Size  : Count := 0;
-  Card     : String(1..CardSize);
   ENDFound : Boolean := False;
-  CardsCnt : Natural := 0;
+  CurCardCnt : Positive; -- written by Parse_HeaderBlock represents card-slots read/parsed
+  TotCardCnt : Natural := 0;
  begin
 
    for I in HeaderBlocks'Range
     loop
-     for J in HeaderBlocks(I)'Range
-      loop
-       Card := HeaderBlocks(I)(J);
-       CardsCnt := CardsCnt + 1;
-       Parse_KeyRecord( Card, HDUInfo );
-       ENDFound := (Card = ENDCard);
-     end loop;
+     EndFound   := Parse_HeaderBlock( HeaderBlocks(I) , CurCardCnt, HDUInfo );
+     TotCardCnt := TotCardCnt + CurCardCnt;
      exit when ENDFound;
    end loop;
 
+   HDUData.HDUInfo          := HDUInfo;
+   HDUData.HDUInfo.CardsCnt := TotCardCnt;
+
+   -- from HDUInfo start filling in HDUPos
    DU_Size := Calc_DataUnit_Size( HDUInfo );
+
+   HDUData.HDUPos.DataSize    := DU_Size;
 
    -- FIXME Here enough to set sizes.
    -- Caller will re-set HeaderStart & DataStart
    -- when inseting HDU into file.
 --   HDUData.HDUPos.HeaderStart := 1;
-   HDUData.HDUPos.HeaderSize  := HeaderBlocks'Length;
+   HDUData.HDUPos.HeaderSize := HeaderBlocks'Length;
 --   HDUData.HDUPos.DataStart   := HDUData.HDUPos.HeaderStart
 --                               + HDUData.HDUPos.HeaderSize;
-   HDUData.HDUPos.DataSize    := DU_Size;
-
-   HDUData.HDUInfo          := HDUInfo;
-   HDUData.HDUInfo.CardsCnt := CardsCnt;
 
    return HDUData;
- end;
+ end Parse_HDU_Data;
 
  ---------------
  -- Interface --
@@ -533,7 +536,7 @@ package body FITS_IO is
        HDUIx  := HDU_Num;
        FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
      when Append_File =>
-       HDUIx  := File.HDU_Cnt + 1;
+       HDUIx  := File.HDU_Cnt + 1;-- FIXME check new HDU_Cnt is not pointing out of array-limit
        FileIx := File.HDU_Arr(File.HDU_Cnt).HDUPos.DataStart
                + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
      when others =>
