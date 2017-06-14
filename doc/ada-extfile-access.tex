@@ -154,6 +154,57 @@ type File_Mode is (In_File, Out_File, Append_File);
 --  for Sequential_IO, Text_IO, Wide_Text_IO, Wide_Wide_Text_IO, and Stream_IO
 \end{minted} 
 
+\subsection{Elementary functions and higher-level HDU utilities}
+\label{sec:elemntaryfuncs}
+
+FITS\_IO will implement set of elementary file operations to 
+create HDU's. Child package FITS\_IO.Utilities will have higher level
+operations for HDU's in FITS-file. Implementation attempts to minimize
+FITS-file loss due to system failure 
+while performing one of these functions.
+When needed, new temporary FITS-files are created, 
+and only when ready they are renamed to original file name. 
+This avoids leaving a FITS-file in incosistent state
+if the operation was interrputed due to power failure or similar.
+(Assuming that also rename operation is failure-safe).
+
+The figher level HDU operations are:
+
+- create new FITS file from scratch
+- insert, remove a HDU from FITS-file
+- update HDU at given position (regardless of its size)
+- save one HDU to separate FITS-file
+(later things like: 
+- split multi-HDU FITS-file into many FITS-file one HDU each
+- remove all extensions, leaving only Primary HDU
+- remove all extensions of BINTABLE type or 
+- remove all extensions which are not IMAGE etc...)
+
+HDU's are represented by their Header. 
+Data can be added once the HDU
+was added to the FITS-file.
+
+Elementary functions in FITS\_IO to support the above are:
+
+- create new empty FITS-file
+- open an existing FITS-file 
+(if file is zero size do as after create)
+
+- append to the end of FITS-file a HDU defined by a Header
+(implemented by: Write + Append_Mode)
+
+- write (with truncate) a HDU to given position in 
+FITS-file (the file will preserve only HDU up that position, HDU 
+at the position and behind will be lost)
+(implemented by: Write + Out_Mode))
+
+- update (write without truncate) a HDU to given 
+position if HDU sizes match (error otherwise)
+(implemented by: Write + Inout_Mode)
+Note: if HDU is last in the FITS-file, 
+update is possible even if sizes do not match.
+
+
 %\section{Figure insert example}
 %Here is ref to a Figure \ref{fig:system}.
 %\begin{figure}[ht]
