@@ -165,20 +165,21 @@ while performing one of these functions.
 When needed, new temporary FITS-files are created, 
 and only when ready they are renamed to original file name. 
 This avoids leaving a FITS-file in incosistent state
-if the operation was interrputed due to power failure or similar.
+if the operation was interrupted due to power failure or similar.
 (Assuming that also rename operation is failure-safe).
 
 The figher level HDU operations are:
+\begin{itemize}
+\item \textbf{create} new FITS file from scratch
+\item \textbf{insert, remove} a HDU from FITS-file
+\item \textbf{update} HDU at given position (regardless of new HDU's size)
+\item \textbf{save} one HDU to separate FITS-file
+\end{itemize}
 
-- create new FITS file from scratch
-- insert, remove a HDU from FITS-file
-- update HDU at given position (regardless of its size)
-- save one HDU to separate FITS-file
-(later things like: 
-- split multi-HDU FITS-file into many FITS-file one HDU each
-- remove all extensions, leaving only Primary HDU
-- remove all extensions of BINTABLE type or 
-- remove all extensions which are not IMAGE etc...)
+Later things like: split multi-HDU FITS-file into many FITS-file one HDU each,
+remove all extensions, leaving only Primary HDU,
+remove all extensions of BINTABLE type or 
+remove all extensions which are not IMAGE etc...
 
 HDU's are represented by their Header. 
 Data can be added once the HDU
@@ -186,23 +187,19 @@ was added to the FITS-file.
 
 Elementary functions in FITS\_IO to support the above are:
 
-- create new empty FITS-file
-- open an existing FITS-file 
-(if file is zero size do as after create)
-
-- append to the end of FITS-file a HDU defined by a Header
-(implemented by: Write + Append_Mode)
-
-- write (with truncate) a HDU to given position in 
-FITS-file (the file will preserve only HDU up that position, HDU 
-at the position and behind will be lost)
-(implemented by: Write + Out_Mode))
-
-- update (write without truncate) a HDU to given 
+\begin{itemize}
+\item \textbf{create} new empty FITS-file
+\item \textbf{open} an existing FITS-file (if file is zero size do as after create)
+\item \textbf{append} to the end of FITS-file a HDU defined by a Header (use: Write + Append\_Mode)
+\item \textbf{write} (with truncate) a HDU to given position in 
+FITS-file; the HDU at the position and HDU's behind it will be lost
+(use: Write + Out\_Mode))
+\item \textbf{update} (write without truncate) a HDU in given 
 position if HDU sizes match (error otherwise)
-(implemented by: Write + Inout_Mode)
+(use: Write + Inout\_Mode).
 Note: if HDU is last in the FITS-file, 
 update is possible even if sizes do not match.
+\end{itemize}
 
 
 %\section{Figure insert example}
