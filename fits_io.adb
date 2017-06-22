@@ -42,6 +42,7 @@ with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
+with Ada.Containers.Vectors; -- since Ada 2005
 
 package body FITS_IO is
 
@@ -155,13 +156,13 @@ package body FITS_IO is
   DataSize    : Count;    -- Data size in Blocks (0 allowed, Primary HDU may have no data)
  end record;
 
- type HDU_Data is record
+ type HDU_Data_Type is record
   HDUPos  : HDU_Pos_Type;
   HDUInfo : HDU_Info_Type; -- part of external API (.ads)
  end record;
 
  MaxHDU : constant Positive := 10;
- type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data;
+ type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data_Type;
 
  type File_Type_Record is record
   BlocksFile : SIO.File_Type;
@@ -189,6 +190,41 @@ package body FITS_IO is
   Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
  end;
 
+ ---------------------------------------
+ -- start HDU vector/list implementation
+
+ -- search for: HDUV and HDUVect
+ -- implemented in:
+ -- * Parse_HDU_Positions
+
+ package HDUV is new Ada.Containers.Vectors
+ 	( Element_Type => HDU_Data_Type,
+ 	  Index_Type   => Positive);
+
+ HDUVect : HDUV.Vector;
+
+ procedure HDUVect_debug ( v : in HDUV.Vector) is
+  lhdu : HDU_Data_Type;
+  procedure printout( c : HDUV.Cursor) is
+  begin
+    Ada.Text_IO.Put_Line("HDUVect Cards: " & Integer'Image(HDUV.Element(c).HDUInfo.CardsCnt));
+  end;
+ begin
+
+   Ada.Text_IO.Put_Line("HDUVect Length / Capacity: " & Ada.Containers.Count_Type'Image(HDUV.Length(v)) &
+                                                " / " & Ada.Containers.Count_Type'Image(HDUV.Capacity(v)));
+   HDUV.Iterate(v,printout'Access);
+
+   -- example access by HDU_Num
+   if Integer(HDUV.Length(v)) >= 1 then -- FIXME Integer() cast
+    lhdu := HDUV.Element(v,1);
+    Ada.Text_IO.Put_Line("HDUVect lhdu[1].HDUInfo.CardsCnt  : " & Integer'Image(lhdu.HDUInfo.CardsCnt));
+   end if;
+
+ end;
+
+ -- end   HDU vector/list implementation
+ ---------------------------------------
 
  --------------------------------------------------
  -- Header definition as stored inside FITS-file --
@@ -335,7 +371,13 @@ package body FITS_IO is
 
    CurCardCnt : Positive; -- written by Parse_HeaderBlock represents card-slots read/parsed
    TotCardCnt : Natural := 0;
+
+   locHDUV : HDU_DATA_Type;-- for experimental HDUVect implementation
  begin
+
+   -- HDUVectors variant
+   HDUV.Reserve_Capacity(HDUVect,3); -- vector chunks of size 3
+   HDUVect_debug(HDUVect);
 
    while not SIO.End_OF_File(File.BlocksFile)
    loop
@@ -366,6 +408,11 @@ package body FITS_IO is
       File.HDU_Arr(HDU_Cnt).HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
       File.HDU_Cnt := HDU_Cnt;
 
+      -- HDUVectors variant
+      locHDUV.HDUInfo := HDUInfo;
+      locHDUV.HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
+      HDUV.Append(HDUVect, locHDUV);
+
       -- skip data unit for next HDU-read
 
       Next_HDU_Index := File.HDU_Arr(HDU_Cnt).HDUPos.DataStart + File.HDU_Arr(HDU_Cnt).HDUPos.DataSize;
@@ -375,6 +422,8 @@ package body FITS_IO is
       -- next HDU
 
    end loop;
+
+   HDUVect_debug(HDUVect);
 
   -- Print_FitsFileHandle(File);-- debug
 
