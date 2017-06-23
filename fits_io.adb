@@ -548,11 +548,16 @@ package body FITS_IO is
   -- File.HDU_Arr/HDUVector connects FileIx and HDUIx where:
   --   FileIx is position of the HDU in file given blocks
   --   HDUIx  is the HDU-index itself
+
+  -- HDUVector variant
+  HDUData : HDU_Data_Type := (HDUInfo => HDUInfo, HDUPos => (1,1,1,0));
  begin
 
   -- 0. Sanity checks on HDU_Num
 
-  if (File.HDU_Cnt = 0) and
+  --if (File.HDU_Cnt = 0) and
+  -- HDUVect variant
+  if HDUV.Is_Empty(File.HDUVect) and
      (HDU_Num /= 1)
   then
    null; -- raise exception and exit... UserMsg: to empty file we can write only 1st HDU
@@ -579,10 +584,23 @@ package body FITS_IO is
      -- UserMsg: For updating HDU (Inout mode) HDU sizes must match.
     end if;
   end if;
+  -- HDUVect variant
+  if ((HDU_Num < HDUV.Last_Index(File.HDUVect)) AND (CurMode = Inout_File))
+  then
+    if HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
+    then
+     null;
+     -- FIXME raise exception if sizes don't match
+     -- UserMsg: For updating HDU (Inout mode) HDU sizes must match.
+    end if;
+  end if;
+
 
   -- 1. Set HDUIx and FileIx depending on the situation
 
-  if File.HDU_Cnt = 0
+  --if File.HDU_Cnt = 0
+  -- HDUVect variant
+  if HDUV.Is_Empty(File.HDUVect)
   then
    -- writing to an empty file
    HDUIx  := 1;
@@ -593,13 +611,19 @@ package body FITS_IO is
      when Inout_File|Out_File =>
        HDUIx  := HDU_Num;
        FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
+       -- HDUVect variant
+       HDUData := HDUV.Element(File.HDUVect,HDU_Num);
+       FileIx  := HDUData.HDUPos.HeaderStart;
      when Append_File =>
        HDUIx  := File.HDU_Cnt + 1;-- FIXME check new HDU_Cnt is not pointing out of array-limit
        FileIx := File.HDU_Arr(File.HDU_Cnt).HDUPos.DataStart
                + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
+       -- HDUVect variant
+       HDUIx   := HDUV.Last_Index(File.HDUVect) + 1;-- FIXME check new HDU_Cnt is not pointing out of array: extended index ??
+       HDUData := HDUV.Last_Element(File.HDUVect);
+       FileIx  := HDUData.HDUPos.DataStart + HDUData.HDUPos.DataSize;
      when others =>
        null;-- FIXME raise exception or let Stream_IO.Write raise exception?
-       Ada.Text_IO.Put_Line("ERROR case CurMode undef " & File_Mode'Image(CurMode));
    end case;
   end if;
 
@@ -609,6 +633,14 @@ package body FITS_IO is
 
   -- 3, Update File.HDU_Arr if write successful...
   File.HDU_Arr(HDUIx).HDUPos := HDU_Info2Pos(FileIx,HDUInfo);
+  -- HDUVect variant
+  HDUData.HDUPos  := HDU_Info2Pos(FileIx,HDUInfo);
+  if HDUV.Is_Empty(File.HDUVect)
+  then
+    HDUV.Append(File.HDUVect,HDUData);
+  else
+    HDUV.Replace_Element(File.HDUVect,HDUIx,HDUData);
+  end if;
 
   -- HDUIx is now last HDU, except in Inout case
   if CurMode /= Inout_File then
