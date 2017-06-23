@@ -161,47 +161,26 @@ package body FITS_IO is
   HDUInfo : HDU_Info_Type; -- part of external API (.ads)
  end record;
 
- MaxHDU : constant Positive := 10;
- type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data_Type;
-
- type File_Type_Record is record
-  BlocksFile : SIO.File_Type;
-  Mode       : File_Mode;-- FITS_IO.Mode
-  HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
-  HDU_Arr  : HDU_Data_Array_Type;
- end record;
-
- -- for debug only
- procedure Print_FitsFileHandle (Fits : in File_Type) is
-  FileSize : Positive_Count;
- begin
-  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
---  for I in Fits.HDU_Arr'Range -- this shows also not used entries
-  for I in 1..Fits.HDU_Cnt
-  loop
-   Ada.Text_IO.Put("HDU#" & Natural'Image(I) );
-   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
-   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
-
-   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
-   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
-  end loop;
-  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
-  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
- end;
-
- ---------------------------------------
- -- start HDU vector/list implementation
-
+ ------------------------------------------
+ -- start HDU dynamic vector implementation
+ --
  -- search for: HDUV and HDUVect
  -- implemented in:
- -- * Parse_HDU_Positions
+ -- * Parse_HDU_Positions -> Append all HDUs
+ -- * Create/Open  -> init HDUVect
+ -- * List_HDUInfo -> iterate and print each HDU_Info_Type record
 
  package HDUV is new Ada.Containers.Vectors
  	( Element_Type => HDU_Data_Type,
  	  Index_Type   => Positive);
 
- HDUVect : HDUV.Vector;
+ HDUVectChunkSize : constant Ada.Containers.Count_Type := 3;
+ -- vector chunks of size 3
+
+ procedure HDUVect_init ( v : in out HDUV.Vector) is
+ begin
+   HDUV.Reserve_Capacity(v, HDUVectChunkSize);
+ end;
 
  procedure HDUVect_debug ( v : in HDUV.Vector) is
   lhdu : HDU_Data_Type;
@@ -222,9 +201,40 @@ package body FITS_IO is
    end if;
 
  end;
-
+ --
  -- end   HDU vector/list implementation
  ---------------------------------------
+
+
+ MaxHDU : constant Positive := 10;
+ type HDU_Data_Array_Type is array (Positive range 1 .. MaxHDU) of HDU_Data_Type;
+
+ type File_Type_Record is record
+  BlocksFile : SIO.File_Type;
+  Mode       : File_Mode;-- FITS_IO.Mode
+  HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
+  HDU_Arr  : HDU_Data_Array_Type;
+  HDUVect  : HDUV.Vector; -- dynVector implementation HDUVect
+ end record;
+
+ -- for debug only
+ procedure Print_FitsFileHandle (Fits : in File_Type) is
+  FileSize : Positive_Count;
+ begin
+  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
+--  for I in Fits.HDU_Arr'Range -- this shows also not used entries
+  for I in 1..Fits.HDU_Cnt
+  loop
+   Ada.Text_IO.Put("HDU#" & Natural'Image(I) );
+   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
+   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
+
+   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
+   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
+  end loop;
+  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
+  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
+ end;
 
  --------------------------------------------------
  -- Header definition as stored inside FITS-file --
@@ -376,8 +386,7 @@ package body FITS_IO is
  begin
 
    -- HDUVectors variant
-   HDUV.Reserve_Capacity(HDUVect,3); -- vector chunks of size 3
-   HDUVect_debug(HDUVect);
+   HDUVect_debug(File.HDUVect);
 
    while not SIO.End_OF_File(File.BlocksFile)
    loop
@@ -411,7 +420,7 @@ package body FITS_IO is
       -- HDUVectors variant
       locHDUV.HDUInfo := HDUInfo;
       locHDUV.HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
-      HDUV.Append(HDUVect, locHDUV);
+      HDUV.Append(File.HDUVect, locHDUV);
 
       -- skip data unit for next HDU-read
 
@@ -423,7 +432,7 @@ package body FITS_IO is
 
    end loop;
 
-   HDUVect_debug(HDUVect);
+   HDUVect_debug(File.HDUVect);
 
   -- Print_FitsFileHandle(File);-- debug
 
@@ -471,6 +480,7 @@ package body FITS_IO is
   SIO.Open( File.BlocksFile,
                 SIO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
+  HDUVect_init(File.HDUVect);
   Parse_HDU_Positions ( File ); -- Fills in HDU data to File
   SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
   File.Mode := Mode;
@@ -620,6 +630,7 @@ package body FITS_IO is
                 To_SIO(Mode),
                 Name,Form);
   File.HDU_Cnt := 0; -- init HDU_Arr
+  HDUVect_init(File.HDUVect); -- dynVector variant
   SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
   File.Mode := Mode;
  end Create;
@@ -705,6 +716,19 @@ package body FITS_IO is
    Cnt := Cnt + 1;
   end loop;
   return All_HDU;
+ end List_HDUInfo;
+
+ procedure List_HDUInfo (File : in File_Type;
+                         Print: not null access
+                           procedure(HDUInfo : HDU_Info_Type; Index : Positive))
+ is
+  procedure printout( c : HDUV.Cursor) is
+    HDUInfo : HDU_Info_Type := HDUV.Element(c).HDUInfo;
+  begin
+    Print(HDUInfo,Positive(HDUV.To_Index(c))); -- FIXME conversion Positive
+  end;
+ begin
+   HDUV.Iterate(File.HDUVect,printout'Access);
  end List_HDUInfo;
 
 
