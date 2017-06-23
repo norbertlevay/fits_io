@@ -706,7 +706,7 @@ package body FITS_IO is
  --
  -- Read header from FITS-file
  --
- function  Read ( File    : in  File_Type;
+ function  oldRead ( File    : in  File_Type;
                   HDU_Num : in  Positive ) return Header_Type
  is
   Header  : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
@@ -726,6 +726,33 @@ package body FITS_IO is
   -- read and convert to Header
   declare
     HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
+  begin
+    Header := To_Header(HeaderBlocks);
+  end;
+
+  return Header;
+ end oldRead;
+ -- HDUVect variant
+ function  Read ( File    : in  File_Type;
+                  HDU_Num : in  Positive ) return Header_Type
+ is
+  Header   : Header_Type(1..HDUV.Element(File.HDUVect,HDU_Num).HDUInfo.CardsCnt);
+ begin
+
+  -- sanity check (like in Write)
+  if (HDU_Num > File.HDU_Cnt) and
+     (HDU_Num /= HDU_AfterLast)
+  then
+   null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
+  end if;
+
+  -- position by HDU_Num in file
+  -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
+  Set_BlockIndex(File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderStart);
+
+  -- read and convert to Header
+  declare
+    HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize);
   begin
     Header := To_Header(HeaderBlocks);
   end;
@@ -828,7 +855,9 @@ package body FITS_IO is
   return Boolean
  is
   DataEnd : Positive_Count := Start + (Size(DataType)/8) * Length;
-  DUEnd   : Positive_Count := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
+  -- DUEnd   : Positive_Count := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
+  -- HDUVect variant
+  DUEnd   : Positive_Count := Start + BlockSize * HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataSize;
   Inside  : Boolean  := DataEnd <= DUEnd ;
  begin
   return Inside;
@@ -843,7 +872,8 @@ package body FITS_IO is
   return Positive_Count
  is
   -- FIXME BlockSize must be in units of Stream Element_Size
-  DUStart    : Positive_Count := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
+  -- DUStart    : Positive_Count := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
+  DUStart    : Positive_Count := 1 + BlockSize * (HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataStart - 1);
   DataOffset : Count := (Size(DataType)/8) * (Offset - 1);
   SioOffset  : Positive_Count := DUStart + DataOffset;
  begin
