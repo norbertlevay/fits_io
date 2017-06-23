@@ -460,6 +460,9 @@ package body FITS_IO is
                                             (File_Type_Record, File_Type);
  begin
   SIO.Close(File.BlocksFile);
+  -- FIXME how to destroy dynamic-Vector ? Needed at all/garbageCollector? For now do only Clear()
+  -- Ada.Finalization.Finalize(File.HDUVect);
+  HDUV.Clear(File.HDUVect);
   Delete_FileType(File);
  end Close;
 
