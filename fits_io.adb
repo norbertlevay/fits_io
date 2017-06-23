@@ -43,6 +43,9 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 with Ada.Containers.Vectors; -- since Ada 2005
+ -- for HDU dynamic vector implementation; unlike static array,
+ -- dynamic vector allows unlimited number of HDU's in FITS-file
+ -- as required in FITS standard
 
 package body FITS_IO is
 
@@ -135,18 +138,17 @@ package body FITS_IO is
  end Read;
 
 
-  -------------------------
-  -- FITS-File HDU-lists --
-  -------------------------
+  --------------------------
+  -- FITS-File HDU vector --
+  --------------------------
 
  -- HDU Records
- -- It is implemented as dynamic vector of ChunkSize=3..5
+ -- It is implemented as dynamic vector of ChunkSize = 3..5
  -- record-chunks of HDU info about positions and sizes
  -- of HDU's in FITS File.
  -- Open and Write will insert HDU Records into the list
  -- Create initializes an empty list
  -- Close destroys the list
- --
 
  type HDU_Pos_Type is record
   HeaderStart : Positive_Count; -- BlockIndex where header starts with the FitsFile
@@ -156,14 +158,11 @@ package body FITS_IO is
  end record;
 
  type HDU_Data_Type is record
-  HDUPos  : HDU_Pos_Type;
+  HDUPos  : HDU_Pos_Type;  -- internal data
   HDUInfo : HDU_Info_Type; -- part of external API (.ads)
  end record;
 
- ---------------------------------------
- -- HDU dynamic vector implementation --
- ---------------------------------------
-
+ -- HDU dynamic vector implementation
  -- search for: HDUV and HDUVect
  -- implemented in:
  -- * Parse_HDU_Positions -> Append all HDUs
@@ -172,7 +171,7 @@ package body FITS_IO is
 
  package HDUV is new Ada.Containers.Vectors
  	( Element_Type => HDU_Data_Type,
- 	  Index_Type   => Positive);
+ 	  Index_Type   => Positive);  -- HDU_Num = 1,2,3...
 
  HDUVectChunkSize : constant Ada.Containers.Count_Type := 3;
  -- vector chunks of size 3
@@ -184,39 +183,34 @@ package body FITS_IO is
 
  procedure HDUVect_debug ( v : in HDUV.Vector) is
   procedure printout( c : HDUV.Cursor) is
+    HDUInfo : HDU_Info_Type := HDUV.Element(c).HDUInfo;
+    HDUPos  : HDU_Pos_Type  := HDUV.Element(c).HDUPos;
   begin
-    Ada.Text_IO.Put_Line("HDUVect Cards: " & Integer'Image(HDUV.Element(c).HDUInfo.CardsCnt));
+    Ada.Text_IO.Put_Line("HDUVect Cards: " & Integer'Image(HDUInfo.CardsCnt));
+    Ada.Text_IO.Put("HDUVect H: " & Positive_Count'Image(HDUPos.HeaderStart));
+    Ada.Text_IO.Put(" ("   & Count'Image(HDUPos.HeaderSize) & ") ");
+    Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(HDUPos.DataStart));
+    Ada.Text_IO.Put_Line(" (" & Count'Image(HDUPos.DataSize) & ")");
   end;
+  FileSize : Positive_Count;
  begin
    Ada.Text_IO.Put_Line("HDUVect Length / Capacity: " & Ada.Containers.Count_Type'Image(HDUV.Length(v)) &
                                                 " / " & Ada.Containers.Count_Type'Image(HDUV.Capacity(v)));
    HDUV.Iterate(v,printout'Access);
+
+   FileSize := (HDUV.Last_Element(v).HDUPos.DataStart - 1 +
+                HDUV.Last_Element(v).HDUPos.DataSize)*BlockSize;
+   Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
  end;
 
+ --
+ -- File handler
+ --
  type File_Type_Record is record
   BlocksFile : SIO.File_Type;
   Mode       : File_Mode;   -- FITS_IO.Mode
   HDUVect    : HDUV.Vector; -- dynamic vector implementation HDUVect
  end record;
-
- -- for debug only
--- procedure Print_FitsFileHandle (Fits : in File_Type) is
---  FileSize : Positive_Count;
--- begin
---  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
-----  for I in Fits.HDU_Arr'Range -- this shows also not used entries
---  for I in 1..Fits.HDU_Cnt
---  loop
---   Ada.Text_IO.Put("HDU#" & Natural'Image(I) );
---   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
---   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
---
---   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
---   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
---  end loop;
---  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
---  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
--- end;
 
  --------------------------------------------------
  -- Header definition as stored inside FITS-file --
@@ -364,11 +358,8 @@ package body FITS_IO is
    CurCardCnt : Positive; -- written by Parse_HeaderBlock represents card-slots read/parsed
    TotCardCnt : Natural := 0;
 
-   locHDUV : HDU_DATA_Type;-- for experimental HDUVect implementation
+   locHDUV : HDU_DATA_Type;-- for HDUVect implementation
  begin
-
-   -- HDUVectors variant
---   HDUVect_debug(File.HDUVect);
 
    while not SIO.End_OF_File(File.BlocksFile)
    loop
@@ -409,9 +400,7 @@ package body FITS_IO is
 
    end loop;
 
---   HDUVect_debug(File.HDUVect);
-
-  -- Print_FitsFileHandle(File);-- debug
+   -- HDUVect_debug(File.HDUVect);
 
   end Parse_HDU_Positions;
 
@@ -525,9 +514,9 @@ package body FITS_IO is
   -- File.HDU_Arr/HDUVector connects FileIx and HDUIx where:
   --   FileIx is position of the HDU in file given blocks
   --   HDUIx  is the HDU-index itself
-
-  -- HDUVector variant
   HDUData : HDU_Data_Type := (HDUInfo => HDUInfo, HDUPos => (1,1,1,0));
+  use  Ada.Containers;
+  DelCount : Ada.Containers.Count_Type;
  begin
 
   -- 0. Sanity checks on HDU_Num
@@ -538,9 +527,8 @@ package body FITS_IO is
    null; -- raise exception and exit... UserMsg: to empty file we can write only 1st HDU
   end if;
 
-  -- Note: user cannot supply HDU_Num HDU_Cnt+1 in attempt to do append.
-  -- For append Append_Mode must be used. FIXME re-consider this (?).
-  if (HDU_Num > HDUV.Last_Index(File.HDUVect)) and
+  -- Client can supply max HDU_Num = (Last_Index + 1) in which case do as in Append_Mode
+  if (HDU_Num > (HDUV.Last_Index(File.HDUVect) + 1)) and
      (HDU_Num /= HDU_AfterLast)
   then
    null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
@@ -548,9 +536,9 @@ package body FITS_IO is
 
   -- for Inout_Mode (e.g. file update) check sizes:
   -- space in File vs Header+Data as defined be the new Header
-  -- sizes must match except when updating the last HDU and no other data behind it
-  -- FIXME what if FITS file has non-standard extensions after last HDU? Check standard
-  if ((HDU_Num < HDUV.Last_Index(File.HDUVect)) AND (CurMode = Inout_File))
+  -- sizes must match except when updating the last HDU if no other data follows.
+  -- FIXME what if FITS file has non-standard extensions after last HDU ? Check FITS-standard whether possible.
+  if ((HDU_Num < HDUV.Last_Index(File.HDUVect)) and (CurMode = Inout_File))
   then
     if HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
     then
@@ -571,11 +559,11 @@ package body FITS_IO is
    -- updating existing (non-empty) file
    case CurMode is
      when Inout_File|Out_File =>
-       HDUIx  := HDU_Num;
+       HDUIx   := HDU_Num;
        HDUData := HDUV.Element(File.HDUVect,HDU_Num);
        FileIx  := HDUData.HDUPos.HeaderStart;
      when Append_File =>
-       HDUIx   := HDUV.Last_Index(File.HDUVect) + 1;-- FIXME check new HDU_Cnt is not pointing out of array: extended index ??
+       HDUIx   := HDUV.Last_Index(File.HDUVect) + 1;
        HDUData := HDUV.Last_Element(File.HDUVect);
        FileIx  := HDUData.HDUPos.DataStart + HDUData.HDUPos.DataSize;
      when others =>
@@ -586,14 +574,31 @@ package body FITS_IO is
   -- 2, Write data to file
   Set_BlockIndex(File.BlocksFile,FileIx);
   Write(File.BlocksFile, HeaderBlocks);
+  -- FIXME write here last byte of the last-HDU ? (so guarantee
+  -- correct FITS_file size even before data was written). Or leave it to DU-handling ?
+  -- For FITS-file's last HDU/DU-unit: when should we create DU as multiple of
+  -- BlockSize as given in Header ?
+  -- Note: Currrently data-write, writes only N-data elements, which is correct
+  -- (not to overwrite other data if DU was already initialized before).
 
-  -- 3, Update File.HDU_Arr if write successful...
-  HDUData.HDUPos  := HDU_Info2Pos(FileIx,HDUInfo);
-  if HDUV.Is_Empty(File.HDUVect)
+  -- 3, Update File.HDUVect if write successful...
+  HDUData.HDUPos := HDU_Info2Pos(FileIx,HDUInfo);
+  if HDUV.Is_Empty(File.HDUVect) or
+     (CurMode = Append_File)
   then
     HDUV.Append(File.HDUVect,HDUData);
   else
-    HDUV.Replace_Element(File.HDUVect,HDUIx,HDUData);
+
+    if CurMode = Inout_File then
+      HDUV.Replace_Element(File.HDUVect,HDUIx,HDUData);
+    elsif CurMode = Out_File then
+      -- Write-with-Out_File truncated the file at HDU_Num - 1 :
+      -- delete corresponding elements from HDUVect and Append the new HDU
+      DelCount := 1 + HDUV.Length(File.HDUVect) - Ada.Containers.Count_Type(HDUIx);
+      HDUV.Delete_Last(File.HDUVect,DelCount);-- remove DelCount HDU-entries from end of the vector
+      HDUV.Append(File.HDUVect,HDUData);
+    end if;
+
   end if;
 
  end Write;
@@ -761,8 +766,6 @@ package body FITS_IO is
   return Boolean
  is
   DataEnd : Positive_Count := Start + (Size(DataType)/8) * Length;
-  -- DUEnd   : Positive_Count := Start + BlockSize * File.HDU_Arr(HDU_Num).HDUPos.DataSize;
-  -- HDUVect variant
   DUEnd   : Positive_Count := Start + BlockSize * HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataSize;
   Inside  : Boolean  := DataEnd <= DUEnd ;
  begin
@@ -778,7 +781,6 @@ package body FITS_IO is
   return Positive_Count
  is
   -- FIXME BlockSize must be in units of Stream Element_Size
-  -- DUStart    : Positive_Count := 1 + BlockSize * (File.HDU_Arr(HDU_Num).HDUPos.DataStart - 1);
   DUStart    : Positive_Count := 1 + BlockSize * (HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataStart - 1);
   DataOffset : Count := (Size(DataType)/8) * (Offset - 1);
   SioOffset  : Positive_Count := DUStart + DataOffset;
