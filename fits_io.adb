@@ -533,7 +533,7 @@ package body FITS_IO is
  -- Out_Mode will truncate file at HDU_Num and then append the Header
  -- Append_Mode (called without HDU_Num) appends the Header to the end of the file
  -- Note:
- -- FIXME is this goos idea at all -> Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
+ -- FIXME is this good idea at all -> Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
  procedure Write ( File    : in out File_Type;
                    Header  : in Header_Type;
                    HDU_Num : in Positive := HDU_AfterLast )-- default: Append
@@ -543,9 +543,9 @@ package body FITS_IO is
   CurMode      : File_Mode := File.Mode;
   HDUIx  : Positive;
   FileIx : Positive_Count;
-  -- Fits File consists of sequence of HDU's with
+  -- Fits File consists of sequence of HDU's of
   --   different size numbered by HDU-index: 1,2.3...
-  -- File.HDU_Arr connects FileIx and HDUIx where:
+  -- File.HDU_Arr/HDUVector connects FileIx and HDUIx where:
   --   FileIx is position of the HDU in file given blocks
   --   HDUIx  is the HDU-index itself
  begin
@@ -568,10 +568,11 @@ package body FITS_IO is
 
   -- for Inout_Mode (e.g. file update) check sizes:
   -- space in File vs Header+Data as defined be the new Header
-  -- FIXME note: if User wants update last HDU and sizes differ should we allow ?
-  if CurMode = Inout_File
+  -- sizes must match except when updating the last HDU and no other data behind it
+  -- FIXME what if FITS file has non-standard extensions after last HDU? Check standard
+  if ((HDU_Num < File.HDU_Cnt) AND (CurMode = Inout_File))
   then
-    if File.HDU_Arr(File.HDU_Cnt).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
+    if File.HDU_Arr(HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
     then
      null;
      -- FIXME raise exception if sizes don't match
