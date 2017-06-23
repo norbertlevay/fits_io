@@ -213,28 +213,28 @@ package body FITS_IO is
   BlocksFile : SIO.File_Type;
   Mode       : File_Mode;-- FITS_IO.Mode
   HDU_Cnt  : Natural; -- After Create there is no HDU's (=0) and needed because HDU_Arr is static vector so HDU_Arr'Length /= HDU_Cnt
-  HDU_Arr  : HDU_Data_Array_Type;
+--  HDU_Arr  : HDU_Data_Array_Type;
   HDUVect  : HDUV.Vector; -- dynVector implementation HDUVect
  end record;
 
  -- for debug only
- procedure Print_FitsFileHandle (Fits : in File_Type) is
-  FileSize : Positive_Count;
- begin
-  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
---  for I in Fits.HDU_Arr'Range -- this shows also not used entries
-  for I in 1..Fits.HDU_Cnt
-  loop
-   Ada.Text_IO.Put("HDU#" & Natural'Image(I) );
-   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
-   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
-
-   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
-   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
-  end loop;
-  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
-  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
- end;
+-- procedure Print_FitsFileHandle (Fits : in File_Type) is
+--  FileSize : Positive_Count;
+-- begin
+--  Ada.Text_IO.Put_Line("HDU_Cnt : " & Natural'Image(Fits.HDU_Cnt));
+----  for I in Fits.HDU_Arr'Range -- this shows also not used entries
+--  for I in 1..Fits.HDU_Cnt
+--  loop
+--   Ada.Text_IO.Put("HDU#" & Natural'Image(I) );
+--   Ada.Text_IO.Put(" H: " & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderStart));
+--   Ada.Text_IO.Put(" ("   & Count'Image(Fits.HDU_Arr(I).HDUPos.HeaderSize) & ") ");
+--
+--   Ada.Text_IO.Put(" DU: "   & Positive_Count'Image(Fits.HDU_Arr(I).HDUPos.DataStart));
+--   Ada.Text_IO.Put_Line(" (" & Count'Image(Fits.HDU_Arr(I).HDUPos.DataSize) & ")");
+--  end loop;
+--  FileSize := (Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataStart - 1 + Fits.HDU_Arr(Fits.HDU_Cnt).HDUPos.DataSize)*BlockSize;
+--  Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
+-- end;
 
  --------------------------------------------------
  -- Header definition as stored inside FITS-file --
@@ -413,8 +413,8 @@ package body FITS_IO is
 
       -- HDU info cllected now store it to File_Type
 
-      File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
-      File.HDU_Arr(HDU_Cnt).HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
+--      File.HDU_Arr(HDU_Cnt).HDUInfo := HDUInfo;
+--      File.HDU_Arr(HDU_Cnt).HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
       File.HDU_Cnt := HDU_Cnt;
 
       -- HDUVectors variant
@@ -424,7 +424,8 @@ package body FITS_IO is
 
       -- skip data unit for next HDU-read
 
-      Next_HDU_Index := File.HDU_Arr(HDU_Cnt).HDUPos.DataStart + File.HDU_Arr(HDU_Cnt).HDUPos.DataSize;
+--      Next_HDU_Index := File.HDU_Arr(HDU_Cnt).HDUPos.DataStart + File.HDU_Arr(HDU_Cnt).HDUPos.DataSize;
+      Next_HDU_Index := HDUV.Element(File.HDUVect,HDU_Cnt).HDUPos.DataStart + HDUV.Element(File.HDUVect,HDU_Cnt).HDUPos.DataSize;
       Set_BlockIndex( File.BlocksFile, Next_HDU_Index );
 
       HDU_Cnt := HDU_Cnt + 1;
@@ -575,15 +576,15 @@ package body FITS_IO is
   -- space in File vs Header+Data as defined be the new Header
   -- sizes must match except when updating the last HDU and no other data behind it
   -- FIXME what if FITS file has non-standard extensions after last HDU? Check standard
-  if ((HDU_Num < File.HDU_Cnt) AND (CurMode = Inout_File))
-  then
-    if File.HDU_Arr(HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
-    then
-     null;
+--  if ((HDU_Num < File.HDU_Cnt) AND (CurMode = Inout_File))
+--  then
+--    if File.HDU_Arr(HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
+--    then
+--     null;
      -- FIXME raise exception if sizes don't match
      -- UserMsg: For updating HDU (Inout mode) HDU sizes must match.
-    end if;
-  end if;
+--    end if;
+--  end if;
   -- HDUVect variant
   if ((HDU_Num < HDUV.Last_Index(File.HDUVect)) AND (CurMode = Inout_File))
   then
@@ -610,14 +611,14 @@ package body FITS_IO is
    case CurMode is
      when Inout_File|Out_File =>
        HDUIx  := HDU_Num;
-       FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
+--       FileIx := File.HDU_Arr(HDU_Num).HDUPos.HeaderStart;
        -- HDUVect variant
        HDUData := HDUV.Element(File.HDUVect,HDU_Num);
        FileIx  := HDUData.HDUPos.HeaderStart;
      when Append_File =>
-       HDUIx  := File.HDU_Cnt + 1;-- FIXME check new HDU_Cnt is not pointing out of array-limit
-       FileIx := File.HDU_Arr(File.HDU_Cnt).HDUPos.DataStart
-               + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
+--       HDUIx  := File.HDU_Cnt + 1;-- FIXME check new HDU_Cnt is not pointing out of array-limit
+--       FileIx := File.HDU_Arr(File.HDU_Cnt).HDUPos.DataStart
+--               + File.HDU_Arr(File.HDU_Cnt).HDUPos.DataSize;
        -- HDUVect variant
        HDUIx   := HDUV.Last_Index(File.HDUVect) + 1;-- FIXME check new HDU_Cnt is not pointing out of array: extended index ??
        HDUData := HDUV.Last_Element(File.HDUVect);
@@ -632,7 +633,7 @@ package body FITS_IO is
   Write(File.BlocksFile, HeaderBlocks);
 
   -- 3, Update File.HDU_Arr if write successful...
-  File.HDU_Arr(HDUIx).HDUPos := HDU_Info2Pos(FileIx,HDUInfo);
+--  File.HDU_Arr(HDUIx).HDUPos := HDU_Info2Pos(FileIx,HDUInfo);
   -- HDUVect variant
   HDUData.HDUPos  := HDU_Info2Pos(FileIx,HDUInfo);
   if HDUV.Is_Empty(File.HDUVect)
@@ -706,32 +707,32 @@ package body FITS_IO is
  --
  -- Read header from FITS-file
  --
- function  oldRead ( File    : in  File_Type;
-                  HDU_Num : in  Positive ) return Header_Type
- is
-  Header  : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
- begin
+-- function  oldRead ( File    : in  File_Type;
+--                  HDU_Num : in  Positive ) return Header_Type
+-- is
+--  Header  : Header_Type(1..File.HDU_Arr(HDU_Num).HDUInfo.CardsCnt);
+-- begin
 
   -- sanity check (like in Write)
-  if (HDU_Num > File.HDU_Cnt) and
-     (HDU_Num /= HDU_AfterLast)
-  then
-   null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
-  end if;
+--  if (HDU_Num > File.HDU_Cnt) and
+--     (HDU_Num /= HDU_AfterLast)
+--  then
+--   null; -- raise exception and exit... UserMsg: HDU_Num out of range for given file & mode combination
+--  end if;
 
   -- position by HDU_Num in file
   -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
-  Set_BlockIndex(File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
+--  Set_BlockIndex(File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderStart);
 
   -- read and convert to Header
-  declare
-    HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
-  begin
-    Header := To_Header(HeaderBlocks);
-  end;
+--  declare
+--    HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, File.HDU_Arr(HDU_Num).HDUPos.HeaderSize);
+--  begin
+--    Header := To_Header(HeaderBlocks);
+--  end;
 
-  return Header;
- end oldRead;
+-- return Header;
+-- end oldRead;
  -- HDUVect variant
  function  Read ( File    : in  File_Type;
                   HDU_Num : in  Positive ) return Header_Type
@@ -772,7 +773,7 @@ package body FITS_IO is
  begin
   while Cnt <= File.HDU_Cnt
   loop
-   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
+--   All_HDU(Cnt) := File.HDU_Arr(Cnt).HDUInfo;
    Cnt := Cnt + 1;
   end loop;
   return All_HDU;
