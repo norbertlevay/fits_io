@@ -119,8 +119,6 @@ package FITS_IO is
 
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 
-   function List_HDUInfo (File : in File_Type) return HDU_Info_Arr;
-
    procedure List_HDUInfo (File : in File_Type;
                            Print: not null access
                              procedure(HDUInfo : HDU_Info_Type; Index : Positive));

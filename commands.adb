@@ -175,48 +175,6 @@ package body Commands is
  procedure Print_Struct (FitsFileName : in String)
  is
   FitsFile : FITS_IO.File_Type;
- begin
-   FITS_IO.Open(FitsFile,FITS_IO.In_File,FitsFileName);
-
-   declare
-    HDUInfoArr : FITS_IO.HDU_Info_Arr := FITS_IO.List_HDUInfo (FitsFile);
-    FreeSlotCnt : Natural;
-   begin
-    for I in HDUInfoArr'Range
-     loop
-       -- calc free slots
-       FreeSlotCnt := 36 - (HDUInfoArr(I).CardsCnt mod 36);
-       -- mod is 0 when Block has 36 cards e.g. is full
-       if FreeSlotCnt = 36 then
-        FreeSlotCnt := 0;
-       end if;
-
-       Ada.Text_IO.Put("HDU#" & Integer'Image(I) );
-       Ada.Text_IO.Put("   Cards: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image(HDUInfoArr(I).CardsCnt),5,' ') &
-                       " EmptyCardSlots: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
-
-       if HDUInfoArr(I).Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_IO.BITPIX_Type'Image(HDUInfoArr(I).Data),8,' ') );
-        Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUInfoArr(I).Naxes - 1)
-         loop
-          Ada.Text_IO.Put(Fits_IO.Count'Image(HDUInfoArr(I).Naxis(J)) & " x " );
-        end loop;
-        Ada.Text_IO.Put(Fits_IO.Count'Image(HDUInfoArr(I).Naxis(HDUInfoArr(I).Naxes)));
-        Ada.Text_IO.Put_Line(" ) ");
-       end if;
-
-    end loop;
-   end;
-
-   FITS_IO.Close(FitsFile);
- end Print_Struct;
-
- procedure HDUV_Print_Struct (FitsFileName : in String)
- is
-  FitsFile : FITS_IO.File_Type;
   procedure print_HDUInfo (HDUInfo : FITS_IO.HDU_Info_Type; Index : Positive)
   is
       FreeSlotCnt : Natural;
@@ -249,7 +207,7 @@ package body Commands is
    FITS_IO.Open(FitsFile,FITS_IO.In_File,FitsFileName);
    FITS_IO.List_HDUInfo (FitsFile, print_HDUInfo'Access);
    FITS_IO.Close(FitsFile);
- end HDUV_Print_Struct;
+ end Print_Struct;
 
 end Commands;
 

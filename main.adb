@@ -81,8 +81,7 @@ procedure main is
      if Cur_Argument = "info" then
 
         Input_File_Path := SB.To_Bounded_String(Argument(i+1));
--- will be replaced by HDUV_Print_Struct FIXME        Print_Struct (To_String(Input_File_Path));
-        HDUV_Print_Struct (To_String(Input_File_Path));
+        Print_Struct (To_String(Input_File_Path));
 
      elsif Cur_Argument = "header"
      then

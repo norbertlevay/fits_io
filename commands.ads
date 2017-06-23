@@ -20,7 +20,6 @@ package Commands is
  -- and last line must be "END"
 
  procedure Print_Struct (FitsFileName : in String);
- procedure HDUV_Print_Struct (FitsFileName : in String);
  -- print HDU info
 
 end Commands;
