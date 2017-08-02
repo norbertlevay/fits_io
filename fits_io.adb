@@ -3,16 +3,9 @@
 --
 -- Current implementation is based on two elements:
 --
--- 1, Low-level FITS-file access
+-- 1, Low-level FITS-file access (FITS_IO.Block_IO)
 -- This presents a FITS-file as array of blocks, each block having 2880 octets.
 -- The layer provides positioning by blocks, read and write.
--- Currently implemented with Stream_IO.
---
--- Possible with Direct_IO which would eliminate block position calculations.
--- However Direct_IO does not allow to write more blocks with one write so needs cycle,
--- and Read is procedure not a function, then cannot initialize unconstrained arrays,
--- and so also needs cycle by Block.
--- Decided in favour of Stream_IO.
 --
 -- 2, FITS-File HDU-lists
 -- This is a vector of structures which store HDU's positions and sizes
@@ -47,96 +40,23 @@ with Ada.Containers.Vectors; -- since Ada 2005
  -- dynamic vector allows unlimited number of HDU's in FITS-file
  -- as required in FITS standard
 
+with FITS_IO.Block_IO;
+ -- low-level FITS-file Header access
+
 package body FITS_IO is
 
- ---------------------------------------------------
- -- Low level FITS-Headers access by HeaderBlocks --
- ---------------------------------------------------
+ package BIO renames FITS_IO.Block_IO;
+ -- access FITS-file header in blocks of 2880 bytes [FITS]
 
- package SIO renames Ada.Streams.Stream_IO;
-
- -- NOTE Count defs moved to ads for Data access Read/Write params
+ -- NOTE Count & Positive_Count defs moved to ads for Data access Read/Write params
 -- type Count is new SIO.Count;
  -- will inherit Index() Set_Index() from SIO for Fits_IO.Positive_Count
- -- OR like Ada.Direct_IO  - System.Direct_IO:
+ -- OR like in Ada.Direct_IO  - System.Direct_IO:
  -- type Count is range 0 .. Ada.Streams.Stream_IO.Count'Last;
  -- but this will not inherit Index Set_Index calls and conversion needed
 -- subtype Positive_Count is Count range 1 .. Count'Last;
  -- FIXME we use Count whenever zero value is needed - consider introduce Natural_Count ?
  -- Why not done in standard *_IO packages? computaions may result in negative numbers?
-
- BlockSize       : constant Positive_Count := 2880; -- [FITS, Sect 3.1]
- CardsCntInBlock : constant Positive_Count := BlockSize / Positive_Count(CardSize);
- -- [FITS 3.3.1 Primary Header] 36 cards per block        -- conv ok, CardSize 80 const
-
- subtype Card_Type is String(1..CardSize);
- -- makes sure index start with 1
-
- type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
- type HeaderBlockArray_Type is array (Positive_Count range <>) of HeaderBlock_Type;
-   -- Header format inside FITS-file
-
- ENDCard    : constant Card_Type := "END                                                                             ";
- EmptyCard  : constant Card_Type := (others => ' ');
- EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
-
- function  To_SIO is new Ada.Unchecked_Conversion (File_Mode, SIO.File_Mode);
- -- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, File_Mode);
- -- use type FCB.File_Mode; FIXME ?? see -> a-ststio.adb
-
- -- positioning in file
-
- function  To_BlockIndex( OctetIndex : in  Positive_Count ) return Positive_Count is
-  begin
-   return (OctetIndex - 1) / BlockSize + 1;
-  end To_BlockIndex;
-
- function  To_OctetIndex( BlockIndex : in  Positive_Count ) return Positive_Count is
-  begin
-   return (BlockIndex - 1) * BlockSize + 1;
-  end To_OctetIndex;
-
- pragma Inline (To_BlockIndex);
- pragma Inline (To_OctetIndex);
- -- Note: since Ada2012 pragma Inline obsolete, add anyway for older compilers
-
- -- Fits_IO.Count inhereted from SIO.Count:
- -- Index() and Set_Index() are inherited from SIO.[Set_]Index()
- function  BlockIndex ( File  : in SIO.File_Type ) return Positive_Count
- is
- begin
-  return To_BlockIndex(Index( File ));
- end BlockIndex;
-
- procedure Set_BlockIndex ( File  : in SIO.File_Type;
-                            Index : in Positive_Count ) -- Block Index
- is
- begin
-  Set_Index( File, To_OctetIndex(Index) );
- end Set_BlockIndex;
-
- pragma Inline (BlockIndex);
- pragma Inline (Set_BlockIndex);
-
- --
- -- Header access
- --
- procedure Write(File    : in SIO.File_Type;
-                 Blocks  : in HeaderBlockArray_Type)
- is
- begin
-   HeaderBlockArray_Type'Write( SIO.Stream(File), Blocks );
- end Write;
-
- function  Read (File    : in  SIO.File_Type;
-                 NBlocks : in  Positive_Count := 1) return HeaderBlockArray_Type
- is
-   Blocks : HeaderBlockArray_Type( 1 .. NBlocks );
- begin
-   HeaderBlockArray_Type'Read( SIO.Stream(File), Blocks );
-   return Blocks;
- end Read;
-
 
   --------------------------
   -- FITS-File HDU vector --
@@ -199,7 +119,7 @@ package body FITS_IO is
    HDUV.Iterate(v,printout'Access);
 
    FileSize := (HDUV.Last_Element(v).HDUPos.DataStart - 1 +
-                HDUV.Last_Element(v).HDUPos.DataSize)*BlockSize;
+                HDUV.Last_Element(v).HDUPos.DataSize)*BIO.BlockSize;
    Ada.Text_IO.Put_Line("LastDU LastByte (=FileSize): " & Count'Image(FileSize));
  end;
 
@@ -207,7 +127,7 @@ package body FITS_IO is
  -- File handler
  --
  type File_Type_Record is record
-  BlocksFile : SIO.File_Type;
+  BlocksFile : BIO.SIO.File_Type;
   Mode       : File_Mode;   -- FITS_IO.Mode
   HDUVect    : HDUV.Vector; -- dynamic vector implementation HDUVect
  end record;
@@ -235,7 +155,7 @@ package body FITS_IO is
      end loop;
      if DUSize /= 0 then
       DUSize := DUSize * BITPIXSize;
-      DUSize := 1 + DUSize/BlockSize;
+      DUSize := 1 + DUSize/BIO.BlockSize;
      end if;
    end if;
 
@@ -264,7 +184,7 @@ package body FITS_IO is
  --
  -- parse keywords needed to calculate DU size
  --
- procedure Parse_KeyRecord( Card : in Card_Type;
+ procedure Parse_KeyRecord( Card : in BIO.Card_Type;
                             HDUInfo  : in out HDU_Info_Type )
  is
   dim : Positive;
@@ -293,22 +213,22 @@ package body FITS_IO is
  --
  -- walk through each HeaderBlock
  --
- function  Parse_HeaderBlock( Block : in HeaderBlock_Type ;
+ function  Parse_HeaderBlock( Block : in BIO.HeaderBlock_Type ;
                               CardCount : out Positive;
                               HDUInfo : in out HDU_Info_Type )
   return Boolean
  is
   ENDFound : Boolean := False;
-  Card     : Card_Type;
+  Card     : BIO.Card_Type;
   CardCnt  : Positive := 1;
-  TotCardsInBlock : Positive := Positive(CardsCntInBlock);
+  TotCardsInBlock : Positive := Positive(BIO.CardsCntInBlock);
    -- Positive() conv ok, it is const 36
  begin
 
   for I in Block'Range loop
     Card := Block( I );
     Parse_KeyRecord( Card, HDUInfo );
-    ENDFound := (Card = ENDCard);
+    ENDFound := (Card = BIO.ENDCard);
     exit when ENDFound or CardCnt >= TotCardsInBlock;
     CardCnt := CardCnt + 1;
   end loop;
@@ -328,7 +248,7 @@ package body FITS_IO is
  begin
 
   HDUPos.HeaderStart := HDUStart_BlockIndex;
-  HDUPos.HeaderSize  := 1 + Positive_Count(HDUInfo.CardsCnt) / CardsCntInBlock;
+  HDUPos.HeaderSize  := 1 + Positive_Count(HDUInfo.CardsCnt) / BIO.CardsCntInBlock;
    -- FIXME conv Positive_Count: problem if Positive'Last > Positive_Count'Last
    -- problem somewhat artificial: in practice CardsCount << then any of the above.
    -- nevertheless there is no rule -> how to deal with such situations?
@@ -353,7 +273,7 @@ package body FITS_IO is
    Next_HDU_Index  : Positive_Count;
 
    HDUInfo : HDU_Info_Type;
-   Block : HeaderBlockArray_Type(1..1);
+   Block : BIO.HeaderBlockArray_Type(1..1);
 
    CurCardCnt : Positive; -- written by Parse_HeaderBlock represents card-slots read/parsed
    TotCardCnt : Natural := 0;
@@ -361,7 +281,7 @@ package body FITS_IO is
    locHDUV : HDU_DATA_Type;-- for HDUVect implementation
  begin
 
-   while not SIO.End_OF_File(File.BlocksFile)
+   while not BIO.SIO.End_OF_File(File.BlocksFile)
    loop
 
       HDUInfo := Null_HDU_Info;
@@ -369,10 +289,10 @@ package body FITS_IO is
 
       -- Header
 
-      HeadStart_Index := BlockIndex( File.BlocksFile );
+      HeadStart_Index := BIO.BlockIndex( File.BlocksFile );
 
       loop
-         Block        := Read( File.BlocksFile );
+         Block        := BIO.Read( File.BlocksFile );
           -- raises exception when EOF reached, if not FITS-file
           -- FIXME ? it is ok, but might waste long time parsing big non-FITS file
          EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
@@ -392,7 +312,7 @@ package body FITS_IO is
       -- skip data unit for next HDU-read
 
       Next_HDU_Index := HDUV.Element(File.HDUVect,HDU_Cnt).HDUPos.DataStart + HDUV.Element(File.HDUVect,HDU_Cnt).HDUPos.DataSize;
-      Set_BlockIndex( File.BlocksFile, Next_HDU_Index );
+      BIO.Set_BlockIndex( File.BlocksFile, Next_HDU_Index );
       -- FIXME is HDU_Cnt really needed with HDUVect solution?
 
       HDU_Cnt := HDU_Cnt + 1;
@@ -408,10 +328,10 @@ package body FITS_IO is
  -- for Write/Append - creating new HDU from Header
  --
  -- Open/Create inits File.HDU_Arr <- sets correct File-Index
- -- Write takes and converts Header_Type --> HeaderBlockArray_Type
+ -- Write takes and converts Header_Type --> BIO.HeaderBlockArray_Type
  -- writes the header into the file
  -- if write success calls this Parse_HDU_Info & HDU_Info2Pos
- function  Parse_HDU_Info( HeaderBlocks : in HeaderBlockArray_Type)
+ function  Parse_HDU_Info( HeaderBlocks : in BIO.HeaderBlockArray_Type)
   return HDU_Info_Type
  is
   HDUInfo  : HDU_Info_Type;
@@ -443,12 +363,12 @@ package body FITS_IO is
  is
  begin
   File := new File_Type_Record;
-  SIO.Open( File.BlocksFile,
-                SIO.In_File,
+  BIO.SIO.Open( File.BlocksFile,
+                BIO.SIO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
   HDUVect_init(File.HDUVect);
   Parse_HDU_Positions ( File ); -- Fills in HDU data to File
-  SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
+  BIO.SIO.Set_Mode(File.BlocksFile,BIO.To_SIO(Mode));
   File.Mode := Mode;
  end Open;
 
@@ -459,7 +379,7 @@ package body FITS_IO is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
                                             (File_Type_Record, File_Type);
  begin
-  SIO.Close(File.BlocksFile);
+  BIO.SIO.Close(File.BlocksFile);
   -- FIXME how to destroy dynamic-Vector ? Needed at all/garbageCollector? For now do only Clear()
   -- Ada.Finalization.Finalize(File.HDUVect);
   HDUV.Clear(File.HDUVect);
@@ -471,18 +391,18 @@ package body FITS_IO is
  -- * add space so that each card is 80 chars long
  -- * make sure space after END card is cleaned
  --
- function  To_HeaderBlockArray( Header : Header_Type ) return HeaderBlockArray_Type
+ function  To_HeaderBlockArray( Header : Header_Type ) return BIO.HeaderBlockArray_Type
  is
   -- init blocks with space-characters
-  HB : HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / CardsCntInBlock)) := (others => EmptyBlock);
+  HB : BIO.HeaderBlockArray_Type(1 .. (1 + (Header'Length -1) / BIO.CardsCntInBlock)) := (others => BIO.EmptyBlock);
   Ix : Positive_Count := 1; -- index in header
   BIx, Cix : Count; -- block-index, card-index
  begin
   for I in Header'Range loop
-    BIx := 1 + (Ix-1) /  CardsCntInBlock;
-    CIx := Ix mod CardsCntInBlock;
+    BIx := 1 + (Ix-1) /  BIO.CardsCntInBlock;
+    CIx := Ix mod BIO.CardsCntInBlock;
     if CIx = 0 then
-     CIx := CardsCntInBlock;
+     CIx := BIO.CardsCntInBlock;
     end if;
     declare
      str : String := Card.To_String(Card.Trim(Header(I), Ada.Strings.Both));
@@ -507,7 +427,7 @@ package body FITS_IO is
                    Header  : in Header_Type;
                    HDU_Num : in Positive := HDU_AfterLast )-- default: Append
  is
-  HeaderBlocks : HeaderBlockArray_Type := To_HeaderBlockArray(Header);
+  HeaderBlocks : BIO.HeaderBlockArray_Type := To_HeaderBlockArray(Header);
   HDUInfo      : HDU_Info_Type := Parse_HDU_Info( HeaderBlocks );
   CurMode      : File_Mode := File.Mode;
   HDUIx  : Positive;
@@ -543,7 +463,7 @@ package body FITS_IO is
   -- FIXME what if FITS file has non-standard extensions after last HDU ? Check FITS-standard whether possible.
   if ((HDU_Num < HDUV.Last_Index(File.HDUVect)) and (CurMode = Inout_File))
   then
-    if HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize /= (Header'Length / CardsCntInBlock + 1)
+    if HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize /= (Header'Length / BIO.CardsCntInBlock + 1)
     then
      null;
      -- FIXME raise exception if sizes don't match
@@ -575,12 +495,12 @@ package body FITS_IO is
   end if;
 
   -- 2, Write data to file
-  Set_BlockIndex(File.BlocksFile,FileIx);
-  Write(File.BlocksFile, HeaderBlocks);
+  BIO.Set_BlockIndex(File.BlocksFile,FileIx);
+  BIO.Write(File.BlocksFile, HeaderBlocks);
   -- FIXME write here last byte of the last-HDU ? (so guarantee
   -- correct FITS_file size even before data was written). Or leave it to DU-handling ?
   -- For FITS-file's last HDU/DU-unit: when should we create DU as multiple of
-  -- BlockSize as given in Header ?
+  -- BIO.BlockSize as given in Header ?
   -- Note: Currrently data-write, writes only N-data elements, which is correct
   -- (not to overwrite other data if DU was already initialized before).
 
@@ -616,27 +536,27 @@ package body FITS_IO is
                     Form : in String    := "shared=no") is
  begin
   File := new File_Type_Record;
-  SIO.Create( File.BlocksFile,
-                To_SIO(Mode),
+  BIO.SIO.Create( File.BlocksFile,
+                BIO.To_SIO(Mode),
                 Name,Form);
   HDUVect_init(File.HDUVect);
-  SIO.Set_Mode(File.BlocksFile,To_SIO(Mode));
+  BIO.SIO.Set_Mode(File.BlocksFile,BIO.To_SIO(Mode));
   File.Mode := Mode;
  end Create;
 
- function  CardsCount (HeaderBlocks : HeaderBlockArray_Type) return Positive
+ function  CardsCount (HeaderBlocks : BIO.HeaderBlockArray_Type) return Positive
  is
   Count : Positive := 1;
  begin
   for I in HeaderBlocks'Range loop
    for J in HeaderBlocks(I)'Range loop
-    exit when HeaderBlocks(I)(J) = ENDCard;
+    exit when HeaderBlocks(I)(J) = BIO.ENDCard;
     Count := Count + 1;
    end loop;
   end loop;
   return Count;
  end CardsCount;
- -- FIXME we need CardsCount stored in the HeaderBlockArray_Type
+ -- FIXME we need CardsCount stored in the BIO.HeaderBlockArray_Type
 
 
  --
@@ -644,7 +564,7 @@ package body FITS_IO is
  -- * strip empty spaces from start end end of each line
  -- * strip empty cards after END-card
  --
- function  To_Header( HeaderBlocks : HeaderBlockArray_Type ) return Header_Type
+ function  To_Header( HeaderBlocks : BIO.HeaderBlockArray_Type ) return Header_Type
  is
   H  : Header_Type(1 .. CardsCount(HeaderBlocks));
   Ix : Positive := 1;
@@ -652,7 +572,7 @@ package body FITS_IO is
   for I in HeaderBlocks'Range loop
    for J in HeaderBlocks(I)'Range loop
     H(Ix) := Card.Trim(Card.To_Bounded_String(HeaderBlocks(I)(J)) , Ada.Strings.Both);
-    exit when HeaderBlocks(I)(J) = ENDCard;
+    exit when HeaderBlocks(I)(J) = BIO.ENDCard;
     Ix := Ix + 1;
    end loop;
   end loop;
@@ -677,11 +597,11 @@ package body FITS_IO is
 
   -- position by HDU_Num in file
   -- FIXME consider API Set_HDUIndex() -> and Read() Write() without HDU_Num
-  Set_BlockIndex(File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderStart);
+  BIO.Set_BlockIndex(File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderStart);
 
   -- read and convert to Header
   declare
-    HeaderBlocks : HeaderBlockArray_Type := Read (File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize);
+    HeaderBlocks : BIO.HeaderBlockArray_Type := BIO.Read (File.BlocksFile, HDUV.Element(File.HDUVect,HDU_Num).HDUPos.HeaderSize);
   begin
     Header := To_Header(HeaderBlocks);
   end;
@@ -769,7 +689,7 @@ package body FITS_IO is
   return Boolean
  is
   DataEnd : Positive_Count := Start + (Size(DataType)/8) * Length;
-  DUEnd   : Positive_Count := Start + BlockSize * HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataSize;
+  DUEnd   : Positive_Count := Start + BIO.BlockSize * HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataSize;
   Inside  : Boolean  := DataEnd <= DUEnd ;
  begin
   return Inside;
@@ -783,8 +703,8 @@ package body FITS_IO is
                   Offset   : in Positive_Count)  -- in units of DataType
   return Positive_Count
  is
-  -- FIXME BlockSize must be in units of Stream Element_Size
-  DUStart    : Positive_Count := 1 + BlockSize * (HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataStart - 1);
+  -- FIXME BIO.BlockSize must be in units of Stream Element_Size
+  DUStart    : Positive_Count := 1 + BIO.BlockSize * (HDUV.Element(File.HDUVect,HDU_Num).HDUPos.DataStart - 1);
   DataOffset : Count := (Size(DataType)/8) * (Offset - 1);
   SioOffset  : Positive_Count := DUStart + DataOffset;
  begin
@@ -818,7 +738,7 @@ package body FITS_IO is
    Set_Index (File.BlocksFile, To);
    -- Fits_IO.Count inhereted from SIO -> SIO.Set_Index inherited for Fits_IO.Count
 
-   DataArray_Type'Read( SIO.Stream(File.BlocksFile), Data );
+   DataArray_Type'Read( BIO.SIO.Stream(File.BlocksFile), Data );
   return Data;
  end Read;
 
@@ -851,7 +771,7 @@ package body FITS_IO is
    -- add these after record definition:
    -- pragma Unchecked_Union (DataArray_Type);
    -- pragma Convention (C, Union);    -- optional, only if interfacing C-lang
-   DataArray_Type'Write( SIO.Stream(File.BlocksFile), Data );
+   DataArray_Type'Write( BIO.SIO.Stream(File.BlocksFile), Data );
  end Write;
 
 end FITS_IO;
