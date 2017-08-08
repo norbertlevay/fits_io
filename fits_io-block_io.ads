@@ -24,8 +24,7 @@ package FITS_IO.Block_IO is
  EmptyCard  : constant Card_Type := (others => ' ');
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
 
- function  To_SIO is new Ada.Unchecked_Conversion (FITS_File_Mode, SIO.File_Mode);
- -- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, FITS_File_Mode);
+ function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode;
 
  -- positioning in file
 

@@ -31,6 +31,39 @@ with Ada.Containers.Vectors; -- since Ada 2005
 
 package body FITS_IO.Block_IO is
 
+ function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode is
+  SIO_Mode : SIO.File_Mode;
+ begin
+
+  case Mode is
+    when In_File     => SIO_Mode := SIO.In_File;
+    when Inout_File  => SIO_Mode := SIO.In_File;-- special case: GNAT implementation needs to switch mode to become Inout
+    when Out_File    => SIO_Mode := SIO.Out_File;
+    when Append_File => SIO_Mode := SIO.Append_File;
+  end case;
+
+  return SIO_Mode;
+ end To_SIO;
+
+-- NOTE: this was previous implemenation of To_SIO(File_Mode)
+--       from standard IO packages GNAT implementation as sample.
+--       But let's not rely on GNAT-specific implementation of File_Mode
+--       enumeration. And efficiancy gain is minimal (To_Mode is simple
+--       and not expected to be callled often)
+
+ --  The following representation clause allows the use of unchecked
+ --  conversion for rapid translation between the File_Mode type
+ --  used in this package and System.File_IO.
+ -- for FITS_File_Mode use
+ --   (In_File     => 0,  -- System.File_IO.File_Mode'Pos (In_File)
+ --    Inout_File  => 1,  -- System.File_IO.File_Mode'Pos (Inout_File);
+ --    Out_File    => 2,  -- System.File_IO.File_Mode'Pos (Out_File)
+ --    Append_File => 3); -- System.File_IO.File_Mode'Pos (Append_File)
+ -- function  To_SIO is new Ada.Unchecked_Conversion (FITS_File_Mode, SIO.File_Mode);
+ -- -- function  To_FITS_IO is new Ada.Unchecked_Conversion (SIO.File_Mode, FITS_File_Mode);
+
+-- NOTE END
+
  --
  -- Positioning in file
  --

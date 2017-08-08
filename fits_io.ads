@@ -26,35 +26,9 @@ with Ada.Streams.Stream_IO;
 
 package FITS_IO is
 
-   type Count is new Ada.Streams.Stream_IO.Count;
-
-   subtype Positive_Count is Count range 1 .. Count'Last;
-
    type FITS_File_Type is limited private;
 
    type FITS_File_Mode is (In_File, Inout_File, Out_File, Append_File);
-
-   --  The following representation clause allows the use of unchecked
-   --  conversion for rapid translation between the File_Mode type
-   --  used in this package and System.File_IO.
-
-   for FITS_File_Mode use
-     (In_File     => 0,  -- System.File_IO.File_Mode'Pos (In_File)
-      Inout_File  => 1,  -- System.File_IO.File_Mode'Pos (Inout_File);
-      Out_File    => 2,  -- System.File_IO.File_Mode'Pos (Out_File)
-      Append_File => 3); -- System.File_IO.File_Mode'Pos (Append_File)
-
-   CardSize : constant Positive := 80;
-   -- [FITS Sects. 3.3.1, 4.4.1]
-
-   -- Header definition
-
-   package Card is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
-   type Header_Type is array (Positive range <>) of Card.Bounded_String;
-   -- Headers stored in text files are lines of max 80 characters
-
-   HDU_AfterLast : constant := Positive'Last;
-   -- Write's default behaviour is append a Header after last HDU in file
 
    ---------------------
    -- File Management --
@@ -77,6 +51,22 @@ package FITS_IO is
    ---------------------------------
    -- Input and Output Operations --
    ---------------------------------
+
+   type Count is new Ada.Streams.Stream_IO.Count;
+
+   subtype Positive_Count is Count range 1 .. Count'Last;
+
+   -- Header definition
+
+   CardSize : constant Positive := 80;
+   -- [FITS Sects. 3.3.1, 4.4.1]
+
+   package Card is new Ada.Strings.Bounded.Generic_Bounded_Length(CardSize);
+   type Header_Type is array (Positive range <>) of Card.Bounded_String;
+   -- Headers stored in text files are lines of max 80 characters
+
+   HDU_AfterLast : constant := Positive'Last;
+   -- Write's default behaviour is append a Header after last HDU in file
 
    function  Read (File : in FITS_File_Type; HDU_Num : in Positive) return Header_Type;
 
