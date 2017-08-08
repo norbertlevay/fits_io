@@ -9,22 +9,33 @@
 -- serialize and place FITS-Header into the stream and/or
 -- to get it ("deserialize") from the stream.
 --
--- Set_Index allows positioning in the stream if the meda allows it
+-- Set_Index allows positioning in the stream if the media allows it
 -- (for files yes, for network maybe?).
 
 with Ada.Streams;
 
 package FITSStream is
 
--- type Header_Rec is new Ada.Streams.Stream_Type
+-- type Header_Rec is new Ada.Streams.Stream_Type ?? needs to derive from Stream - probably not
+
+-- function List_Content(Stream) return HDU_Info_Array;
+   -- list HDU properties (Cards, Data Type and dimensionality)
 
 -- procedure Set_Index(Stream,HDU_Num);
+   -- set file-index to begining of the HDU
 
--- procedure Read (Stream,Header_Rec);
--- procedure Write(Stream,Header_Rec);
+-- procedure Read_Header (Stream,Header_Type);
+-- procedure Write_Header(Stream,Header_Type);
 
--- use Read  as 'Read  for Header_Rec;
--- use Write as 'Write for Header_Rec;
+-- procedure Read_Data (Stream,Data_Array,Offset);
+-- procedure Write_Data(Stream,Data_Array,Offset);
+   -- Offset counted in Data_Type relative to start of Data_Unit (after the Header)
+
+-- for Header_Type'Read  use Read_Header;
+-- for Header_Type'Write use Write_Header;
+
+-- for Data_Type'Read  use Read_Data;
+-- for Data_Type'Write use Write_Data;
 
 end FITSStream;
 
