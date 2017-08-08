@@ -76,8 +76,8 @@ is
  end Read_HeaderFromTextFile;
 
 
- Fits : Fits_IO.File_Type;
- Mode : Fits_IO.File_Mode := Append_File;
+ Fits : Fits_IO.FITS_File_Type;
+ Mode : Fits_IO.FITS_File_Mode := Append_File;
  Name : String    := "test.fits";
  Header : Header_Type :=
   (Card.To_Bounded_String("BITPIX  = 8"),

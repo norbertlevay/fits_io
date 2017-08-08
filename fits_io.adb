@@ -1,4 +1,4 @@
---
+
 -- FITS_IO implementation notes
 --
 -- Current implementation is based on two elements:
@@ -9,7 +9,7 @@
 --
 -- 2, FITS-File HDU-lists
 -- This is a vector of structures which store HDU's positions and sizes
--- (and other 'useful' info). It is part of File-handle record (FIST_IO.File_Type)
+-- (and other 'useful' info). It is part of File-handle record (FIST_IO.FITS_File_Type)
 -- and is filled in Open/Create and Write, and accessed in Read.
 
 
@@ -126,9 +126,9 @@ package body FITS_IO is
  --
  -- File handler
  --
- type File_Type_Record is record
+ type FITS_File_Type_Record is record
   BlocksFile : BIO.SIO.File_Type;
-  Mode       : File_Mode;   -- FITS_IO.Mode
+  Mode       : FITS_File_Mode;   -- FITS_IO.Mode
   HDUVect    : HDUV.Vector; -- dynamic vector implementation HDUVect
  end record;
 
@@ -262,7 +262,7 @@ package body FITS_IO is
  --
  -- for Open - using existing HDU's
  --
- procedure Parse_HDU_Positions ( File : in out File_Type )
+ procedure Parse_HDU_Positions ( File : in out FITS_File_Type )
  is
    -- controlling the loops
    HDU_Cnt : Positive := 1;
@@ -304,7 +304,7 @@ package body FITS_IO is
 
       HDUInfo.CardsCnt := TotCardCnt; -- FIXME Natural to Positive conversion
 
-      -- HDU info cllected now store it to File_Type
+      -- HDU info cllected now store it to FITS_File_Type
       locHDUV.HDUInfo := HDUInfo;
       locHDUV.HDUPos  := HDU_Info2Pos(HeadStart_Index, HDUInfo);
       HDUV.Append(File.HDUVect, locHDUV);
@@ -356,13 +356,13 @@ package body FITS_IO is
  -- Interface --
  ---------------
 
- procedure Open ( File : in out File_Type;
-                  Mode : in File_Mode;
+ procedure Open ( File : in out FITS_File_Type;
+                  Mode : in FITS_File_Mode;
                   Name : in String;
                   Form : in String   := "shared=no")
  is
  begin
-  File := new File_Type_Record;
+  File := new FITS_File_Type_Record;
   BIO.SIO.Open( File.BlocksFile,
                 BIO.SIO.In_File,
                 Name,Form);--[GNAT,9.2 FORM strings]
@@ -375,9 +375,9 @@ package body FITS_IO is
  --
  --
  --
- procedure Close ( File : in out File_Type ) is
+ procedure Close ( File : in out FITS_File_Type ) is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
-                                            (File_Type_Record, File_Type);
+                                            (FITS_File_Type_Record, FITS_File_Type);
  begin
   BIO.SIO.Close(File.BlocksFile);
   -- FIXME how to destroy dynamic-Vector ? Needed at all/garbageCollector? For now do only Clear()
@@ -423,13 +423,13 @@ package body FITS_IO is
  -- Append_Mode (called without HDU_Num) appends the Header to the end of the file
  -- Note:
  -- FIXME is this good idea at all -> Better use separate Append(File,Header) besides Write(File,Header,HDU_Num)
- procedure Write ( File    : in out File_Type;
+ procedure Write ( File    : in out FITS_File_Type;
                    Header  : in Header_Type;
                    HDU_Num : in Positive := HDU_AfterLast )-- default: Append
  is
   HeaderBlocks : BIO.HeaderBlockArray_Type := To_HeaderBlockArray(Header);
   HDUInfo      : HDU_Info_Type := Parse_HDU_Info( HeaderBlocks );
-  CurMode      : File_Mode := File.Mode;
+  CurMode      : FITS_File_Mode := File.Mode;
   HDUIx  : Positive;
   FileIx : Positive_Count;
   -- Fits File consists of sequence of HDU's of
@@ -530,12 +530,12 @@ package body FITS_IO is
  -- if Mode Out_File   : write will create first HDU of a new file
  -- if Mode Append_Mode: write will create new HDU at the end of a file
  -- FIXME check Create + Append behaviour: 2nd case should map to OpenFile in Append_Mode ?
- procedure Create ( File : in out File_Type;
-                    Mode : in File_Mode;
+ procedure Create ( File : in out FITS_File_Type;
+                    Mode : in FITS_File_Mode;
                     Name : in String;
                     Form : in String    := "shared=no") is
  begin
-  File := new File_Type_Record;
+  File := new FITS_File_Type_Record;
   BIO.SIO.Create( File.BlocksFile,
                 BIO.To_SIO(Mode),
                 Name,Form);
@@ -582,7 +582,7 @@ package body FITS_IO is
  --
  -- Read header from FITS-file
  --
- function  Read ( File    : in  File_Type;
+ function  Read ( File    : in  FITS_File_Type;
                   HDU_Num : in  Positive ) return Header_Type
  is
   Header   : Header_Type(1..HDUV.Element(File.HDUVect,HDU_Num).HDUInfo.CardsCnt);
@@ -612,7 +612,7 @@ package body FITS_IO is
  --
  --
  --
- procedure List_HDUInfo (File : in File_Type;
+ procedure List_HDUInfo (File : in FITS_File_Type;
                          Print: not null access
                            procedure(HDUInfo : HDU_Info_Type; Index : Positive))
  is
@@ -681,7 +681,7 @@ package body FITS_IO is
  -- user level Read/Write: works by DataType
 
  -- FIXME should this check be done in To_SIO ? e.g. would do both: convert and check
- function  Is_Inside_DU(File     : in File_Type;
+ function  Is_Inside_DU(File     : in FITS_File_Type;
                         HDU_Num  : in Positive;  -- 1,2,3...
                         Start    : in Positive_Count;  -- first DataType position where Write/Read
                         DataType : in BITPIX_Type;     -- DataType to dtermine size
@@ -697,7 +697,7 @@ package body FITS_IO is
 
 
  -- convert HDU-Offset to SIO file position, relative to begining of the file
- function  To_SIO(File     : in File_Type;
+ function  To_SIO(File     : in FITS_File_Type;
                   HDU_Num  : in Positive;  -- 1,2,3...
                   DataType : in BITPIX_Type;
                   Offset   : in Positive_Count)  -- in units of DataType
@@ -715,7 +715,7 @@ package body FITS_IO is
 
  -- from HDU_Num DataUnit, read Length number of DataType
  -- from FromOffset relative to begining of the DataUnit
- function  Read (File       : in File_Type;
+ function  Read (File       : in FITS_File_Type;
                  HDU_Num    : in Positive;        -- 1,2,3...
                  DataType   : in BITPIX_Type;
                  FromOffset : in Positive_Count;  -- in units of DataType
@@ -745,7 +745,7 @@ package body FITS_IO is
  -- into HDU_Num DataUnit, write the Data
  -- to ToOffset relative to begining of the DataUnit
  -- Data must fit into the DataUnit as defined by the Header
- procedure Write (File     : in File_Type;
+ procedure Write (File     : in FITS_File_Type;
                   HDU_Num  : in Positive;        -- 1,2,3...
                   ToOffset : in Positive_Count;  -- in units of DataType
                   Data     : in DataArray_Type ) -- has length Length(Data)

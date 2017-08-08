@@ -30,15 +30,15 @@ package FITS_IO is
 
    subtype Positive_Count is Count range 1 .. Count'Last;
 
-   type File_Type is limited private;
+   type FITS_File_Type is limited private;
 
-   type File_Mode is (In_File, Inout_File, Out_File, Append_File);
+   type FITS_File_Mode is (In_File, Inout_File, Out_File, Append_File);
 
    --  The following representation clause allows the use of unchecked
    --  conversion for rapid translation between the File_Mode type
    --  used in this package and System.File_IO.
 
-   for File_Mode use
+   for FITS_File_Mode use
      (In_File     => 0,  -- System.File_IO.File_Mode'Pos (In_File)
       Inout_File  => 1,  -- System.File_IO.File_Mode'Pos (Inout_File);
       Out_File    => 2,  -- System.File_IO.File_Mode'Pos (Out_File)
@@ -61,27 +61,27 @@ package FITS_IO is
    ---------------------
 
    procedure Create
-     (File : in out File_Type;
-      Mode : in File_Mode;
+     (File : in out FITS_File_Type;
+      Mode : in FITS_File_Mode;
       Name : in String;
       Form : in String := "shared=no"); --[GNAT 9.2 FORM strings]
 
    procedure Open
-     (File : in out File_Type;
-      Mode : in File_Mode;
+     (File : in out FITS_File_Type;
+      Mode : in FITS_File_Mode;
       Name : in String;
       Form : in String := "shared=no"); --[GNAT 9.2 FORM strings]
 
-   procedure Close (File : in out File_Type);
+   procedure Close (File : in out FITS_File_Type);
 
    ---------------------------------
    -- Input and Output Operations --
    ---------------------------------
 
-   function  Read (File : in File_Type; HDU_Num : in Positive) return Header_Type;
+   function  Read (File : in FITS_File_Type; HDU_Num : in Positive) return Header_Type;
 
    procedure Write
-     (File    : in out File_Type;
+     (File    : in out FITS_File_Type;
       Header  : in Header_Type;
       HDU_Num : in Positive := HDU_AfterLast); -- default: Append
 
@@ -119,7 +119,7 @@ package FITS_IO is
 
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 
-   procedure List_HDUInfo (File : in File_Type;
+   procedure List_HDUInfo (File : in FITS_File_Type;
                            Print: not null access
                              procedure(HDUInfo : HDU_Info_Type; Index : Positive));
    -- HDUVect variant
@@ -149,7 +149,7 @@ package FITS_IO is
      end record;
 
    function  Read
-     (File       : in File_Type;
+     (File       : in FITS_File_Type;
       HDU_Num    : in Positive;        -- 1,2,3...
       DataType   : in BITPIX_Type;
       FromOffset : in Positive_Count;  -- in units of DataType
@@ -157,7 +157,7 @@ package FITS_IO is
     return DataArray_Type;
 
    procedure Write
-     (File     : in File_Type;
+     (File     : in FITS_File_Type;
       HDU_Num  : in Positive;         -- 1,2,3...
       ToOffset : in Positive_Count;   -- in units of DataType
       Data     : in DataArray_Type ); -- has length Length(Data)
@@ -165,8 +165,8 @@ package FITS_IO is
 
 private
 
- type File_Type_Record;
- type File_Type is access File_Type_Record;
+ type FITS_File_Type_Record;
+ type FITS_File_Type is access FITS_File_Type_Record;
 
 --   pragma Pack (Int8Arr_Type);
 --   pragma Pack (Int16Arr_Type);

@@ -33,7 +33,7 @@ package body Commands is
  procedure FITSIO_Print_Header( FileName : in String;
                                 HDU_Num  : Positive := 1 )
  is
-   File : FITS_IO.File_Type;
+   File : FITS_IO.FITS_File_Type;
  begin
    FITS_IO.Open(File, FITS_IO.In_File, FileName);
    declare
@@ -174,7 +174,7 @@ package body Commands is
 
  procedure Print_Struct (FitsFileName : in String)
  is
-  FitsFile : FITS_IO.File_Type;
+  FitsFile : FITS_IO.FITS_File_Type;
   procedure print_HDUInfo (HDUInfo : FITS_IO.HDU_Info_Type; Index : Positive)
   is
       FreeSlotCnt : Natural;
