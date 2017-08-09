@@ -46,7 +46,7 @@ package FITS_IO.Block_IO is
  procedure Write(File    : in SIO.File_Type;
                  Blocks  : in HeaderBlockArray_Type);
 
- function  Read (File    : in  SIO.File_Type;
-                 NBlocks : in  Positive_Count := 1) return HeaderBlockArray_Type;
+ function  Read (File    : in SIO.File_Type;
+                 NBlocks : in Positive_Count := 1) return HeaderBlockArray_Type;
 
 end FITS_IO.Block_IO;
