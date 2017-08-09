@@ -8,10 +8,6 @@ with Ada.Unchecked_Conversion;
 
 package FITS_IO.Block_IO is
 
- package SIO renames Ada.Streams.Stream_IO;
-
- function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode;
-
  BlockSize       : constant Positive_Count := 2880; -- [FITS, Sect 3.1]
  CardsCntInBlock : constant Positive_Count := BlockSize / Positive_Count(CardSize);
  -- [FITS 3.3.1 Primary Header] 36 cards per block        -- conv ok, CardSize 80 const
@@ -33,6 +29,10 @@ package FITS_IO.Block_IO is
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
 
  -- positioning in file
+
+ package SIO renames Ada.Streams.Stream_IO;
+
+ function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode;
 
  function  BlockIndex ( File  : in SIO.File_Type ) return Positive_Count;
 
