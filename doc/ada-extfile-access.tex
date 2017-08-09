@@ -128,6 +128,59 @@ C-streams define following modes for file open:
 \end{itemize}
 
 
+\subsection{Truncation when writing a file}
+\label{sec:truncatefile}
+
+\begin{Verbatim}
+Note in (AARM) Annotated Ada Reference Manual, Sect. Ada Streams_IO
+(http://www.adaic.org/resources/add_content/standards/05aarm/html/AA-A-12-1.html
+\textbf{Ada Reference Manual, ISO/IEC 8652:2007(E) Ed. 3)}:
+
+Inconsistencies With Ada 95
+36.a/2
+{AI95-00283-01} {inconsistencies with Ada 95} Amendment Correction: 
+The description of the subprograms for managing files was corrected so 
+that they do not require truncation of the external file  a stream file 
+is not a sequential file. An Ada 95 program that expects truncation 
+of the stream file may not work under Ada 2005. Note that the Ada 95 standard 
+was ambiguous on this point (the normative wording seemed to require truncation, 
+but didn't explain where; the AARM notes seemed to expect behavior like 
+Direct_IO), and implementations varied widely. Therefore, as a 
+practical matter, code that depends on stream truncation may not work 
+even in Ada 95; deleting the file before opening it provides truncation that works in 
+both Ada 95 and Ada 2005. 
+\end{Verbatim}
+
+\begin{Verbatim}
+https://www.pegasoft.ca/resources/boblap/16.html
+
+\textbf{The Big Online Book of Linux Ada Programming}:
+
+Abstract
+
+According to studies, GCC Ada may allow you to develop Linux applications 
+in half the time compared to C. A language designed for team development and 
+included with most Linux distributions, Ada is a language well-suited for 
+serious open source development and is superior in many ways to C++ or Java. 
+Find out if Ada is right for your project in this 20 chapter reference 
+to using Ada on Linux.
+
+...
+
+16.8 Opening and Closing Files
+
+The standard Ada packages Text_IO, Sequential_IO and Direct_IO are suitable 
+for simple projects, but they were never intended as a complete solution 
+for large-scale applications. If you want to do efficient file manipulation, 
+you'll have to write your own routines based on kernel calls or 
+the standard C library.
+
+gnat's OSLIB package contains low-level commands to work with UNIX files. 
+However, you can always create your own.
+
+\end{Verbatim}
+
+
 
 \subsection{FITS\_IO file modes and write behaviour}
 
