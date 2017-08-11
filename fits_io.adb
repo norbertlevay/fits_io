@@ -127,7 +127,7 @@ package body FITS_IO is
  -- File handler
  --
  type FITS_File_Type_Record is record
-  BlocksFile : BIO.SIO.File_Type;
+  BlocksFile : BIO.File_Type;
   Mode       : FITS_File_Mode;   -- FITS_IO.Mode
   HDUVect    : HDUV.Vector; -- dynamic vector implementation HDUVect
  end record;
@@ -281,7 +281,7 @@ package body FITS_IO is
    locHDUV : HDU_DATA_Type;-- for HDUVect implementation
  begin
 
-   while not BIO.SIO.End_OF_File(File.BlocksFile)
+   while not BIO.End_OF_File(File.BlocksFile)
    loop
 
       HDUInfo := Null_HDU_Info;
@@ -363,12 +363,12 @@ package body FITS_IO is
  is
  begin
   File := new FITS_File_Type_Record;
-  BIO.SIO.Open( File.BlocksFile,
-                BIO.SIO.In_File,
-                Name,Form);--[GNAT,9.2 FORM strings]
+  BIO.Open( File.BlocksFile,
+            BIO.SIO.In_File,
+            Name,Form);--[GNAT,9.2 FORM strings]
   HDUVect_init(File.HDUVect);
   Parse_HDU_Positions ( File ); -- Fills in HDU data to File
-  BIO.SIO.Set_Mode(File.BlocksFile,BIO.To_SIO(Mode));
+  BIO.Set_Mode(File.BlocksFile,BIO.To_BIO(Mode));
   File.Mode := Mode;
  end Open;
 
@@ -379,7 +379,7 @@ package body FITS_IO is
   procedure Delete_FileType is new Ada.Unchecked_Deallocation
                                             (FITS_File_Type_Record, FITS_File_Type);
  begin
-  BIO.SIO.Close(File.BlocksFile);
+  BIO.Close(File.BlocksFile);
   -- FIXME how to destroy dynamic-Vector ? Needed at all/garbageCollector? For now do only Clear()
   -- Ada.Finalization.Finalize(File.HDUVect);
   HDUV.Clear(File.HDUVect);
@@ -536,11 +536,11 @@ package body FITS_IO is
                     Form : in String    := "shared=no") is
  begin
   File := new FITS_File_Type_Record;
-  BIO.SIO.Create( File.BlocksFile,
-                BIO.To_SIO(Mode),
-                Name,Form);
+  BIO.Create( File.BlocksFile,
+              BIO.To_BIO(Mode),
+              Name,Form);
   HDUVect_init(File.HDUVect);
-  BIO.SIO.Set_Mode(File.BlocksFile,BIO.To_SIO(Mode));
+  BIO.Set_Mode(File.BlocksFile,BIO.To_BIO(Mode));
   File.Mode := Mode;
  end Create;
 
@@ -738,7 +738,7 @@ package body FITS_IO is
    Set_Index (File.BlocksFile, To);
    -- Fits_IO.Count inhereted from SIO -> SIO.Set_Index inherited for Fits_IO.Count
 
-   DataArray_Type'Read( BIO.SIO.Stream(File.BlocksFile), Data );
+   DataArray_Type'Read( BIO.Stream(File.BlocksFile), Data );
   return Data;
  end Read;
 
@@ -771,7 +771,7 @@ package body FITS_IO is
    -- add these after record definition:
    -- pragma Unchecked_Union (DataArray_Type);
    -- pragma Convention (C, Union);    -- optional, only if interfacing C-lang
-   DataArray_Type'Write( BIO.SIO.Stream(File.BlocksFile), Data );
+   DataArray_Type'Write( BIO.Stream(File.BlocksFile), Data );
  end Write;
 
 end FITS_IO;

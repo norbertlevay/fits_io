@@ -28,11 +28,47 @@ package FITS_IO.Block_IO is
 
  EmptyBlock : constant HeaderBlock_Type := (others => EmptyCard);
 
- -- positioning in file
+ ----------------------
+ -- File managemennt --
+ ----------------------
+
+ -- we use renames and subtypes to hide Block_IO implementation,
+ -- so it can be replaced by Direct_IO or C-Streams implementation
+ -- without modification of FITS_IO. E.g. all calls/references to
+ -- Block_IO package must be BIO.xxxx prefixed (no reference to SIO).
 
  package SIO renames Ada.Streams.Stream_IO;
 
- function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode;
+ subtype File_Type is SIO.File_Type;
+ subtype File_Mode is SIO.File_Mode;
+ subtype Stream_Access is SIO.Stream_Access;
+ -- renames types
+
+ function  To_BIO( Mode : in FITS_File_Mode ) return File_Mode;
+ -- FIXME move to FITS_IO & should convert to BIO (which renames SIO)
+
+ procedure Set_Mode (File : in out File_Type; Mode : File_Mode) renames SIO.Set_Mode;
+
+
+ procedure Create
+   (File : in out File_Type;
+    Mode : File_Mode := SIO.Out_File;-- FIXME how rename enum values?
+    Name : String := "";
+    Form : String := "") renames SIO.Create;
+
+ procedure Open
+   (File : in out File_Type;
+    Mode : File_Mode;
+    Name : String;
+    Form : String := "") renames Ada.Streams.Stream_IO.Open;
+
+ procedure Close  (File : in out File_Type) renames SIO.Close;
+
+ function End_Of_File (File : File_Type) return Boolean renames SIO.End_Of_File;
+
+ function Stream (File : File_Type) return Stream_Access renames SIO.Stream;
+
+ -- positioning in file
 
  function  BlockIndex ( File  : in SIO.File_Type ) return Positive_Count;
 

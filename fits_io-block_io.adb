@@ -31,7 +31,7 @@ with Ada.Containers.Vectors; -- since Ada 2005
 
 package body FITS_IO.Block_IO is
 
- function  To_SIO( Mode : in FITS_File_Mode ) return SIO.File_Mode is
+ function  To_BIO( Mode : in FITS_File_Mode ) return File_Mode is
   SIO_Mode : SIO.File_Mode;
  begin
 
@@ -43,7 +43,7 @@ package body FITS_IO.Block_IO is
   end case;
 
   return SIO_Mode;
- end To_SIO;
+ end To_BIO;
 
 -- NOTE: this was previous implemenation of To_SIO(File_Mode)
 --       from standard IO packages GNAT implementation as sample.
