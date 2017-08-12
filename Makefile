@@ -19,12 +19,14 @@ build_date.ads :
 
 
 main : main.adb build_date.ads
-	gnatmake -g -gnat12 -we main.adb -o ${TARGET} -bargs -E
+#	gnatmake -g -gnat12 -we main.adb -o ${TARGET} -bargs -E
+	gnatmake -g -gnat05 -we main.adb -o ${TARGET} -bargs -E
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
 
 test : test.adb build_date.ads
-	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
+#	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
+	gnatmake -g -gnat05 -we test.adb -o testfits -bargs -E
 
 runtestfits : test main
 	./testfits

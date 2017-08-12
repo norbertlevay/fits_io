@@ -213,17 +213,19 @@ package body FITS_IO is
  --
  -- walk through each HeaderBlock
  --
- function  Parse_HeaderBlock( Block : in BIO.HeaderBlock_Type ;
-                              CardCount : out Positive;
-                              HDUInfo : in out HDU_Info_Type )
-  return Boolean
+ procedure  Parse_HeaderBlock( Block     : in BIO.HeaderBlock_Type ;
+                               CardCount : out Positive;
+                               HDUInfo   : in out HDU_Info_Type;
+                               ENDFound  : in out Boolean )
+--  return Boolean
  is
-  ENDFound : Boolean := False;
+--  ENDFound : Boolean := False;
   Card     : BIO.Card_Type;
   CardCnt  : Positive := 1;
   TotCardsInBlock : Positive := Positive(BIO.CardsCntInBlock);
    -- Positive() conv ok, it is const 36
  begin
+  ENDFound := False;
 
   for I in Block'Range loop
     Card := Block( I );
@@ -233,7 +235,7 @@ package body FITS_IO is
     CardCnt := CardCnt + 1;
   end loop;
   CardCount := CardCnt;
-  return ENDFound;
+--  return ENDFound;
  end Parse_HeaderBlock;
 
  --
@@ -295,7 +297,8 @@ package body FITS_IO is
          Block        := BIO.Read( File.BlocksFile );
           -- raises exception when EOF reached, if not FITS-file
           -- FIXME ? it is ok, but might waste long time parsing big non-FITS file
-         EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
+--         EndCardFound := Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo );
+         Parse_HeaderBlock( Block(1) , CurCardCnt, HDUInfo, EndCardFound );
          TotCardCnt   := TotCardCnt + CurCardCnt;
          exit when EndCardFound ;
       end loop;
@@ -342,7 +345,8 @@ package body FITS_IO is
 
    for I in HeaderBlocks'Range
     loop
-     EndFound   := Parse_HeaderBlock( HeaderBlocks(I) , CurCardCnt, HDUInfo );
+--     EndFound   := Parse_HeaderBlock( HeaderBlocks(I) , CurCardCnt, HDUInfo );
+     Parse_HeaderBlock( HeaderBlocks(I) , CurCardCnt, HDUInfo, EndFound );
      TotCardCnt := TotCardCnt + CurCardCnt;
      exit when ENDFound;
    end loop;
