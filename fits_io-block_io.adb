@@ -31,19 +31,58 @@ with Ada.Containers.Vectors; -- since Ada 2005
 
 package body FITS_IO.Block_IO is
 
- function  To_BIO( Mode : in FITS_File_Mode ) return File_Mode is
+ function  To_SIO( Mode : in File_Mode ) return SIO.File_Mode is
   SIO_Mode : SIO.File_Mode;
  begin
-
   case Mode is
     when In_File     => SIO_Mode := SIO.In_File;
-    when Inout_File  => SIO_Mode := SIO.In_File;-- special case: GNAT implementation needs to switch mode to become Inout
+    when Inout_File  => SIO_Mode := SIO.Out_File;-- see Set_Mode_Inout()
     when Out_File    => SIO_Mode := SIO.Out_File;
     when Append_File => SIO_Mode := SIO.Append_File;
   end case;
-
   return SIO_Mode;
- end To_BIO;
+ end To_SIO;
+
+ procedure Set_Mode_Inout (File : in out File_Type) is
+ begin
+     SIO.Set_Mode (File, SIO.In_File);
+     SIO.Set_Mode (File, SIO.Out_File);
+ end Set_Mode_Inout;
+ -- See [GNAT ??] Inout_Mode achieved by switching mode of an open file
+
+ procedure Set_Mode (File : in out File_Type; Mode : File_Mode) is
+ begin
+  if Mode = Inout_File then
+    Set_Mode_Inout(File);
+  else
+    SIO.Set_Mode(File, To_SIO(Mode));
+  end if;
+ end Set_Mode;
+
+ procedure Create
+   (File : in out File_Type;
+    Mode : File_Mode := Out_File;
+    Name : String    := "";
+    Form : String    := "") is
+ begin
+    SIO.Create(File,To_SIO(Mode),Name,Form);
+    if Mode = Inout_File then
+      Set_Mode_Inout(File);
+    end if;
+ end Create;
+
+ procedure Open
+   (File : in out File_Type;
+    Mode : File_Mode;
+    Name : String;
+    Form : String := "") is
+ begin
+    SIO.Open(File,To_SIO(Mode),Name,Form);
+    if Mode = Inout_File then
+      Set_Mode_Inout(File);
+    end if;
+ end Open;
+
 
 -- NOTE: this was previous implemenation of To_SIO(File_Mode)
 --       from standard IO packages GNAT implementation as sample.

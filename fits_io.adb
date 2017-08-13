@@ -356,6 +356,20 @@ package body FITS_IO is
    return HDUInfo;
  end Parse_HDU_Info;
 
+ function  To_BIO( Mode : in FITS_File_Mode ) return BIO.File_Mode is
+  BIO_Mode : BIO.File_Mode;
+ begin
+
+  case Mode is
+    when In_File     => BIO_Mode := BIO.In_File;
+    when Inout_File  => BIO_Mode := BIO.Inout_File;
+    when Out_File    => BIO_Mode := BIO.Out_File;
+    when Append_File => BIO_Mode := BIO.Append_File;
+  end case;
+
+  return BIO_Mode;
+ end To_BIO;
+
  ---------------
  -- Interface --
  ---------------
@@ -368,11 +382,11 @@ package body FITS_IO is
  begin
   File := new FITS_File_Type_Record;
   BIO.Open( File.BlocksFile,
-            BIO.SIO.In_File,
+            BIO.In_File,
             Name,Form);--[GNAT,9.2 FORM strings]
   HDUVect_init(File.HDUVect);
   Parse_HDU_Positions ( File ); -- Fills in HDU data to File
-  BIO.Set_Mode(File.BlocksFile,BIO.To_BIO(Mode));
+  BIO.Set_Mode(File.BlocksFile,To_BIO(Mode));
   File.Mode := Mode;
  end Open;
 
@@ -541,10 +555,10 @@ package body FITS_IO is
  begin
   File := new FITS_File_Type_Record;
   BIO.Create( File.BlocksFile,
-              BIO.To_BIO(Mode),
+              To_BIO(Mode),
               Name,Form);
   HDUVect_init(File.HDUVect);
-  BIO.Set_Mode(File.BlocksFile,BIO.To_BIO(Mode));
+  BIO.Set_Mode(File.BlocksFile,To_BIO(Mode));
   File.Mode := Mode;
  end Create;
 
