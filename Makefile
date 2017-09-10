@@ -58,6 +58,5 @@ clean:
 	rm -f ${TARGET} testfits *.o *.ali build_date.* b~main.* b~test.*
 
 
-distclean:
-	make clean
+distclean: clean
 	rm -f *~
