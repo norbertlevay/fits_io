@@ -57,7 +57,12 @@ package FITSStream is
 
 
    procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                   Data       : in out DataArray_Type);
+                   Data       : in out DataArray_Type;
+                   Offset     : in Natural := 0);
+
+   procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
+                    Data       : in DataArray_Type;
+                    Offset     : in Natural := 0);
 
 -- procedure Read_Header (Stream,Header_Type);
 -- procedure Write_Header(Stream,Header_Type);
