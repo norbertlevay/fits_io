@@ -31,8 +31,10 @@ is
  FitsFile : Ada.Streams.Stream_IO.File_Type;
  Name : String    := "test.fits";
 
+ Cnt  : Positive := 80*5;
+
 -- Data : DataArray_Type(int8,6);
- Data : DataArray_Type(Char,36);
+ Data : DataArray_Type(Char,Cnt);
 
 begin
 
@@ -43,7 +45,7 @@ begin
 
  Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
 
- for I in Positive range 1..36 loop
+ for I in Positive range 1..Cnt loop
 --   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
    Ada.Text_IO.Put(Data.CharArr(I));
  end loop;

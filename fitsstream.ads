@@ -28,6 +28,7 @@ package FITSStream is
    -- set file-index to begining of the HDU
 
    type CharArr_Type    is array ( Positive range <> ) of Character;
+   -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
    type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;
    type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
@@ -35,10 +36,10 @@ package FITSStream is
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
-   type BITPIX_Type is (Char, Int8, Int16, Int32, Int64, Float32, Float64);
+   type FITSData_Type is (Char, Int8, Int16, Int32, Int64, Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
 
-   type DataArray_Type ( Option : BITPIX_Type ;
+   type DataArray_Type ( Option : FITSData_Type ;
                          Length : Positive ) is
      record
        case Option is
@@ -51,6 +52,9 @@ package FITSStream is
        when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
       end case;
      end record;
+   -- CharArr : used to access FITS-header
+   -- all other xxxxArr : used to access FITS-data
+
 
    procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
                    Data       : in out DataArray_Type);
