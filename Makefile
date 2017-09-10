@@ -24,6 +24,9 @@ main : main.adb build_date.ads
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
 
+fitsstreamtest : fitsstreamtest.adb fitsstream.ads fitsstream.adb
+	gnatmake -g -we fitsstreamtest.adb -o testfitstream
+
 test : test.adb build_date.ads
 #	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
 	gnatmake -g -gnat05 -we test.adb -o testfits 
