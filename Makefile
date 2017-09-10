@@ -24,8 +24,8 @@ main : main.adb build_date.ads
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
 
-fitsstreamtest : fitsstreamtest.adb fitsstream.ads fitsstream.adb
-	gnatmake -g -we fitsstreamtest.adb -o testfitstream
+fitsstreamtest : build_date.ads fitsstreamtest.adb fitsstream.ads fitsstream.adb
+	gnatmake -g -we fitsstreamtest.adb -o testfitsstream
 
 test : test.adb build_date.ads
 #	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
@@ -55,7 +55,7 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f ${TARGET} testfits *.o *.ali build_date.* b~main.* b~test.*
+	rm -f ${TARGET} testfitsstream testfits *.o *.ali build_date.* b~main.* b~test.*
 
 
 distclean: clean
