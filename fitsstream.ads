@@ -23,9 +23,13 @@ package FITSStream is
 -- function List_Content(Stream) return HDU_Info_Array;
    -- list HDU properties (Cards, Data Type and dimensionality)
 
-   -- procedure Set_Index(FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-   --                    HDU_Num    : in Positive  ) is null;
-   -- set file-index to begining of the HDU
+   type Unit_Type is (HeaderUnit, DataUnit);
+
+   procedure Set_Index(FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
+                       HDU_Num    : in Positive;          -- which HDU
+                       UnitType   : in Unit_Type;         -- position to start of HeaderUnit or DataUnit
+                       Offset     : in Positive) is null; -- offset with the Unit (in units of FITSData_Type)
+   -- set file-index to correct position for Read/Write
 
    type CharArr_Type    is array ( Positive range <> ) of Character;
    -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
