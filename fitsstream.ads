@@ -28,7 +28,7 @@ package FITSStream is
    procedure Set_Index(FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
                        HDU_Num    : in Positive;          -- which HDU
                        UnitType   : in Unit_Type;         -- position to start of HeaderUnit or DataUnit
-                       Offset     : in Positive) is null; -- offset within the Unit (in units of FITSData_Type)
+                       Offset     : in Natural := 0) is null; -- offset within the Unit (in units of FITSData_Type)
    -- set file-index to correct position for Read/Write
 
    type CharArr_Type    is array ( Positive range <> ) of Character;
@@ -61,12 +61,10 @@ package FITSStream is
 
 
    procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                   Data       : in out DataArray_Type;
-                   Offset     : in Natural := 0);
+                   Data       : in out DataArray_Type);
 
    procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                    Data       : in DataArray_Type;
-                    Offset     : in Natural := 0);
+                    Data       : in DataArray_Type);
 
 -- procedure Read_Header (Stream,Header_Type);
 -- procedure Write_Header(Stream,Header_Type);

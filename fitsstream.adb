@@ -5,8 +5,7 @@
 package body FITSStream is
 
    procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                   Data       : in out DataArray_Type;
-                   Offset     : in Natural := 0)
+                   Data       : in out DataArray_Type)
    is
    begin
 
@@ -15,8 +14,7 @@ package body FITSStream is
    end Read;
 
    procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                    Data       : in DataArray_Type;
-                    Offset     : in Natural := 0)
+                    Data       : in DataArray_Type)
    is
    begin
 
