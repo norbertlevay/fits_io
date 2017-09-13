@@ -43,6 +43,9 @@ package body FITSStream is
     end if;
 
     -- add Offset
+     CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
+     Ada.Streams.Stream_IO.Set_Index(FitsFile, CurIndex + Count(Offset));
+     -- FIXME explicit conversion Natural -> Count
 
    end Set_Index;
 
