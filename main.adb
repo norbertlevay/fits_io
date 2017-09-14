@@ -103,9 +103,9 @@ procedure main is
 	        i := i + 1;
         	Header_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-		Put_Line("Write Header not implemented.");
---                Write_Header(To_String(Input_File_Path),
---                             To_String(Header_File_Path), HDU_Num);
+--		Put_Line("Write Header not implemented.");
+                Write_Header(To_String(Input_File_Path),
+                             To_String(Header_File_Path), HDU_Num);
         end if;
 
      else

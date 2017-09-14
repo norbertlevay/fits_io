@@ -74,9 +74,35 @@ package body Commands is
    return Header;
  end Read_HeaderFromTextFile;
 
+ function Size( Header : FITS_IO.Header_Type ) return Natural
+ -- returns Header size in Blocks
+ is
+ begin
+  if 0 = Header'Length then
+   return 0;
+  else
+   return 1 + (Header'Length - 1) / 36; -- FIXME CardsCntInBlock;
+  end if;
+ end Size;
+
+
  --
  -- write header to file
  --
+ procedure Write_Header( FitsFileName   : in String;
+ 			 HeaderFileName : in String;
+                         HDU_Num        : Positive := 1 )
+ is
+   InHDUHandle : FITS_IO.FITS_File_Type;
+   Header : FITS_IO.Header_Type := Read_HeaderFromTextFile( HeaderFileName );
+   HeaderSizeInBlocks       : Positive := Size(Header);
+   InFileHeaderSizeInBlocks : Positive;
+ begin
+   FITS_IO.Open ( InHDUHandle, FITS_IO.Inout_File, FitsFileName );
+   FITS_IO.Write( InHDUHandle, Header, HDU_Num  );-- FIXME switches mode internally for write-without-truncate
+   FITS_IO.Close( InHDUHandle );
+ end Write_Header;
+
 -- procedure Write_Header( FitsFileName   : in String;
 -- 			 HeaderFileName : in String;
 --                         HDU_Num        : Positive := 1 )
