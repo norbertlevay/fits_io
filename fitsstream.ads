@@ -12,16 +12,19 @@
 -- Set_Index allows positioning in the stream if the media allows it
 -- (for files yes, for network maybe?).
 
+-- type Header_Rec is new Ada.Streams.Stream_Type ??
+-- needs to derive from Stream - probably not
+--
+
 with Interfaces;
 
 with Ada.Streams.Stream_IO;
 
 package FITSStream is
 
--- type Header_Rec is new Ada.Streams.Stream_Type ?? needs to derive from Stream - probably not
-
--- function List_Content(Stream) return HDU_Info_Array;
-   -- list HDU properties (Cards, Data Type and dimensionality)
+   ------------------------------
+   -- Positioning in FITS-file --
+   ------------------------------
 
    type Unit_Type is (HeaderUnit, DataUnit);
 
@@ -30,6 +33,11 @@ package FITSStream is
                        UnitType : in Unit_Type;    -- position to start of HeaderUnit or DataUnit
                        Offset   : in Natural := 0); -- offset within the Unit (in units of FITSData_Type)
    -- set file-index to correct position for Read/Write
+
+
+   -------------------------------
+   -- HeaderUnit DataUnit types --
+   -------------------------------
 
    type CharArr_Type    is array ( Positive range <> ) of Character;
    -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
@@ -59,7 +67,6 @@ package FITSStream is
    -- CharArr : used to access FITS-header
    -- all other xxxxArr : used to access FITS-data
 
-
    procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
                    Data       : in out DataArray_Type);
 
@@ -78,6 +85,33 @@ package FITSStream is
 
 -- for Data_Type'Read  use Read_Data;
 -- for Data_Type'Write use Write_Data;
+
+
+   ------------------------------------------
+   -- List FITS FIle content : HDU params  --
+   ------------------------------------------
+
+   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
+   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+   -- that no data follow the header in the HDU."
+
+   type Dim_Type is array (1..MaxAxes) of Positive;-- FITS poses no limit on max value of NAXISi
+   type HDU_Info_Type is record
+      CardsCnt : Positive;    -- number of cards in this Header
+      Data     : FITSData_Type; -- data type as given by BITPIX
+      BitPix   : Positive;    -- BITPIX from Header (data size in bits)
+      Naxes    : NAXIS_Type;  -- NAXIS  from header
+      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
+   end record;
+
+   Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
+
+   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
+
+   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
+                          HDUInfoArr : in out HDU_Info_Arr) is null;
+   -- list HDU properties (Cards, Data Type and dimensionality)
 
 end FITSStream;
 
