@@ -26,11 +26,12 @@ package FITSStream is
    -- Positioning in FITS-file --
    ------------------------------
 
-   type Unit_Type is (HeaderUnit, DataUnit);
+   type FITSData_Type is (Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
 
    procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
-                       HDUNum   : in Positive;     -- which HDU
-                       UnitType : in Unit_Type;    -- position to start of HeaderUnit or DataUnit
+                       HDUNum   : in Positive;      -- which HDU
+                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in Natural := 0); -- offset within the Unit (in units of FITSData_Type)
    -- set file-index to correct position for Read/Write
 
@@ -58,9 +59,6 @@ package FITSStream is
    type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
-
-   type FITSData_Type is (Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
-   -- [FITS, Sect 4.4.1.1 Table 8]
 
    type DataArray_Type ( Option : FITSData_Type ;
                          Length : Positive ) is
@@ -109,15 +107,20 @@ package FITSStream is
    -- that no data follow the header in the HDU."
 
    type Dim_Type is array (1..MaxAxes) of Positive;-- FITS poses no limit on max value of NAXISi
-   type HDU_Info_Type is record
-      CardsCnt : Positive;    -- number of cards in this Header
+   type DUSizeParam_Type is record
       Data     : FITSData_Type; -- data type as given by BITPIX
-      BitPix   : Positive;    -- BITPIX from Header (data size in bits)
+      BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
       Naxes    : NAXIS_Type;  -- NAXIS  from header
       Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
    end record;
+   -- collects data which defines DataUnit size
 
-   Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
+   type HDU_Info_Type is record
+      CardsCnt    : Positive;    -- number of cards in this Header
+      DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
+   end record;
+
+   --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
 
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 

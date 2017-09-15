@@ -29,12 +29,15 @@ with FITSStream; use FITSStream;
 procedure fitsstreamtest
 is
  FitsFile : Ada.Streams.Stream_IO.File_Type;
+ Inx1 : Ada.Streams.Stream_IO.Count;
+ Inx2 : Ada.Streams.Stream_IO.Count;
  Name : String    := "test.fits";
 
- Cnt  : Positive := 80*5;
-
+-- Cnt  : Positive := 80*5;
 -- Data : DataArray_Type(int8,6);
- Data : DataArray_Type(Char,Cnt);
+-- Data : DataArray_Type(Char,Cnt);
+ Cnt  : Positive := 10;
+ Data : DataArray_Type(Card,Cnt);
 
 begin
 
@@ -43,14 +46,19 @@ begin
 
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 
+ inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
  Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
+ inx2 := Ada.Streams.Stream_IO.Index(FitsFile);
 
  for I in Positive range 1..Cnt loop
 --   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
-   Ada.Text_IO.Put(Data.CharArr(I));
+--   Ada.Text_IO.Put(Data.CharArr(I));
+   Ada.Text_IO.Put(Data.CardArr(I));
  end loop;
 
  Ada.Streams.Stream_IO.Close(FitsFile);
+
+ Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
 
 -- ---------------------------------------
 

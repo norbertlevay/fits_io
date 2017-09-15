@@ -9,7 +9,7 @@ TARGET=fits
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: main test
+all: main test fitsstreamtest
 
 
 build_date.ads :
@@ -25,7 +25,7 @@ main : main.adb build_date.ads
 # -gnaty <-- prints warnings on identation style
 
 fitsstreamtest : build_date.ads fitsstreamtest.adb fitsstream.ads fitsstream.adb
-	gnatmake -g -we fitsstreamtest.adb -o testfitsstream
+	gnatmake -g -we fitsstreamtest.adb -o fitsstreamtest
 
 test : test.adb build_date.ads
 #	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
@@ -55,7 +55,7 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f ${TARGET} testfitsstream testfits *.o *.ali build_date.* b~main.* b~test.*
+	rm -f ${TARGET} fitsstreamtest testfits *.o *.ali build_date.* b~main.* b~test.*
 
 
 distclean: clean

@@ -96,7 +96,7 @@ package body Commands is
    InHDUHandle : FITS_IO.FITS_File_Type;
    Header : FITS_IO.Header_Type := Read_HeaderFromTextFile( HeaderFileName );
    HeaderSizeInBlocks       : Positive := Size(Header);
-   InFileHeaderSizeInBlocks : Positive;
+--   InFileHeaderSizeInBlocks : Positive;
  begin
    FITS_IO.Open ( InHDUHandle, FITS_IO.Inout_File, FitsFileName );
    FITS_IO.Write( InHDUHandle, Header, HDU_Num  );-- FIXME switches mode internally for write-without-truncate
