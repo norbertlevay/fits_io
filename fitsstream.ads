@@ -39,6 +39,17 @@ package FITSStream is
    -- HeaderUnit DataUnit types --
    -------------------------------
 
+   CardSize : constant Positive := 80;
+   -- [FITS Sects. 3.3.1, 4.4.1]
+
+   subtype Card_Type is String(1..CardSize);
+   -- makes sure index start with 1
+
+   ENDCard    : constant Card_Type := "END                                                                             ";
+   EmptyCard  : constant Card_Type := (others => ' ');
+
+
+   type CardArr_Type    is array ( Positive range <> ) of Card_Type;
    type CharArr_Type    is array ( Positive range <> ) of Character;
    -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
    type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;
@@ -48,13 +59,14 @@ package FITSStream is
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
-   type FITSData_Type is (Char, Int8, Int16, Int32, Int64, Float32, Float64);
+   type FITSData_Type is (Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
 
    type DataArray_Type ( Option : FITSData_Type ;
                          Length : Positive ) is
      record
        case Option is
+       when Card  =>   CardArr    : CardArr_Type (1 .. Length);
        when Char  =>   CharArr    : CharArr_Type (1 .. Length);
        when Int8  =>   Int8Arr    : Int8Arr_Type (1 .. Length);
        when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
