@@ -26,7 +26,7 @@ package FITSStream is
    -- Positioning in FITS-file --
    ------------------------------
 
-   type FITSData_Type is (Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
+   type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
 
    procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
@@ -49,7 +49,10 @@ package FITSStream is
    ENDCard    : constant Card_Type := "END                                                                             ";
    EmptyCard  : constant Card_Type := (others => ' ');
 
+   CardsCntInBlock : constant Positive := 36;
+   type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
 
+   type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
    type CardArr_Type    is array ( Positive range <> ) of Card_Type;
    type CharArr_Type    is array ( Positive range <> ) of Character;
    -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
@@ -64,6 +67,7 @@ package FITSStream is
                          Length : Positive ) is
      record
        case Option is
+       when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
        when Card  =>   CardArr    : CardArr_Type (1 .. Length);
        when Char  =>   CharArr    : CharArr_Type (1 .. Length);
        when Int8  =>   Int8Arr    : Int8Arr_Type (1 .. Length);

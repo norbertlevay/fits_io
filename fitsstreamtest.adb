@@ -36,8 +36,12 @@ is
 -- Cnt  : Positive := 80*5;
 -- Data : DataArray_Type(int8,6);
 -- Data : DataArray_Type(Char,Cnt);
- Cnt  : Positive := 10;
- Data : DataArray_Type(Card,Cnt);
+
+-- Cnt  : Positive := 10;
+-- Data : DataArray_Type(Card,Cnt);
+
+ Cnt  : Positive := 2;
+ Data : DataArray_Type(HBlock,Cnt);
 
 begin
 
@@ -53,7 +57,10 @@ begin
  for I in Positive range 1..Cnt loop
 --   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
 --   Ada.Text_IO.Put(Data.CharArr(I));
-   Ada.Text_IO.Put(Data.CardArr(I));
+   for J in 1..CardsCntInBlock loop
+   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
+   end loop;
+
  end loop;
 
  Ada.Streams.Stream_IO.Close(FitsFile);
