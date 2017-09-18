@@ -94,16 +94,16 @@ package body FITSStream is
     Card : Card_Type;
     FreeSlotCnt : Natural;
    begin
-    Ada.Text_IO.Put_Line("Parse_Header...");
+--    Ada.Text_IO.Put_Line("Parse_Header...");
 
     Card_Type'Read( Stream(FitsFile), Card );
     HDUInfo.CardsCnt := 1;
 
-    Ada.Text_IO.Put_Line("Card#" &
-                          Integer'Image(HDUInfo.CardsCnt) &
-                          " >" &
-                          Card &
-                          "< ");
+--    Ada.Text_IO.Put_Line("Card#" &
+--                          Integer'Image(HDUInfo.CardsCnt) &
+--                          " >" &
+--                          Card &
+--                          "< ");
 
     while Card /= ENDCard
     loop
@@ -111,11 +111,11 @@ package body FITSStream is
       Card_Type'Read( Stream(FitsFile), Card );
       HDUInfo.CardsCnt := HDUInfo.CardsCnt + 1;
 
-      Ada.Text_IO.Put_Line("Card#" &
-                          Integer'Image(HDUInfo.CardsCnt) &
-                          " >" &
-                          Card &
-                          "< ");
+--      Ada.Text_IO.Put_Line("Card#" &
+--                          Integer'Image(HDUInfo.CardsCnt) &
+--                          " >" &
+--                          Card &
+--                          "< ");
 
     end loop;
 
@@ -131,11 +131,11 @@ package body FITSStream is
       Card_Type'Read( Stream(FitsFile), Card );
       FreeSlotCnt := FreeSlotCnt - 1;
 
-      Ada.Text_IO.Put_Line("Card#" &
-                          Integer'Image(FreeSlotCnt) &
-                          " >" &
-                          Card &
-                          "< ");
+--      Ada.Text_IO.Put_Line("Card#" &
+--                          Integer'Image(FreeSlotCnt) &
+--                          " >" &
+--                          Card &
+--                          "< ");
     end loop;
 
    end Parse_Header;
@@ -185,14 +185,17 @@ package body FITSStream is
 
      -- next assumes we have read past HeaderUnit (including freecard slots)
      CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
-     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
-     Ada.Text_IO.Put_Line("CurDUSize: " & Integer'Image(CurDUSize));
+--     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
+--     Ada.Text_IO.Put_Line("CurDUSize: " & Count'Image(Count(CurDUSize)));
+
+     -- FIXME DUSize must be also rounded in blocks
+     CurDUSize := ((CurDUSize - 1) / 2880 + 1) * 2880;
+
      Ada.Streams.Stream_IO.Set_Index(FitsFile, CurIndex + Count(CurDUSize));
       -- FIXME check explicit conversaion Ada.Streams.Stream_IO.Count - Positive
      CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
-     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
-
-     Ada.Text_IO.Put_Line("SetIndexCurHDUNum: " & Integer'Image(CurHDUNum));
+--     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
+--     Ada.Text_IO.Put_Line("SetIndexCurHDUNum: " & Integer'Image(CurHDUNum));
 
      CurHDUNum := CurHDUNum + 1;
     end loop;
