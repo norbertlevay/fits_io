@@ -1,4 +1,9 @@
 
+-- for debug only
+with Ada.Text_IO;
+
+
+
 -- with Interfaces;
 with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO; -- needed for + operator on Count type
@@ -87,16 +92,50 @@ package body FITSStream is
                           HDUInfo  : in out HDU_Info_Type)
    is
     Card : Card_Type;
+    FreeSlotCnt : Natural;
    begin
+    Ada.Text_IO.Put_Line("Parse_Header...");
 
     Card_Type'Read( Stream(FitsFile), Card );
     HDUInfo.CardsCnt := 1;
+
+    Ada.Text_IO.Put_Line("Card#" &
+                          Integer'Image(HDUInfo.CardsCnt) &
+                          " >" &
+                          Card &
+                          "< ");
 
     while Card /= ENDCard
     loop
       Parse_Card (Card, HDUInfo.DUSizeParam);
       Card_Type'Read( Stream(FitsFile), Card );
       HDUInfo.CardsCnt := HDUInfo.CardsCnt + 1;
+
+      Ada.Text_IO.Put_Line("Card#" &
+                          Integer'Image(HDUInfo.CardsCnt) &
+                          " >" &
+                          Card &
+                          "< ");
+
+    end loop;
+
+    -- read up to block-limit: calc free slots
+    FreeSlotCnt := 36 - (HDUInfo.CardsCnt mod 36);
+    -- mod is 0 when Block has 36 cards e.g. is full
+    if FreeSlotCnt = 36 then
+     FreeSlotCnt := 0;
+    end if;
+
+    while FreeSlotCnt /= 0
+    loop
+      Card_Type'Read( Stream(FitsFile), Card );
+      FreeSlotCnt := FreeSlotCnt - 1;
+
+      Ada.Text_IO.Put_Line("Card#" &
+                          Integer'Image(FreeSlotCnt) &
+                          " >" &
+                          Card &
+                          "< ");
     end loop;
 
    end Parse_Header;
@@ -132,9 +171,9 @@ package body FITSStream is
     CurIndex  : Ada.Streams.Stream_IO.Count := 0;
     OffsetInRootElem : Ada.Streams.Stream_IO.Count;
     HDUInfo   : HDU_Info_Type;
-    StreamRootElemSizeInBits : Positive := 8; -- FIXME [GNAT somwhere says it is 8bits]
    begin
-    null;
+
+    Ada.Streams.Stream_IO.Set_Index(FitsFile, 1);
 
     -- move to begining of HDU
     while CurHDUNum < HDUNum
@@ -142,9 +181,18 @@ package body FITSStream is
      -- move past current Header
      Parse_Header(FitsFile, HDUInfo);
      CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+
+
+     -- next assumes we have read past HeaderUnit (including freecard slots)
      CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
+     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
+     Ada.Text_IO.Put_Line("CurDUSize: " & Integer'Image(CurDUSize));
      Ada.Streams.Stream_IO.Set_Index(FitsFile, CurIndex + Count(CurDUSize));
       -- FIXME check explicit conversaion Ada.Streams.Stream_IO.Count - Positive
+     CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
+     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
+
+     Ada.Text_IO.Put_Line("SetIndexCurHDUNum: " & Integer'Image(CurHDUNum));
 
      CurHDUNum := CurHDUNum + 1;
     end loop;
@@ -167,6 +215,41 @@ package body FITSStream is
     end if;
 
    end Set_Index;
+
+   --
+   --
+   --
+   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
+                          HDUInfoArr : in out HDU_Info_Arr)
+   is
+    HDUCnt  : Positive := 1;
+    HDUInfo : HDU_Info_Type;
+--    CurDUSize : Positive;
+    CurIndex  : Ada.Streams.Stream_IO.Count := 0;
+   begin
+
+    -- start from begining
+    Ada.Streams.Stream_IO.Set_Index(FitsFile,1);
+
+    while not End_Of_File(FitsFile)
+    loop
+
+     -- read current DU-size
+     Parse_Header(FitsFile, HDUInfo);
+     HDUInfoArr(HDUCnt) := HDUInfo;
+
+     Ada.Text_IO.Put_Line("CC: " & Integer'Image(HDUInfo.CardsCnt));
+
+     -- read next HDU Header if any
+
+     HDUCnt := HDUCnt + 1;
+     Set_Index(FitsFile, HDUCnt, Card); -- FIXME Card illogical??
+
+    end loop;
+
+   end List_Content;
+
+
 
    -------------------------------------
    -------------------------------------

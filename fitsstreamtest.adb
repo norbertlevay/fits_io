@@ -37,12 +37,13 @@ is
 -- Data : DataArray_Type(int8,6);
 -- Data : DataArray_Type(Char,Cnt);
 
--- Cnt  : Positive := 10;
--- Data : DataArray_Type(Card,Cnt);
+ Cnt  : Positive := 3;
+ Data : DataArray_Type(Card,Cnt);
 
- Cnt  : Positive := 2;
- Data : DataArray_Type(HBlock,Cnt);
+-- Cnt  : Positive := 2;
+-- Data : DataArray_Type(HBlock,Cnt);
 
+ HDUArr : HDU_Info_Arr(1..2);
 begin
 
  Ada.Text_IO.Put_Line("Open file " & Name & " and read some chars...");
@@ -57,15 +58,32 @@ begin
  for I in Positive range 1..Cnt loop
 --   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
 --   Ada.Text_IO.Put(Data.CharArr(I));
-   for J in 1..CardsCntInBlock loop
-   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
-   end loop;
+   Ada.Text_IO.Put_Line(Data.CardArr(I));
+--   for J in 1..CardsCntInBlock loop
+--   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
+--   end loop;
 
+ end loop;
+ Ada.Streams.Stream_IO.Close(FitsFile);
+ Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
+
+ ------------------------------------------------
+ Ada.Text_IO.Put_Line("Now try List_Content...");
+
+ Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
+
+ List_Content(FitsFile,HDUArr);
+ for I in HDUArr'Range
+ loop
+  Ada.Text_IO.Put_Line("HDU#" &
+                        Integer'Image(I) &
+                        Integer'Image(HDUArr(I).CardsCnt) );
  end loop;
 
  Ada.Streams.Stream_IO.Close(FitsFile);
 
- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
+
+
 
 -- ---------------------------------------
 

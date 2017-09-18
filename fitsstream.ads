@@ -22,6 +22,8 @@ with Ada.Streams.Stream_IO;
 
 package FITSStream is
 
+    StreamRootElemSizeInBits : Positive := 8; -- FIXME [GNAT somwhere says it is 8bits]
+
    ------------------------------
    -- Positioning in FITS-file --
    ------------------------------
@@ -129,7 +131,7 @@ package FITSStream is
    type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
 
    procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
-                          HDUInfoArr : in out HDU_Info_Arr) is null;
+                          HDUInfoArr : in out HDU_Info_Arr);
    -- list HDU properties (Cards, Data Type and dimensionality)
 
 end FITSStream;
