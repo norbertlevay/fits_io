@@ -26,7 +26,7 @@ use
 with FITS; use FITS;
 
 
-procedure fitsstreamtest
+procedure testfits
 is
  FitsFile : Ada.Streams.Stream_IO.File_Type;
  Inx1 : Ada.Streams.Stream_IO.Count;
@@ -109,5 +109,5 @@ begin
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end fitsstreamtest;
+end testfits;
 
