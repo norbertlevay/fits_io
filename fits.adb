@@ -8,7 +8,7 @@ with Ada.Text_IO;
 with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO; -- needed for + operator on Count type
 
-package body FITSStream is
+package body FITS is
 
    type Unit_Type is (HeaderUnit, DataUnit);
 
@@ -275,5 +275,5 @@ package body FITSStream is
 
    end Write;
 
-end FITSStream;
+end FITS;
 

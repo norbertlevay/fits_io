@@ -20,7 +20,7 @@ with Interfaces;
 
 with Ada.Streams.Stream_IO;
 
-package FITSStream is
+package FITS is
 
     StreamRootElemSizeInBits : Positive := 8; -- FIXME [GNAT somwhere says it is 8bits]
 
@@ -134,7 +134,7 @@ package FITSStream is
                           HDUInfoArr : in out HDU_Info_Arr);
    -- list HDU properties (Cards, Data Type and dimensionality)
 
-end FITSStream;
+end FITS;
 
 ---------------
 -- Notes:

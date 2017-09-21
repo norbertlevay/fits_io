@@ -23,7 +23,7 @@ use
     Ada.Strings.Bounded,
     Ada.Command_Line;
 
-with FITSStream; use FITSStream;
+with FITS; use FITS;
 
 
 procedure fitsstreamtest
