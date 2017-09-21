@@ -102,10 +102,7 @@ package FITS is
 -- for Data_Type'Read  use Read_Data;
 -- for Data_Type'Write use Write_Data;
 
-
-   ------------------------------------------
-   -- List FITS FIle content : HDU params  --
-   ------------------------------------------
+-- private
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;
@@ -128,11 +125,8 @@ package FITS is
 
    --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
 
-   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
-
-   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
-                          HDUInfoArr : in out HDU_Info_Arr);
-   -- list HDU properties (Cards, Data Type and dimensionality)
+   procedure Parse_Header(FitsFile : in Ada.Streams.Stream_IO.File_Type;
+                          HDUInfo  : in out HDU_Info_Type);
 
 end FITS;
 
