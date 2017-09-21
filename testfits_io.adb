@@ -78,7 +78,7 @@ is
 
  Fits : Fits_IO.FITS_File_Type;
  Mode : Fits_IO.FITS_File_Mode := Append_File;
- Name : String    := "test.fits";
+ Name : String    := "testfile.fits";
  Header : Header_Type :=
   (Card.To_Bounded_String("BITPIX  = 8"),
    Card.To_Bounded_String("NAXIS   = 2"),

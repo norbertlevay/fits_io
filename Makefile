@@ -33,7 +33,7 @@ testfits_io : testfits_io.adb build_date.ads
 
 runtestfits_io : testfits_io main
 	./testfits_io
-	./fits info test.fits
+	./fits info testfile.fits
 
 testsameheader:   # orig header has 35 cards
 	rm -f $(TESTFILE)

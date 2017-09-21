@@ -31,7 +31,7 @@ is
  FitsFile : Ada.Streams.Stream_IO.File_Type;
  Inx1 : Ada.Streams.Stream_IO.Count;
  Inx2 : Ada.Streams.Stream_IO.Count;
- Name : String    := "test.fits";
+ Name : String    := "testfile.fits";
 
 -- Cnt  : Positive := 80*5;
 -- Data : DataArray_Type(int8,6);
