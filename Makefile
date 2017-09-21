@@ -9,7 +9,7 @@ TARGET=fits
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: main test fitsstreamtest
+all: main testfits_io fitsstreamtest
 
 
 build_date.ads :
@@ -27,12 +27,12 @@ main : main.adb build_date.ads
 fitsstreamtest : build_date.ads fitsstreamtest.adb fits.ads fits.adb
 	gnatmake -g -we fitsstreamtest.adb -o fitsstreamtest
 
-test : test.adb build_date.ads
-#	gnatmake -g -gnat12 -we test.adb -o testfits -bargs -E
-	gnatmake -g -gnat05 -we test.adb -o testfits 
+testfits_io : testfits_io.adb build_date.ads
+#	gnatmake -g -gnat12 -we testfits_io.adb -o testfits_io -bargs -E
+	gnatmake -g -gnat05 -we testfits_io.adb -o testfits_io
 
-runtestfits : test main
-	./testfits
+runtestfits_io : testfits_io main
+	./testfits_io
 	./fits info test.fits
 
 testsameheader:   # orig header has 35 cards
@@ -55,7 +55,7 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f ${TARGET} fitsstreamtest testfits *.o *.ali build_date.* b~main.* b~test.*
+	rm -f ${TARGET} fitsstreamtest testfits_io *.o *.ali build_date.* b~main.* b~testfits_io.*
 
 
 distclean: clean

@@ -29,7 +29,7 @@ with Fits_IO; use Fits_IO;
 --with HDU;
 
 
-procedure test
+procedure testfits_io
 is
  --
  -- count lines in Header file
@@ -177,5 +177,5 @@ begin
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end test;
+end testfits_io;
 
