@@ -1,9 +1,8 @@
 
-with Ada.Text_IO;
 
 
-package body FITS.Content is
+package body FITS.Header is
 
 
-end FITS.Content;
+end FITS.Header;
 

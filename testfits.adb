@@ -93,7 +93,7 @@ begin
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 
  inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
- Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
+ DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
  inx2 := Ada.Streams.Stream_IO.Index(FitsFile);
 
  for I in Positive range 1..Cnt loop

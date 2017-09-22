@@ -1,10 +1,10 @@
 --
 -- This package serializes/deserializes FITS-Header
--- according to FITS standard, so it is ready for File-streams (Ada.Streams.Stream_IO)
--- or other stream-media.
+-- according to FITS standard, so it is ready for
+-- File-streams (Ada.Streams.Stream_IO) or other stream-media.
 --
 -- Users of this package should do stream-media management:
--- see Stream_IO for files, or some other package for network media.
+-- see Stream_IO for files, or some other package(?) for network media.
 -- Once Stream is successfully acquired, this package can be used to
 -- serialize and place FITS-Header into the stream and/or
 -- to get it ("deserialize") from the stream.
@@ -22,15 +22,47 @@ with Ada.Streams.Stream_IO;
 
 package FITS is
 
+    StreamRootElemSizeInBits : Positive := 8;
+    -- FIXME [GNAT somwhere says it is 8bits]
 
-    StreamRootElemSizeInBits : Positive := 8; -- FIXME [GNAT somwhere says it is 8bits]
+   type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
+
+   ------------------------------------------
+   -- List FITS FIle content : HDU params  --
+   ------------------------------------------
+
+   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
+   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+   -- that no data follow the header in the HDU."
+
+   type Dim_Type is array (1..MaxAxes) of Positive;-- FITS poses no limit on max value of NAXISi
+   type DUSizeParam_Type is record
+      Data     : FITSData_Type; -- data type as given by BITPIX
+      BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
+      Naxes    : NAXIS_Type;  -- NAXIS  from header
+      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
+   end record;
+   -- collects data which defines DataUnit size
+
+   type HDU_Info_Type is record
+      CardsCnt    : Positive;    -- number of cards in this Header
+      DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
+   end record;
+
+   --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
+   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
+
+   procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
+                           Print: not null access
+                             procedure(HDUNum : Positive; HDUInfo : HDU_Info_Type));
+   -- list HDU properties (Cards, Data Type and dimensionality)
+
 
    ------------------------------
    -- Positioning in FITS-file --
    ------------------------------
-
-   type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
-   -- [FITS, Sect 4.4.1.1 Table 8]
 
    procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
@@ -39,9 +71,9 @@ package FITS is
    -- set file-index to correct position for Read/Write
 
 
-   -------------------------------
-   -- HeaderUnit DataUnit types --
-   -------------------------------
+   ----------------------------------------------
+   -- HeaderUnit DataUnit types for Read/Write --
+   ----------------------------------------------
 
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
@@ -84,11 +116,16 @@ package FITS is
    -- CharArr : used to access FITS-header
    -- all other xxxxArr : used to access FITS-data
 
-   procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                   Data       : in out DataArray_Type);
+-- explicit Read/Write below not needed.
+-- Clients should use:
+--   DataArray_Type'Read (Stream(FitsFile),Data)
+--   DataArray_Type'Write(Stream(FitsFile),Data)
 
-   procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
-                    Data       : in DataArray_Type);
+--   procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
+--                   Data       : in out DataArray_Type);
+
+--  procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
+--                    Data       : in DataArray_Type);
 
 -- procedure Read_Header (Stream,Header_Type);
 -- procedure Write_Header(Stream,Header_Type);
@@ -105,37 +142,6 @@ package FITS is
 
 -- private
 
-   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
-   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
-   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
-   -- that no data follow the header in the HDU."
-
-   type Dim_Type is array (1..MaxAxes) of Positive;-- FITS poses no limit on max value of NAXISi
-   type DUSizeParam_Type is record
-      Data     : FITSData_Type; -- data type as given by BITPIX
-      BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
-      Naxes    : NAXIS_Type;  -- NAXIS  from header
-      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
-   end record;
-   -- collects data which defines DataUnit size
-
-   type HDU_Info_Type is record
-      CardsCnt    : Positive;    -- number of cards in this Header
-      DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
-   end record;
-
-   --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
-   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
-
-   procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
-                           Print: not null access
-                             procedure(HDUNum : Positive; HDUInfo : HDU_Info_Type));
-   -- list HDU properties (Cards, Data Type and dimensionality)
 
 end FITS;
 
----------------
--- Notes:
-
--- function Index(Stream) return Positive_Count; <- maybe not needed??
-   -- returns HDU_Num within which the Stream_IO.Index currently resides
