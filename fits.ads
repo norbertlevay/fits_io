@@ -22,7 +22,8 @@ with Ada.Streams.Stream_IO;
 
 package FITS is
 
-    StreamRootElemSizeInBits : Positive := 8;
+--    StreamRootElemSizeInBits : Positive := 8;
+    StreamRootElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
 
    type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);

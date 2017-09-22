@@ -6,6 +6,7 @@ with
     Build_Date,
     Commands,
     Ada.Exceptions,
+    Ada.Streams, -- only to know Stream_Element size
     Ada.Text_IO,
     Ada.Direct_IO,
     Ada.Text_IO.Bounded_IO,
@@ -110,6 +111,8 @@ begin
  Ada.Text_IO.Put_Line("Word_Size    " & Integer'Image(System.Word_Size));
  Ada.Text_IO.Put_Line("Address_Size    " & Integer'Image(Standard'Address_Size));
 -- not very useful [Ada] Ada.Text_IO.Put_Line("Memory_Size  " & Long_Long_Integer'Image(System.Memory_Size));
+
+ Ada.Text_IO.Put_Line("StreamElement size: " & Integer'Image(Ada.Streams.Stream_Element'Size));
 
  Ada.Text_IO.Put_Line("Alignment       " & Integer'Image(DataArray_Type'Alignment));
  Ada.Text_IO.Put_Line("DataType   size " & Integer'Image(Data.Option'Size));
