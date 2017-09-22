@@ -45,6 +45,7 @@ package body FITS is
    -------------------------------------
    -- calculate DataUnit size in Bits
    -- implements [FITS 4.4.1.1 Primary Header (1)]
+   -- FIXME is the return type Natural enough? Derive from File-index type!
    function  Size_Bits(DUSizeParam : in out DUSizeParam_Type) return Natural
    is
     DUSize     : Natural := 1;
@@ -61,19 +62,24 @@ package body FITS is
     return (DUSize*BITPIXSize);
    end Size_Bits;
 
+   pragma Inline (Size_Bits);
+
    -----------------------------------------
    -- calculate DataUnit size in FITS Blocks
+   -- FIXME is the return type Natural enough? Derive from File-index type!
+   --     size calcs serve for positioning in the file - must be derived
+   --     from positioning unit, the one used by Set_Index()
    function  Size_Blocks(DUSizeParam : in out DUSizeParam_Type) return Natural
    is
-    DUSizeInBits : Natural := Size_Bits(DUSizeParam);
-    DUSizeInOct  : Natural := DUSizeInBits / 8;
+    DUSizeInBits   : Natural := Size_Bits(DUSizeParam);
+    DUSizeInOct    : Natural := DUSizeInBits / 8;
     DUSizeInBlocks : Natural;
    begin
-
     DUSizeInBlocks := ((DUSizeInOct - 1) / BlockSizeInOct + 1);
---    DUSizeInBlocks := ((DUSizeInRECnt - 1) / BlockSizeInOct + 1);
     return DUSizeInBlocks;
    end Size_Blocks;
+
+   pragma Inline (Size_Blocks);
 
 
    -------------------------------------
@@ -175,7 +181,12 @@ package body FITS is
     CurIndex : SIO.Count := SIO.Index(FitsFile);
    begin
      SIO.Set_Index(FitsFile, CurIndex + Count(DUSizeInBlocks * BlockSizeInSRES));
-      -- FIXME check explicit conversaion Positive -> SIO.Count
+      -- FIXME check explicit conversaion Positive -> SIO.Count:
+      -- Positive might be 32 bit where as Count (GNAT: Long_Long_)
+      -- 64bit-> will fail for large files. In fact [GANT]:
+      --  type Count is new Stream_Element_Offset
+      --                range 0 .. Stream_Element_Offset'Last;
+      --  type Stream_Element_Offset is new Long_Long_Integer;
    end Move_Index_Behind_DataUnit;
 
    -------------------------------------
@@ -218,7 +229,8 @@ package body FITS is
     then
       CurIndex := SIO.Index(FitsFile);
       OffsetInRootElem := Count(Offset * DataType'Size / StreamRootElemSizeInBits );
-      -- FIXME explicit conversion Natural -> Count ok: it is under if then... cannot be zero. But max values ?
+      -- explicit conversion Natural -> Count ok: it is under if then... cannot be zero.
+      -- FIXME But max values ? see Move_Index_...
       SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);
     end if;
 

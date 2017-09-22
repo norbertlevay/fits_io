@@ -115,6 +115,19 @@ package FITS is
    -- CharArr : used to access FITS-header
    -- all other xxxxArr : used to access FITS-data
 
+   -- in file all data are packed
+   pragma Pack (HBlockArr_Type);
+   pragma Pack (CardArr_Type);
+   pragma Pack (CharArr_Type);
+
+   pragma Pack (Int8Arr_Type);
+   pragma Pack (Int16Arr_Type);
+   pragma Pack (Int32Arr_Type);
+   pragma Pack (Int64Arr_Type);
+   pragma Pack (Float32Arr_Type);
+   pragma Pack (Float64Arr_Type);
+   pragma Pack (DataArray_Type);
+
 -- explicit Read/Write below not needed.
 -- Clients should use:
 --   DataArray_Type'Read (Stream(FitsFile),Data)
@@ -140,7 +153,6 @@ package FITS is
 -- for Data_Type'Write use Write_Data;
 
 -- private
-
 
 end FITS;
 
