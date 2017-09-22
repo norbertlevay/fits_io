@@ -45,22 +45,13 @@ is
 -- Cnt  : Positive := 2;
 -- Data : DataArray_Type(HBlock,Cnt);
 
--- HDUArr : HDU_Info_Arr(1..2);
--- callback to Print FITS-file HDU size info
- --procedure Print_HDUInfo(HDUNum : Positive; HDUInfo : HDU_Info_Type)
- --is
- --begin
- -- Ada.Text_IO.Put_Line("HDU#" &
- --                       Integer'Image(HDUNum) &
- --                       Integer'Image(HDUInfo.CardsCnt) );
- --end Print_HDUInfo;
 
-  procedure print_HDUInfo (Index : Positive; HDUInfo : HDU_Info_Type)
+  procedure Print_HDUSize (Index : Positive; HDUSize : HDU_Size_Type)
   is
       FreeSlotCnt : Natural;
   begin
        -- calc free slots
-       FreeSlotCnt := 36 - (HDUInfo.CardsCnt mod 36);
+       FreeSlotCnt := 36 - (HDUSize.CardsCnt mod 36);
        -- mod is 0 when Block has 36 cards e.g. is full
        if FreeSlotCnt = 36 then
         FreeSlotCnt := 0;
@@ -68,21 +59,21 @@ is
 
        Ada.Text_IO.Put("HDUVect HDU#" & Integer'Image(Index) );
        Ada.Text_IO.Put("   Cards: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image(HDUInfo.CardsCnt),5,' ') &
+                       Ada.Strings.Fixed.Tail(Integer'Image(HDUSize.CardsCnt),5,' ') &
                        " EmptyCardSlots: " &
                        Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
 
-       if HDUInfo.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITSData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
+       if HDUSize.DUSizeParam.Naxes > 0 then
+        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITSData_Type'Image(HDUSize.DUSizeParam.Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUInfo.DUSizeParam.Naxes - 1)
+        for J in 1 .. (HDUSize.DUSizeParam.Naxes - 1)
          loop
-          Ada.Text_IO.Put(Integer'Image(HDUInfo.DUSizeParam.Naxis(J)) & " x " );
+          Ada.Text_IO.Put(Integer'Image(HDUSize.DUSizeParam.Naxis(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(Integer'Image(HDUInfo.DUSizeParam.Naxis(HDUInfo.DUSizeParam.Naxes)));
+        Ada.Text_IO.Put(Integer'Image(HDUSize.DUSizeParam.Naxis(HDUSize.DUSizeParam.Naxes)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
-  end print_HDUInfo;
+  end Print_HDUSize;
 
 
 begin
@@ -113,7 +104,7 @@ begin
 
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 
- List_Content(FitsFile,Print_HDUInfo'Access);
+ List_Content(FitsFile,Print_HDUSize'Access);
 
  Ada.Streams.Stream_IO.Close(FitsFile);
 

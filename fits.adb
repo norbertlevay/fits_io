@@ -18,7 +18,6 @@ package body FITS is
    -------------------------------------
    -- calculate DataUnit size in Bits
    -- implements [FITS 4.4.1.1 Primary Header (1)]
-   -- FIXME define record which has only the needed values and use that also in HDU_Info_Type
    function  Size_Bits(DUSizeParam : in out DUSizeParam_Type) return Natural
    is
     DUSize     : Natural := 1;
@@ -57,8 +56,8 @@ package body FITS is
    end To_FITSDataType;
 
    -------------------------------------
-   -- parse from Card value if it is one of HDU_Info_Type, do nothng otherwise
-   -- and store parse value to HDUInfo
+   -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
+   -- and store parse value to DUSizeParam
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
    -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
    procedure Parse_Card(Card        : in Card_Type;
@@ -90,9 +89,9 @@ package body FITS is
    -------------------------------------
    -- parse one header for HDU-size information
    --  from current file-index,
-   --  read cards until END-card found and try to fill in HDUInfo
+   --  read cards until END-card found and try to fill in HDUSize
    procedure Parse_Header(FitsFile : in Ada.Streams.Stream_IO.File_Type;
-                          HDUInfo  : in out HDU_Info_Type)
+                          HDUSize  : in out HDU_Size_Type)
    is
     Card : Card_Type;
     FreeSlotCnt : Natural;
@@ -100,22 +99,22 @@ package body FITS is
 --    Ada.Text_IO.Put_Line("Parse_Header...");
 
     Card_Type'Read( Stream(FitsFile), Card );
-    HDUInfo.CardsCnt := 1;
+    HDUSize.CardsCnt := 1;
 
 --    Ada.Text_IO.Put_Line("Card#" &
---                          Integer'Image(HDUInfo.CardsCnt) &
+--                          Integer'Image(HDUSize.CardsCnt) &
 --                          " >" &
 --                          Card &
 --                          "< ");
 
     while Card /= ENDCard
     loop
-      Parse_Card (Card, HDUInfo.DUSizeParam);
+      Parse_Card (Card, HDUSize.DUSizeParam);
       Card_Type'Read( Stream(FitsFile), Card );
-      HDUInfo.CardsCnt := HDUInfo.CardsCnt + 1;
+      HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
 
 --      Ada.Text_IO.Put_Line("Card#" &
---                          Integer'Image(HDUInfo.CardsCnt) &
+--                          Integer'Image(HDUSize.CardsCnt) &
 --                          " >" &
 --                          Card &
 --                          "< ");
@@ -123,7 +122,7 @@ package body FITS is
     end loop;
 
     -- read up to block-limit: calc free slots
-    FreeSlotCnt := 36 - (HDUInfo.CardsCnt mod 36);
+    FreeSlotCnt := 36 - (HDUSize.CardsCnt mod 36);
     -- mod is 0 when Block has 36 cards e.g. is full
     if FreeSlotCnt = 36 then
      FreeSlotCnt := 0;
@@ -200,7 +199,7 @@ package body FITS is
     CurDUSize : Positive;
     CurIndex  : Ada.Streams.Stream_IO.Count := 0;
     OffsetInRootElem : Ada.Streams.Stream_IO.Count;
-    HDUInfo   : HDU_Info_Type;
+    HDUSize   : HDU_Size_Type;
    begin
 
     Ada.Streams.Stream_IO.Set_Index(FitsFile, 1);
@@ -209,8 +208,8 @@ package body FITS is
     while CurHDUNum < HDUNum
     loop
      -- move past current Header
-     Parse_Header(FitsFile, HDUInfo);
-     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+     Parse_Header(FitsFile, HDUSize);
+     CurDUSize := Size_Bits(HDUSize.DUSizeParam) / StreamRootElemSizeInBits;
      -- move past DataUnit
      Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
      -- next HDU
@@ -221,8 +220,8 @@ package body FITS is
     if DataUnit = To_UnitType(DataType)
     then
      -- move past current Header
-     Parse_Header(FitsFile, HDUInfo);
-     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+     Parse_Header(FitsFile, HDUSize);
+     CurDUSize := Size_Bits(HDUSize.DUSizeParam) / StreamRootElemSizeInBits;
     end if;
 
     -- add Offset
@@ -241,10 +240,10 @@ package body FITS is
    --
    procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
                            Print: not null access
-                             procedure(HDUNum : Positive; HDUInfo : HDU_Info_Type))
+                             procedure(HDUNum : Positive; HDUSize : HDU_Size_Type))
    is
     HDUCnt  : Positive := 1;
-    HDUInfo : HDU_Info_Type;
+    HDUSize : HDU_Size_Type;
     CurDUSize : Positive;
     CurIndex  : Ada.Streams.Stream_IO.Count := 0;
    begin
@@ -255,13 +254,13 @@ package body FITS is
     while not Ada.Streams.Stream_IO.End_Of_File(FitsFile)
     loop
      -- read current DU-size
-     Parse_Header(FitsFile, HDUInfo);
+     Parse_Header(FitsFile, HDUSize);
 
      -- do the callback
-     Print(HDUCnt,HDUInfo);
+     Print(HDUCnt,HDUSize);
 
      -- skip DataUnit
-     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+     CurDUSize := Size_Bits(HDUSize.DUSizeParam) / StreamRootElemSizeInBits;
      Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
 
      -- read next HDU Header if any

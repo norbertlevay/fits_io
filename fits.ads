@@ -46,17 +46,15 @@ package FITS is
    end record;
    -- collects data which defines DataUnit size
 
-   type HDU_Info_Type is record
+   type HDU_Size_Type is record
       CardsCnt    : Positive;    -- number of cards in this Header
       DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
    end record;
 
-   --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
-   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
-
    procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
-                           Print: not null access
-                             procedure(HDUNum : Positive; HDUInfo : HDU_Info_Type));
+                           Print : not null access
+                           procedure(HDUNum : Positive;
+                                     HDUSize : HDU_Size_Type) );
    -- list HDU properties (Cards, Data Type and dimensionality)
 
 
