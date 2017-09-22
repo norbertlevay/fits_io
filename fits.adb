@@ -239,8 +239,9 @@ package body FITS is
    --
    --
    --
-   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
-                          HDUInfoArr : in out HDU_Info_Arr)
+   procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
+                           Print: not null access
+                             procedure(HDUNum : Positive; HDUInfo : HDU_Info_Type))
    is
     HDUCnt  : Positive := 1;
     HDUInfo : HDU_Info_Type;
@@ -255,9 +256,9 @@ package body FITS is
     loop
      -- read current DU-size
      Parse_Header(FitsFile, HDUInfo);
-     HDUInfoArr(HDUCnt) := HDUInfo;
 
-     Ada.Text_IO.Put_Line("CC: " & Integer'Image(HDUInfo.CardsCnt));
+     -- do the callback
+     Print(HDUCnt,HDUInfo);
 
      -- skip DataUnit
      CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
