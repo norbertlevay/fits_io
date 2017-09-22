@@ -24,7 +24,7 @@ use
     Ada.Command_Line;
 
 with FITS; use FITS;
-with FITS.Content; use FITS.Content;
+--with FITS.Content; use FITS.Content;
 
 
 procedure testfits

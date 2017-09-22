@@ -163,37 +163,31 @@ package body FITS is
    end To_UnitType;
 
 
-
-   -- Move internal file pointer (index) to the begining of the next HDU
-   -- Before the call, the file pointer MUST be positioned correctly
-   -- at the first character of the current header.
-   procedure Move_Index_To_Next_HDU
-             (FitsFile : in Ada.Streams.Stream_IO.File_Type)
+   -- Skip DataUnit
+   -- Bofore this call file's internal pointer must be pointing to
+   -- the begining of the DataUnit
+   procedure Move_Index_Behind_DataUnit
+             (FitsFile : in Ada.Streams.Stream_IO.File_Type;
+              DUSize   : in Positive)
    is
-    CurDUSize : Positive;
     CurIndex  : Ada.Streams.Stream_IO.Count := 0;
-    HDUInfo   : HDU_Info_Type;
+    DUSizeInBlocks : Natural;
    begin
-     -- move past current Header
-     Parse_Header(FitsFile, HDUInfo);
-     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
-
      -- next assumes we have read past HeaderUnit (including freecard slots)
      CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
 --     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
 --     Ada.Text_IO.Put_Line("CurDUSize: " & Count'Image(Count(CurDUSize)));
 
      -- FIXME DUSize must be also rounded in blocks
-     CurDUSize := ((CurDUSize - 1) / 2880 + 1) * 2880;
+     DUSizeInBlocks := ((DUSize - 1) / 2880 + 1);
 
-     Ada.Streams.Stream_IO.Set_Index(FitsFile, CurIndex + Count(CurDUSize));
+     Ada.Streams.Stream_IO.Set_Index(FitsFile,
+                                     CurIndex + Count(DUSizeInBlocks * 2880));
       -- FIXME check explicit conversaion Ada.Streams.Stream_IO.Count - Positive
-     CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
+--     CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
 --     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
 --     Ada.Text_IO.Put_Line("SetIndexCurHDUNum: " & Integer'Image(CurHDUNum));
-
-   end Move_Index_To_Next_HDU;
-
+   end Move_Index_Behind_DataUnit;
 
    -------------------------------------
    -- Set file index to position given by params
@@ -214,7 +208,12 @@ package body FITS is
 
     while CurHDUNum < HDUNum
     loop
-     Move_Index_To_Next_HDU(FitsFile);
+     -- move past current Header
+     Parse_Header(FitsFile, HDUInfo);
+     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+     -- move past DataUnit
+     Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
+     -- next HDU
      CurHDUNum := CurHDUNum + 1;
     end loop;
 
@@ -236,6 +235,39 @@ package body FITS is
     end if;
 
    end Set_Index;
+
+   --
+   --
+   --
+   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
+                          HDUInfoArr : in out HDU_Info_Arr)
+   is
+    HDUCnt  : Positive := 1;
+    HDUInfo : HDU_Info_Type;
+    CurDUSize : Positive;
+    CurIndex  : Ada.Streams.Stream_IO.Count := 0;
+   begin
+
+    -- start from begining
+    Ada.Streams.Stream_IO.Set_Index(FitsFile,1);
+
+    while not Ada.Streams.Stream_IO.End_Of_File(FitsFile)
+    loop
+     -- read current DU-size
+     Parse_Header(FitsFile, HDUInfo);
+     HDUInfoArr(HDUCnt) := HDUInfo;
+
+     Ada.Text_IO.Put_Line("CC: " & Integer'Image(HDUInfo.CardsCnt));
+
+     -- skip DataUnit
+     CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
+     Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
+
+     -- read next HDU Header if any
+     HDUCnt := HDUCnt + 1;
+    end loop;
+
+   end List_Content;
 
    -------------------------------------
    -------------------------------------

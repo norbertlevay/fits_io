@@ -22,6 +22,7 @@ with Ada.Streams.Stream_IO;
 
 package FITS is
 
+
     StreamRootElemSizeInBits : Positive := 8; -- FIXME [GNAT somwhere says it is 8bits]
 
    ------------------------------
@@ -124,6 +125,11 @@ package FITS is
    end record;
 
    --Null_HDU_Info : constant HDU_Info_Type := (1,Int32,4,0,(others=>0));
+   type HDU_Info_Arr is array (Positive range <>) of HDU_Info_Type;
+
+   procedure List_Content(FitsFile   : in Ada.Streams.Stream_IO.File_Type;
+                          HDUInfoArr : in out HDU_Info_Arr);
+   -- list HDU properties (Cards, Data Type and dimensionality)
 
    procedure Parse_Header(FitsFile : in Ada.Streams.Stream_IO.File_Type;
                           HDUInfo  : in out HDU_Info_Type);
