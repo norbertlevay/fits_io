@@ -38,7 +38,7 @@ is
 -- Data : DataArray_Type(int8,6);
 -- Data : DataArray_Type(Char,Cnt);
 
- Cnt  : Positive := 3;
+ Cnt  : Positive := 5;
  Data : DataArray_Type(Card,Cnt);
 
 -- Cnt  : Positive := 2;
@@ -69,7 +69,7 @@ begin
  Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
 
  ------------------------------------------------
- Ada.Text_IO.Put_Line("Now try List_Content...");
+ Ada.Text_IO.Put_Line("Open file " & Name & " and List_Content...");
 
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 

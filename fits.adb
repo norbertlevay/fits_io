@@ -1,4 +1,7 @@
 
+
+-- FIXME shouldn't FitsFile : File_Type be 'in out' ? we update the Index...
+
 -- for debug only
 with Ada.Text_IO;
 
@@ -159,29 +162,21 @@ package body FITS is
     return UType;
    end To_UnitType;
 
-   -------------------------------------
-   -- Set file index to position given by params
-   procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
-                       HDUNum   : in Positive;      -- which HDU
-                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in Natural := 0)  -- offset within the Unit (in units of FITSData_Type)
+
+
+   -- Move internal file pointer (index) to the begining of the next HDU
+   -- Before the call, the file pointer MUST be positioned correctly
+   -- at the first character of the current header.
+   procedure Move_Index_To_Next_HDU
+             (FitsFile : in Ada.Streams.Stream_IO.File_Type)
    is
-    CurHDUNum : Positive := 1;
     CurDUSize : Positive;
     CurIndex  : Ada.Streams.Stream_IO.Count := 0;
-    OffsetInRootElem : Ada.Streams.Stream_IO.Count;
     HDUInfo   : HDU_Info_Type;
    begin
-
-    Ada.Streams.Stream_IO.Set_Index(FitsFile, 1);
-
-    -- move to begining of HDU
-    while CurHDUNum < HDUNum
-    loop
      -- move past current Header
      Parse_Header(FitsFile, HDUInfo);
      CurDUSize := Size_Bits(HDUInfo.DUSizeParam) / StreamRootElemSizeInBits;
-
 
      -- next assumes we have read past HeaderUnit (including freecard slots)
      CurIndex  := Ada.Streams.Stream_IO.Index(FitsFile);
@@ -197,6 +192,29 @@ package body FITS is
 --     Ada.Text_IO.Put_Line("CurIndex:  " & Count'Image(CurIndex));
 --     Ada.Text_IO.Put_Line("SetIndexCurHDUNum: " & Integer'Image(CurHDUNum));
 
+   end Move_Index_To_Next_HDU;
+
+
+   -------------------------------------
+   -- Set file index to position given by params
+   procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
+                       HDUNum   : in Positive;      -- which HDU
+                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                       Offset   : in Natural := 0)  -- offset within the Unit (in units of FITSData_Type)
+   is
+    CurHDUNum : Positive := 1;
+    CurDUSize : Positive;
+    CurIndex  : Ada.Streams.Stream_IO.Count := 0;
+    OffsetInRootElem : Ada.Streams.Stream_IO.Count;
+    HDUInfo   : HDU_Info_Type;
+   begin
+
+    Ada.Streams.Stream_IO.Set_Index(FitsFile, 1);
+    -- move to begining of the Primary HDU
+
+    while CurHDUNum < HDUNum
+    loop
+     Move_Index_To_Next_HDU(FitsFile);
      CurHDUNum := CurHDUNum + 1;
     end loop;
 
