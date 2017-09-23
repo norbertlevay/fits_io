@@ -223,6 +223,8 @@ package body FITS is
 
      ToInx := CurIndex +
               SIO.Count(DUSizeInBlocks * FNatural(BlockSizeInSRES));
+      -- FIXME can this happen? If filesystem does not
+      -- support file that bigger then Count'Last?
       -- FIXME check explicit conversion FNatural -> SIO.Count:
       -- FNatural defined by 19 decimal digits -> close to 64bit Integer
       -- In GNAT, SIO.Count is 32bit or 64bit :
