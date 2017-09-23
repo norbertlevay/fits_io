@@ -260,6 +260,7 @@ package body FITS is
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in Natural := 0)  -- offset within the Unit (in units of FITSData_Type)
+                       -- FIXME Offset should be FNatural too
    is
     CurHDUNum : Positive := 1;
     CurDUSize : FNatural;
