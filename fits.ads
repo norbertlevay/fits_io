@@ -38,7 +38,14 @@ package FITS is
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
-   type Dim_Type is array (1..MaxAxes) of Positive;-- FITS poses no limit on max value of NAXISi
+   -- FITS numeric types are prefixed with F...
+   -- subtype FNatural is Ada.Streams.Stream_IO.Count;
+   subtype FInteger is Long_Long_Integer;
+   type FNatural  is range 0 .. Long_Long_Integer'Last;
+   type FPositive is range 1 .. Long_Long_Integer'Last;
+
+   type Dim_Type is array (1..MaxAxes) of FPositive;-- FITS poses no limit on max value of NAXISi
+
    type DUSizeParam_Type is record
       Data     : FITSData_Type; -- data type as given by BITPIX
       BITPIX   : Integer;       -- BITPIX from Header (data size in bits)

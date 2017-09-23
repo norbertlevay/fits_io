@@ -18,6 +18,7 @@ package body FITS is
    BlockSizeInOct  : Positive :=  2880; -- octets [FITS block size]
    BlockSizeInBits : Positive :=  2880*8;
    BlockSizeInSRES : Positive := (2880*8) / StreamRootElemSizeInBits;
+   -- FIXME division : needs to be multiple of another otherwise fraction lost
    -- in units of Stream RootElement size (usually octet-byte)
    -- which is unit for positioning in Stream_IO by Set_Index() & Index()
 
@@ -46,38 +47,68 @@ package body FITS is
    -- calculate DataUnit size in Bits
    -- implements [FITS 4.4.1.1 Primary Header (1)]
    -- FIXME is the return type Natural enough? Derive from File-index type!
-   function  Size_Bits(DUSizeParam : in out DUSizeParam_Type) return Natural
+   function  Size_Bits(DUSizeParam : in out DUSizeParam_Type) return FNatural
    is
-    DUSize     : Natural := 1;
-    BITPIXSize : Positive := abs (DUSizeParam.BITPIX);
+    DUSize     : FNatural := 1;
+    BITPIXSize : FNatural := FNatural(abs (DUSizeParam.BITPIX));
     -- BITPIX carries size in bits [FITS ??]
+    -- conversion ok: abs always positive, max Val << FNAtural'Last
    begin
 
      for I in 1..DUSizeParam.Naxes
      loop
-      DUSize := DUSize * DUSizeParam.Naxis(I);
+      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
+      -- explicit converion ok Positive -> Natural FIXME couldnt this be done with subtype decl?
      end loop;
-     -- note Naxis(I) cannot be 0, Parse_Card would throw exception
+
+     Ada.Text_IO.Put_Line("DBG> DUSize: " &
+                           FNatural'Image(DUSize) &
+                           "    BITPIXSize: " & FNatural'Image(BITPIXSize));
 
     return (DUSize*BITPIXSize);
    end Size_Bits;
 
    pragma Inline (Size_Bits);
 
+
    -----------------------------------------
    -- calculate DataUnit size in FITS Blocks
-   -- FIXME is the return type Natural enough? Derive from File-index type!
-   --     size calcs serve for positioning in the file - must be derived
-   --     from positioning unit, the one used by Set_Index()
-   function  Size_Blocks(DUSizeParam : in out DUSizeParam_Type) return Natural
+   function  Size_Blocks(DUSizeParam : in out DUSizeParam_Type) return FNatural
    is
-    DUSizeInBits   : Natural := Size_Bits(DUSizeParam);
-    DUSizeInOct    : Natural := DUSizeInBits / 8;
-    DUSizeInBlocks : Natural;
+    DataInBlock : FNatural;
+    DUSizeInBlocks : FNatural;
+    DUSize     : FNatural := 1;
    begin
-    DUSizeInBlocks := ((DUSizeInOct - 1) / BlockSizeInOct + 1);
+
+     for I in 1..DUSizeParam.Naxes
+     loop
+      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
+                     -- explicit conversion ok bigger ange to smaller range,
+                     -- FIXME couldnt this be done with subtype decl?
+     end loop;
+     -- DUSize can 0 if Naxis from FITS-file is
+     -- FIXME consider: define FPositive and let throw exception
+     -- when we parse zero
+
+     DataInBlock := FNatural( BlockSizeInBits / abs DUSizeParam.BITPIX );
+     -- per FITS standard, these vlues are multiples
+
+     DUSizeInBlocks := (DUSize - 1) / DataInBlock + 1;
+     -- if DUSize is 0, this is negative and throws excpetion
+
     return DUSizeInBlocks;
    end Size_Blocks;
+
+   function  oldSize_Blocks(DUSizeParam : in out DUSizeParam_Type) return FNatural
+   is
+    DUSizeInBits   : FNatural := Size_Bits(DUSizeParam);
+    DUSizeInOct    : FNatural := DUSizeInBits / 8;
+    DUSizeInBlocks : FNatural;
+   begin
+    DUSizeInBlocks := ((DUSizeInOct - 1) / FNatural(BlockSizeInOct) + 1);
+    -- conv ok: BlockSizeInOct << FNatural'Last and not negative
+    return DUSizeInBlocks;
+   end oldSize_Blocks;
 
    pragma Inline (Size_Blocks);
 
@@ -113,6 +144,8 @@ package body FITS is
    is
     dim : Positive;
    begin
+     -- FIXME what if parsed string is '' or '     ' etc...
+
      -- [FITS 4.1.2 Components]:
      -- pos 9..10 is '= '
      -- pos 31 is comment ' /'
@@ -127,7 +160,13 @@ package body FITS is
            DUSizeParam.Naxes := Positive'Value(Card(10..30));
        else
            dim := Positive'Value(Card(6..8));
-           DUSizeParam.Naxis(dim) := Positive'Value(Card(10..30));
+           DUSizeParam.Naxis(dim) := FPositive'Value(Card(10..30));
+           -- FIXME [FITS Section??: NAXISn is always positive and zero]
+           -- [FITS fixed integer]:
+   	   -- Theoretical problem: Fixed integer is defined as 19 decimal digits
+   	   -- (Header Card Integer value occupying columns 11..20)
+   	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
+   	   -- fixed integer can reach 9.9 x 10**19)
        end if;
 
      end if;
@@ -176,17 +215,41 @@ package body FITS is
    -- be pointing to the begining of the DataUnit
    procedure Move_Index_Behind_DataUnit
              (FitsFile       : in SIO.File_Type;
-              DUSizeInBlocks : in Positive)
+              DUSizeInBlocks : in FNatural)
    is
     CurIndex : SIO.Count := SIO.Index(FitsFile);
+    ToInx :  SIO.Count;
    begin
-     SIO.Set_Index(FitsFile, CurIndex + Count(DUSizeInBlocks * BlockSizeInSRES));
-      -- FIXME check explicit conversaion Positive -> SIO.Count:
-      -- Positive might be 32 bit where as Count (GNAT: Long_Long_)
-      -- 64bit-> will fail for large files. In fact [GANT]:
+
+     ToInx := CurIndex +
+              SIO.Count(DUSizeInBlocks * FNatural(BlockSizeInSRES));
+      -- FIXME check explicit conversion FNatural -> SIO.Count:
+      -- FNatural defined by 19 decimal digits -> close to 64bit Integer
+      -- In GNAT, SIO.Count is 32bit or 64bit :
       --  type Count is new Stream_Element_Offset
       --                range 0 .. Stream_Element_Offset'Last;
-      --  type Stream_Element_Offset is new Long_Long_Integer;
+      --  type Stream_Element_Offset is range
+      --               -(2 ** (Standard'Address_Size - 1)) ..
+      --               +(2 ** (Standard'Address_Size - 1)) - 1;
+      -- Address_Size is 32 or 64bit nowadays
+
+--     Ada.Text_IO.Put_Line(
+--        "DBG> CurIndex:          " &
+--        SIO.Count'Image(CurIndex));
+     Ada.Text_IO.Put_Line(
+        "DBG> ToIndex:           " &
+        SIO.Count'Image(ToInx));
+     Ada.Text_IO.Put_Line(
+        "     SIO.Count'Last:    " &
+        SIO.Count'Image(SIO.Count'Last) );
+--     Ada.Text_IO.Put_Line(
+--        "DBG> DUSizeInSRES:      " &
+--        FNatural'Image(DUSizeInBlocks * FNatural(BlockSizeInSRES)) );
+--     Ada.Text_IO.Put_Line(
+--        "Long_Long_Integer'Last: " &
+--        Long_Long_Integer'Image(Long_Long_Integer'Last));
+
+     SIO.Set_Index(FitsFile,ToInx);
    end Move_Index_Behind_DataUnit;
 
    -------------------------------------
@@ -197,7 +260,7 @@ package body FITS is
                        Offset   : in Natural := 0)  -- offset within the Unit (in units of FITSData_Type)
    is
     CurHDUNum : Positive := 1;
-    CurDUSize : Positive;
+    CurDUSize : FNatural;
     CurIndex  : SIO.Count := 0;
     OffsetInRootElem : SIO.Count;
     HDUSize   : HDU_Size_Type;
@@ -243,7 +306,7 @@ package body FITS is
    is
     HDUCnt  : Positive := 1;
     HDUSize : HDU_Size_Type;
-    CurDUSize : Positive;
+    CurDUSize : FNatural;
     CurIndex  : SIO.Count := 0;
    begin
 

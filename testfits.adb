@@ -68,9 +68,9 @@ is
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUSize.DUSizeParam.Naxes - 1)
          loop
-          Ada.Text_IO.Put(Integer'Image(HDUSize.DUSizeParam.Naxis(J)) & " x " );
+          Ada.Text_IO.Put(FPositive'Image(HDUSize.DUSizeParam.Naxis(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(Integer'Image(HDUSize.DUSizeParam.Naxis(HDUSize.DUSizeParam.Naxes)));
+        Ada.Text_IO.Put(FPositive'Image(HDUSize.DUSizeParam.Naxis(HDUSize.DUSizeParam.Naxes)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
   end Print_HDUSize;
@@ -97,7 +97,7 @@ begin
 
  end loop;
  Ada.Streams.Stream_IO.Close(FitsFile);
- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
+-- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
 
  ------------------------------------------------
  Ada.Text_IO.Put_Line("Open file " & Name & " and List_Content...");
@@ -121,10 +121,11 @@ begin
      declare
       Error :  Ada.Text_IO.File_Type := Standard_Error;
      begin
-      Put_Line(Error, "Program error, send a bug-report:");
       New_Line(Error);
-      Put_Line(Error, "Exception_Name: " & Exception_Name( Except_ID ) );
-      Put_Line(Error, "Exception_Message: " & Exception_Message( Except_ID ) );
+      Put_Line(Error, "Program error, send bug-report.");
+--      New_Line(Error);
+--      Put_Line(Error, "Exception_Name: " & Exception_Name( Except_ID ) );
+--      Put_Line(Error, "Exception_Message: " & Exception_Message( Except_ID ) );
       Put_Line(Error, "Exception_Information: ");
       Put_Line(Error, Exception_Information( Except_ID ) );
       New_Line(Error);
