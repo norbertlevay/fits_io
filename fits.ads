@@ -44,7 +44,14 @@ package FITS is
    type FNatural  is range 0 .. Long_Long_Integer'Last;
    type FPositive is range 1 .. Long_Long_Integer'Last;
 
-   type Dim_Type is array (1..MaxAxes) of FPositive;-- FITS poses no limit on max value of NAXISi
+   type Dim_Type is array (1..MaxAxes) of FPositive;
+   -- FITS poses no limit on max value of NAXISi
+   -- except the space in Card: 11..30 columns:
+   -- 19 decimal digits (called by FITS 'fixed integer')
+   -- That is slightly over Long_Long_Integer'Last ~ 9.2 x 10**19
+   -- vs 19 digits of 9: 9.9999..x10**19.
+   -- Logical incosistency, but in practice values are much lower.
+   -- Rather theoretical concern...
 
    type DUSizeParam_Type is record
       Data     : FITSData_Type; -- data type as given by BITPIX
