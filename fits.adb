@@ -255,8 +255,7 @@ package body FITS is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in Natural := 0)  -- offset within the Unit (in units of FITSData_Type)
-                       -- FIXME Offset should be FNatural too
+                       Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
    is
     CurHDUNum : Positive := 1;
     CurDUSize : FNatural;
@@ -290,8 +289,8 @@ package body FITS is
     if Offset /= 0
     then
       CurIndex := SIO.Index(FitsFile);
-      OffsetInRootElem := Count(Offset * DataType'Size / StreamElemSizeInBits );
-      -- explicit conversion Natural -> Count ok: it is under if then... cannot be zero.
+      OffsetInRootElem := SIO.Count(Offset * DataType'Size / FNatural(StreamElemSizeInBits) );
+      -- explicit conversions Natural -> Count ok: it is under if then... cannot be zero.
       -- FIXME But max values ? see Move_Index_...
       SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);
     end if;

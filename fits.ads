@@ -82,7 +82,7 @@ package FITS is
    procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in Natural := 0); -- offset within the Unit (in units of FITSData_Type)
+                       Offset   : in FNatural := 0); -- offset within the Unit (in units of FITSData_Type)
    -- set file-index to correct position for Read/Write
 
 
