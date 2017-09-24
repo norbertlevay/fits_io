@@ -106,17 +106,6 @@ package body FITS is
     return DUSizeInBlocks;
    end Size_Blocks;
 
-   function  oldSize_Blocks(DUSizeParam : in out DUSizeParam_Type) return FNatural
-   is
-    DUSizeInBits   : FNatural := Size_Bits(DUSizeParam);
-    DUSizeInOct    : FNatural := DUSizeInBits / 8;
-    DUSizeInBlocks : FNatural;
-   begin
-    DUSizeInBlocks := ((DUSizeInOct - 1) / FNatural(BlockSizeInOct) + 1);
-    -- conv ok: BlockSizeInOct << FNatural'Last and not negative
-    return DUSizeInBlocks;
-   end oldSize_Blocks;
-
    pragma Inline (Size_Blocks);
 
 
