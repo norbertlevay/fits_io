@@ -13,6 +13,16 @@ use  Ada.Streams.Stream_IO; -- needed for + operator on Count type
 
 package body FITS is
 
+   procedure Move_Index
+             (FitsFile : in SIO.File_Type;
+              ByCount  : in SIO.Count) is
+   begin
+     SIO.Set_Index(FitsFile,
+                   SIO.Index(FitsFile) + ByCount);
+   end Move_Index;
+   pragma Inline (Move_Index);
+   -- util: consider this part of Stream_IO
+
    StreamElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:  type Stream_Element is mod 2 ** Standard'Storage_Unit;
@@ -35,7 +45,7 @@ package body FITS is
    -- from Data-type decide whether it is for Header or Data Unit
    --  arrays derived from Character are for Header Read/Write
    --  other (arrays derived from BITPIX) are for Data Unit access
-   function  To_UnitType(DataType : in FITSData_Type) return Unit_Type
+   function  To_UnitType (DataType : in FITSData_Type) return Unit_Type
    is
     UType : Unit_Type := HeaderUnit;
    begin
@@ -51,36 +61,29 @@ package body FITS is
    end To_UnitType;
 
    -------------------------------------
-   -- calculate DataUnit size in Bits
-   -- implements [FITS 4.4.1.1 Primary Header (1)]
-   -- FIXME is the return type Natural enough? Derive from File-index type!
-   function  Size_Bits(DUSizeParam : in out DUSizeParam_Type) return FNatural
+   -- convert BITPIX keyword from Header to internal FITSData_Type
+   function  To_FITSDataType (BITPIX : in Integer ) return FITSData_Type
    is
-    DUSize     : FNatural := 1;
-    BITPIXSize : FNatural := FNatural(abs (DUSizeParam.BITPIX));
-    -- BITPIX carries size in bits [FITS ??]
-    -- conversion ok: abs always positive, max Val << FNAtural'Last
+    bp : FITSData_Type;
    begin
-
-     for I in 1..DUSizeParam.Naxes
-     loop
-      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
-      -- explicit converion ok Positive -> Natural FIXME couldnt this be done with subtype decl?
-     end loop;
-
-     Ada.Text_IO.Put_Line("DBG> DUSize: " &
-                           FNatural'Image(DUSize) &
-                           "    BITPIXSize: " & FNatural'Image(BITPIXSize));
-
-    return (DUSize*BITPIXSize);
-   end Size_Bits;
-
-   pragma Inline (Size_Bits);
+    case BITPIX is
+    when   8 => bp := Int8;
+    when  16 => bp := Int16;
+    when  32 => bp := Int32;
+    when  64 => bp := Int64;
+    when -32 => bp := Float32;
+    when -64 => bp := Float64;
+    when others =>
+     null;
+     -- FIXME ? raise exception "out of range"
+    end case;
+    return bp;
+   end To_FITSDataType;
 
 
    -----------------------------------------
    -- calculate DataUnit size in FITS Blocks
-   function  Size_Blocks(DUSizeParam : in out DUSizeParam_Type) return FNatural
+   function  Size_Blocks (DUSizeParam : in out DUSizeParam_Type) return FNatural
    is
     DataInBlock : FNatural;
     DUSizeInBlocks : FNatural;
@@ -110,33 +113,12 @@ package body FITS is
 
 
    -------------------------------------
-   -- convert BITPIX keyword from Header to internal FITSData_Type
-   function  To_FITSDataType( BITPIX : in Integer )
-    return FITSData_Type
-   is
-    bp : FITSData_Type;
-   begin
-    case BITPIX is
-    when   8 => bp := Int8;
-    when  16 => bp := Int16;
-    when  32 => bp := Int32;
-    when  64 => bp := Int64;
-    when -32 => bp := Float32;
-    when -64 => bp := Float64;
-    when others =>
-     null;
-     -- FIXME ? raise exception "out of range"
-    end case;
-    return bp;
-   end To_FITSDataType;
-
-   -------------------------------------
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
    -- and store parse value to DUSizeParam
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
    -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
-   procedure Parse_Card(Card        : in Card_Type;
-                        DUSizeParam : in out DUSizeParam_Type)
+   procedure Parse_Card (Card        : in Card_Type;
+                         DUSizeParam : in out DUSizeParam_Type)
    is
     dim : Positive;
    begin
@@ -173,8 +155,8 @@ package body FITS is
    -- parse one header for HDU-size information
    --  from current file-index,
    --  read cards until END-card found and try to fill in HDUSize
-   procedure Parse_Header(FitsFile : in SIO.File_Type;
-                          HDUSize  : in out HDU_Size_Type)
+   procedure Parse_Header (FitsFile : in SIO.File_Type;
+                           HDUSize  : in out HDU_Size_Type)
    is
     Card : Card_Type;
     FreeSlotCnt : Natural;
@@ -206,10 +188,99 @@ package body FITS is
 
    end Parse_Header;
 
+   -------------------------------------
+   -- Set file index to position given by params
+   procedure Set_Index (FitsFile : in SIO.File_Type;
+                        HDUNum   : in Positive;      -- which HDU
+                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                        Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
+   is
+    CurHDUNum : Positive := 1;
+    CurDUSize : FNatural;
+    CurDUSize_Bytes : FNatural;
+    CurIndex  : SIO.Count := 0;
+    OffsetInRootElem : SIO.Count;
+    HDUSize   : HDU_Size_Type;
+   begin
+
+    SIO.Set_Index(FitsFile, 1);
+    -- move to begining of the Primary HDU
+
+    while CurHDUNum < HDUNum
+    loop
+     -- move past current Header
+     Parse_Header(FitsFile, HDUSize);
+
+     -- skip DataUnit
+     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
+     CurDUSize_Bytes := CurDUSize * FNatural(BlockSizeInBytes);
+     Move_Index(FitsFile, CurDUSize_Bytes);
+
+     -- next HDU
+     CurHDUNum := CurHDUNum + 1;
+    end loop;
+
+    -- if DataType indicates DataUnit move past current Header
+    if DataUnit = To_UnitType(DataType)
+    then
+     -- move past current Header
+     Parse_Header(FitsFile, HDUSize);
+    end if;
+
+    -- add Offset
+    if Offset /= 0
+    then
+      CurIndex := SIO.Index(FitsFile);
+      OffsetInRootElem := SIO.Count(Offset * DataType'Size / FNatural(StreamElemSizeInBits) );
+      -- explicit conversions Natural -> Count ok: it is under if then... cannot be zero.
+      -- FIXME But max values ? see Move_Index_...
+      SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);
+    end if;
+
+   end Set_Index;
+
+   -- List size-related params of HDU
+   procedure List_Content (FitsFile : in SIO.File_Type;
+                           Print: not null access
+                             procedure(HDUNum : Positive; HDUSize : HDU_Size_Type))
+   is
+    HDUCnt  : Positive := 1;
+    HDUSize : HDU_Size_Type;
+    CurDUSize : FNatural;
+    CurDUSize_Bytes : FNatural;
+    CurIndex  : SIO.Count := 0;
+   begin
+
+    -- start from begining
+    SIO.Set_Index(FitsFile,1);
+
+    while not SIO.End_Of_File(FitsFile)
+    loop
+     -- move past current Header
+     Parse_Header(FitsFile, HDUSize);
+
+     -- do the callback
+     Print(HDUCnt,HDUSize);
+
+     -- skip DataUnit
+     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
+     CurDUSize_Bytes := CurDUSize * FNatural(BlockSizeInBytes);
+     Move_Index(FitsFile, CurDUSize_Bytes);
+
+     -- next HDU
+     HDUCnt := HDUCnt + 1;
+    end loop;
+
+   end List_Content;
+
+   --------------
+   -- OBSOLETE --
+   --------------
+
    -- Skip DataUnit.
    -- Before this call file's internal pointer must
    -- be pointing to the begining of the DataUnit
-   procedure Move_Index_Behind_DataUnit
+   procedure obsMove_Index_Behind_DataUnit
              (FitsFile       : in SIO.File_Type;
               DUSizeInBlocks : in FNatural)
    is
@@ -248,90 +319,37 @@ package body FITS is
 --        Long_Long_Integer'Image(Long_Long_Integer'Last));
 
      SIO.Set_Index(FitsFile,ToInx);
-   end Move_Index_Behind_DataUnit;
+   end obsMove_Index_Behind_DataUnit;
 
    -------------------------------------
-   -- Set file index to position given by params
-   procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive;      -- which HDU
-                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
+   -- calculate DataUnit size in Bits
+   -- implements [FITS 4.4.1.1 Primary Header (1)]
+   -- FIXME is the return type Natural enough? Derive from File-index type!
+   function  obsSize_Bits (DUSizeParam : in out DUSizeParam_Type) return FNatural
    is
-    CurHDUNum : Positive := 1;
-    CurDUSize : FNatural;
-    CurIndex  : SIO.Count := 0;
-    OffsetInRootElem : SIO.Count;
-    HDUSize   : HDU_Size_Type;
+    DUSize     : FNatural := 1;
+    BITPIXSize : FNatural := FNatural(abs (DUSizeParam.BITPIX));
+    -- BITPIX carries size in bits [FITS ??]
+    -- conversion ok: abs always positive, max Val << FNAtural'Last
    begin
 
-    SIO.Set_Index(FitsFile, 1);
-    -- move to begining of the Primary HDU
+     for I in 1..DUSizeParam.Naxes
+     loop
+      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
+      -- explicit converion ok Positive -> Natural FIXME couldnt this be done with subtype decl?
+     end loop;
 
-    while CurHDUNum < HDUNum
-    loop
-     -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
-     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
-     -- move past DataUnit
-     Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
-     -- next HDU
-     CurHDUNum := CurHDUNum + 1;
-    end loop;
+     Ada.Text_IO.Put_Line("DBG> DUSize: " &
+                           FNatural'Image(DUSize) &
+                           "    BITPIXSize: " & FNatural'Image(BITPIXSize));
 
-    -- if DataType indicates DataUnit move past current Header
-    if DataUnit = To_UnitType(DataType)
-    then
-     -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
-    end if;
+    return (DUSize*BITPIXSize);
+   end obsSize_Bits;
 
-    -- add Offset
-    if Offset /= 0
-    then
-      CurIndex := SIO.Index(FitsFile);
-      OffsetInRootElem := SIO.Count(Offset * DataType'Size / FNatural(StreamElemSizeInBits) );
-      -- explicit conversions Natural -> Count ok: it is under if then... cannot be zero.
-      -- FIXME But max values ? see Move_Index_...
-      SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);
-    end if;
+   pragma Inline (obsSize_Bits);
 
-   end Set_Index;
 
-   -- List size-related params of HDU
-   procedure List_Content (FitsFile : in SIO.File_Type;
-                           Print: not null access
-                             procedure(HDUNum : Positive; HDUSize : HDU_Size_Type))
-   is
-    HDUCnt  : Positive := 1;
-    HDUSize : HDU_Size_Type;
-    CurDUSize : FNatural;
-    CurIndex  : SIO.Count := 0;
-   begin
 
-    -- start from begining
-    SIO.Set_Index(FitsFile,1);
-
-    while not SIO.End_Of_File(FitsFile)
-    loop
-     -- read current DU-size
-     Parse_Header(FitsFile, HDUSize);
-
-     -- do the callback
-     Print(HDUCnt,HDUSize);
-
-     -- skip DataUnit
-     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
-     Move_Index_Behind_DataUnit(FitsFile,CurDUSize);
-
-     -- read next HDU Header if any
-     HDUCnt := HDUCnt + 1;
-    end loop;
-
-   end List_Content;
-
-   -------------------------------------
-   -------------------------------------
-   -------------------------------------
    procedure Read (FitsStream : in SIO.Stream_Access;
                    Data       : in out DataArray_Type)
    is
