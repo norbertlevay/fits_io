@@ -13,14 +13,21 @@ use  Ada.Streams.Stream_IO; -- needed for + operator on Count type
 
 package body FITS is
 
-   package SIO renames Ada.Streams.Stream_IO;
+   StreamElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
+    -- FIXME [GNAT somwhere says it is 8bits]
+    -- [GNAT]:  type Stream_Element is mod 2 ** Standard'Storage_Unit;
+    -- (Storage_Unit a.k.a 'Byte' on this PC-machine 8bits)
 
-   BlockSizeInOct  : Positive :=  2880; -- octets [FITS block size]
-   BlockSizeInBits : Positive :=  2880*8;
-   BlockSizeInSRES : Positive := (2880*8) / StreamRootElemSizeInBits;
-   -- FIXME division : needs to be multiple of another otherwise fraction lost
-   -- in units of Stream RootElement size (usually octet-byte)
+
+   BlockSizeInOct   : Positive :=  2880; -- octets [FITS block size]
+   BlockSizeInBits  : Positive :=  2880*8;
+   BlockSizeInBytes : Positive := (2880*8) / StreamElemSizeInBits;
+   -- GNAT derives Stream_Element from Storage_Unit (a.k.a. 'Byte': smallest addressable unit)
+   -- FIXME division : needs to be multiple of another otherwise
+   --                  fraction lost
+   -- in units of Stream_Element size (usually octet-byte)
    -- which is unit for positioning in Stream_IO by Set_Index() & Index()
+
 
    type Unit_Type is (HeaderUnit, DataUnit);
 
@@ -222,7 +229,7 @@ package body FITS is
    begin
 
      ToInx := CurIndex +
-              SIO.Count(DUSizeInBlocks * FNatural(BlockSizeInSRES));
+              SIO.Count(DUSizeInBlocks * FNatural(BlockSizeInBytes));
       -- FIXME can this happen? If filesystem does not
       -- support file that bigger then Count'Last?
       -- FIXME check explicit conversion FNatural -> SIO.Count:
@@ -245,8 +252,8 @@ package body FITS is
         "     SIO.Count'Last:    " &
         SIO.Count'Image(SIO.Count'Last) );
 --     Ada.Text_IO.Put_Line(
---        "DBG> DUSizeInSRES:      " &
---        FNatural'Image(DUSizeInBlocks * FNatural(BlockSizeInSRES)) );
+--        "DBG> DUSizeInBytes:      " &
+--        FNatural'Image(DUSizeInBlocks * FNatural(BlockSizeInBytes)) );
 --     Ada.Text_IO.Put_Line(
 --        "Long_Long_Integer'Last: " &
 --        Long_Long_Integer'Image(Long_Long_Integer'Last));
@@ -294,7 +301,7 @@ package body FITS is
     if Offset /= 0
     then
       CurIndex := SIO.Index(FitsFile);
-      OffsetInRootElem := Count(Offset * DataType'Size / StreamRootElemSizeInBits );
+      OffsetInRootElem := Count(Offset * DataType'Size / StreamElemSizeInBits );
       -- explicit conversion Natural -> Count ok: it is under if then... cannot be zero.
       -- FIXME But max values ? see Move_Index_...
       SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);

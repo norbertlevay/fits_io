@@ -22,9 +22,8 @@ with Ada.Streams.Stream_IO;
 
 package FITS is
 
---    StreamRootElemSizeInBits : Positive := 8;
-    StreamRootElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
-    -- FIXME [GNAT somwhere says it is 8bits]
+   package SIO renames Ada.Streams.Stream_IO;
+
 
    type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
@@ -40,9 +39,11 @@ package FITS is
 
    -- FITS numeric types are prefixed with F...
    -- subtype FNatural is Ada.Streams.Stream_IO.Count;
-   subtype FInteger is Long_Long_Integer;
-   type FNatural  is range 0 .. Long_Long_Integer'Last;
-   type FPositive is range 1 .. Long_Long_Integer'Last;
+   -- subtype FInteger is Long_Long_Integer;
+   subtype FNatural  is SIO.Count; -- range 0 .. Long_Long_Integer'Last;
+   subtype FPositive is SIO.Positive_Count;-- range 1 .. Long_Long_Integer'Last;
+   -- FIXME check-out difference:
+   -- type FPositive is new SIO.Count <- also possible
 
    type Dim_Type is array (1..MaxAxes) of FPositive;
    -- FITS poses no limit on max value of NAXISi
@@ -50,8 +51,9 @@ package FITS is
    -- 19 decimal digits (called by FITS 'fixed integer')
    -- That is slightly over Long_Long_Integer'Last ~ 9.2 x 10**19
    -- vs 19 digits of 9: 9.9999..x10**19.
-   -- Logical incosistency, but in practice values are much lower.
-   -- Rather theoretical concern...
+   -- So max value NAXISn will be implementation limited.
+   -- derived from Count which is derived from Address_Size:
+   --  e.g. NAXISn will be 32bit or 64bit depending on the machine
 
    type DUSizeParam_Type is record
       Data     : FITSData_Type; -- data type as given by BITPIX
