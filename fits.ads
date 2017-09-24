@@ -25,8 +25,11 @@ package FITS is
    package SIO renames Ada.Streams.Stream_IO;
 
 
-   type FITSData_Type is (HBlock, Card, Char, Int8, Int16, Int32, Int64, Float32, Float64);
-   -- [FITS, Sect 4.4.1.1 Table 8]
+   type FITSData_Type is
+       (HBlock, Card, Char,        -- Header types
+        Int8, Int16, Int32,        -- DataUnit types
+        Int64, Float32, Float64);
+         -- [FITS, Sect 4.4.1.1 Table 8]
 
    ------------------------------------------
    -- List FITS FIle content : HDU params  --
@@ -38,18 +41,24 @@ package FITS is
    -- that no data follow the header in the HDU."
 
    -- FITS numeric types are prefixed with F...
-   -- subtype FNatural is Ada.Streams.Stream_IO.Count;
-   -- subtype FInteger is Long_Long_Integer;
-   subtype FNatural  is SIO.Count; -- range 0 .. Long_Long_Integer'Last;
-   subtype FPositive is SIO.Positive_Count;-- range 1 .. Long_Long_Integer'Last;
-   -- FIXME check-out difference:
-   -- type FPositive is new SIO.Count <- also possible
-      --  type Count is new Stream_Element_Offset
-      --                range 0 .. Stream_Element_Offset'Last;
-      --  type Stream_Element_Offset is range
-      --               -(2 ** (Standard'Address_Size - 1)) ..
-      --               +(2 ** (Standard'Address_Size - 1)) - 1;
-      -- Address_Size is 32 or 64bit nowadays
+   --
+   -- 1. deriving from file-system representation (Stream_IO):
+   subtype FNatural  is SIO.Count;
+   subtype FPositive is SIO.Positive_Count;
+   -- FIXME check-out difference; this also possible:
+   -- type FPositive is new SIO.Count
+   --
+   -- 2. deriving from FITS-Standard:
+   --  subtype FInteger is Long_Long_Integer;
+   --  subtype FNatural  range 0 .. Long_Long_Integer'Last;
+   --  subtype FPositive range 1 .. Long_Long_Integer'Last;
+   -- note:
+   --  type Count is new Stream_Element_Offset
+   --                range 0 .. Stream_Element_Offset'Last;
+   --  type Stream_Element_Offset is range
+   --               -(2 ** (Standard'Address_Size - 1)) ..
+   --               +(2 ** (Standard'Address_Size - 1)) - 1;
+   -- Address_Size is 32 or 64bit nowadays
 
    type Dim_Type is array (1..MaxAxes) of FPositive;
    -- FITS poses no limit on max value of NAXISi
