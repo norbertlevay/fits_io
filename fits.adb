@@ -93,19 +93,15 @@ package body FITS is
 
      for I in 1..DUSizeParam.Naxes
      loop
-      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
-        -- explicit conversion ok bigger ange to smaller range,
-        -- FIXME couldnt this be done with subtype decl?
+      DUSize := DUSize * DUSizeParam.Naxis(I);
      end loop;
-     -- DUSize can 0 if Naxis from FITS-file is
-     -- FIXME consider: define FPositive and let throw exception
-     -- when we parse zero
+      -- DUSize cannot be 0: Naxis(I) is FPositive
+      -- cannot be 0 (parsing would throw exception)
 
      DataInBlock := BlockSize_bits /  FNatural( abs DUSizeParam.BITPIX );
      -- per FITS standard, these vlues are multiples
 
      DUSizeInBlocks := (DUSize - 1) / DataInBlock + 1;
-     -- if DUSize is 0, this is negative and throws excpetion
 
     return DUSizeInBlocks;
    end Size_Blocks;
