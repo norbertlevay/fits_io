@@ -44,6 +44,12 @@ package FITS is
    subtype FPositive is SIO.Positive_Count;-- range 1 .. Long_Long_Integer'Last;
    -- FIXME check-out difference:
    -- type FPositive is new SIO.Count <- also possible
+      --  type Count is new Stream_Element_Offset
+      --                range 0 .. Stream_Element_Offset'Last;
+      --  type Stream_Element_Offset is range
+      --               -(2 ** (Standard'Address_Size - 1)) ..
+      --               +(2 ** (Standard'Address_Size - 1)) - 1;
+      -- Address_Size is 32 or 64bit nowadays
 
    type Dim_Type is array (1..MaxAxes) of FPositive;
    -- FITS poses no limit on max value of NAXISi
@@ -102,16 +108,20 @@ package FITS is
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
 
+   -- Access Header
    type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
    type CardArr_Type    is array ( Positive range <> ) of Card_Type;
    type CharArr_Type    is array ( Positive range <> ) of Character;
    -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
+
+   -- Access DataUnit
    type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;
    type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
    type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
+
 
    type DataArray_Type ( Option : FITSData_Type ;
                          Length : Positive ) is
@@ -128,8 +138,6 @@ package FITS is
        when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
       end case;
      end record;
-   -- CharArr : used to access FITS-header
-   -- all other xxxxArr : used to access FITS-data
 
    -- in file all data are packed
    pragma Pack (HBlockArr_Type);
@@ -143,32 +151,6 @@ package FITS is
    pragma Pack (Float32Arr_Type);
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
-
--- explicit Read/Write below not needed.
--- Clients should use:
---   DataArray_Type'Read (Stream(FitsFile),Data)
---   DataArray_Type'Write(Stream(FitsFile),Data)
-
---   procedure Read (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
---                   Data       : in out DataArray_Type);
-
---  procedure Write (FitsStream : in Ada.Streams.Stream_IO.Stream_Access;
---                    Data       : in DataArray_Type);
-
--- procedure Read_Header (Stream,Header_Type);
--- procedure Write_Header(Stream,Header_Type);
-
--- procedure Read_Data (Stream,Data_Array,Offset);
--- procedure Write_Data(Stream,Data_Array,Offset);
-   -- Offset counted in Data_Type relative to start of Data_Unit (after the Header)
-
--- for Header_Type'Read  use Read_Header;
--- for Header_Type'Write use Write_Header;
-
--- for Data_Type'Read  use Read_Data;
--- for Data_Type'Write use Write_Data;
-
--- private
 
 end FITS;
 

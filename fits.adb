@@ -23,6 +23,8 @@ package body FITS is
    pragma Inline (Move_Index);
    -- util: consider this part of Stream_IO
 
+   -- FITS itself:
+
    StreamElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:  type Stream_Element is mod 2 ** Standard'Storage_Unit;
@@ -41,7 +43,6 @@ package body FITS is
 
    type Unit_Type is (HeaderUnit, DataUnit);
 
-   -------------------------------------
    -- from Data-type decide whether it is for Header or Data Unit
    --  arrays derived from Character are for Header Read/Write
    --  other (arrays derived from BITPIX) are for Data Unit access
@@ -60,8 +61,10 @@ package body FITS is
     return UType;
    end To_UnitType;
 
-   -------------------------------------
+
+   --
    -- convert BITPIX keyword from Header to internal FITSData_Type
+   --
    function  To_FITSDataType (BITPIX : in Integer ) return FITSData_Type
    is
     bp : FITSData_Type;
@@ -81,8 +84,9 @@ package body FITS is
    end To_FITSDataType;
 
 
-   -----------------------------------------
+   --
    -- calculate DataUnit size in FITS Blocks
+   --
    function  Size_Blocks (DUSizeParam : in out DUSizeParam_Type) return FNatural
    is
     DataInBlock : FNatural;
@@ -108,11 +112,9 @@ package body FITS is
 
     return DUSizeInBlocks;
    end Size_Blocks;
-
    pragma Inline (Size_Blocks);
 
 
-   -------------------------------------
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
    -- and store parse value to DUSizeParam
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
@@ -151,7 +153,7 @@ package body FITS is
 
    end Parse_Card;
 
-   -------------------------------------
+
    -- parse one header for HDU-size information
    --  from current file-index,
    --  read cards until END-card found and try to fill in HDUSize
@@ -188,8 +190,10 @@ package body FITS is
 
    end Parse_Header;
 
-   -------------------------------------
+
+   --
    -- Set file index to position given by params
+   --
    procedure Set_Index (FitsFile : in SIO.File_Type;
                         HDUNum   : in Positive;      -- which HDU
                         DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
@@ -239,7 +243,10 @@ package body FITS is
 
    end Set_Index;
 
+
+   --
    -- List size-related params of HDU
+   --
    procedure List_Content (FitsFile : in SIO.File_Type;
                            Print: not null access
                              procedure(HDUNum : Positive; HDUSize : HDU_Size_Type))
@@ -272,101 +279,6 @@ package body FITS is
     end loop;
 
    end List_Content;
-
-   --------------
-   -- OBSOLETE --
-   --------------
-
-   -- Skip DataUnit.
-   -- Before this call file's internal pointer must
-   -- be pointing to the begining of the DataUnit
-   procedure obsMove_Index_Behind_DataUnit
-             (FitsFile       : in SIO.File_Type;
-              DUSizeInBlocks : in FNatural)
-   is
-    CurIndex : SIO.Count := SIO.Index(FitsFile);
-    ToInx :  SIO.Count;
-   begin
-
-     ToInx := CurIndex +
-              SIO.Count(DUSizeInBlocks * FNatural(BlockSizeInBytes));
-      -- FIXME can this happen? If filesystem does not
-      -- support file that bigger then Count'Last?
-      -- FIXME check explicit conversion FNatural -> SIO.Count:
-      -- FNatural defined by 19 decimal digits -> close to 64bit Integer
-      -- In GNAT, SIO.Count is 32bit or 64bit :
-      --  type Count is new Stream_Element_Offset
-      --                range 0 .. Stream_Element_Offset'Last;
-      --  type Stream_Element_Offset is range
-      --               -(2 ** (Standard'Address_Size - 1)) ..
-      --               +(2 ** (Standard'Address_Size - 1)) - 1;
-      -- Address_Size is 32 or 64bit nowadays
-
---     Ada.Text_IO.Put_Line(
---        "DBG> CurIndex:          " &
---        SIO.Count'Image(CurIndex));
-     Ada.Text_IO.Put_Line(
-        "DBG> ToIndex:           " &
-        SIO.Count'Image(ToInx));
-     Ada.Text_IO.Put_Line(
-        "     SIO.Count'Last:    " &
-        SIO.Count'Image(SIO.Count'Last) );
---     Ada.Text_IO.Put_Line(
---        "DBG> DUSizeInBytes:      " &
---        FNatural'Image(DUSizeInBlocks * FNatural(BlockSizeInBytes)) );
---     Ada.Text_IO.Put_Line(
---        "Long_Long_Integer'Last: " &
---        Long_Long_Integer'Image(Long_Long_Integer'Last));
-
-     SIO.Set_Index(FitsFile,ToInx);
-   end obsMove_Index_Behind_DataUnit;
-
-   -------------------------------------
-   -- calculate DataUnit size in Bits
-   -- implements [FITS 4.4.1.1 Primary Header (1)]
-   -- FIXME is the return type Natural enough? Derive from File-index type!
-   function  obsSize_Bits (DUSizeParam : in out DUSizeParam_Type) return FNatural
-   is
-    DUSize     : FNatural := 1;
-    BITPIXSize : FNatural := FNatural(abs (DUSizeParam.BITPIX));
-    -- BITPIX carries size in bits [FITS ??]
-    -- conversion ok: abs always positive, max Val << FNAtural'Last
-   begin
-
-     for I in 1..DUSizeParam.Naxes
-     loop
-      DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
-      -- explicit converion ok Positive -> Natural FIXME couldnt this be done with subtype decl?
-     end loop;
-
-     Ada.Text_IO.Put_Line("DBG> DUSize: " &
-                           FNatural'Image(DUSize) &
-                           "    BITPIXSize: " & FNatural'Image(BITPIXSize));
-
-    return (DUSize*BITPIXSize);
-   end obsSize_Bits;
-
-   pragma Inline (obsSize_Bits);
-
-
-
-   procedure Read (FitsStream : in SIO.Stream_Access;
-                   Data       : in out DataArray_Type)
-   is
-   begin
-
-        DataArray_Type'Read( FitsStream, Data );
-
-   end Read;
-
-   procedure Write (FitsStream : in SIO.Stream_Access;
-                    Data       : in DataArray_Type)
-   is
-   begin
-
-        DataArray_Type'Write( FitsStream, Data );
-
-   end Write;
 
 end FITS;
 
