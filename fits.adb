@@ -1,5 +1,4 @@
 
-
 -- FIXME shouldn't FitsFile : File_Type be 'in out' ? we update the Index...
 
 -- for debug only
@@ -17,21 +16,21 @@ package body FITS is
              (FitsFile : in SIO.File_Type;
               ByCount  : in SIO.Count) is
    begin
-     SIO.Set_Index(FitsFile,
-                   SIO.Index(FitsFile) + ByCount);
+     SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
    end Move_Index;
    pragma Inline (Move_Index);
    -- util: consider this part of Stream_IO
 
    -- FITS itself:
 
-   StreamElemSize_bits : FNatural := Ada.Streams.Stream_Element'Size;
+   StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
-    -- [GNAT]:  type Stream_Element is mod 2 ** Standard'Storage_Unit;
-    -- (Storage_Unit a.k.a 'Byte' on this PC-machine 8bits)
-   BlockSize_bits  : FNatural :=  2880*8;
-   BlockSize_bytes : FNatural := (2880*8) / StreamElemSize_bits;
-   -- GNAT derives Stream_Element from Storage_Unit (a.k.a. 'Byte': smallest addressable unit)
+    -- [GNAT]:
+    --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
+    -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
+
+   BlockSize_bits  : FPositive := 2880*8;
+   BlockSize_bytes : FPositive := 2880*8 / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost
    -- in units of Stream_Element size (usually octet-byte)
@@ -140,6 +139,7 @@ package body FITS is
    	   -- (Header Card Integer value occupying columns 11..20)
    	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
    	   -- fixed integer can reach 9.9 x 10**19)
+           -- Conclude: range of NAXISn will be implementation limited.
        end if;
 
      end if;
@@ -192,11 +192,10 @@ package body FITS is
                         DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
                         Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
    is
-    CurHDUNum : Positive := 1;
     CurDUSize_blocks : FNatural;
     CurDUSize_bytes  : FNatural;
-    CurIndex  : SIO.Count := 0;
-    Offset_bytes : SIO.Count;
+    Offset_bytes     : FNatural;
+    CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
    begin
 
@@ -211,7 +210,7 @@ package body FITS is
      -- skip DataUnit
      CurDUSize_blocks := Size_Blocks (HDUSize.DUSizeParam);
      CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
-     Move_Index(FitsFile, CurDUSize_bytes);
+     Move_Index(FitsFile, SIO.Count(CurDUSize_bytes));
 
      -- next HDU
      CurHDUNum := CurHDUNum + 1;
@@ -230,7 +229,7 @@ package body FITS is
      Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
       -- explicit conversions Natural -> Count ok:
       -- it is under if then... cannot be zero.
-     Move_Index(FitsFile,Offset_bytes);
+     Move_Index(FitsFile,SIO.Count(Offset_bytes));
     end if;
 
    end Set_Index;
@@ -264,7 +263,7 @@ package body FITS is
      -- skip DataUnit
      CurDUSize_blocks := Size_Blocks(HDUSize.DUSizeParam);
      CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
-     Move_Index(FitsFile, CurDUSize_bytes);
+     Move_Index(FitsFile, SIO.Count(CurDUSize_bytes));
 
      -- next HDU
      HDUCnt := HDUCnt + 1;

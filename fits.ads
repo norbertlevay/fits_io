@@ -43,15 +43,15 @@ package FITS is
    -- FITS numeric types are prefixed with F...
    --
    -- 1. deriving from file-system representation (Stream_IO):
-   subtype FNatural  is SIO.Count;
-   subtype FPositive is SIO.Positive_Count;
+   -- subtype FNatural  is SIO.Count;
+   -- subtype FPositive is SIO.Positive_Count;
    -- FIXME check-out difference; this also possible:
    -- type FPositive is new SIO.Count
    --
    -- 2. deriving from FITS-Standard:
-   --  subtype FInteger is Long_Long_Integer;
-   --  subtype FNatural  range 0 .. Long_Long_Integer'Last;
-   --  subtype FPositive range 1 .. Long_Long_Integer'Last;
+   type    FInteger  is new Long_Long_Integer;
+   subtype FNatural  is FInteger range 0 .. FInteger'Last;
+   subtype FPositive is FNatural range 1 .. FNatural'Last;
    -- note:
    --  type Count is new Stream_Element_Offset
    --                range 0 .. Stream_Element_Offset'Last;
