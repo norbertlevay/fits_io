@@ -25,15 +25,12 @@ package body FITS is
 
    -- FITS itself:
 
-   StreamElemSizeInBits : Positive := Ada.Streams.Stream_Element'Size;
+   StreamElemSize_bits : FNatural := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:  type Stream_Element is mod 2 ** Standard'Storage_Unit;
     -- (Storage_Unit a.k.a 'Byte' on this PC-machine 8bits)
-
-
-   BlockSizeInOct   : Positive :=  2880; -- octets [FITS block size]
-   BlockSizeInBits  : Positive :=  2880*8;
-   BlockSizeInBytes : Positive := (2880*8) / StreamElemSizeInBits;
+   BlockSize_bits  : FNatural :=  2880*8;
+   BlockSize_bytes : FNatural := (2880*8) / StreamElemSize_bits;
    -- GNAT derives Stream_Element from Storage_Unit (a.k.a. 'Byte': smallest addressable unit)
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost
@@ -97,14 +94,14 @@ package body FITS is
      for I in 1..DUSizeParam.Naxes
      loop
       DUSize := DUSize * FNatural(DUSizeParam.Naxis(I));
-                     -- explicit conversion ok bigger ange to smaller range,
-                     -- FIXME couldnt this be done with subtype decl?
+        -- explicit conversion ok bigger ange to smaller range,
+        -- FIXME couldnt this be done with subtype decl?
      end loop;
      -- DUSize can 0 if Naxis from FITS-file is
      -- FIXME consider: define FPositive and let throw exception
      -- when we parse zero
 
-     DataInBlock := FNatural( BlockSizeInBits / abs DUSizeParam.BITPIX );
+     DataInBlock := BlockSize_bits /  FNatural( abs DUSizeParam.BITPIX );
      -- per FITS standard, these vlues are multiples
 
      DUSizeInBlocks := (DUSize - 1) / DataInBlock + 1;
@@ -200,10 +197,10 @@ package body FITS is
                         Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
    is
     CurHDUNum : Positive := 1;
-    CurDUSize : FNatural;
-    CurDUSize_Bytes : FNatural;
+    CurDUSize_blocks : FNatural;
+    CurDUSize_bytes  : FNatural;
     CurIndex  : SIO.Count := 0;
-    OffsetInRootElem : SIO.Count;
+    Offset_bytes : SIO.Count;
     HDUSize   : HDU_Size_Type;
    begin
 
@@ -216,9 +213,9 @@ package body FITS is
      Parse_Header(FitsFile, HDUSize);
 
      -- skip DataUnit
-     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
-     CurDUSize_Bytes := CurDUSize * FNatural(BlockSizeInBytes);
-     Move_Index(FitsFile, CurDUSize_Bytes);
+     CurDUSize_blocks := Size_Blocks (HDUSize.DUSizeParam);
+     CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
+     Move_Index(FitsFile, CurDUSize_bytes);
 
      -- next HDU
      CurHDUNum := CurHDUNum + 1;
@@ -234,11 +231,10 @@ package body FITS is
     -- add Offset
     if Offset /= 0
     then
-      CurIndex := SIO.Index(FitsFile);
-      OffsetInRootElem := SIO.Count(Offset * DataType'Size / FNatural(StreamElemSizeInBits) );
-      -- explicit conversions Natural -> Count ok: it is under if then... cannot be zero.
-      -- FIXME But max values ? see Move_Index_...
-      SIO.Set_Index(FitsFile, CurIndex + OffsetInRootElem);
+     Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
+      -- explicit conversions Natural -> Count ok:
+      -- it is under if then... cannot be zero.
+     Move_Index(FitsFile,Offset_bytes);
     end if;
 
    end Set_Index;
@@ -253,8 +249,8 @@ package body FITS is
    is
     HDUCnt  : Positive := 1;
     HDUSize : HDU_Size_Type;
-    CurDUSize : FNatural;
-    CurDUSize_Bytes : FNatural;
+    CurDUSize_blocks : FNatural;
+    CurDUSize_bytes  : FNatural;
     CurIndex  : SIO.Count := 0;
    begin
 
@@ -270,9 +266,9 @@ package body FITS is
      Print(HDUCnt,HDUSize);
 
      -- skip DataUnit
-     CurDUSize := Size_Blocks(HDUSize.DUSizeParam);
-     CurDUSize_Bytes := CurDUSize * FNatural(BlockSizeInBytes);
-     Move_Index(FitsFile, CurDUSize_Bytes);
+     CurDUSize_blocks := Size_Blocks(HDUSize.DUSizeParam);
+     CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
+     Move_Index(FitsFile, CurDUSize_bytes);
 
      -- next HDU
      HDUCnt := HDUCnt + 1;
