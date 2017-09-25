@@ -220,12 +220,10 @@ package body FITS_DIO is
    -- Set file index to position given by params
    --
    procedure Set_Index (FitsFile : in BIO.File_Type;
-                        HDUNum   : in Positive;      -- which HDU
-                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                        Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
+                        HDUNum   : in Positive)
    is
     CurDUSize_blocks : FPositive;
-    Offset_bytes     : FNatural;
+--    Offset_bytes     : FNatural;
     CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
    begin
@@ -248,22 +246,6 @@ package body FITS_DIO is
      -- next HDU
      CurHDUNum := CurHDUNum + 1;
     end loop;
-
-    -- if DataType indicates DataUnit move past current Header
-    if DataUnit = To_UnitType(DataType)
-    then
-     -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
-    end if;
-
-    -- add Offset
-    if Offset /= 0
-    then
-     Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
-      -- explicit conversions Natural -> Count ok:
-      -- it is under if then... cannot be zero.
-     Move_Index(FitsFile,BIO.Positive_Count(Offset_bytes));
-    end if;
 
    end Set_Index;
 
@@ -304,6 +286,42 @@ package body FITS_DIO is
     end loop;
 
    end List_Content;
+
+   --
+   --
+   --
+   procedure Read (FitsFile : in  BIO.File_Type;
+                   Data     : in out DataArray_Type)
+   is
+--    DataType : Unit_Type := Data.Option;
+    HDUSize : HDU_Size_Type;
+    Block : Block_Type;
+   begin
+
+    -- if DataType indicates DataUnit move past current Header
+    if DataUnit = To_UnitType(Data.Option)
+    then
+     -- move past current Header
+     Parse_Header(FitsFile, HDUSize);
+    end if;
+
+    -- add Offset
+--    if Offset /= 0
+--    then
+--     Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
+      -- explicit conversions Natural -> Count ok:
+      -- it is under if then... cannot be zero.
+     -- Move_Index(FitsFile,BIO.Positive_Count(Offset_bytes));
+     -- FIXME this should be offset on within Block
+--    end if;
+
+    for I in Data.HBlockArr'Range
+    loop
+     BIO.Read(FitsFile, Block);
+     Data.HBlockArr(I) := To_HeaderBlock(Block);
+    end loop;
+   end Read;
+
 
 end FITS_DIO;
 

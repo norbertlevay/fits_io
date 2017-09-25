@@ -43,8 +43,8 @@ is
 -- Cnt  : Positive := 5;
 -- Data : DataArray_Type(Card,Cnt);
 
--- Cnt  : Positive := 2;
--- Data : DataArray_Type(HBlock,Cnt);
+ Cnt  : Positive := 1;
+ Data : DataArray_Type(HBlock,Cnt);
 
 
   procedure Print_HDUSize (Index : Positive; HDUSize : HDU_Size_Type)
@@ -96,6 +96,21 @@ begin
  Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
  Ada.Text_IO.Put_Line("Supported only machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
 
+
+ Ada.Text_IO.Put_Line("Open file " & Name & " and read one HBlock...");
+
+ BIO.Open (FitsFile, BIO.In_File, Name);
+ Set_Index(FitsFile,2);
+ Read (FitsFile, Data);
+ BIO.Close(FitsFile);
+
+ for J in Data.HBlockArr'Range
+ loop
+  for I in Data.HBlockArr(J)'Range
+  loop
+   Ada.Text_IO.Put_Line(Data.HBlockArr(J)(I));
+  end loop;
+ end loop;
 
 
 -- ---------------------------------------

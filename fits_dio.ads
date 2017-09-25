@@ -108,10 +108,7 @@ package FITS_DIO is
    ------------------------------
 
    procedure Set_Index(FitsFile : in BIO.File_Type;
-                       HDUNum   : in Positive;      -- which HDU
-                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in FNatural := 0); -- offset within the Unit (in units of FITSData_Type)
-   -- set file-index to correct position for Read/Write
+                       HDUNum   : in Positive);   -- to this HDU
 
 
    ----------------------------------------------
@@ -173,6 +170,11 @@ package FITS_DIO is
    pragma Pack (Float32Arr_Type);
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
+
+
+   procedure Read (FitsFile : in  BIO.File_Type;
+                   Data     : in out DataArray_Type);
+
 
 end FITS_DIO;
 
