@@ -112,7 +112,7 @@ begin
 
  Ada.Text_IO.Put_Line("Max NAXIS  : " & Positive'Image(MaxAxes));
  Ada.Text_IO.Put_Line("Max NAXISn : " & FPositive'Image(FPositive'Last));
- Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Count'Last));
+ Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Positive_Count'Last));
  Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
  Ada.Text_IO.Put_Line("Supported only machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
 
