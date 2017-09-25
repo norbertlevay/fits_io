@@ -13,8 +13,20 @@
 --   Interfaces like Direct_IO(Block) are not.
 --   E.g. such new API:
 --   procedure Stream(File_Type; HDUNum) <- position to begining of HDU
---   procedure used for 'Read (FITSStream, FITS_Data_Type, Offset := 0 )
---   procedure used for 'Write(FITSStream, FITS_Data_Type, Offset := 0 )
+--   procedure used for 'Read (FITSStream, FITS_Data_Type, Offset )
+--   procedure used for 'Write(FITSStream, FITS_Data_Type, Offset )
+--   Drawback:
+--   Read/Write of DataUnit would need to calculate Header size
+--   at first call of multiple writes. Successive writes can be
+--   done directly by Stream: 'Write/'Read(FITSStream, Data).
+--   After first read/write we are correctly positioned, and read/write
+--   move the file pointer.
+--   For multiple writes (reads) to (from) continuous area,
+--   a client would do:
+--   FIST_Data_Type'Write(FITS, Data(1), Offset); <-- func from FITS package with initial positioning
+--   FIST_Data_Type'Write(FITS, Data(2) );        <-- func from Stream_IO, only write, no positioning
+--   FIST_Data_Type'Write(FITS, Data(3) );
+--   ... n-times
 --
 
 with Ada.Streams.Stream_IO;
