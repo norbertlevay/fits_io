@@ -29,31 +29,35 @@
 --   ... n-times
 --
 
-with Ada.Streams.Stream_IO;
-use  Ada.Streams.Stream_IO;
+with Ada.Text_IO;
+
+with Ada.Unchecked_Conversion;
+
+-- with Ada.Streams.Stream_IO;
+-- use  Ada.Streams.Stream_IO;
 -- 'use' needed for + operator on Count type and all its subtypes(?)
 
-package body FITS is
+package body FITS_DIO is
 
    procedure Move_Index
-             (FitsFile : in SIO.File_Type;
-              ByCount  : in SIO.Positive_Count) is
+             (FitsFile : in BIO.File_Type;
+              ByCount  : in BIO.Positive_Count) is
    begin
-     SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
+     BIO.Set_Index(FitsFile, BIO.Index(FitsFile) + ByCount);
    end Move_Index;
    pragma Inline (Move_Index);
    -- util: consider this part of Stream_IO
 
    -- FITS itself:
 
-   StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
+   StreamElemSize_bits : FPositive := 8;-- FIXME Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:
     --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
     -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
 
-   BlockSize_bits  : FPositive := 2880*8;
-   BlockSize_bytes : FPositive := 2880*8 / StreamElemSize_bits;
+   BlockSize_bits  : FPositive := 2880*8;-- needed because of BITPIX is size in bits
+--   BlockSize_bytes : FPositive := 2880*8 / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost
    -- in units of Stream_Element size (usually octet-byte)
@@ -170,39 +174,44 @@ package body FITS is
    end Parse_Card;
 
 
+   function  To_HeaderBlock is
+    new Ada.Unchecked_Conversion(Source => Block_Type, Target => HeaderBlock_Type);
+   -- actually here we should do cycle and handle low level things like
+   -- Endianness, alignment somehow also BZERO and BFACT FITS-keywords(?)
+
+
    -- parse one header for HDU-size information
    --  from current file-index,
    --  read cards until END-card found and try to fill in HDUSize
-   procedure Parse_Header (FitsFile : in SIO.File_Type;
+   procedure Parse_Header (FitsFile : in BIO.File_Type;
                            HDUSize  : in out HDU_Size_Type)
    is
     Card : Card_Type;
-    FreeSlotCnt : Natural;
+    Block : Block_Type;
+    HBlock : HeaderBlock_Type;
+    ENDCardFound : Boolean := False;
    begin
+     HDUSize.CardsCnt := 1;
 
-    Card_Type'Read( SIO.Stream(FitsFile), Card );
-    HDUSize.CardsCnt := 1;
+     while not ENDCardFound
+     loop
 
-    while Card /= ENDCard
-    loop
-      Parse_Card (Card, HDUSize.DUSizeParam);
-      Card_Type'Read( SIO.Stream(FitsFile), Card );
-      HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
-    end loop;
+       BIO.Read(FitsFile, Block);
+       HBlock := To_HeaderBlock (Block);
 
-    -- calc free slots
-    FreeSlotCnt := 36 - (HDUSize.CardsCnt mod 36);
-    -- mod is 0 when Block has 36 cards e.g. is full
-    if FreeSlotCnt = 36 then
-     FreeSlotCnt := 0;
-    end if;
+       for I in HBlock'Range
+       loop
+         Card := HBlock(I);
+         Parse_Card (Card, HDUSize.DUSizeParam);
+         ENDCardFound := (Card = ENDCard);
+--         Ada.Text_IO.Put_Line(Boolean'Image(ENDCardFound) &
+--                              " " & Positive'Image(HDUSize.CardsCnt) &
+--                              " >>" & Card );
+         exit when ENDCardFound;
+         HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
+       end loop; -- HBlock loop
 
-    -- read up to block-limit
-    while FreeSlotCnt /= 0
-    loop
-      Card_Type'Read( SIO.Stream(FitsFile), Card );
-      FreeSlotCnt := FreeSlotCnt - 1;
-    end loop;
+     end loop; -- ENDCardFound loop
 
    end Parse_Header;
 
@@ -210,19 +219,18 @@ package body FITS is
    --
    -- Set file index to position given by params
    --
-   procedure Set_Index (FitsFile : in SIO.File_Type;
+   procedure Set_Index (FitsFile : in BIO.File_Type;
                         HDUNum   : in Positive;      -- which HDU
                         DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
                         Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
    is
     CurDUSize_blocks : FPositive;
-    CurDUSize_bytes  : FPositive;
     Offset_bytes     : FNatural;
     CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
    begin
 
-    SIO.Set_Index(FitsFile, 1);
+    BIO.Set_Index(FitsFile, 1);
     -- move to begining of the Primary HDU
 
     while CurHDUNum < HDUNum
@@ -234,8 +242,7 @@ package body FITS is
      if HDUSize.DUSizeParam.Naxes /= 0
      then
        CurDUSize_blocks := Size_Blocks (HDUSize.DUSizeParam);
-       CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
-       Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
+       Move_Index(FitsFile, BIO.Positive_Count(CurDUSize_blocks));
      end if;
 
      -- next HDU
@@ -255,7 +262,7 @@ package body FITS is
      Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
       -- explicit conversions Natural -> Count ok:
       -- it is under if then... cannot be zero.
-     Move_Index(FitsFile,SIO.Positive_Count(Offset_bytes));
+     Move_Index(FitsFile,BIO.Positive_Count(Offset_bytes));
     end if;
 
    end Set_Index;
@@ -264,21 +271,20 @@ package body FITS is
    --
    -- List size-related params of HDU
    --
-   procedure List_Content (FitsFile : in SIO.File_Type;
+   procedure List_Content (FitsFile : in BIO.File_Type;
                            Print: not null access
                              procedure(HDUNum : Positive; HDUSize : HDU_Size_Type))
    is
     HDUCnt  : Positive := 1;
     HDUSize : HDU_Size_Type;
     CurDUSize_blocks : FPositive;
-    CurDUSize_bytes  : FPositive;
-    CurIndex  : SIO.Count := 0;
+    CurIndex  : BIO.Count := 0;
    begin
 
     -- start from begining
-    SIO.Set_Index(FitsFile,1);
+    BIO.Set_Index(FitsFile,1);
 
-    while not SIO.End_Of_File(FitsFile)
+    while not BIO.End_Of_File(FitsFile)
     loop
      -- move past current Header
      Parse_Header(FitsFile, HDUSize);
@@ -290,8 +296,7 @@ package body FITS is
      if HDUSize.DUSizeParam.Naxes /= 0
      then
        CurDUSize_blocks := Size_Blocks(HDUSize.DUSizeParam);
-       CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
-       Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
+       Move_Index(FitsFile, BIO.Positive_Count(CurDUSize_blocks));
      end if;
 
      -- next HDU
@@ -300,5 +305,5 @@ package body FITS is
 
    end List_Content;
 
-end FITS;
+end FITS_DIO;
 

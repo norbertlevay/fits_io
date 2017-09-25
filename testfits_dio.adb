@@ -10,7 +10,7 @@ with
     Ada.Strings.Unbounded,
     Ada.Strings.Bounded,
     Ada.Strings.Fixed,
-    Ada.Streams.Stream_IO,
+--    Ada.Streams.Stream_IO,
     System,
     Interfaces,
     GNAT.Traceback.Symbolic;
@@ -24,23 +24,24 @@ use
     Ada.Strings.Bounded,
     Ada.Command_Line;
 
-with FITS; use FITS;
---with FITS.Content; use FITS.Content;
+with FITS_DIO; use FITS_DIO;
+--with FITS_DIO.Content; use FITS_DIO.Content;
 
 
-procedure testfits
+procedure testfits_dio
 is
- FitsFile : Ada.Streams.Stream_IO.File_Type;
- Inx1 : Ada.Streams.Stream_IO.Count;
- Inx2 : Ada.Streams.Stream_IO.Count;
+-- FitsFile : Ada.Streams.Stream_IO.File_Type;
+ FitsFile : BIO.File_Type;
+-- Inx1 : BIO.Count;
+-- Inx2 : BIO.Count;
  Name : String    := "testfile.fits";
 
 -- Cnt  : Positive := 80*5;
 -- Data : DataArray_Type(int8,6);
 -- Data : DataArray_Type(Char,Cnt);
 
- Cnt  : Positive := 5;
- Data : DataArray_Type(Card,Cnt);
+-- Cnt  : Positive := 5;
+-- Data : DataArray_Type(Card,Cnt);
 
 -- Cnt  : Positive := 2;
 -- Data : DataArray_Type(HBlock,Cnt);
@@ -78,41 +79,20 @@ is
 
 begin
 
- Ada.Text_IO.Put_Line("Open file " & Name & " and read some chars...");
--- ----------------------------------------
-
- Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
-
- inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
- DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
- inx2 := Ada.Streams.Stream_IO.Index(FitsFile);
-
- for I in Positive range 1..Cnt loop
---   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
---   Ada.Text_IO.Put(Data.CharArr(I));
-   Ada.Text_IO.Put_Line(Data.CardArr(I));
---   for J in 1..CardsCntInBlock loop
---   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
---   end loop;
-
- end loop;
- Ada.Streams.Stream_IO.Close(FitsFile);
--- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
-
  ------------------------------------------------
  Ada.Text_IO.Put_Line("Open file " & Name & " and List_Content...");
 
- Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
+ BIO.Open (FitsFile, BIO.In_File, Name);
 
  List_Content(FitsFile,Print_HDUSize'Access);
 
- Ada.Streams.Stream_IO.Close(FitsFile);
+ BIO.Close(FitsFile);
 
 -- Limits:
-
+ Ada.Text_IO.New_Line;
  Ada.Text_IO.Put_Line("Max NAXIS  : " & Positive'Image(MaxAxes));
  Ada.Text_IO.Put_Line("Max NAXISn : " & FPositive'Image(FPositive'Last));
- Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Positive_Count'Last));
+ Ada.Text_IO.Put_Line("Max File size     : " & BIO.Count'Image(BIO.Positive_Count'Last));
  Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
  Ada.Text_IO.Put_Line("Supported only machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
 
@@ -143,5 +123,5 @@ begin
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end testfits;
+end testfits_dio;
 

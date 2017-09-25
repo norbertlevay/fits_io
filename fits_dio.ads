@@ -18,11 +18,24 @@
 
 with Interfaces;
 
-with Ada.Streams.Stream_IO;
+with Ada.Direct_IO;
+--with Ada.Streams.Stream_IO;
 
-package FITS is
+package FITS_DIO is
 
-   package SIO renames Ada.Streams.Stream_IO;
+--   package SIO renames Ada.Streams.Stream_IO;
+
+   -- Direct_IO init
+
+   BlockSize : Positive := 2880;
+   type Block_Type is array (1..BlockSize) of Interfaces.Integer_8;
+
+   package Block_IO is new Ada.Direct_IO(Block_Type);
+   use Block_IO;
+
+   package BIO renames Block_IO;
+
+   -- end Direct_IO
 
 
    type FITSData_Type is
@@ -83,7 +96,7 @@ package FITS is
       DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
    end record;
 
-   procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
+   procedure List_Content (FitsFile : in BIO.File_Type;
                            Print : not null access
                            procedure(HDUNum : Positive;
                                      HDUSize : HDU_Size_Type) );
@@ -94,7 +107,7 @@ package FITS is
    -- Positioning in FITS-file --
    ------------------------------
 
-   procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
+   procedure Set_Index(FitsFile : in BIO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in FNatural := 0); -- offset within the Unit (in units of FITSData_Type)
@@ -161,5 +174,5 @@ package FITS is
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
 
-end FITS;
+end FITS_DIO;
 
