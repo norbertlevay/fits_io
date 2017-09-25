@@ -9,7 +9,7 @@ TARGET=fits
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: main testfits_io testfits
+all: main testfits_io testfits testfits_dio
 
 
 build_date.ads :
@@ -23,6 +23,9 @@ main : main.adb build_date.ads
 	gnatmake -g -gnat05 -we main.adb -o ${TARGET} 
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
+
+testfits_dio : build_date.ads testfits_dio.adb fits_dio.ads fits_dio.adb
+	gnatmake -g -we testfits_dio.adb -o testfits_dio
 
 testfits : build_date.ads testfits.adb fits.ads fits.adb
 	gnatmake -g -we testfits.adb -o testfits
