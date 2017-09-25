@@ -293,9 +293,8 @@ package body FITS_DIO is
    procedure Read (FitsFile : in  BIO.File_Type;
                    Data     : in out DataArray_Type)
    is
---    DataType : Unit_Type := Data.Option;
     HDUSize : HDU_Size_Type;
-    Block : Block_Type;
+    Block   : Block_Type;
    begin
 
     -- if DataType indicates DataUnit move past current Header
@@ -312,9 +311,12 @@ package body FITS_DIO is
       -- explicit conversions Natural -> Count ok:
       -- it is under if then... cannot be zero.
      -- Move_Index(FitsFile,BIO.Positive_Count(Offset_bytes));
-     -- FIXME this should be offset on within Block
+     -- FIXME this should be offset with DataArray_Type
 --    end if;
 
+    -- FIXME there should be one cycle for each DataArray type;
+    -- and also the caller needs to repeat handling for each type...
+    -- not very maintainable coding... consider generic package instead(?)
     for I in Data.HBlockArr'Range
     loop
      BIO.Read(FitsFile, Block);
