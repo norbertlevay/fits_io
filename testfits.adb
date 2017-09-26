@@ -107,10 +107,15 @@ is
   end PutFITSData;
 
 
-   HDUNum : Positive := 2;
+   HDUNum : Positive := 1;
    Card : Card_Type;
    BITPIXVal : Integer;
+
 begin
+
+  Ada.Text_IO.Put_Line("Usage ./testfits HDUNum ");
+  Ada.Text_IO.Put_Line("HDUNum >" &Integer'Image(Integer'Value(Argument(1))));
+  HDUNum :=Integer'Value( Argument(1) );
 
 -- ----------------------------------------
  Ada.Text_IO.New_Line;
@@ -149,21 +154,20 @@ begin
  -- dynamically create Data of type as given in Header/BITPIX
  --
  declare
-   dt : FITSData_Type := To_FITSDataType (BITPIXVal);
+   dt    : FITSData_Type := To_FITSDataType (BITPIXVal);
    DataD : DataArray_Type(dt,4);
  begin
-
    Ada.Text_IO.New_Line;
    Ada.Text_IO.Put_Line("and read DataUnit...");
 
    FITS.Set_Index(FitsFile,HDUNum,DataD.Option);
    DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
-
    PutFITSData(DataD);
-
    Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put_Line("'Write(Stdout,DataD) ...");
+   Ada.Text_IO.Put("'Write(Stdout,DataD): >>");
    DataArray_Type'Write(StdoutStream, DataD);
+   Ada.Text_IO.Put_Line("<<");
+
  end; -- declare
 
  Ada.Streams.Stream_IO.Close(FitsFile);
