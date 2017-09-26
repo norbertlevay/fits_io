@@ -33,7 +33,6 @@ procedure testfits
 is
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
- HDUNum : Positive := 1;
 
  FitsFile : Ada.Streams.Stream_IO.File_Type;
  Inx1 : Ada.Streams.Stream_IO.Count;
@@ -47,7 +46,7 @@ is
  Cnt  : Positive := 5;
  Data : DataArray_Type(Card,Cnt);
 
- DataD : DataArray_Type(Float32,5);
+-- DataD : DataArray_Type(Int8,4);
 
 -- Cnt  : Positive := 2;
 -- Data : DataArray_Type(HBlock,Cnt);
@@ -108,6 +107,9 @@ is
   end PutFITSData;
 
 
+   HDUNum : Positive := 2;
+   Card : Card_Type;
+   BITPIXVal : Integer;
 begin
 
 -- ----------------------------------------
@@ -131,11 +133,25 @@ begin
  loop
 --   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
 --   Ada.Text_IO.Put(Data.CharArr(I));
-   Ada.Text_IO.Put_Line(Data.CardArr(I));
+   Card := Data.CardArr(I);
+   Ada.Text_IO.Put_Line(Card);
+
+     if    (Card(1..9) = "BITPIX  =") then
+       BITPIXVal := Integer'Value(Card(10..30));
+     end if;
+
 --   for J in 1..CardsCntInBlock loop
 --   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
 --   end loop;
  end loop;
+
+ --
+ -- dynamically create Data of type as given in Header/BITPIX
+ --
+ declare
+   dt : FITSData_Type := To_FITSDataType (BITPIXVal);
+   DataD : DataArray_Type(dt,4);
+ begin
 
  Ada.Text_IO.New_Line;
  Ada.Text_IO.Put_Line("...and now position into DataUnit and read some data...");
@@ -148,7 +164,7 @@ begin
 
  Ada.Text_IO.New_Line;
  Ada.Text_IO.Put_Line("...and now re-read the same area but step 3 Data forward ...");
- FITS.Set_Index(FitsFile,HDUNum,DataD.Option,3);
+ FITS.Set_Index(FitsFile,HDUNum,DataD.Option,4);
  DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
  Ada.Text_IO.New_Line;
  Ada.Text_IO.Put_Line("...use DataArray_Type'Write(Stdout,DataD) ...");
@@ -160,6 +176,8 @@ begin
 
  Ada.Streams.Stream_IO.Close(FitsFile);
 -- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
+
+ end; -- declare
 
  ------------------------------------------------
  Ada.Text_IO.New_Line;

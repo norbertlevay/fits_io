@@ -161,5 +161,10 @@ package FITS is
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
 
+   function  To_FITSDataType (BITPIX : in Integer )
+     return FITSData_Type;
+
+
+
 end FITS;
 
