@@ -160,7 +160,7 @@ begin
    Ada.Text_IO.New_Line;
    Ada.Text_IO.Put_Line("and read DataUnit...");
 
-   FITS.Set_Index(FitsFile,HDUNum,DataD.Option);
+   FITS.Set_Index(FitsFile,HDUNum,DataD.Option,10*4);
    DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    Ada.Text_IO.New_Line;
