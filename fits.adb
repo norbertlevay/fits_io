@@ -46,6 +46,30 @@ package body FITS is
 
    -- FITS itself:
 
+   function FITSDataTypeSize_bits(dt : FITSData_Type) return FNatural
+   is
+     Size : FNatural;
+   begin
+   case dt is
+    when Int8 =>
+     Size := Interfaces.Integer_8'Size;
+    when Int16 =>
+     Size := Interfaces.Integer_16'Size;
+    when Int32 =>
+     Size := Interfaces.Integer_32'Size;
+    when Int64 =>
+     Size := Interfaces.Integer_64'Size;
+    when Float32 =>
+     Size := Interfaces.IEEE_Float_32'Size;
+    when Float64 =>
+     Size := Interfaces.IEEE_Float_64'Size;
+    when others =>
+      null; -- FIXME exception or ?
+    end case;
+    return Size;
+   end FITSDataTypeSize_bits;
+
+
    StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:
@@ -220,6 +244,7 @@ package body FITS is
     Offset_bytes     : FNatural;
     CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
+    DataTypeSize_bits : FNatural := FITSDataTypeSize_bits(DataType);
    begin
 
     SIO.Set_Index(FitsFile, 1);
@@ -252,7 +277,7 @@ package body FITS is
     -- add Offset
     if Offset /= 0
     then
-     Offset_bytes := Offset * DataType'Size / StreamElemSize_bits;
+     Offset_bytes := Offset * DataTypeSize_bits / StreamElemSize_bits;
       -- explicit conversions Natural -> Count ok:
       -- it is under if then... cannot be zero.
      Move_Index(FitsFile,SIO.Positive_Count(Offset_bytes));
