@@ -153,31 +153,22 @@ begin
    DataD : DataArray_Type(dt,4);
  begin
 
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("...and now position into DataUnit and read some data...");
- FITS.Set_Index(FitsFile,HDUNum,DataD.Option);
- DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
- PutFITSData(DataD);
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("...use DataArray_Type'Write(Stdout,DataD) ...");
- DataArray_Type'Write(StdoutStream, DataD);
+   Ada.Text_IO.New_Line;
+   Ada.Text_IO.Put_Line("and read DataUnit...");
 
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("...and now re-read the same area but step 3 Data forward ...");
- FITS.Set_Index(FitsFile,HDUNum,DataD.Option,4);
- DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("...use DataArray_Type'Write(Stdout,DataD) ...");
- DataArray_Type'Write(StdoutStream, DataD);
+   FITS.Set_Index(FitsFile,HDUNum,DataD.Option);
+   DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
 
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("...use in cycle Interfaces.<Type>'Image() ...");
- PutFITSData(DataD);
+   PutFITSData(DataD);
+
+   Ada.Text_IO.New_Line;
+   Ada.Text_IO.Put_Line("'Write(Stdout,DataD) ...");
+   DataArray_Type'Write(StdoutStream, DataD);
+ end; -- declare
 
  Ada.Streams.Stream_IO.Close(FitsFile);
 -- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
 
- end; -- declare
 
  ------------------------------------------------
  Ada.Text_IO.New_Line;
