@@ -80,9 +80,9 @@ package body Commands is
   Ada.Text_IO.New_Line;
   Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
   Ada.Text_IO.Put_Line("System Name  " & Tab & System.Name'Image(System.System_Name));
-  Ada.Text_IO.Put_Line("Storage Unit (Byte)" & Tab & Integer'Image(System.Storage_Unit) & " [bits]");
---  Ada.Text_IO.Put_Line("Storage Element (Byte)" & Tab & System.Storage_Elements.Storage_Element'Image(System.Storage_Elements.Storage_Element) & " [bits]");
-  Ada.Text_IO.Put_Line("Word Size    " & Tab & Integer'Image(System.Word_Size) & " [bits]");
+  Ada.Text_IO.Put_Line("Storage Element (Byte)" & Tab & System.Storage_Elements.Storage_Element'Image(System.Storage_Elements.Storage_Element'Size) & " [bits]");
+  Ada.Text_IO.Put_Line("Storage Unit " & Tab & Integer'Image(System.Storage_Unit) & " [bits]");
+  Ada.Text_IO.Put_Line("Word Size (size of pointer/address)    " & Tab & Integer'Image(System.Word_Size) & " [bits]");
   Ada.Text_IO.Put_Line("Address Size " & Tab & Integer'Image(Standard'Address_Size) & " [bits]");
 --  Ada.Text_IO.Put_Line("Memory Size  " & Tab & Long_Long_Integer'Image(System.Memory_Size));
    -- Memory_Size : not very useful [Ada]
