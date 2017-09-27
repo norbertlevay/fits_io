@@ -20,7 +20,7 @@ with Interfaces;
 
 with Ada.Streams.Stream_IO;
 
-package FITS is
+package FITS_SIO is
 
    package SIO renames Ada.Streams.Stream_IO;
 
@@ -166,5 +166,5 @@ package FITS is
 
 
 
-end FITS;
+end FITS_SIO;
 

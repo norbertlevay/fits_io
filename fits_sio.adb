@@ -33,7 +33,7 @@ with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO;
 -- 'use' needed for + operator on Count type and all its subtypes(?)
 
-package body FITS is
+package body FITS_SIO is
 
    procedure Move_Index
              (FitsFile : in SIO.File_Type;
@@ -325,5 +325,5 @@ package body FITS is
 
    end List_Content;
 
-end FITS;
+end FITS_SIO;
 
