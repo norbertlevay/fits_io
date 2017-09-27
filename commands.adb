@@ -10,6 +10,10 @@ use  Ada.Streams.Stream_IO;
 
 package body Commands is
 
+ --
+ -- List HDU sizes. For Header: number of cards (and empty slots),
+ -- for Data type and axes length
+ --
  procedure List_HDUs_In_File (FitsFileName : in String)
  is
   FitsFile : FITS_SIO.SIO.File_Type;
@@ -58,6 +62,19 @@ package body Commands is
    FITS_SIO.List_Content (FitsFile, Print_HDU_Sizes'Access);
    FITS_SIO.SIO.Close(FitsFile);
  end List_HDUs_In_File;
+
+ --
+ -- print info on values limited by implementation and/or system
+ --
+ procedure Limits is
+ begin
+  Ada.Text_IO.Put_Line("Max NAXIS  : " & Positive'Image(FITS_SIO.MaxAxes));
+  Ada.Text_IO.Put_Line("Max NAXISn : " & FITS_SIO.FPositive'Image(FITS_SIO.FPositive'Last));
+  Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Positive_Count'Last));
+  Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
+  Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
+ end Limits;
+
 
 end Commands;
 

@@ -27,9 +27,10 @@ procedure main is
  begin
    Put_Line("Version: " & Version);New_Line;
    Put_Line("Usage:");New_Line;
-   Put_Line(" fits list             <fitsfilename>                   list HDU's in FITS-file");
-   Put_Line(" fits header [options] <fitsfilename>                   prints header");
-   Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into FITS-file");
+   Put_Line(" fits limits                           list implementation/system limitations");
+   Put_Line(" fits list             <fitsfilename>  list HDU's in FITS-file");
+--   Put_Line(" fits header [options] <fitsfilename>  prints header");
+--   Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into FITS-file");
    New_Line;
    Put_Line("Options:");
    Put_Line(" --hdu N     HDU-number: 1,2,3,... Default is 1 = Primary Header.");
@@ -49,7 +50,7 @@ procedure main is
  Input_File_Path  : SB.Bounded_String;
  Output_File_Path : SB.Bounded_String;
 
- i : Positive := 1;
+ i : Natural := 1;
 
  NoOptions : Natural := 0;
  HDU_Num : Positive := 1;
@@ -59,7 +60,7 @@ procedure main is
 
  begin
 
- if (CLI.Argument_Count <= 1)
+ if (CLI.Argument_Count < 1)
  then
   Print_Usage;
   Return;
@@ -72,13 +73,17 @@ procedure main is
  --    IO.Put_Line (Item => CLI.Argument (Number => i));
  -- end loop;
 
- while i < Argument_Count loop
+ while i <= Argument_Count loop
 
      Cur_Argument := SB.To_Bounded_String(Argument(i));
 
      -- Put_Line(To_String(Cur_Argument));
 
-     if Cur_Argument = "list" then
+     if Cur_Argument = "limits" then
+
+        Limits;
+
+     elsif Cur_Argument = "list" then
 
         Input_File_Path := SB.To_Bounded_String(Argument(i+1));
         List_HDUs_In_File (To_String(Input_File_Path));
@@ -109,9 +114,11 @@ procedure main is
         end if;
 
      else
-        Put_Line("Wrong arguments.");
-        New_line;
-        Print_Usage;
+        -- FIXME fix this cycle
+        null;
+        -- Put_Line("Wrong arguments.");
+        -- New_line;
+        -- Print_Usage;
      end if;
 
      i := i + 1;
