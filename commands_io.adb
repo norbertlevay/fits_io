@@ -7,7 +7,7 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
 
 use  Ada.Streams.Stream_IO;
 
-package body Commands is
+package body Commands_IO is
 
  --
  -- read header from file and print to stdout
@@ -217,5 +217,5 @@ package body Commands is
    FITS_IO.Close(FitsFile);
  end Print_Struct;
 
-end Commands;
+end Commands_IO;
 

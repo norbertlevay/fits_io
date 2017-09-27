@@ -1,7 +1,6 @@
 
 with
     Build_Date,
-    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -17,7 +16,6 @@ with
 
 
 use
-    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,

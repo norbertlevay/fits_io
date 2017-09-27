@@ -1,7 +1,7 @@
 
 with
     Build_Date,
-    Commands,
+--    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -18,7 +18,7 @@ with
 
 
 use
-    Commands,
+--    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,
@@ -28,7 +28,7 @@ use
 with FITS_SIO; use FITS_SIO;
 
 
-procedure testfits
+procedure testfits_sio
 is
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
@@ -218,5 +218,5 @@ begin
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end testfits;
+end testfits_sio;
 

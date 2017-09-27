@@ -1,6 +1,6 @@
 with
     Build_Date,
-    Commands,
+    Commands_IO,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -12,14 +12,14 @@ with
 
 
 use
-    Commands,
+    Commands_IO,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,
     Ada.Command_Line;
 
 
-procedure main is
+procedure main_io is
 
  Version : String := "fits(ada) 0.1.0 Build: " & Build_Date.BuildDate ;
 
@@ -161,5 +161,5 @@ procedure main is
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end main;
+end main_io;
 

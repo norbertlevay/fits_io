@@ -4,7 +4,7 @@
 
 with FITS_IO;
 
-package Commands is
+package Commands_IO is
 
 -- procedure Print_Header( FileName : in String;
 --                         HDU_Num  : Positive := 1 );
@@ -22,5 +22,5 @@ package Commands is
  procedure Print_Struct (FitsFileName : in String);
  -- print HDU info
 
-end Commands;
+end Commands_IO;
 

@@ -4,7 +4,7 @@
 
 with
     Build_Date,
-    Commands,
+    Commands_IO,
     Ada.Exceptions,
     Ada.Streams, -- only to know Stream_Element size
     Ada.Text_IO,
@@ -19,7 +19,7 @@ with
 
 
 use
-    Commands,
+    Commands_IO,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,
