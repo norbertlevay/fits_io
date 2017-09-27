@@ -2,6 +2,7 @@
 with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Strings.Fixed,
      Ada.Streams.Stream_IO,
+     Ada.Characters.Latin_1,
      GNAT.OS_Lib,
      FITS_SIO;
 
@@ -16,6 +17,7 @@ package body Commands is
   procedure Print_HDU_Sizes (Index : Positive; HDUInfo : FITS_SIO.HDU_Size_Type)
   is
       FreeSlotCnt : Natural;
+      Tab : Character := Ada.Characters.Latin_1.HT;
   begin
        -- calc free slots
        FreeSlotCnt := 36 - (HDUInfo.CardsCnt mod 36);
@@ -24,14 +26,15 @@ package body Commands is
         FreeSlotCnt := 0;
        end if;
 
-       Ada.Text_IO.Put("HDUVect HDU#" & Integer'Image(Index) );
-       Ada.Text_IO.Put("   Cards: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image(HDUInfo.CardsCnt),5,' ') &
-                       " EmptyCardSlots: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
+       Ada.Text_IO.Put( Integer'Image(Index) &
+                        Tab &
+                        Ada.Strings.Fixed.Tail( Integer'Image(HDUInfo.CardsCnt),5,' ') &
+                        " (" &
+                        Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
+                        ")" );
 
        if HDUInfo.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITS_SIO.FITSData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FITS_SIO.FITSData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfo.DUSizeParam.Naxes - 1)
          loop
@@ -42,8 +45,16 @@ package body Commands is
        end if;
   end Print_HDU_Sizes;
 
+  procedure Print_Headline is
+    Tab : Character := Ada.Characters.Latin_1.HT;
+  begin
+   Ada.Text_IO.Put_Line ("HDU#" & Tab & " Cards" & Tab & "Data");
+  end Print_Headline;
+
+
  begin
    FITS_SIO.SIO.Open(FitsFile,FITS_SIO.SIO.In_File,FitsFileName);
+   Print_Headline;
    FITS_SIO.List_Content (FitsFile, Print_HDU_Sizes'Access);
    FITS_SIO.SIO.Close(FitsFile);
  end List_HDUs_In_File;
