@@ -130,7 +130,7 @@ package body FITS_SIO is
    --
    -- calculate DataUnit size in FITS Blocks
    --
-   function  Size_Blocks (DUSizeParam : in out DUSizeParam_Type) return FPositive
+   function  Size_Blocks (DUSizeParam : in DUSizeParam_Type) return FPositive
    is
     DataInBlock    : FPositive;
     DUSizeInBlocks : FPositive;
