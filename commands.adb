@@ -4,7 +4,8 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Streams.Stream_IO,
      Ada.Characters.Latin_1,
      GNAT.OS_Lib,
-     FITS_SIO;
+     FITS_SIO,
+     System;
 
 use  Ada.Streams.Stream_IO;
 
@@ -66,13 +67,25 @@ package body Commands is
  --
  -- print info on values limited by implementation and/or system
  --
- procedure Limits is
+ procedure Limits
+ is
+  Tab : Character := Ada.Characters.Latin_1.HT;
  begin
-  Ada.Text_IO.Put_Line("Max NAXIS  : " & Positive'Image(FITS_SIO.MaxAxes));
-  Ada.Text_IO.Put_Line("Max NAXISn : " & FITS_SIO.FPositive'Image(FITS_SIO.FPositive'Last));
-  Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Positive_Count'Last));
-  Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
+  Ada.Text_IO.Put_Line("Limits imposed by implementation and/or the system:");
+  Ada.Text_IO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(FITS_SIO.MaxAxes));
+  Ada.Text_IO.Put_Line("Max NAXISn :" & Tab & FITS_SIO.FPositive'Image(FITS_SIO.FPositive'Last));
+  Ada.Text_IO.Put_Line("Max File size :" & Tab & FITS_SIO.SIO.Positive_Count'Image(FITS_SIO.SIO.Positive_Count'Last));
+  Ada.Text_IO.Put_Line("Max DataUnit size :" & Tab & "???" );
+  Ada.Text_IO.New_Line;
   Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
+--  Ada.Text_IO.Put_Line("System Name  " & Tab & System.Name);
+  Ada.Text_IO.Put_Line("Storage Unit (Byte)" & Tab & Integer'Image(System.Storage_Unit) & " [bits]");
+  Ada.Text_IO.Put_Line("Word Size    " & Tab & Integer'Image(System.Word_Size) & " [bits]");
+  Ada.Text_IO.Put_Line("Address Size " & Tab & Integer'Image(Standard'Address_Size) & " [bits]");
+--  Ada.Text_IO.Put_Line("Memory Size  " & Tab & Long_Long_Integer'Image(System.Memory_Size));
+   -- Memory_Size : not very useful [Ada]
+  Ada.Text_IO.Put_Line("Default Bit Order" & Tab & System.Bit_Order'Image(System.Default_Bit_Order));
+  Ada.Text_IO.Put_Line("Endianness (Bit Order)" & Tab & System.Bit_Order'Image(FITS_SIO.DataArray_Type'Bit_Order));
  end Limits;
 
  --
