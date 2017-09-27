@@ -101,8 +101,7 @@ procedure main is
         then
         	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-		-- Print_Header( To_String(Input_File_Path), HDU_Num );
-		-- FITSIO_Print_Header( To_String(Input_File_Path), HDU_Num );
+		Print_Header( To_String(Input_File_Path), HDU_Num );
         else
         	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;

@@ -75,6 +75,31 @@ package body Commands is
   Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
  end Limits;
 
+ --
+ -- output Header from file
+ --
+ procedure Print_Header( FileName : in String;
+                         HDUNum   : in Positive := 1 )
+ is
+   FitsFile : FITS_SIO.SIO.File_Type;
+   Data     : FITS_SIO.DataArray_Type(FITS_SIO.Card , 1);
+ begin
+   FITS_SIO.SIO.Open(FitsFile, FITS_SIO.SIO.In_File, FileName);
+
+   FITS_SIO.Set_Index(FitsFile,HDUNum,Data.Option);
+
+   loop
+    FITS_SIO.DataArray_Type'Read(FITS_SIO.SIO.Stream(FitsFile) , Data);
+    Ada.Text_IO.Put_Line(Data.CardArr(1));
+    exit when (Data.CardArr(1) = FITS_SIO.ENDCard);
+   end loop;
+
+   FITS_SIO.SIO.Close(FitsFile);
+
+ end Print_Header;
+
+
+
 
 end Commands;
 
