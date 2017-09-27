@@ -69,7 +69,7 @@ is
                        Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
 
        if HDUSize.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FITSData_Type'Image(HDUSize.DUSizeParam.Data),8,' ') );
+        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FitsData_Type'Image(HDUSize.DUSizeParam.Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUSize.DUSizeParam.Naxes - 1)
          loop
@@ -85,7 +85,7 @@ is
   begin
    for I in Positive range 1 .. Data.Length
    loop
-    case Data.Option is
+    case Data.FitsType is
     when Int8 =>
      Ada.Text_IO.Put( Interfaces.Integer_8'Image(Data.Int8Arr(I)) & " ");
     when Int16 =>
@@ -122,7 +122,7 @@ begin
 
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 
- FITS_SIO.Set_Index(FitsFile,HDUNum,Data.Option);
+ FITS_SIO.Set_Index(FitsFile,HDUNum,Data.FitsType);
 
  inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
  DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
@@ -153,13 +153,13 @@ begin
  -- dynamically create Data of type as given in Header/BITPIX
  --
  declare
-   dt    : FITSData_Type := To_FITSDataType (BITPIXVal);
+   dt    : FitsData_Type := To_FITSDataType (BITPIXVal);
    DataD : DataArray_Type(dt,4);
  begin
    Ada.Text_IO.New_Line;
    Ada.Text_IO.Put_Line("and read DataUnit...");
 
-   FITS_SIO.Set_Index(FitsFile,HDUNum,DataD.Option,10*4);
+   FITS_SIO.Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
    DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    Ada.Text_IO.New_Line;

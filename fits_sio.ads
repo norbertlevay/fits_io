@@ -25,7 +25,7 @@ package FITS_SIO is
    package SIO renames Ada.Streams.Stream_IO;
 
 
-   type FITSData_Type is
+   type FitsData_Type is
        (HBlock, Card, Char,        -- Header types
         Int8, Int16, Int32,        -- DataUnit types
         Int64, Float32, Float64);
@@ -71,7 +71,7 @@ package FITS_SIO is
    --  e.g. NAXISn will be 32bit or 64bit depending on the machine
 
    type DUSizeParam_Type is record
-      Data     : FITSData_Type; -- data type as given by BITPIX
+      Data     : FitsData_Type; -- data type as given by BITPIX
       BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
       Naxes    : NAXIS_Type;  -- NAXIS  from header
       Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
@@ -96,8 +96,8 @@ package FITS_SIO is
 
    procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
-                       DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in FNatural := 0); -- offset within the Unit (in units of FITSData_Type)
+                       DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                       Offset   : in FNatural := 0); -- offset within the Unit (in units of FitsData_Type)
    -- set file-index to correct position for Read/Write
 
 
@@ -132,10 +132,10 @@ package FITS_SIO is
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
 
-   type DataArray_Type ( Option : FITSData_Type ;
-                         Length : Positive ) is
+   type DataArray_Type ( FitsType : FitsData_Type ;
+                         Length   : Positive ) is
      record
-       case Option is
+       case FitsType is
        when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
        when Card  =>   CardArr    : CardArr_Type (1 .. Length);
        when Char  =>   CharArr    : CharArr_Type (1 .. Length);
@@ -162,7 +162,7 @@ package FITS_SIO is
    pragma Pack (DataArray_Type);
 
    function  To_FITSDataType (BITPIX : in Integer )
-     return FITSData_Type;
+     return FitsData_Type;
 
 
 

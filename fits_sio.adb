@@ -46,7 +46,7 @@ package body FITS_SIO is
 
    -- FITS itself:
 
-   function FITSDataTypeSize_bits(dt : FITSData_Type) return FNatural
+   function FITSDataTypeSize_bits(dt : FitsData_Type) return FNatural
    is
      Size : FNatural;
    begin
@@ -89,7 +89,7 @@ package body FITS_SIO is
    -- from Data-type decide whether it is for Header or Data Unit
    --  arrays derived from Character are for Header Read/Write
    --  other (arrays derived from BITPIX) are for Data Unit access
-   function  To_UnitType (DataType : in FITSData_Type) return Unit_Type
+   function  To_UnitType (DataType : in FitsData_Type) return Unit_Type
    is
     UType : Unit_Type := HeaderUnit;
    begin
@@ -106,11 +106,11 @@ package body FITS_SIO is
 
 
    --
-   -- convert BITPIX keyword from Header to internal FITSData_Type
+   -- convert BITPIX keyword from Header to internal FitsData_Type
    --
-   function  To_FITSDataType (BITPIX : in Integer ) return FITSData_Type
+   function  To_FITSDataType (BITPIX : in Integer ) return FitsData_Type
    is
-    bp : FITSData_Type;
+    bp : FitsData_Type;
    begin
     case BITPIX is
     when   8 => bp := Int8;
@@ -236,8 +236,8 @@ package body FITS_SIO is
    --
    procedure Set_Index (FitsFile : in SIO.File_Type;
                         HDUNum   : in Positive;      -- which HDU
-                        DataType : in FITSData_Type; -- decide to position to start of HeaderUnit or DataUnit
-                        Offset   : in FNatural := 0)  -- offset within the Unit (in units of FITSData_Type)
+                        DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                        Offset   : in FNatural := 0)  -- offset within the Unit (in units of FitsData_Type)
    is
     CurDUSize_blocks : FPositive;
     CurDUSize_bytes  : FPositive;

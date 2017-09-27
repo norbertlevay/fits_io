@@ -38,7 +38,7 @@ package body Commands is
                         ")" );
 
        if HDUInfo.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FITS_SIO.FITSData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FITS_SIO.FitsData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfo.DUSizeParam.Naxes - 1)
          loop
@@ -86,7 +86,7 @@ package body Commands is
  begin
    FITS_SIO.SIO.Open(FitsFile, FITS_SIO.SIO.In_File, FileName);
 
-   FITS_SIO.Set_Index(FitsFile,HDUNum,Data.Option);
+   FITS_SIO.Set_Index(FitsFile,HDUNum,Data.FitsType);
 
    loop
     FITS_SIO.DataArray_Type'Read(FITS_SIO.SIO.Stream(FitsFile) , Data);
