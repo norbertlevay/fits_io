@@ -12,6 +12,8 @@ use  Ada.Streams.Stream_IO;
 
 package body Commands is
 
+   package TIO renames Ada.Text_IO;
+
  --
  -- List HDU sizes. For Header: number of cards (and empty slots),
  -- for Data type and axes length
@@ -112,6 +114,80 @@ package body Commands is
    FITS_SIO.SIO.Close(FitsFile);
 
  end Print_Header;
+
+ --
+ -- make sure order of first mandatory keywords in header
+ -- is as [FITS] requires : SIMPLE, BITPIX, NAXIS...NAXISn
+ --
+ procedure Clean_Header_Start(InFitsName       : in String;
+                              OutFitsName      : in String;
+                              HDUNum           : in Positive := 1)
+ is
+   InFits  : FITS_SIO.SIO.File_Type;
+   OutFits : FITS_SIO.SIO.File_Type;
+   Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
+   CurHDUNum : Positive := 1;
+   CurSIOIndex : FITS_SIO.SIO.Positive_Count := 1;
+   TargetSIOIndex : FITS_SIO.SIO.Positive_Count;
+   ENDCardFound : Boolean := false;
+ begin
+
+   FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
+   FITS_SIO.SIO.Open  (InFits,  FITS_SIO.SIO.In_File,  InFitsName);
+
+   -- find position of HDU to be mofied
+   -- FIXME ? alternatively: implement
+   -- FITS_SIO.Get_HDUSize_blocks() and Copy_HDU(InFitsFile, InHDUNum, OutFits)
+   -- and cycle by blocks until HDUSize and cycle by HDU until HDUNum
+   FITS_SIO.Set_Index(InFits,  HDUNum, Data.FitsType);
+   TargetSIOIndex := FITS_SIO.SIO.Index(InFits);
+
+   -- reset to InFits begining
+
+   FITS_SIO.SIO.Set_Index(OutFits,1);
+   FITS_SIO.SIO.Set_Index(InFits, 1);
+
+   -- copy all HDUs upto HDUNum
+
+   while CurSIOIndex < TargetSIOIndex
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+     CurSIOIndex := FITS_SIO.SIO.Index(InFits);
+   end loop;
+
+   -- now we are are positioned at HDUNum
+
+   ---------------------
+   -- BEGIN Header modif
+   -- FIXME Implement here, whatever needs to be done to the header
+   -- now we simple copy
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+     for I in Data.HBlockArr(1)'Range
+     loop
+       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
+       exit when ENDCardFound;
+     end loop;
+     exit when ENDCardFound;
+   end loop;
+   -- END   Header modif
+   ---------------------
+
+   -- copy the rest of the file
+
+   while not End_Of_File(InFits)
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+   end loop;
+
+   FITS_SIO.SIO.Close(InFits);
+   FITS_SIO.SIO.Close(OutFits);
+
+ end Clean_Header_Start;
+
 
 end Commands;
 

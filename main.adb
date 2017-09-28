@@ -25,21 +25,25 @@ procedure main is
 
  procedure Print_Usage is
  begin
-   Put_Line("Version: " & Version);New_Line;
-   Put_Line("Usage:");New_Line;
-   Put_Line(" fits limits                           list implementation/system limitations");
-   Put_Line(" fits list             <fitsfilename>  list HDU's in FITS-file");
---   Put_Line(" fits header [options] <fitsfilename>  prints header");
---   Put_Line(" fits header [options] <fitsfilename> <headerfilename>  writes header into FITS-file");
+   Put_Line("Version: " & Version);
+   New_Line;
+   Put_Line("Usage:");
+   Put_Line(" fits limits                    list implementation/system limitations");
+   Put_Line(" fits list             in.fits  list HDU's in FITS-file");
+   Put_Line(" fits header [options] in.fits  prints header");
+   Put_Line("Utils:");
+   Put_Line(" fits cleanhead [options] in.fits out.fits");
+   Put_Line("                clean begining of header:");
+   Put_Line("                FITS standard defines which cards must start a header. Move other cards behind last NAXISn.");
    New_Line;
    Put_Line("Options:");
    Put_Line(" --hdu N     HDU-number: 1,2,3,... Default is 1 = Primary Header.");
    New_Line;
-   Put_Line("Notes:");
-   Put_Line(" HDU info:        No of Cards, Data Type, ( axes dimensions ).");
-   Put_Line(" <headerfilename> is text file with one fits-keyword record per line");
-   Put_Line("                  last line must start with three letters: 'END'.");
-   New_Line;
+--   Put_Line("Notes:");
+--   Put_Line(" HDU info:        No of Cards, Data Type, ( axes dimensions ).");
+--   Put_Line(" <headerfilename> is text file with one fits-keyword record per line");
+--   Put_Line("                  last line must start with three letters: 'END'.");
+--   New_Line;
  end Print_Usage;
 
  package SB is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 100);
@@ -53,7 +57,7 @@ procedure main is
  i : Natural := 1;
 
  NoOptions : Natural := 0;
- HDU_Num : Positive := 1;
+ HDUNum   : Positive := 1;
 
  package IO  renames Ada.Text_IO;
  package CLI renames Ada.Command_Line;
@@ -88,11 +92,25 @@ procedure main is
         Input_File_Path := SB.To_Bounded_String(Argument(i+1));
         List_HDUs_In_File (To_String(Input_File_Path));
 
+     elsif Cur_Argument = "cleanhead" then
+
+        if Argument(i+1) = "--hdu" then
+          HDUNum := Integer'Value(Argument(i+2));
+          NoOptions := 2;-- there were 2 more args
+          i := i + NoOptions;
+        end if;
+
+        Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
+        Output_File_Path := SB.To_Bounded_String(Argument(i+2));
+        Clean_Header_Start(To_String(Input_File_Path),
+                           To_String(Output_File_Path),
+                           HDUNum);
+
      elsif Cur_Argument = "header"
      then
 
         if Argument(i+1) = "--hdu" then
-          HDU_Num := Integer'Value(Argument(i+2));
+          HDUNum := Integer'Value(Argument(i+2));
           NoOptions := 2;-- there were 2 more args
           i := i + NoOptions;
         end if;
@@ -101,15 +119,13 @@ procedure main is
         then
         	Input_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
-		Print_Header( To_String(Input_File_Path), HDU_Num );
+		Print_Header( To_String(Input_File_Path), HDUNum );
         else
         	Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
         	Header_File_Path := SB.To_Bounded_String(Argument(i+1));
 	        i := i + 1;
---		Put_Line("Write Header not implemented.");
-                -- Write_Header(To_String(Input_File_Path),
-                --             To_String(Header_File_Path), HDU_Num);
+                -- Write_Header not implemented
         end if;
 
      else
@@ -143,8 +159,8 @@ procedure main is
 
  exception
  when Except_ID : Name_Error =>
-     Put_Line( "Name> " & Exception_Name( Except_ID ) );
-     Put_Line( "Mesg> " & Exception_Message( Except_ID ) );
+--     Put_Line( "Name> " & Exception_Name( Except_ID ) );
+--     Put_Line( "Mesg> " & Exception_Message( Except_ID ) );
      -- Ada RefMan: Mesg should be short (one line)
      Put_Line( "Info: ");
      Put_Line( Exception_Information( Except_ID ) );
@@ -153,14 +169,15 @@ procedure main is
      declare
       Error : File_Type := Standard_Error;
      begin
+      New_Line(Error);
       Put_Line(Error, "Program error, send a bug-report:");
       Put_Line(Error, "provide program's arguments and copy the following information: ");
-      New_Line(Error);
-      Put_Line(Error, "Exception_Name: " & Exception_Name( Except_ID ) );
-      Put_Line(Error, "Exception_Message: " & Exception_Message( Except_ID ) );
+--      New_Line(Error);
+--      Put_Line(Error, "Exception_Name: " & Exception_Name( Except_ID ) );
+--      Put_Line(Error, "Exception_Message: " & Exception_Message( Except_ID ) );
       Put_Line(Error, "Exception_Information: ");
       Put_Line(Error, Exception_Information( Except_ID ) );
-      New_Line(Error);
+ --     New_Line(Error);
       --Put_Line(" > Trace-back of call stack: " );
       -- Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
       -- See more at: http://compgroups.net/comp.lang.ada/gnat-symbolic-traceback-on-exceptions/1409155#sthash.lNdkTjq6.dpuf

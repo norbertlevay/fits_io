@@ -102,7 +102,12 @@ is
  DataInt16 : DataArray_Type(int16,10);
  DataInt32 : DataArray_Type(int32,10);
 
+
 begin
+ -- silence warning about vars not asigned
+ DataInt8.Int8Arr(1)  :=0;
+ DataInt16.Int16Arr(1) :=0;
+ DataInt32.Int32Arr(1) :=0;
 
 -- Ada.Text_IO.Put_Line("Name   " & System.Name);
  Ada.Text_IO.Put_Line("Default_Bit_Order " & System.Bit_Order'Image(System.Default_Bit_Order));
