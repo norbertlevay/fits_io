@@ -164,7 +164,18 @@ package FITS_SIO is
    function  To_FITSDataType (BITPIX : in Integer )
      return FitsData_Type;
 
+   -----------
+   -- Utils --
+   -----------
 
+   --
+   -- copy N-Fits blocks from current index position
+   -- in chunks of M blocks
+   --
+   procedure Copy_Blocks (InFits  : in SIO.File_Type;
+                          OutFits : in SIO.File_Type;
+                          NBlocks : in FPositive;
+                          MBlocks : in FPositive := 10) is null;
 
 end FITS_SIO;
 
