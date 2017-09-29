@@ -325,5 +325,32 @@ package body FITS_SIO is
 
    end List_Content;
 
+   procedure Copy_Blocks (InFits  : in SIO.File_Type;
+                          OutFits : in SIO.File_Type;
+                          NBlocks : in FPositive;
+                          ChunkSize_blocks : in Positive := 10)
+   is
+    NChunks   : FNatural := NBlocks  /  FPositive(ChunkSize_blocks);
+    NRest     : FNatural := NBlocks rem FPositive(ChunkSize_blocks);
+    BigBuf    : DataArray_Type(HBlock,ChunkSize_blocks); -- big buffer
+    SmallBuf  : DataArray_Type(HBlock,1);                -- small buffer
+   begin
+
+     while NChunks > 0
+     loop
+      DataArray_Type'Read (SIO.Stream(InFits),BigBuf);
+      DataArray_Type'Write(SIO.Stream(InFits),BigBuf);
+      NChunks := NChunks - 1;
+     end loop;
+
+     while NRest   > 0
+     loop
+      DataArray_Type'Read (SIO.Stream(InFits),SmallBuf);
+      DataArray_Type'Write(SIO.Stream(InFits),SmallBuf);
+      NRest := NRest - 1;
+     end loop;
+
+   end Copy_Blocks;
+
 end FITS_SIO;
 

@@ -130,6 +130,8 @@ package body Commands is
    CurSIOIndex : FITS_SIO.SIO.Positive_Count := 1;
    TargetSIOIndex : FITS_SIO.SIO.Positive_Count;
    ENDCardFound : Boolean := false;
+   NBlocks : FITS_SIO.FPositive;
+   nb : Natural;
  begin
 
    FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
@@ -148,13 +150,18 @@ package body Commands is
    FITS_SIO.SIO.Set_Index(InFits, 1);
 
    -- copy all HDUs upto HDUNum
+   nb := Natural(TargetSIOIndex / 2880);
+   if nb /= 0 then
+    NBlocks := FITS_SIO.FPositive(nb);-- FIXME
+    FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
+   end if;
 
-   while CurSIOIndex < TargetSIOIndex
-   loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
-     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
-     CurSIOIndex := FITS_SIO.SIO.Index(InFits);
-   end loop;
+--   while CurSIOIndex < TargetSIOIndex
+--   loop
+--     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+--     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+--     CurSIOIndex := FITS_SIO.SIO.Index(InFits);
+--   end loop;
 
    -- now we are are positioned at HDUNum
 

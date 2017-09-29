@@ -169,13 +169,12 @@ package FITS_SIO is
    -----------
 
    --
-   -- copy N-Fits blocks from current index position
-   -- in chunks of M blocks
+   -- copy NBlocks from current index position in chunks of ChunkSize_blocks
    --
    procedure Copy_Blocks (InFits  : in SIO.File_Type;
                           OutFits : in SIO.File_Type;
                           NBlocks : in FPositive;
-                          MBlocks : in FPositive := 10) is null;
+                          ChunkSize_blocks : in Positive := 10);
 
 end FITS_SIO;
 
