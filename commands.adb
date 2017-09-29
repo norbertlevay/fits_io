@@ -151,6 +151,8 @@ package body Commands is
    FITS_SIO.SIO.Set_Index(InFits, 1);
 
    -- copy all HDUs upto HDUNum
+   -- FIXME
+   TIO.Put_Line("DBG> Index: " & FITS_SIO.SIO.Positive_count'Image(TargetSIOIndex));
    nb := Natural(TargetSIOIndex / 2880);
    if nb /= 0 then
     NBlocks := FITS_SIO.FPositive(nb);-- FIXME
