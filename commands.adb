@@ -132,6 +132,7 @@ package body Commands is
    ENDCardFound : Boolean := false;
    NBlocks : FITS_SIO.FPositive;
    nb : Natural;
+   FileSize : FITS_SIO.SIO.Positive_Count;
  begin
 
    FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
@@ -184,11 +185,22 @@ package body Commands is
 
    -- copy the rest of the file
 
-   while not End_Of_File(InFits)
-   loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
-     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
-   end loop;
+   FileSize := FITS_SIO.SIO.Size(InFits);
+   TargetSIOIndex := FITS_SIO.SIO.Index(InFits);
+
+   nb := Natural((FileSize - TargetSIOIndex) / 2880);
+   if nb /= 0 then
+    NBlocks := FITS_SIO.FPositive(nb);-- FIXME
+    FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
+   end if;
+
+
+
+--   while not End_Of_File(InFits)
+--   loop
+--     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+--     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+--   end loop;
 
    FITS_SIO.SIO.Close(InFits);
    FITS_SIO.SIO.Close(OutFits);

@@ -338,15 +338,15 @@ package body FITS_SIO is
 
      while NChunks > 0
      loop
-      DataArray_Type'Read (SIO.Stream(InFits),BigBuf);
-      DataArray_Type'Write(SIO.Stream(InFits),BigBuf);
+      DataArray_Type'Read (SIO.Stream( InFits),BigBuf);
+      DataArray_Type'Write(SIO.Stream(OutFits),BigBuf);
       NChunks := NChunks - 1;
      end loop;
 
      while NRest   > 0
      loop
-      DataArray_Type'Read (SIO.Stream(InFits),SmallBuf);
-      DataArray_Type'Write(SIO.Stream(InFits),SmallBuf);
+      DataArray_Type'Read (SIO.Stream( InFits),SmallBuf);
+      DataArray_Type'Write(SIO.Stream(OutFits),SmallBuf);
       NRest := NRest - 1;
      end loop;
 
