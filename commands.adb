@@ -100,6 +100,7 @@ package body Commands is
  is
    FitsFile : FITS_SIO.SIO.File_Type;
    Data     : FITS_SIO.DataArray_Type(FITS_SIO.Card , 1);
+   ENDCardFound : Boolean := false;
  begin
    FITS_SIO.SIO.Open(FitsFile, FITS_SIO.SIO.In_File, FileName);
 
@@ -114,6 +115,45 @@ package body Commands is
    FITS_SIO.SIO.Close(FitsFile);
 
  end Print_Header;
+
+ -- - Utils
+ -- as example do remove one card with given keyword
+ procedure Do_Some_Modif(InFits  : FITS_SIO.SIO.File_Type;
+                         OutFits : FITS_SIO.SIO.File_Type)
+ is
+   key : String := "DATE "; -- key to remove
+   Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
+   ENDCardFound : Boolean := false;
+ begin
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+     for I in Data.HBlockArr(1)'Range
+     loop
+       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
+       exit when ENDCardFound;
+     end loop;
+     exit when ENDCardFound;
+   end loop;
+ end Do_Some_Modif;
+
+ procedure Do_Copy_Header(InFits  : FITS_SIO.SIO.File_Type;
+                          OutFits : FITS_SIO.SIO.File_Type)
+ is
+   Data : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
+   ENDCardFound : Boolean := false;
+ begin
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
+     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
+     for I in Data.HBlockArr(1)'Range
+     loop
+       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
+       exit when ENDCardFound;
+     end loop;
+     exit when ENDCardFound;
+   end loop;
+ end Do_Copy_Header;
 
  --
  -- make sure order of first mandatory keywords in header

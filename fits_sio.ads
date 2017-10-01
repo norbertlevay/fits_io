@@ -161,12 +161,11 @@ package FITS_SIO is
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
 
-   function  To_FITSDataType (BITPIX : in Integer )
-     return FitsData_Type;
-
    -----------
    -- Utils --
    -----------
+   function  To_FITSDataType (BITPIX : in Integer )
+     return FitsData_Type;
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
