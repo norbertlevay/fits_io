@@ -122,19 +122,48 @@ package body Commands is
                          OutFits : FITS_SIO.SIO.File_Type)
  is
    key : String := "DATE "; -- key to remove
-   Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
+   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
+   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card , 1);
    ENDCardFound : Boolean := false;
+   Card : FITS_SIO.Card_Type;
+   EmptyCard : FITS_SIO.Card_Type := (others => ' ');
+   CntCardsWritten : Natural := 0;
+   CntRemBlock : Natural;
  begin
    loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
-     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
-     for I in Data.HBlockArr(1)'Range
+
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), InData);
+
+     for I in InData.HBlockArr(1)'Range
      loop
-       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
+       Card := InData.HBlockArr(1)(I);
+
+       -- skip Card starting with key
+       if Card(1..5) /= key then
+         OutData.CardArr(1) := Card;
+         FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
+         CntCardsWritten := CntCardsWritten + 1;
+       end if;
+
+       ENDCardFound := (Card = FITS_SIO.ENDCard);
        exit when ENDCardFound;
-     end loop;
+     end loop; -- for loop
+
      exit when ENDCardFound;
    end loop;
+
+   -- fill upto block limit
+--   CntRemBlock := FITS_SIO.CardsCntInBlock - (CntCardsWritten mod FITS_SIO.CardsCntInBlock);
+   CntRemBlock := CntCardsWritten mod FITS_SIO.CardsCntInBlock;
+   if (CntRemBlock > 0) then
+    while (CntRemBlock < FITS_SIO.CardsCntInBlock)
+    loop
+      OutData.CardArr(1) := EmptyCard;
+      FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
+      CntRemBlock := CntRemBlock + 1;
+     end loop;
+    end if;
+
  end Do_Some_Modif;
 
  procedure Do_Copy_Header(InFits  : FITS_SIO.SIO.File_Type;
@@ -191,58 +220,27 @@ package body Commands is
    FITS_SIO.SIO.Set_Index(InFits, 1);
 
    -- copy all HDUs upto HDUNum
-   -- FIXME
    TIO.Put_Line("DBG> Index: " & FITS_SIO.SIO.Positive_count'Image(TargetSIOIndex));
+
    nb := Natural(TargetSIOIndex / 2880);
    if nb /= 0 then
-    NBlocks := FITS_SIO.FPositive(nb);-- FIXME
+    NBlocks := FITS_SIO.FPositive(nb);-- FIXME all if and conversion
     FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
    end if;
 
---   while CurSIOIndex < TargetSIOIndex
---   loop
---     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
---     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
---     CurSIOIndex := FITS_SIO.SIO.Index(InFits);
---   end loop;
-
-   -- now we are are positioned at HDUNum
-
-   ---------------------
-   -- BEGIN Header modif
-   -- FIXME Implement here, whatever needs to be done to the header
-   -- now we simple copy
-   loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
-     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
-     for I in Data.HBlockArr(1)'Range
-     loop
-       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
-       exit when ENDCardFound;
-     end loop;
-     exit when ENDCardFound;
-   end loop;
-   -- END   Header modif
-   ---------------------
+   -- now we are are positioned at HDUNum: modify Header
+   Do_Some_Modif(InFits,OutFits);
 
    -- copy the rest of the file
 
-   FileSize := FITS_SIO.SIO.Size(InFits);
+   FileSize       := FITS_SIO.SIO.Size(InFits);
    TargetSIOIndex := FITS_SIO.SIO.Index(InFits);
 
-   nb := Natural((FileSize - TargetSIOIndex) / 2880);
+   nb := Natural(((FileSize + 1) - TargetSIOIndex) / 2880);
    if nb /= 0 then
-    NBlocks := FITS_SIO.FPositive(nb);-- FIXME
+    NBlocks := FITS_SIO.FPositive(nb);-- FIXME all if and conversion
     FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
    end if;
-
-
-
---   while not End_Of_File(InFits)
---   loop
---     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
---     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
---   end loop;
 
    FITS_SIO.SIO.Close(InFits);
    FITS_SIO.SIO.Close(OutFits);
