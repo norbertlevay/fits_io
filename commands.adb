@@ -122,8 +122,8 @@ package body Commands is
 
  -- as example do remove all occurences of card with given keyword InKey
  procedure Remove_Cards_By_Key(InFits  : FITS_SIO.SIO.File_Type;
-                              InKey   : String;
-                              OutFits : FITS_SIO.SIO.File_Type)
+                               InKey   : String;
+                               OutFits : FITS_SIO.SIO.File_Type)
  is
    InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
    OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card,   1);
@@ -170,6 +170,131 @@ package body Commands is
  end Remove_Cards_By_Key;
 
  --
+ -- modify the header
+ --
+ -- it is assumed file-pointers are positioned to the first Char of the Headers
+  -- ref: [FITS, Sect 4.4.1 Table 7 Mandatory keywords for primary header.]
+
+ function Find_Card(InFits  : FITS_SIO.SIO.File_Type;
+                    InKey   : String ) return FITS_SIO.Card_Type
+ is
+   Card : FITS_SIO.Card_Type;
+   ENDCardFound : Boolean := false;
+   KeyCardFound : Boolean := false;
+   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
+--   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card,   1);
+ begin
+
+   loop
+     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), InData);
+
+     for I in InData.HBlockArr(1)'Range
+     loop
+       Card := InData.HBlockArr(1)(I);
+
+       KeyCardFound := (Card(InKey'Range) = InKey);
+       ENDCardFound := (Card = FITS_SIO.ENDCard);
+
+      exit when (KeyCardFound or ENDCardFound);
+     end loop;
+
+    exit when (KeyCardFound or ENDCardFound);
+   end loop;
+
+   if not KeyCardFound and ENDCardFound then
+    null; -- FIXME throw exception probably not a FITS-file ?
+   end if;
+
+   return Card;
+ end Find_Card;
+
+
+ procedure Do_Clean_Header_Start(InFits  : FITS_SIO.SIO.File_Type;
+                                 OutFits : FITS_SIO.SIO.File_Type)
+ is
+  -- store HDU start position
+  InIdx  : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(InFits);
+  OutIdx : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(OutFits);
+  Card   : FITS_SIO.Card_Type;
+  NAxis  : Natural;
+  NAXISKey : String := "NAXIS";
+  ENDCardFound : Boolean := false;
+ -- AxisValue : Natural;
+  FillCnt  : FITS_SIO.SIO.Count;
+  OutIndex : FITS_SIO.SIO.Positive_Count;
+ begin
+
+  Card := Find_Card(InFits,"SIMPLE");
+  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  Card := Find_Card(InFits,"BITPIX");
+  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  Card := Find_Card(InFits,"NAXIS");
+  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+  NAxis := Positive'Value(Card(10..30));
+
+  for I in 1 .. NAxis
+  loop
+    declare
+      NAXISnKey : String := NAXISKey & Ada.Strings.Fixed.Trim(Integer'Image(I),Ada.Strings.Left);
+    begin
+      FITS_SIO.SIO.Set_Index(InFits,InIdx);
+      Card := Find_Card(InFits,NAXISnKey);
+      String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+      TIO.Put_Line("DBG >>" & Card & "<<");
+    end;
+  end loop;
+
+  -- write all cards except those above
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+
+  loop
+     String'Read (FITS_SIO.SIO.Stream(InFits), Card);
+     if Card(1..6) /= "SIMPLE" and
+        Card(1..6) /= "BITPIX" and
+        Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
+     then
+        -- more checks on NAXIS: pos 9..10 is '= '
+        -- conversion will raise exception if not a number
+        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
+        -- AxisValue := Positive'Value(Card(6..8));
+        String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+        TIO.Put_Line("DBG >>" & Card & "<<");
+     end if;
+
+     ENDCardFound := (Card = FITS_SIO.ENDCard);
+
+    exit when ENDCardFound;
+   end loop;
+
+   -- fill upto Block limit
+
+   OutIndex := FITS_SIO.SIO.Index(OutFits);
+   FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
+   FillCnt := FillCnt / 80;
+   TIO.Put_Line("DBG FillCnt B >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+
+   if FillCnt /= 36
+   then
+    while FillCnt < 36
+    loop
+        String'Write (FITS_SIO.SIO.Stream(OutFits), FITS_SIO.EmptyCard);
+        FillCnt := FillCnt + 1;
+        TIO.Put_Line("DBG FillCnt >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+    end loop;
+   end if;
+   -- FIXME fitsverify on broken HiGAL: data fill-area invalid
+
+ end Do_Clean_Header_Start;
+
+ --
  -- make sure order of first mandatory keywords in header
  -- is as [FITS] requires : SIMPLE, BITPIX, NAXIS...NAXISn
  --
@@ -182,11 +307,11 @@ package body Commands is
    OutFits : FITS_SIO.SIO.File_Type;
    Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
    CurHDUNum : Positive := 1;
-   CurSIOIndex : FITS_SIO.SIO.Positive_Count := 1;
+   CurSIOIndex    : FITS_SIO.SIO.Positive_Count := 1;
    TargetSIOIndex : FITS_SIO.SIO.Positive_Count;
-   ENDCardFound : Boolean := false;
-   NBlocks : FITS_SIO.FPositive;
-   nb : Natural;
+   ENDCardFound   : Boolean := false;
+   NBlocks  : FITS_SIO.FPositive;
+   nb       : Natural;
    FileSize : FITS_SIO.SIO.Positive_Count;
  begin
 
@@ -215,7 +340,8 @@ package body Commands is
    end if;
 
    -- now we are are positioned at HDUNum: modify Header
-   Remove_Cards_By_Key(InFits,KeyRem, OutFits);
+--   Remove_Cards_By_Key(InFits,KeyRem, OutFits);
+   Do_Clean_Header_Start(InFits,OutFits);-- FIXME <-- ds9 show shift, fitsverify says incorrect data fill-up values
 
    -- copy the rest of the file
 
