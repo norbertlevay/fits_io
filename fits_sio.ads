@@ -164,8 +164,11 @@ package FITS_SIO is
    -----------
    -- Utils --
    -----------
-   function  To_FITSDataType (BITPIX : in Integer )
+   function  To_FitsDataType (BITPIX : in Integer )
      return FitsData_Type;
+   -- FIXME needed when accessing DataUnit-data in general, for whatever type is given in Header
+   -- see testfits_sio :: printing some data from a fits-file of whatever
+   -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks

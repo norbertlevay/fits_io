@@ -108,7 +108,7 @@ package body FITS_SIO is
    --
    -- convert BITPIX keyword from Header to internal FitsData_Type
    --
-   function  To_FITSDataType (BITPIX : in Integer ) return FitsData_Type
+   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type
    is
     bp : FitsData_Type;
    begin
@@ -215,9 +215,9 @@ package body FITS_SIO is
     end loop;
 
     -- calc free slots
-    FreeSlotCnt := 36 - (HDUSize.CardsCnt mod 36);
+    FreeSlotCnt := CardsCntInBlock - (HDUSize.CardsCnt mod CardsCntInBlock);
     -- mod is 0 when Block has 36 cards e.g. is full
-    if FreeSlotCnt = 36 then
+    if FreeSlotCnt = CardsCntInBlock then
      FreeSlotCnt := 0;
     end if;
 
@@ -325,6 +325,13 @@ package body FITS_SIO is
 
    end List_Content;
 
+
+   --
+   -- low-level copy in bigger chunks then one block for speed
+   -- [FITS ???] suggests copying in chunks of 10 Blocks
+   -- with today's machines 10 is probably outdated, but use 10 as default
+   -- for every HW the optimal value will be different anyway
+   --
    procedure Copy_Blocks (InFits  : in SIO.File_Type;
                           OutFits : in SIO.File_Type;
                           NBlocks : in FPositive;

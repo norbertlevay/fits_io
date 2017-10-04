@@ -153,7 +153,7 @@ begin
  -- dynamically create Data of type as given in Header/BITPIX
  --
  declare
-   dt    : FitsData_Type := To_FITSDataType (BITPIXVal);
+   dt    : FitsData_Type := To_FitsDataType (BITPIXVal);
    DataD : DataArray_Type(dt,4);
  begin
    Ada.Text_IO.New_Line;

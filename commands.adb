@@ -116,20 +116,23 @@ package body Commands is
 
  end Print_Header;
 
- -- - Utils
- -- as example do remove one card with given keyword
- procedure Do_Some_Modif(InFits  : FITS_SIO.SIO.File_Type;
-                         OutFits : FITS_SIO.SIO.File_Type)
+ --
+ -- Utils
+ --
+
+ -- as example do remove all occurences of card with given keyword InKey
+ procedure Remove_Cards_By_Key(InFits  : FITS_SIO.SIO.File_Type;
+                              InKey   : String;
+                              OutFits : FITS_SIO.SIO.File_Type)
  is
-   key : String := "DATE "; -- key to remove
-   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
-   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card , 1);
-   ENDCardFound : Boolean := false;
-   Card : FITS_SIO.Card_Type;
-   EmptyCard : FITS_SIO.Card_Type := (others => ' ');
+   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
+   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card,   1);
+   ENDCardFound    : Boolean := false;
+   Card            : FITS_SIO.Card_Type;
    CntCardsWritten : Natural := 0;
-   CntRemBlock : Natural;
+   CntRemBlock     : Natural; -- remaining empty cards slots in last block
  begin
+
    loop
 
      FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), InData);
@@ -138,8 +141,8 @@ package body Commands is
      loop
        Card := InData.HBlockArr(1)(I);
 
-       -- skip Card starting with key
-       if Card(1..5) /= key then
+       -- skip Card starting with InKey
+       if Card(InKey'Range) /= InKey then
          OutData.CardArr(1) := Card;
          FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
          CntCardsWritten := CntCardsWritten + 1;
@@ -153,36 +156,18 @@ package body Commands is
    end loop;
 
    -- fill upto block limit
---   CntRemBlock := FITS_SIO.CardsCntInBlock - (CntCardsWritten mod FITS_SIO.CardsCntInBlock);
+
    CntRemBlock := CntCardsWritten mod FITS_SIO.CardsCntInBlock;
    if (CntRemBlock > 0) then
     while (CntRemBlock < FITS_SIO.CardsCntInBlock)
     loop
-      OutData.CardArr(1) := EmptyCard;
+      OutData.CardArr(1) := FITS_SIO.EmptyCard;
       FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
       CntRemBlock := CntRemBlock + 1;
      end loop;
     end if;
 
- end Do_Some_Modif;
-
- procedure Do_Copy_Header(InFits  : FITS_SIO.SIO.File_Type;
-                          OutFits : FITS_SIO.SIO.File_Type)
- is
-   Data : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
-   ENDCardFound : Boolean := false;
- begin
-   loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), Data);
-     FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),Data);
-     for I in Data.HBlockArr(1)'Range
-     loop
-       ENDCardFound := Data.HBlockArr(1)(I) = FITS_SIO.ENDCard;
-       exit when ENDCardFound;
-     end loop;
-     exit when ENDCardFound;
-   end loop;
- end Do_Copy_Header;
+ end Remove_Cards_By_Key;
 
  --
  -- make sure order of first mandatory keywords in header
@@ -192,6 +177,7 @@ package body Commands is
                               OutFitsName      : in String;
                               HDUNum           : in Positive := 1)
  is
+   KeyRem  : String := "DATE "; -- key to remove
    InFits  : FITS_SIO.SIO.File_Type;
    OutFits : FITS_SIO.SIO.File_Type;
    Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
@@ -229,7 +215,7 @@ package body Commands is
    end if;
 
    -- now we are are positioned at HDUNum: modify Header
-   Do_Some_Modif(InFits,OutFits);
+   Remove_Cards_By_Key(InFits,KeyRem, OutFits);
 
    -- copy the rest of the file
 
