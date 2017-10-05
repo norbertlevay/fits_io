@@ -279,12 +279,11 @@ package body Commands is
    FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
    FillCnt := FillCnt / 80;
 --   TIO.Put_Line("DBG FillCnt B >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
-
    if FillCnt /= 36
    then
     while FillCnt < 36
     loop
-        String'Read (FITS_SIO.SIO.Stream(InFits), Card);-- dummy only to move file pointer over fill area
+        String'Read  (FITS_SIO.SIO.Stream(InFits),  Card); -- dummy only to move file pointer over fill area
         String'Write (FITS_SIO.SIO.Stream(OutFits), FITS_SIO.EmptyCard);
         FillCnt := FillCnt + 1;
 --        TIO.Put_Line("DBG FillCnt >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");

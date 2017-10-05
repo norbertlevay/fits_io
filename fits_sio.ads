@@ -86,7 +86,7 @@ package FITS_SIO is
       DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
    end record;
 
-   procedure List_Content (FitsFile : in Ada.Streams.Stream_IO.File_Type;
+   procedure List_Content (FitsFile : in SIO.File_Type;
                            Print : not null access
                            procedure(HDUNum : Positive;
                                      HDUSize : HDU_Size_Type) );
@@ -95,7 +95,7 @@ package FITS_SIO is
    -- Positioning in FITS-file --
    ------------------------------
 
-   procedure Set_Index(FitsFile : in Ada.Streams.Stream_IO.File_Type;
+   procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in FNatural := 0); -- offset within the Unit (in units of FitsData_Type)
