@@ -368,6 +368,7 @@ package body FITS_SIO is
    begin
     Parse_Header(InFits,HDUSizeRec);
     return FNatural((HDUSizeRec.CardsCnt-1)/36+1) + Size_blocks(HDUSizeRec.DUSizeParam);
+    -- FIXME Header blocks size calc dirty...
    end HDU_Size_blocks;
 
    -- return size of the HDU where InFits points to
