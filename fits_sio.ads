@@ -1,19 +1,22 @@
+-- Media management:
+-- Files: This package helps to do file management for FITS-files.
+-- Helps positionning in the FITS-files, and provides constants
+-- and data types as required by FITS-standard.
+-- The procedures accept Ada.Stream_IO.File_Type and File_Mode
+-- as parameter.
+-- Network: ...?
 --
--- This package serializes/deserializes FITS-Header
--- according to FITS standard, so it is ready for
--- File-streams (Ada.Streams.Stream_IO) or other stream-media.
+-- Data Access:
+-- Once Ada-file Stream is successfully acquired,
+-- serialization/deserialization into/from stream
+-- happens simply by using Read Write attributes of
+-- the predefined types, specifically FitsData_Type'Read and 'Write,
+-- which is array of base Ada-types and so supported by
+-- Ada GNAT implementation [FITS ?][GNAT ?].
 --
--- Users of this package should do stream-media management:
--- see Stream_IO for files, or some other package(?) for network media.
--- Once Stream is successfully acquired, this package can be used to
--- serialize and place FITS-Header into the stream and/or
--- to get it ("deserialize") from the stream.
---
+-- Notes:
 -- Set_Index allows positioning in the stream if the media allows it
 -- (for files yes, for network maybe?).
-
--- type Header_Rec is new Ada.Streams.Stream_Type ??
--- needs to derive from Stream - probably not
 --
 
 with Interfaces;
@@ -32,7 +35,7 @@ package FITS_SIO is
          -- [FITS, Sect 4.4.1.1 Table 8]
 
    ------------------------------------------
-   -- List FITS FIle content : HDU params  --
+   -- List FITS-file content : HDU params  --
    ------------------------------------------
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
@@ -87,8 +90,6 @@ package FITS_SIO is
                            Print : not null access
                            procedure(HDUNum : Positive;
                                      HDUSize : HDU_Size_Type) );
-   -- list HDU properties (Cards, Data Type and dimensionality)
-
 
    ------------------------------
    -- Positioning in FITS-file --
@@ -98,7 +99,7 @@ package FITS_SIO is
                        HDUNum   : in Positive;      -- which HDU
                        DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in FNatural := 0); -- offset within the Unit (in units of FitsData_Type)
-   -- set file-index to correct position for Read/Write
+   -- set file-index to correct position before 'Read/'Write
 
 
    ----------------------------------------------
@@ -177,6 +178,14 @@ package FITS_SIO is
                           OutFits : in SIO.File_Type;
                           NBlocks : in FPositive;
                           ChunkSize_blocks : in Positive := 10);
+
+   --
+   -- copy HDU from InFile to OutFile: both file-pointers must be correctly positioned
+   --
+   procedure Copy_HDU (InFits  : in SIO.File_Type;
+                       OutFits : in SIO.File_Type;
+                       HDUNum  : in Positive;
+                       ChunkSize_blocks : in Positive := 10);
 
 end FITS_SIO;
 

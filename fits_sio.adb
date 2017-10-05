@@ -359,5 +359,30 @@ package body FITS_SIO is
 
    end Copy_Blocks;
 
+   -- return size of the HDU where InFits points to
+   function HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   is
+    HDUSizeRec : HDU_Size_Type;
+   begin
+    Parse_Header(InFits,HDUSizeRec);
+    return Size_blocks(HDUSizeRec.DUSizeParam);
+   end HDU_Size_blocks;
+
+   procedure Copy_HDU (InFits  : in SIO.File_Type;
+                       OutFits : in SIO.File_Type;
+                       HDUNum  : in Positive;
+                       ChunkSize_blocks : in Positive := 10)
+   is
+     NBlocks : FPositive;
+     HDUStartIdx : SIO.Positive_Count := SIO.Index(InFits);
+   begin
+     -- calc size of HDU
+     NBlocks := HDU_Size_blocks(InFits);
+     -- go back to start & start copying...
+     SIO.Set_Index(InFits, HDUStartIdx);
+     Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);
+   end Copy_HDU;
+
+
 end FITS_SIO;
 
