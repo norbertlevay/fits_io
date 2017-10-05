@@ -360,6 +360,138 @@ package body Commands is
 
  end Clean_Header_Start;
 
+ procedure Modify_HDU(InFits  : FITS_SIO.SIO.File_Type;
+                      OutFits : FITS_SIO.SIO.File_Type)
+ is
+  -- store HDU start position
+  InIdx  : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(InFits);
+  OutIdx : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(OutFits);
+  Card   : FITS_SIO.Card_Type;
+  NAxis  : Natural;
+  NAXISKey : String := "NAXIS";
+  ENDCardFound : Boolean := false;
+  FillCnt  : FITS_SIO.SIO.Count;
+  OutIndex : FITS_SIO.SIO.Positive_Count;
+  DUSize_blocks : FITS_SIO.FNatural;
+ begin
+
+  Card := Find_Card(InFits,"SIMPLE");
+--  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  Card := Find_Card(InFits,"BITPIX");
+--  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  Card := Find_Card(InFits,"NAXIS");
+--  TIO.Put_Line("DBG >>" & Card & "<<");
+  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+  NAxis := Positive'Value(Card(10..30));
+
+  for I in 1 .. NAxis
+  loop
+    declare
+      NAXISnKey : String := NAXISKey & Ada.Strings.Fixed.Trim(Integer'Image(I),Ada.Strings.Left);
+    begin
+      FITS_SIO.SIO.Set_Index(InFits,InIdx);
+      Card := Find_Card(InFits,NAXISnKey);
+      String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+--      TIO.Put_Line("DBG >>" & Card & "<<");
+    end;
+  end loop;
+
+  -- write all cards except those above
+
+  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+
+  loop
+     String'Read (FITS_SIO.SIO.Stream(InFits), Card);
+     if Card(1..6) /= "SIMPLE" and
+        Card(1..6) /= "BITPIX" and
+        Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
+     then
+        -- more checks on NAXIS: pos 9..10 is '= '
+        -- conversion will raise exception if not a number
+        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
+        -- AxisValue := Positive'Value(Card(6..8));
+        String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+--        TIO.Put_Line("DBG >>" & Card & "<<");
+     end if;
+
+     ENDCardFound := (Card = FITS_SIO.ENDCard);
+
+    exit when ENDCardFound;
+   end loop;
+
+   -- fill upto Block limit
+
+   OutIndex := FITS_SIO.SIO.Index(OutFits);
+   FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
+   FillCnt := FillCnt / 80;
+--   TIO.Put_Line("DBG FillCnt B >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+
+   if FillCnt /= 36
+   then
+    while FillCnt < 36
+    loop
+        String'Read (FITS_SIO.SIO.Stream(InFits), Card);-- dummy only to move file pointer over fill area
+        String'Write (FITS_SIO.SIO.Stream(OutFits), FITS_SIO.EmptyCard);
+        FillCnt := FillCnt + 1;
+--        TIO.Put_Line("DBG FillCnt >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+    end loop;
+   end if;
+
+   -- calc size of DU and copy it:
+   FITS_SIO.SIO.Set_Index(InFits,InIdx);
+   DUSize_blocks := FITS_SIO.DU_Size_blocks (InFits);
+   FITS_SIO.Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
+
+ end Modify_HDU;
+
+ --
+ -- Modify HDU copies all HDU's except HDUNum
+ -- FIXME For HDUNum use callback instead of Modify_HDU
+ --
+ procedure Copy_File_And_Modify_HDU(InFitsName       : in String;
+                      OutFitsName      : in String;
+                      HDUNum           : in Positive := 1)
+ is
+   InFits  : FITS_SIO.SIO.File_Type;
+   OutFits : FITS_SIO.SIO.File_Type;
+   CurHDUNum : Positive := 1;
+ begin
+
+   FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
+   FITS_SIO.SIO.Open  (InFits,  FITS_SIO.SIO.In_File,  InFitsName);
+
+   -- copy all HDUs upto HDUNum
+
+   while CurHDUNum < HDUNum
+   loop
+     FITS_SIO.Copy_HDU(InFits,OutFits,CurHDUNum,400);
+     CurHDUNum := CurHDUNum + 1;
+   end loop;
+
+   -- now we are are positioned at HDUNum:
+   -- modify (and copy) the HDU
+   Modify_HDU(InFits,OutFits);
+   CurHDUNum := CurHDUNum + 1;
+
+   -- copy the rest of the file
+
+   while not FITS_SIO.SIO.End_Of_File(InFits)
+   loop
+     FITS_SIO.Copy_HDU(InFits,OutFits,CurHDUNum);
+     CurHDUNum := CurHDUNum + 1;
+   end loop;
+
+   FITS_SIO.SIO.Close(InFits);
+   FITS_SIO.SIO.Close(OutFits);
+
+ end Copy_File_And_Modify_HDU;
+
 
 end Commands;
 

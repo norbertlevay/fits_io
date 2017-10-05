@@ -171,6 +171,8 @@ package FITS_SIO is
    -- see testfits_sio :: printing some data from a fits-file of whatever
    -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
 
+   function DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
+
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
    --

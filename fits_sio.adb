@@ -33,6 +33,8 @@ with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO;
 -- 'use' needed for + operator on Count type and all its subtypes(?)
 
+--with Ada.Text_IO; -- debug only
+
 package body FITS_SIO is
 
    procedure Move_Index
@@ -365,17 +367,30 @@ package body FITS_SIO is
     HDUSizeRec : HDU_Size_Type;
    begin
     Parse_Header(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.DUSizeParam);
+    return FNatural((HDUSizeRec.CardsCnt-1)/36+1) + Size_blocks(HDUSizeRec.DUSizeParam);
    end HDU_Size_blocks;
 
+   -- return size of the HDU where InFits points to
+   function DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   is
+    HDUSizeRec : HDU_Size_Type;
+   begin
+    Parse_Header(InFits,HDUSizeRec);
+    return Size_blocks(HDUSizeRec.DUSizeParam);
+   end DU_Size_blocks;
+
+   --
+   -- Copy all HDU
+   --
    procedure Copy_HDU (InFits  : in SIO.File_Type;
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10)
    is
      NBlocks : FPositive;
-     HDUStartIdx : SIO.Positive_Count := SIO.Index(InFits);
+     HDUStartIdx : SIO.Positive_Count;-- := SIO.Index(InFits);
    begin
+     HDUStartIdx := SIO.Index(InFits);
      -- calc size of HDU
      NBlocks := HDU_Size_blocks(InFits);
      -- go back to start & start copying...
