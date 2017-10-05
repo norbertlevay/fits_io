@@ -175,14 +175,13 @@ package body Commands is
  -- it is assumed file-pointers are positioned to the first Char of the Headers
   -- ref: [FITS, Sect 4.4.1 Table 7 Mandatory keywords for primary header.]
 
- function Find_Card(InFits  : FITS_SIO.SIO.File_Type;
-                    InKey   : String ) return FITS_SIO.Card_Type
+ function  Find_Card(InFits : FITS_SIO.SIO.File_Type;
+                     InKey  : String ) return FITS_SIO.Card_Type
  is
    Card : FITS_SIO.Card_Type;
    ENDCardFound : Boolean := false;
    KeyCardFound : Boolean := false;
    InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
---   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card,   1);
  begin
 
    loop
@@ -207,158 +206,6 @@ package body Commands is
 
    return Card;
  end Find_Card;
-
-
- procedure Do_Clean_Header_Start(InFits  : FITS_SIO.SIO.File_Type;
-                                 OutFits : FITS_SIO.SIO.File_Type)
- is
-  -- store HDU start position
-  InIdx  : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(InFits);
-  OutIdx : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(OutFits);
-  Card   : FITS_SIO.Card_Type;
-  NAxis  : Natural;
-  NAXISKey : String := "NAXIS";
-  ENDCardFound : Boolean := false;
- -- AxisValue : Natural;
-  FillCnt  : FITS_SIO.SIO.Count;
-  OutIndex : FITS_SIO.SIO.Positive_Count;
- begin
-
-  Card := Find_Card(InFits,"SIMPLE");
-  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
-
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
-  Card := Find_Card(InFits,"BITPIX");
-  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
-
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
-  Card := Find_Card(InFits,"NAXIS");
-  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
-  NAxis := Positive'Value(Card(10..30));
-
-  for I in 1 .. NAxis
-  loop
-    declare
-      NAXISnKey : String := NAXISKey & Ada.Strings.Fixed.Trim(Integer'Image(I),Ada.Strings.Left);
-    begin
-      FITS_SIO.SIO.Set_Index(InFits,InIdx);
-      Card := Find_Card(InFits,NAXISnKey);
-      String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
-      TIO.Put_Line("DBG >>" & Card & "<<");
-    end;
-  end loop;
-
-  -- write all cards except those above
-
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
-
-  loop
-     String'Read (FITS_SIO.SIO.Stream(InFits), Card);
-     if Card(1..6) /= "SIMPLE" and
-        Card(1..6) /= "BITPIX" and
-        Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
-     then
-        -- more checks on NAXIS: pos 9..10 is '= '
-        -- conversion will raise exception if not a number
-        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
-        -- AxisValue := Positive'Value(Card(6..8));
-        String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
-        TIO.Put_Line("DBG >>" & Card & "<<");
-     end if;
-
-     ENDCardFound := (Card = FITS_SIO.ENDCard);
-
-    exit when ENDCardFound;
-   end loop;
-
-   -- fill upto Block limit
-
-   OutIndex := FITS_SIO.SIO.Index(OutFits);
-   FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
-   FillCnt := FillCnt / 80;
-   TIO.Put_Line("DBG FillCnt B >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
-
-   if FillCnt /= 36
-   then
-    while FillCnt < 36
-    loop
-        String'Read (FITS_SIO.SIO.Stream(InFits), Card);-- dummy only to move file pointer over fill area
-        String'Write (FITS_SIO.SIO.Stream(OutFits), FITS_SIO.EmptyCard);
-        FillCnt := FillCnt + 1;
-        TIO.Put_Line("DBG FillCnt >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
-    end loop;
-   end if;
-   -- FIXME fitsverify on broken HiGAL: data fill-area invalid
-
- end Do_Clean_Header_Start;
-
- --
- -- make sure order of first mandatory keywords in header
- -- is as [FITS] requires : SIMPLE, BITPIX, NAXIS...NAXISn
- --
- procedure Clean_Header_Start(InFitsName       : in String;
-                              OutFitsName      : in String;
-                              HDUNum           : in Positive := 1)
- is
-   KeyRem  : String := "DATE "; -- key to remove
-   InFits  : FITS_SIO.SIO.File_Type;
-   OutFits : FITS_SIO.SIO.File_Type;
-   Data    : FITS_SIO.DataArray_Type(FITS_SIO.HBlock , 1);
-   CurHDUNum : Positive := 1;
-   CurSIOIndex    : FITS_SIO.SIO.Positive_Count := 1;
-   TargetSIOIndex : FITS_SIO.SIO.Positive_Count;
-   ENDCardFound   : Boolean := false;
-   NBlocks  : FITS_SIO.FPositive;
-   nb       : Natural;
-   FileSize : FITS_SIO.SIO.Positive_Count;
- begin
-
-   FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
-   FITS_SIO.SIO.Open  (InFits,  FITS_SIO.SIO.In_File,  InFitsName);
-
-   -- find position of HDU to be mofied
-   -- FIXME ? alternatively: implement
-   -- FITS_SIO.Get_HDUSize_blocks() and Copy_HDU(InFitsFile, InHDUNum, OutFits)
-   -- and cycle by blocks until HDUSize and cycle by HDU until HDUNum
-   FITS_SIO.Set_Index(InFits,  HDUNum, Data.FitsType);
-   TargetSIOIndex := FITS_SIO.SIO.Index(InFits);
-
-   -- reset to InFits begining
-
-   FITS_SIO.SIO.Set_Index(OutFits,1);
-   FITS_SIO.SIO.Set_Index(InFits, 1);
-
-   -- copy all HDUs upto HDUNum
-   TIO.Put_Line("DBG> Index: " & FITS_SIO.SIO.Positive_count'Image(TargetSIOIndex));
-
-   nb := Natural(TargetSIOIndex / 2880);
-   if nb /= 0 then
-    NBlocks := FITS_SIO.FPositive(nb);-- FIXME all if and conversion
-    FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
-   end if;
-
-   -- now we are are positioned at HDUNum: modify Header
---   Remove_Cards_By_Key(InFits,KeyRem, OutFits);
-   Do_Clean_Header_Start(InFits,OutFits);-- FIXME <-- ds9 show shift, fitsverify says incorrect data fill-up values
-
-   -- copy the rest of the file
-
-   FileSize       := FITS_SIO.SIO.Size(InFits);
-   TargetSIOIndex := FITS_SIO.SIO.Index(InFits);
-
-   nb := Natural(((FileSize + 1) - TargetSIOIndex) / 2880);
-   if nb /= 0 then
-    NBlocks := FITS_SIO.FPositive(nb);-- FIXME all if and conversion
-    FITS_SIO.Copy_Blocks (InFits, OutFits, NBlocks, 400);
-   end if;
-
-   FITS_SIO.SIO.Close(InFits);
-   FITS_SIO.SIO.Close(OutFits);
-
- end Clean_Header_Start;
 
  procedure Modify_HDU(InFits  : FITS_SIO.SIO.File_Type;
                       OutFits : FITS_SIO.SIO.File_Type)
@@ -427,6 +274,7 @@ package body Commands is
 
    -- fill upto Block limit
 
+   -- FIXME make the below 3 lines FITS_SIO API: procedure Write_Fillin(OutFits,Fill_Value)
    OutIndex := FITS_SIO.SIO.Index(OutFits);
    FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
    FillCnt := FillCnt / 80;

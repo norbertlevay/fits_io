@@ -102,10 +102,9 @@ procedure main is
 
         Input_File_Path  := SB.To_Bounded_String(Argument(i+1));
         Output_File_Path := SB.To_Bounded_String(Argument(i+2));
-        -- Clean_Header_Start(To_String(Input_File_Path),
         Copy_File_And_Modify_HDU(To_String(Input_File_Path),
-                           To_String(Output_File_Path),
-                           HDUNum);
+                                 To_String(Output_File_Path),
+                                 HDUNum);
 
      elsif Cur_Argument = "header"
      then
