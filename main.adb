@@ -21,7 +21,7 @@ use
 
 procedure main is
 
- Version : String := "fits(ada) 0.1.0 Build: " & Build_Date.BuildDate ;
+ Version : String := "fits 0.2.0 Build: " & Build_Date.BuildDate ;
 
  procedure Print_Usage is
  begin
