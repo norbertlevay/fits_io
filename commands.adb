@@ -316,6 +316,8 @@ package body Commands is
  --
  procedure Copy_File_And_Modify_HDU(InFitsName  : in String;
 		                    OutFitsName : in String;
+                                    Command     : in HDUCmd_Type;
+                                    InKey       : in String; -- FIXME use variant record when params for more commands needed
                 		    HDUNum      : in Positive := 1)
  is
    InFits  : SIO.File_Type;
@@ -336,10 +338,15 @@ package body Commands is
 
    -- now we are are positioned at HDUNum:
    -- modify (and copy) the HDU
+   case Command is
+   when cleanhead =>
    if CurHDUNum = 1 then
     Clean_PrimaryHeader_Start(InFits,OutFits);
     CurHDUNum := CurHDUNum + 1;
    end if;
+   when removekey =>
+    Remove_Cards_By_Key(InFits, InKey, OutFits);
+   end case;
 
    -- copy the rest of the file
 

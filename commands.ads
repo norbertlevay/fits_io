@@ -11,8 +11,13 @@ package Commands is
  procedure Print_Header( FileName : in String;
                          HDUNum   : in Positive := 1 );
 
+ type HDUCmd_Type is
+       (cleanhead, removekey);
+
  procedure Copy_File_And_Modify_HDU(InFitsName  : in String;
                                     OutFitsName : in String;
+                                    Command     : in HDUCmd_Type;
+                                    InKey       : in String; -- FIXME use variant record when params for more commands needed
                                     HDUNum      : in Positive := 1);
 
 end Commands;

@@ -28,16 +28,20 @@ procedure main is
    Put_Line("Version: " & Version);
    New_Line;
    Put_Line("Usage:");
-   Put_Line(" fits limits                    list implementation/system limitations");
-   Put_Line(" fits list             in.fits  list HDU's in FITS-file");
-   Put_Line(" fits header [options] in.fits  prints header");
+   Put_Line(" fits limits          - list implementation/system limitations");
+   Put_Line(" fits list   in.fits  - list HDU's in FITS-file");
+   Put_Line(" fits header [options] in.fits");
+   Put_Line("                      - prints header");
    Put_Line("Utils:");
+   Put_Line(" fits removekey [options] key in.fits out.fits");
+   Put_Line("                - remove all cards starting with string 'key'");
+   New_Line;
    Put_Line(" fits cleanhead [options] in.fits out.fits");
-   Put_Line("                clean begining of header:");
-   Put_Line("                FITS standard defines which cards must start a header. Move other cards behind last NAXISn.");
+   Put_Line("                - clean begining of header:");
+   Put_Line("                - FITS standard defines which cards must start a header. Move other cards behind last NAXISn.");
    New_Line;
    Put_Line("Options:");
-   Put_Line(" --hdu N     HDU-number: 1,2,3,... Default is 1 = Primary Header.");
+   Put_Line(" --hdu N     - HDU-number: 1,2,3,... Default is 1 = Primary Header.");
    New_Line;
 --   Put_Line("Notes:");
 --   Put_Line(" HDU info:        No of Cards, Data Type, ( axes dimensions ).");
@@ -58,6 +62,8 @@ procedure main is
 
  NoOptions : Natural := 0;
  HDUNum   : Positive := 1;
+
+ KeyToRemove : SB.Bounded_String;
 
  package IO  renames Ada.Text_IO;
  package CLI renames Ada.Command_Line;
@@ -105,10 +111,29 @@ procedure main is
           Output_File_Path := SB.To_Bounded_String(Argument(i+2));
           Copy_File_And_Modify_HDU(To_String(Input_File_Path),
                                    To_String(Output_File_Path),
+                                   cleanhead,
+                                   "dummy",
                                    HDUNum);
         else
           Put_Line("Implemented only for Primary HDU. Exit.");
         end if;
+
+     elsif Cur_Argument = "removekey" then
+
+        if Argument(i+1) = "--hdu" then
+          HDUNum := Integer'Value(Argument(i+2));
+          NoOptions := 2;-- there were 2 more args
+          i := i + NoOptions;
+        end if;
+
+        KeyToRemove  := SB.To_Bounded_String(Argument(i+1));
+        Input_File_Path  := SB.To_Bounded_String(Argument(i+2));
+        Output_File_Path := SB.To_Bounded_String(Argument(i+3));
+        Copy_File_And_Modify_HDU(To_String(Input_File_Path),
+                                 To_String(Output_File_Path),
+                                 removekey,
+                                 To_String(KeyToRemove),
+                                 HDUNum);
 
      elsif Cur_Argument = "header"
      then
