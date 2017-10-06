@@ -29,4 +29,5 @@ clean:
 	rm -f fits fitsio testfits testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
 
 distclean: clean
+	make distclean -C doc
 	rm -f *~ test-modifyheader.hdr
