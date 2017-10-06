@@ -25,7 +25,8 @@ use
     Ada.Strings.Bounded,
     Ada.Command_Line;
 
-with FITS; use FITS;
+with FITS;      use FITS;
+with FITS.File; use FITS.File;
 
 
 procedure testfits
@@ -122,7 +123,7 @@ begin
 
  Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
 
- FITS_SIO.Set_Index(FitsFile,HDUNum,Data.FitsType);
+ Set_Index(FitsFile,HDUNum,Data.FitsType);
 
  inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
  DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
@@ -159,7 +160,7 @@ begin
    Ada.Text_IO.New_Line;
    Ada.Text_IO.Put_Line("and read DataUnit...");
 
-   FITS_SIO.Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
+   Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
    DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    Ada.Text_IO.New_Line;

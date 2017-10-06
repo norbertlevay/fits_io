@@ -5,11 +5,13 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Characters.Latin_1,
      GNAT.OS_Lib,
      FITS,
+     FITS.File,
      System,
      System.Storage_Elements;
 
 use  Ada.Streams.Stream_IO,
-     FITS;
+     FITS,
+     FITS.File;
 
 
 package body Commands is
