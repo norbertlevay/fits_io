@@ -1,24 +1,19 @@
 
 with
-    Build_Date,
---    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
-    Ada.Direct_IO,
     Ada.Text_IO.Bounded_IO,
     Ada.Text_IO.Text_Streams,
+    Ada.Streams.Stream_IO,
     Ada.Command_Line,
     Ada.Strings.Unbounded,
     Ada.Strings.Bounded,
     Ada.Strings.Fixed,
-    Ada.Streams.Stream_IO,
     System,
     Interfaces,
     GNAT.Traceback.Symbolic;
 
-
 use
---    Commands,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,
@@ -29,57 +24,22 @@ with FITS;      use FITS;
 with FITS.File; use FITS.File;
 
 
-procedure testfits
-is
+procedure testfits is
+
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
+ HDUNum : Positive :=Integer'Value( Argument(1) );
+ Name : String := Argument(2);
 
- FitsFile : Ada.Streams.Stream_IO.File_Type;
- Inx1 : Ada.Streams.Stream_IO.Count;
- Inx2 : Ada.Streams.Stream_IO.Count;
- Name : String    := "testfile.fits";
-
--- Cnt  : Positive := 80*5;
--- Data : DataArray_Type(int8,6);
--- Data : DataArray_Type(Char,Cnt);
+ FitsFile : SIO.File_Type;
+ Inx1 : SIO.Count;
+ Inx2 : SIO.Count;
 
  Cnt  : Positive := 5;
  Data : DataArray_Type(Card,Cnt);
 
--- DataD : DataArray_Type(Int8,4);
-
--- Cnt  : Positive := 2;
--- Data : DataArray_Type(HBlock,Cnt);
-
-
-  procedure Print_HDUSize (Index : Positive; HDUSize : HDU_Size_Type)
-  is
-      FreeSlotCnt : Natural;
-  begin
-       -- calc free slots
-       FreeSlotCnt := 36 - (HDUSize.CardsCnt mod 36);
-       -- mod is 0 when Block has 36 cards e.g. is full
-       if FreeSlotCnt = 36 then
-        FreeSlotCnt := 0;
-       end if;
-
-       Ada.Text_IO.Put("HDUVect HDU#" & Integer'Image(Index) );
-       Ada.Text_IO.Put("   Cards: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image(HDUSize.CardsCnt),5,' ') &
-                       " EmptyCardSlots: " &
-                       Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') );
-
-       if HDUSize.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put("   Data: "  & Ada.Strings.Fixed.Head( FitsData_Type'Image(HDUSize.DUSizeParam.Data),8,' ') );
-        Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUSize.DUSizeParam.Naxes - 1)
-         loop
-          Ada.Text_IO.Put(FPositive'Image(HDUSize.DUSizeParam.Naxis(J)) & " x " );
-        end loop;
-        Ada.Text_IO.Put(FPositive'Image(HDUSize.DUSizeParam.Naxis(HDUSize.DUSizeParam.Naxes)));
-        Ada.Text_IO.Put_Line(" ) ");
-       end if;
-  end Print_HDUSize;
+ Card : Card_Type;
+ BITPIXVal : Integer;
 
   procedure PutFITSData (Data : in DataArray_Type)
   is
@@ -106,48 +66,32 @@ is
    Ada.Text_IO.New_Line;
   end PutFITSData;
 
-
-   HDUNum : Positive := 1;
-   Card : Card_Type;
-   BITPIXVal : Integer;
-
 begin
 
-  Ada.Text_IO.Put_Line("Usage ./testfits HDUNum ");
-  Ada.Text_IO.Put_Line("HDUNum >" &Integer'Image(Integer'Value(Argument(1))));
-  HDUNum :=Integer'Value( Argument(1) );
+ New_Line;
+ Put_Line("Usage ./testfits HDUNum file.fits");
+ New_Line(2);
 
--- ----------------------------------------
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("Open file " & Name & " and read some chars...");
+ Put_Line(">> Open file " & Name);
+ Put_Line(">  and read some chars...");
 
- Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
+ SIO.Open (FitsFile, SIO.In_File, Name);
 
  Set_Index(FitsFile,HDUNum,Data.FitsType);
 
- inx1 := Ada.Streams.Stream_IO.Index(FitsFile);
- DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), Data);
- inx2 := Ada.Streams.Stream_IO.Index(FitsFile);
+ inx1 := SIO.Index(FitsFile);
+ DataArray_Type'Read (SIO.Stream(FitsFile), Data);
+ inx2 := SIO.Index(FitsFile);
 
- DataArray_Type'Write(StdoutStream, Data);
- Ada.Text_IO.New_Line;
- Ada.Text_IO.New_Line;
-
+ -- print by 80 columns
+ -- and also pick BITPIX value for DU-print later
  for I in Positive range 1..Data.Length
--- for I in Data.CardArr'Range
  loop
---   Ada.Text_IO.Put_Line(Positive'Image(I) & "> " & Interfaces.Integer_8'Image(Data.Int8Arr(I)));
---   Ada.Text_IO.Put(Data.CharArr(I));
    Card := Data.CardArr(I);
    Ada.Text_IO.Put_Line(Card);
-
-     if    (Card(1..9) = "BITPIX  =") then
-       BITPIXVal := Integer'Value(Card(10..30));
-     end if;
-
---   for J in 1..CardsCntInBlock loop
---   Ada.Text_IO.Put_Line(Data.HBlockArr(I)(J));
---   end loop;
+   if    (Card(1..9) = "BITPIX  =") then
+     BITPIXVal := Integer'Value(Card(10..30));
+   end if;
  end loop;
 
  --
@@ -157,44 +101,30 @@ begin
    dt    : FitsData_Type := To_FitsDataType (BITPIXVal);
    DataD : DataArray_Type(dt,4);
  begin
-   Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put_Line("and read DataUnit...");
-
+   New_Line;
+   Put_Line("> and read DataUnit...");
    Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
-   DataArray_Type'Read (Ada.Streams.Stream_IO.Stream(FitsFile), DataD);
+   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
-   Ada.Text_IO.New_Line;
-   Ada.Text_IO.Put("'Write(Stdout,DataD): >>");
+   New_Line;
+   Put("> 'Write(Stdout,DataD): >>");
    DataArray_Type'Write(StdoutStream, DataD);
-   Ada.Text_IO.Put_Line("<<");
-
+   Put_Line("<<");
  end; -- declare
 
- Ada.Streams.Stream_IO.Close(FitsFile);
--- Ada.Text_IO.Put_Line("Index before and after Read(): " & Inx1'Image & " " &  Inx2'Image );
+ SIO.Close(FitsFile);
 
+ ------------------
+ -- Print Limits --
+ ------------------
+ New_Line(2);
+ Put_Line(">> Print Limits:");
 
- ------------------------------------------------
- Ada.Text_IO.New_Line;
- Ada.Text_IO.Put_Line("Open file " & Name & " and List_Content...");
-
- Ada.Streams.Stream_IO.Open (FitsFile, Ada.Streams.Stream_IO.In_File, Name);
-
- List_Content(FitsFile,Print_HDUSize'Access);
-
- Ada.Streams.Stream_IO.Close(FitsFile);
-
--- Limits:
-
- Ada.Text_IO.Put_Line("Max NAXIS  : " & Positive'Image(MaxAxes));
- Ada.Text_IO.Put_Line("Max NAXISn : " & FPositive'Image(FPositive'Last));
- Ada.Text_IO.Put_Line("Max File size     : " & Ada.Streams.Stream_IO.Count'Image(Ada.Streams.Stream_IO.Positive_Count'Last));
- Ada.Text_IO.Put_Line("Max DataUnit size : ???" );
- Ada.Text_IO.Put_Line("Supported only machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
-
-
-
--- ---------------------------------------
+ Put_Line("Max NAXIS  : " & Positive'Image(MaxAxes));
+ Put_Line("Max NAXISn : " & FPositive'Image(FPositive'Last));
+ Put_Line("Max File size     : " & SIO.Count'Image(SIO.Positive_Count'Last));
+ Put_Line("Max DataUnit size : ???" );
+ Put_Line("Supportes machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
 
  --
  -- error handling
@@ -213,10 +143,10 @@ begin
       Put_Line(Error, Exception_Information( Except_ID ) );
       New_Line(Error);
       Put_Line(Error, "Call stack traceback symbols: addr2line -e ./fits addr1 addr2 ...");
-      --Put_Line(" > Trace-back of call stack: " );
-      -- Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
+      Put_Line(" > Trace-back of call stack: " );
+      Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
       -- See more at: http://compgroups.net/comp.lang.ada/gnat-symbolic-traceback-on-exceptions/1409155#sthash.lNdkTjq6.dpuf
-      -- Do teh same manually, use:
+      -- Do the same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
 end testfits;
