@@ -215,7 +215,7 @@ package body FITS.File is
    --
    procedure Set_Index (FitsFile : in SIO.File_Type;
                         HDUNum   : in Positive;      -- which HDU
-                        DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                        DataType : in FitsData_Type := Card; -- decide to position to start of HeaderUnit or DataUnit
                         Offset   : in FNatural := 0)  -- offset within the Unit (in units of FitsData_Type)
    is
     CurDUSize_blocks : FPositive;

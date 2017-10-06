@@ -41,6 +41,8 @@ procedure testfits is
  Card : Card_Type;
  BITPIXVal : Integer;
 
+ HDUSize  : HDU_Size_Type;
+
   procedure PutFITSData (Data : in DataArray_Type)
   is
   begin
@@ -97,13 +99,19 @@ begin
  --
  -- dynamically create Data of type as given in Header/BITPIX
  --
+
+ New_Line;
+ Put_Line("> reset to HDU start");
+
+ Set_Index(FitsFile,HDUNum);
+ Parse_Header(FitsFile,HDUSize);-- move behind the Header
+
  declare
-   dt    : FitsData_Type := To_FitsDataType (BITPIXVal);
+   dt    : FitsData_Type := To_FitsDataType (HDUSize.DUSizeParam.BITPIX);
    DataD : DataArray_Type(dt,4);
  begin
-   New_Line;
    Put_Line("> and read DataUnit...");
-   Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
+--   Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
    DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    New_Line;

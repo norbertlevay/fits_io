@@ -49,10 +49,12 @@ package FITS.File is
 
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;      -- which HDU
-                       DataType : in FitsData_Type; -- decide to position to start of HeaderUnit or DataUnit
+                       DataType : in FitsData_Type := Card; -- decide to position to start of HeaderUnit or DataUnit
                        Offset   : in FNatural := 0); -- offset within the Unit (in units of FitsData_Type)
    -- set file-index to correct position before 'Read/'Write
 
+   procedure Parse_Header (FitsFile : in SIO.File_Type;
+                           HDUSize  : in out HDU_Size_Type);
 
    function DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
 
