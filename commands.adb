@@ -161,6 +161,9 @@ package body Commands is
 
    -- fill upto block limit
 
+   -- FIXME InFits must be moved to block limit too
+   -- or do Set_Index(nFIts, nextHDUNum) before continuing read
+
    CntRemBlock := CntCardsWritten mod CardsCntInBlock;
    if (CntRemBlock > 0) then
     while (CntRemBlock < CardsCntInBlock)
