@@ -1,13 +1,10 @@
 
-
-# note: git diff --exit-code : echo "$?" returns 1 if there were changes, and 0 if no changes
-
 builddate=$(shell date)
 
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: fits fitsio testfits_io testfits testfits_dio
+all: fits testfits
 
 
 build_date.ads :
@@ -15,51 +12,21 @@ build_date.ads :
 	@echo "BuildDate : constant String := \"${builddate}\";" >> build_date.ads
 	@echo "end Build_Date;" >> build_date.ads
 
-fits : main.adb build_date.ads commands.ads commands.adb
-	gnatmake -g -gnat05 -we main.adb -o fits
-
-fitsio : main_io.adb build_date.ads commands_io.ads commands_io.adb
-#	gnatmake -g -gnat12 -we main.adb -o fitsio -bargs -E
-	gnatmake -g -gnat05 -we main_io.adb -o fitsio
+fits : main.adb build_date.ads commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb
+	gnatmake -g -gnat05 -we main.adb -o fits -bargs -E
+# -bargs -E ?? -> for addr2line ?? at excpetion
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
 
-testfits_dio : build_date.ads testfits_dio.adb fits_dio.ads fits_dio.adb
-	gnatmake -g -we testfits_dio.adb -o testfits_dio
-
-testfits : build_date.ads testfits.adb fits.ads fits.adb
+testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file.adb
 	gnatmake -g -we testfits.adb -o testfits
 
-testfits_io : testfits_io.adb build_date.ads
-#	gnatmake -g -gnat12 -we testfits_io.adb -o testfits_io -bargs -E
-	gnatmake -g -gnat05 -we testfits_io.adb -o testfits_io
 
-runtestfits_io : testfits_io main
-	./testfits_io
-	./fits info testfile.fits
+.PHONY: clean distclean
 
-testsameheader:   # orig header has 35 cards
-	rm -f $(TESTFILE)
-	cp $(TESTFILE).orig $(TESTFILE)
-	chmod +w $(TESTFILE)
-	./fits header $(TESTFILE) test-36cards.hdr
-
-testbiggerheader:   # orig header has 35 cards
-	rm -f $(TESTFILE)
-	cp $(TESTFILE).orig $(TESTFILE)
-	chmod +w $(TESTFILE)
-	./fits header $(TESTFILE) test-50cards.hdr
-
-testmodifyheader:
-	./fits header --hdu 2 $(TESTFILE).orig | sed 's/SIMPLE/HUHUHU/'| sed 's/XTENSION/HUHUHUHU/'> test-modifyheader.hdr
-	rm -f $(TESTFILE)
-	cp $(TESTFILE).orig $(TESTFILE)
-	chmod +w $(TESTFILE)
-	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
 	rm -f fits fitsio testfits testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
-
 
 distclean: clean
 	rm -f *~ test-modifyheader.hdr

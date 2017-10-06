@@ -1,8 +1,10 @@
-
---with Ada.Text_IO; -- debug only
+--
+-- Implementation notes:
+--
+-- FIXME make sure Ada Character type [Ada?][GNAT?]
+-- is of same size as FITS Standard [FITS?] header-character
 
 package body FITS is
-
 
    --
    -- convert BITPIX keyword from Header to internal FitsData_Type

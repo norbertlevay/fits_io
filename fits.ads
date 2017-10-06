@@ -51,6 +51,13 @@ package FITS is
         Int64, Float32, Float64);
          -- [FITS, Sect 4.4.1.1 Table 8]
 
+   function  To_FitsDataType (BITPIX : in Integer )
+     return FitsData_Type;
+   -- FIXME needed when accessing DataUnit-data in general, for whatever type is given in Header
+   -- see testfits :: printing some data from a fits-file of whatever
+   -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
+
+
    ----------------------------------------------
    -- HeaderUnit DataUnit types for Read/Write --
    ----------------------------------------------
@@ -71,7 +78,6 @@ package FITS is
    type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
    type CardArr_Type    is array ( Positive range <> ) of Card_Type;
    type CharArr_Type    is array ( Positive range <> ) of Character;
-   -- FIXME make sure Ada Character type is of same size as FITS Standard header-character
 
    -- Access DataUnit
    type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;
@@ -110,15 +116,6 @@ package FITS is
    pragma Pack (Float32Arr_Type);
    pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
-
-   -----------
-   -- Utils --
-   -----------
-   function  To_FitsDataType (BITPIX : in Integer )
-     return FitsData_Type;
-   -- FIXME needed when accessing DataUnit-data in general, for whatever type is given in Header
-   -- see testfits_sio :: printing some data from a fits-file of whatever
-   -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
 
 end FITS;
 
