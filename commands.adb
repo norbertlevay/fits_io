@@ -337,7 +337,6 @@ package body Commands is
    -- now we are are positioned at HDUNum:
    -- modify (and copy) the HDU
    if CurHDUNum = 1 then
-    -- works only for PrimHDU. Extensions' mandatory keywords differ.
     Clean_PrimaryHeader_Start(InFits,OutFits);
     CurHDUNum := CurHDUNum + 1;
    end if;
