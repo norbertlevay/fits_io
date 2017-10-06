@@ -205,16 +205,22 @@ package body Commands is
    end loop;
 
    if not KeyCardFound and ENDCardFound then
-    Card := EmptyCard; -- FIXME harmless pass-by
+    Card := EmptyCard; -- FIXME 'harmless' pass-by
     null; -- FIXME throw exception probably not a FITS-file ?
    end if;
 
    return Card;
  end Find_Card;
 
- procedure Modify_HDU(InFits  : SIO.File_Type;
-                      OutFits : SIO.File_Type;
-                      HDUNum  : Positive)
+
+ --
+ -- Mandatory keywords' order in Header is fixed by standard
+ -- This func writes them to OutFits in right order.
+ -- (Extensions not supported : those have different
+ -- set of manadatory keywords for each ext type.)
+ --
+ procedure Clean_PrimaryHeader_Start(InFits  : SIO.File_Type;
+                                     OutFits : SIO.File_Type)
  is
   -- store HDU start position
   InIdx  : SIO.Positive_Count := SIO.Index(InFits);
@@ -228,11 +234,7 @@ package body Commands is
   DUSize_blocks : FNatural;
  begin
 
-  if HDUNum = 1 then
-   Card := Find_Card(InFits,"SIMPLE");
-  else
-   Card := Find_Card(InFits,"XTENSION");
-  end if;
+  Card := Find_Card(InFits,"SIMPLE");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
   String'Write (SIO.Stream(OutFits), Card);
 
@@ -306,15 +308,15 @@ package body Commands is
    DUSize_blocks := DU_Size_blocks (InFits);
    Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
 
- end Modify_HDU;
+ end Clean_PrimaryHeader_Start;
 
  --
  -- Modify HDU copies all HDU's except HDUNum
- -- FIXME For HDUNum use callback instead of Modify_HDU
+ -- FIXME For HDUNum use callback instead of Clean_PrimaryHeader_Start
  --
- procedure Copy_File_And_Modify_HDU(InFitsName       : in String;
-                      OutFitsName      : in String;
-                      HDUNum           : in Positive := 1)
+ procedure Copy_File_And_Modify_HDU(InFitsName  : in String;
+		                    OutFitsName : in String;
+                		    HDUNum      : in Positive := 1)
  is
    InFits  : SIO.File_Type;
    OutFits : SIO.File_Type;
@@ -334,8 +336,11 @@ package body Commands is
 
    -- now we are are positioned at HDUNum:
    -- modify (and copy) the HDU
-   Modify_HDU(InFits,OutFits,CurHDUNum);
-   CurHDUNum := CurHDUNum + 1;
+   if CurHDUNum = 1 then
+    -- works only for PrimHDU. Extensions' mandatory keywords differ.
+    Clean_PrimaryHeader_Start(InFits,OutFits);
+    CurHDUNum := CurHDUNum + 1;
+   end if;
 
    -- copy the rest of the file
 
