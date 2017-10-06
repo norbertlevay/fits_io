@@ -58,8 +58,8 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f fitsio testfits_sio testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
+	rm -f fits fitsio testfits_sio testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
 
 
 distclean: clean
-	rm -f *~
+	rm -f *~ test-modifyheader.hdr
