@@ -23,7 +23,7 @@ with Interfaces;
 
 with Ada.Streams.Stream_IO;
 
-package FITS_SIO is
+package FITS is
 
    package SIO renames Ada.Streams.Stream_IO;
 
@@ -189,5 +189,5 @@ package FITS_SIO is
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
 
-end FITS_SIO;
+end FITS;
 

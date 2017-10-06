@@ -1,5 +1,5 @@
 
-with FITS_SIO;
+with FITS;
 
 package Commands is
 

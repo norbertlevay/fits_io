@@ -4,11 +4,13 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Streams.Stream_IO,
      Ada.Characters.Latin_1,
      GNAT.OS_Lib,
-     FITS_SIO,
+     FITS,
      System,
      System.Storage_Elements;
 
-use  Ada.Streams.Stream_IO;
+use  Ada.Streams.Stream_IO,
+     FITS;
+
 
 package body Commands is
 
@@ -20,9 +22,9 @@ package body Commands is
  --
  procedure List_HDUs_In_File (FitsFileName : in String)
  is
-  FitsFile : FITS_SIO.SIO.File_Type;
+  FitsFile : SIO.File_Type;
 
-  procedure Print_HDU_Sizes (Index : Positive; HDUInfo : FITS_SIO.HDU_Size_Type)
+  procedure Print_HDU_Sizes (Index : Positive; HDUInfo : HDU_Size_Type)
   is
       FreeSlotCnt : Natural;
       Tab : Character := Ada.Characters.Latin_1.HT;
@@ -42,13 +44,13 @@ package body Commands is
                         ")" );
 
        if HDUInfo.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FITS_SIO.FitsData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfo.DUSizeParam.Naxes - 1)
          loop
-          Ada.Text_IO.Put(FITS_SIO.FPositive'Image(HDUInfo.DUSizeParam.Naxis(J)) & " x " );
+          Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeParam.Naxis(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(Fits_SIO.FPositive'Image(HDUInfo.DUSizeParam.Naxis(HDUInfo.DUSizeParam.Naxes)));
+        Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeParam.Naxis(HDUInfo.DUSizeParam.Naxes)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
   end Print_HDU_Sizes;
@@ -61,10 +63,10 @@ package body Commands is
 
 
  begin
-   FITS_SIO.SIO.Open(FitsFile,FITS_SIO.SIO.In_File,FitsFileName);
+   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
    Print_Headline;
-   FITS_SIO.List_Content (FitsFile, Print_HDU_Sizes'Access);
-   FITS_SIO.SIO.Close(FitsFile);
+   List_Content (FitsFile, Print_HDU_Sizes'Access);
+   SIO.Close(FitsFile);
  end List_HDUs_In_File;
 
  --
@@ -75,9 +77,9 @@ package body Commands is
   Tab : Character := Ada.Characters.Latin_1.HT;
  begin
   Ada.Text_IO.Put_Line("Limits imposed by implementation and/or the system:");
-  Ada.Text_IO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(FITS_SIO.MaxAxes));
-  Ada.Text_IO.Put_Line("Max NAXISn :" & Tab & FITS_SIO.FPositive'Image(FITS_SIO.FPositive'Last));
-  Ada.Text_IO.Put_Line("Max File size :" & Tab & FITS_SIO.SIO.Positive_Count'Image(FITS_SIO.SIO.Positive_Count'Last));
+  Ada.Text_IO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(MaxAxes));
+  Ada.Text_IO.Put_Line("Max NAXISn :" & Tab & FPositive'Image(FPositive'Last));
+  Ada.Text_IO.Put_Line("Max File size :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
   Ada.Text_IO.Put_Line("Max DataUnit size :" & Tab & "???" );
   Ada.Text_IO.New_Line;
   Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
@@ -89,7 +91,7 @@ package body Commands is
 --  Ada.Text_IO.Put_Line("Memory Size  " & Tab & Long_Long_Integer'Image(System.Memory_Size));
    -- Memory_Size : not very useful [Ada]
   Ada.Text_IO.Put_Line("Default Bit Order" & Tab & System.Bit_Order'Image(System.Default_Bit_Order));
-  Ada.Text_IO.Put_Line("Endianness (Bit Order)" & Tab & System.Bit_Order'Image(FITS_SIO.DataArray_Type'Bit_Order));
+  Ada.Text_IO.Put_Line("Endianness (Bit Order)" & Tab & System.Bit_Order'Image(DataArray_Type'Bit_Order));
  end Limits;
 
  --
@@ -98,21 +100,21 @@ package body Commands is
  procedure Print_Header( FileName : in String;
                          HDUNum   : in Positive := 1 )
  is
-   FitsFile : FITS_SIO.SIO.File_Type;
-   Data     : FITS_SIO.DataArray_Type(FITS_SIO.Card , 1);
+   FitsFile : SIO.File_Type;
+   Data     : DataArray_Type(Card , 1);
    ENDCardFound : Boolean := false;
  begin
-   FITS_SIO.SIO.Open(FitsFile, FITS_SIO.SIO.In_File, FileName);
+   SIO.Open(FitsFile, SIO.In_File, FileName);
 
-   FITS_SIO.Set_Index(FitsFile,HDUNum,Data.FitsType);
+   Set_Index(FitsFile,HDUNum,Data.FitsType);
 
    loop
-    FITS_SIO.DataArray_Type'Read(FITS_SIO.SIO.Stream(FitsFile) , Data);
+    DataArray_Type'Read(SIO.Stream(FitsFile) , Data);
     Ada.Text_IO.Put_Line(Data.CardArr(1));
-    exit when (Data.CardArr(1) = FITS_SIO.ENDCard);
+    exit when (Data.CardArr(1) = ENDCard);
    end loop;
 
-   FITS_SIO.SIO.Close(FitsFile);
+   SIO.Close(FitsFile);
 
  end Print_Header;
 
@@ -121,21 +123,21 @@ package body Commands is
  --
 
  -- as example do remove all occurences of card with given keyword InKey
- procedure Remove_Cards_By_Key(InFits  : FITS_SIO.SIO.File_Type;
+ procedure Remove_Cards_By_Key(InFits  : SIO.File_Type;
                                InKey   : String;
-                               OutFits : FITS_SIO.SIO.File_Type)
+                               OutFits : SIO.File_Type)
  is
-   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
-   OutData : FITS_SIO.DataArray_Type(FITS_SIO.Card,   1);
+   InData  : DataArray_Type(HBlock, 1);
+   OutData : DataArray_Type(Card,   1);
    ENDCardFound    : Boolean := false;
-   Card            : FITS_SIO.Card_Type;
+   Card            : Card_Type;
    CntCardsWritten : Natural := 0;
    CntRemBlock     : Natural; -- remaining empty cards slots in last block
  begin
 
    loop
 
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), InData);
+     DataArray_Type'Read (SIO.Stream(InFits), InData);
 
      for I in InData.HBlockArr(1)'Range
      loop
@@ -144,11 +146,11 @@ package body Commands is
        -- skip Card starting with InKey
        if Card(InKey'Range) /= InKey then
          OutData.CardArr(1) := Card;
-         FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
+         DataArray_Type'Write(SIO.Stream(OutFits),OutData);
          CntCardsWritten := CntCardsWritten + 1;
        end if;
 
-       ENDCardFound := (Card = FITS_SIO.ENDCard);
+       ENDCardFound := (Card = ENDCard);
        exit when ENDCardFound;
      end loop; -- for loop
 
@@ -157,12 +159,12 @@ package body Commands is
 
    -- fill upto block limit
 
-   CntRemBlock := CntCardsWritten mod FITS_SIO.CardsCntInBlock;
+   CntRemBlock := CntCardsWritten mod CardsCntInBlock;
    if (CntRemBlock > 0) then
-    while (CntRemBlock < FITS_SIO.CardsCntInBlock)
+    while (CntRemBlock < CardsCntInBlock)
     loop
-      OutData.CardArr(1) := FITS_SIO.EmptyCard;
-      FITS_SIO.DataArray_Type'Write(FITS_SIO.SIO.Stream(OutFits),OutData);
+      OutData.CardArr(1) := EmptyCard;
+      DataArray_Type'Write(SIO.Stream(OutFits),OutData);
       CntRemBlock := CntRemBlock + 1;
      end loop;
     end if;
@@ -175,24 +177,24 @@ package body Commands is
  -- it is assumed file-pointers are positioned to the first Char of the Headers
   -- ref: [FITS, Sect 4.4.1 Table 7 Mandatory keywords for primary header.]
 
- function  Find_Card(InFits : FITS_SIO.SIO.File_Type;
-                     InKey  : String ) return FITS_SIO.Card_Type
+ function  Find_Card(InFits : SIO.File_Type;
+                     InKey  : String ) return Card_Type
  is
-   Card : FITS_SIO.Card_Type;
+   Card : Card_Type;
    ENDCardFound : Boolean := false;
    KeyCardFound : Boolean := false;
-   InData  : FITS_SIO.DataArray_Type(FITS_SIO.HBlock, 1);
+   InData  : DataArray_Type(HBlock, 1);
  begin
 
    loop
-     FITS_SIO.DataArray_Type'Read (FITS_SIO.SIO.Stream(InFits), InData);
+     DataArray_Type'Read (SIO.Stream(InFits), InData);
 
      for I in InData.HBlockArr(1)'Range
      loop
        Card := InData.HBlockArr(1)(I);
 
        KeyCardFound := (Card(InKey'Range) = InKey);
-       ENDCardFound := (Card = FITS_SIO.ENDCard);
+       ENDCardFound := (Card = ENDCard);
 
       exit when (KeyCardFound or ENDCardFound);
      end loop;
@@ -207,34 +209,34 @@ package body Commands is
    return Card;
  end Find_Card;
 
- procedure Modify_HDU(InFits  : FITS_SIO.SIO.File_Type;
-                      OutFits : FITS_SIO.SIO.File_Type)
+ procedure Modify_HDU(InFits  : SIO.File_Type;
+                      OutFits : SIO.File_Type)
  is
   -- store HDU start position
-  InIdx  : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(InFits);
-  OutIdx : FITS_SIO.SIO.Positive_Count := FITS_SIO.SIO.Index(OutFits);
-  Card   : FITS_SIO.Card_Type;
+  InIdx  : SIO.Positive_Count := SIO.Index(InFits);
+  OutIdx : SIO.Positive_Count := SIO.Index(OutFits);
+  Card   : Card_Type;
   NAxis  : Natural;
   NAXISKey : String := "NAXIS";
   ENDCardFound : Boolean := false;
-  FillCnt  : FITS_SIO.SIO.Count;
-  OutIndex : FITS_SIO.SIO.Positive_Count;
-  DUSize_blocks : FITS_SIO.FNatural;
+  FillCnt  : SIO.Count;
+  OutIndex : SIO.Positive_Count;
+  DUSize_blocks : FNatural;
  begin
 
   Card := Find_Card(InFits,"SIMPLE");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+  String'Write (SIO.Stream(OutFits), Card);
 
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"BITPIX");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+  String'Write (SIO.Stream(OutFits), Card);
 
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"NAXIS");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+  String'Write (SIO.Stream(OutFits), Card);
   NAxis := Positive'Value(Card(10..30));
 
   for I in 1 .. NAxis
@@ -242,19 +244,19 @@ package body Commands is
     declare
       NAXISnKey : String := NAXISKey & Ada.Strings.Fixed.Trim(Integer'Image(I),Ada.Strings.Left);
     begin
-      FITS_SIO.SIO.Set_Index(InFits,InIdx);
+      SIO.Set_Index(InFits,InIdx);
       Card := Find_Card(InFits,NAXISnKey);
-      String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+      String'Write (SIO.Stream(OutFits), Card);
 --      TIO.Put_Line("DBG >>" & Card & "<<");
     end;
   end loop;
 
   -- write all cards except those above
 
-  FITS_SIO.SIO.Set_Index(InFits,InIdx);
+  SIO.Set_Index(InFits,InIdx);
 
   loop
-     String'Read (FITS_SIO.SIO.Stream(InFits), Card);
+     String'Read (SIO.Stream(InFits), Card);
      if Card(1..6) /= "SIMPLE" and
         Card(1..6) /= "BITPIX" and
         Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
@@ -263,11 +265,11 @@ package body Commands is
         -- conversion will raise exception if not a number
         -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
         -- AxisValue := Positive'Value(Card(6..8));
-        String'Write (FITS_SIO.SIO.Stream(OutFits), Card);
+        String'Write (SIO.Stream(OutFits), Card);
 --        TIO.Put_Line("DBG >>" & Card & "<<");
      end if;
 
-     ENDCardFound := (Card = FITS_SIO.ENDCard);
+     ENDCardFound := (Card = ENDCard);
 
     exit when ENDCardFound;
    end loop;
@@ -275,25 +277,25 @@ package body Commands is
    -- fill upto Block limit
 
    -- FIXME make the below 3 lines FITS_SIO API: procedure Write_Fillin(OutFits,Fill_Value)
-   OutIndex := FITS_SIO.SIO.Index(OutFits);
+   OutIndex := SIO.Index(OutFits);
    FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
    FillCnt := FillCnt / 80;
---   TIO.Put_Line("DBG FillCnt B >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+--   TIO.Put_Line("DBG FillCnt B >>" & SIO.Count'Image(FillCnt) & "<<");
    if FillCnt /= 36
    then
     while FillCnt < 36
     loop
-        String'Read  (FITS_SIO.SIO.Stream(InFits),  Card); -- dummy only to move file pointer over fill area
-        String'Write (FITS_SIO.SIO.Stream(OutFits), FITS_SIO.EmptyCard);
+        String'Read  (SIO.Stream(InFits),  Card); -- dummy only to move file pointer over fill area
+        String'Write (SIO.Stream(OutFits), EmptyCard);
         FillCnt := FillCnt + 1;
---        TIO.Put_Line("DBG FillCnt >>" & FITS_SIO.SIO.Count'Image(FillCnt) & "<<");
+--        TIO.Put_Line("DBG FillCnt >>" & SIO.Count'Image(FillCnt) & "<<");
     end loop;
    end if;
 
    -- calc size of DU and copy it:
-   FITS_SIO.SIO.Set_Index(InFits,InIdx);
-   DUSize_blocks := FITS_SIO.DU_Size_blocks (InFits);
-   FITS_SIO.Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
+   SIO.Set_Index(InFits,InIdx);
+   DUSize_blocks := DU_Size_blocks (InFits);
+   Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
 
  end Modify_HDU;
 
@@ -305,19 +307,19 @@ package body Commands is
                       OutFitsName      : in String;
                       HDUNum           : in Positive := 1)
  is
-   InFits  : FITS_SIO.SIO.File_Type;
-   OutFits : FITS_SIO.SIO.File_Type;
+   InFits  : SIO.File_Type;
+   OutFits : SIO.File_Type;
    CurHDUNum : Positive := 1;
  begin
 
-   FITS_SIO.SIO.Create(OutFits, FITS_SIO.SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
-   FITS_SIO.SIO.Open  (InFits,  FITS_SIO.SIO.In_File,  InFitsName);
+   SIO.Create(OutFits, SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
+   SIO.Open  (InFits,  SIO.In_File,  InFitsName);
 
    -- copy all HDUs upto HDUNum
 
    while CurHDUNum < HDUNum
    loop
-     FITS_SIO.Copy_HDU(InFits,OutFits,CurHDUNum,400);
+     Copy_HDU(InFits,OutFits,CurHDUNum,400);
      CurHDUNum := CurHDUNum + 1;
    end loop;
 
@@ -328,14 +330,14 @@ package body Commands is
 
    -- copy the rest of the file
 
-   while not FITS_SIO.SIO.End_Of_File(InFits)
+   while not SIO.End_Of_File(InFits)
    loop
-     FITS_SIO.Copy_HDU(InFits,OutFits,CurHDUNum);
+     Copy_HDU(InFits,OutFits,CurHDUNum);
      CurHDUNum := CurHDUNum + 1;
    end loop;
 
-   FITS_SIO.SIO.Close(InFits);
-   FITS_SIO.SIO.Close(OutFits);
+   SIO.Close(InFits);
+   SIO.Close(OutFits);
 
  end Copy_File_And_Modify_HDU;
 

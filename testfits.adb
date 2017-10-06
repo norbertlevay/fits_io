@@ -25,10 +25,10 @@ use
     Ada.Strings.Bounded,
     Ada.Command_Line;
 
-with FITS_SIO; use FITS_SIO;
+with FITS; use FITS;
 
 
-procedure testfits_sio
+procedure testfits
 is
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
@@ -218,5 +218,5 @@ begin
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end testfits_sio;
+end testfits;
 

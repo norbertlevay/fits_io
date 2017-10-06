@@ -35,7 +35,7 @@ use  Ada.Streams.Stream_IO;
 
 --with Ada.Text_IO; -- debug only
 
-package body FITS_SIO is
+package body FITS is
 
    procedure Move_Index
              (FitsFile : in SIO.File_Type;
@@ -400,5 +400,5 @@ package body FITS_SIO is
    end Copy_HDU;
 
 
-end FITS_SIO;
+end FITS;
 

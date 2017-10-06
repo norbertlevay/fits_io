@@ -7,7 +7,7 @@ builddate=$(shell date)
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: fits fitsio testfits_io testfits_sio testfits_dio
+all: fits fitsio testfits_io testfits testfits_dio
 
 
 build_date.ads :
@@ -27,8 +27,8 @@ fitsio : main_io.adb build_date.ads commands_io.ads commands_io.adb
 testfits_dio : build_date.ads testfits_dio.adb fits_dio.ads fits_dio.adb
 	gnatmake -g -we testfits_dio.adb -o testfits_dio
 
-testfits_sio : build_date.ads testfits_sio.adb fits_sio.ads fits_sio.adb
-	gnatmake -g -we testfits_sio.adb -o testfits_sio
+testfits : build_date.ads testfits.adb fits.ads fits.adb
+	gnatmake -g -we testfits.adb -o testfits
 
 testfits_io : testfits_io.adb build_date.ads
 #	gnatmake -g -gnat12 -we testfits_io.adb -o testfits_io -bargs -E
@@ -58,7 +58,7 @@ testmodifyheader:
 	./fits header --hdu 2 $(TESTFILE) test-modifyheader.hdr
 
 clean:
-	rm -f fits fitsio testfits_sio testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
+	rm -f fits fitsio testfits testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
 
 
 distclean: clean
