@@ -1,22 +1,23 @@
+--
+-- FITS.* packages
+--
 -- Media management:
--- Files: This package helps to do file management for FITS-files.
--- Helps positionning in the FITS-files, and provides constants
--- and data types as required by FITS-standard.
--- The procedures accept Ada.Stream_IO.File_Type and File_Mode
+--
+-- FITS.File child-package: helps to do file management
+-- for FITS-files, positioning in FITS-file, list content etc...
+-- It buids on Ada.Streams.Stream_IO and so many
+-- procedures accept Ada.Stream_IO.File_Type and File_Mode
 -- as parameter.
 -- Network: ...?
 --
 -- Data Access:
--- Once Ada-file Stream is successfully acquired,
+--
+-- FITS package: Once Ada-file Stream is successfully acquired,
 -- serialization/deserialization into/from stream
 -- happens simply by using Read Write attributes of
 -- the predefined types, specifically FitsData_Type'Read and 'Write,
 -- which is array of base Ada-types and so supported by
 -- Ada GNAT implementation [FITS ?][GNAT ?].
---
--- Notes:
--- Set_Index allows positioning in the stream if the media allows it
--- (for files yes, for network maybe?).
 --
 
 with Interfaces;
