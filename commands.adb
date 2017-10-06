@@ -205,6 +205,7 @@ package body Commands is
    end loop;
 
    if not KeyCardFound and ENDCardFound then
+    Card := EmptyCard; -- FIXME harmless pass-by
     null; -- FIXME throw exception probably not a FITS-file ?
    end if;
 
@@ -212,7 +213,8 @@ package body Commands is
  end Find_Card;
 
  procedure Modify_HDU(InFits  : SIO.File_Type;
-                      OutFits : SIO.File_Type)
+                      OutFits : SIO.File_Type;
+                      HDUNum  : Positive)
  is
   -- store HDU start position
   InIdx  : SIO.Positive_Count := SIO.Index(InFits);
@@ -226,7 +228,11 @@ package body Commands is
   DUSize_blocks : FNatural;
  begin
 
-  Card := Find_Card(InFits,"SIMPLE");
+  if HDUNum = 1 then
+   Card := Find_Card(InFits,"SIMPLE");
+  else
+   Card := Find_Card(InFits,"XTENSION");
+  end if;
 --  TIO.Put_Line("DBG >>" & Card & "<<");
   String'Write (SIO.Stream(OutFits), Card);
 
@@ -260,6 +266,7 @@ package body Commands is
   loop
      String'Read (SIO.Stream(InFits), Card);
      if Card(1..6) /= "SIMPLE" and
+        Card(1..8) /= "XTENSION" and
         Card(1..6) /= "BITPIX" and
         Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
      then
@@ -327,7 +334,7 @@ package body Commands is
 
    -- now we are are positioned at HDUNum:
    -- modify (and copy) the HDU
-   Modify_HDU(InFits,OutFits);
+   Modify_HDU(InFits,OutFits,CurHDUNum);
    CurHDUNum := CurHDUNum + 1;
 
    -- copy the rest of the file
