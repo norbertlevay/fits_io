@@ -1,0 +1,9 @@
+a-ststio.ads:   type Stream_AFCB is new FCB.AFCB with record
+a-ststio.ads:   type File_Type is access all Stream_AFCB;
+a-textio.ads:   type Text_AFCB;
+a-textio.ads:   type File_Type is access all Text_AFCB;
+a-textio.ads:   type Text_AFCB is new FCB.AFCB with record
+s-direio.ads:   type Direct_AFCB is new FCB.AFCB with record
+s-direio.ads:   type File_Type is access all Direct_AFCB;
+s-sequio.ads:   type Sequential_AFCB is new FCB.AFCB with null record;
+s-sequio.ads:   type File_Type is access all Sequential_AFCB;
