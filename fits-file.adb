@@ -54,6 +54,13 @@ package body FITS.File is
     -- [GNAT]:
     --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
     -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
+    -- note:
+    --  type Count is new Stream_Element_Offset
+    --                range 0 .. Stream_Element_Offset'Last;
+    --  type Stream_Element_Offset is range
+    --               -(2 ** (Standard'Address_Size - 1)) ..
+    --               +(2 ** (Standard'Address_Size - 1)) - 1;
+    -- Address_Size is 32 or 64bit nowadays
 
    BlockSize_bytes : FPositive := 2880*8 / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
@@ -171,7 +178,7 @@ package body FITS.File is
      -- skip DataUnit if exists
      if HDUSize.DUSizeParam.Naxes /= 0
      then
-       CurDUSize_blocks := Size_Blocks (HDUSize.DUSizeParam);
+       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeParam);
        CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
        Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;
@@ -227,7 +234,7 @@ package body FITS.File is
      -- skip DataUnit if exists
      if HDUSize.DUSizeParam.Naxes /= 0
      then
-       CurDUSize_blocks := Size_Blocks(HDUSize.DUSizeParam);
+       CurDUSize_blocks := Size_blocks(HDUSize.DUSizeParam);
        CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
        Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;

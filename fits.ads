@@ -37,13 +37,8 @@ package FITS is
    type    FInteger  is new Long_Long_Integer;
    subtype FNatural  is FInteger range 0 .. FInteger'Last;
    subtype FPositive is FNatural range 1 .. FNatural'Last;
-   -- note:
-   --  type Count is new Stream_Element_Offset
-   --                range 0 .. Stream_Element_Offset'Last;
-   --  type Stream_Element_Offset is range
-   --               -(2 ** (Standard'Address_Size - 1)) ..
-   --               +(2 ** (Standard'Address_Size - 1)) - 1;
-   -- Address_Size is 32 or 64bit nowadays
+   -- note: package division into FITS and FITS.File
+   --       favours 2. (from FITS Standard)
 
    type FitsData_Type is
        (HBlock, Card, Char,        -- Header types
@@ -85,14 +80,15 @@ package FITS is
    -- That is slightly over Long_Long_Integer'Last ~ 9.2 x 10**19
    -- vs 19 digits of 9: 9.9999..x10**19.
    -- So max value NAXISn will be implementation limited.
-   -- derived from Count which is derived from Address_Size:
+   -- If derived from Stream_IO.Count: which is derived from Address_Size:
    --  e.g. NAXISn will be 32bit or 64bit depending on the machine
+   -- FIXME If derived from Long_Long_Integer - see [GNAT??]
 
    type DUSizeParam_Type is record
-      Data     : FitsData_Type; -- data type as given by BITPIX
-      BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
-      Naxes    : NAXIS_Type;  -- NAXIS  from header
-      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
+      Data   : FitsData_Type; -- data type as given by BITPIX
+      BITPIX : Integer;       -- BITPIX from Header (data size in bits)
+      Naxes  : NAXIS_Type;    -- NAXIS  from header
+      Naxis  : Dim_Type;      -- NAXISi from header, 0 means dimension not in use
    end record;
    -- collects data which defines DataUnit size
 
@@ -104,13 +100,11 @@ package FITS is
    procedure Parse_Card (Card        : in Card_Type;
                          DUSizeParam : in out DUSizeParam_Type);
 
-
-   function  Size_Blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
+   function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
 
    ----------------------------------------------
    -- HeaderUnit DataUnit types for Read/Write --
    ----------------------------------------------
-
 
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;

@@ -9,7 +9,7 @@ package body FITS is
    --
    -- calculate DataUnit size in FITS Blocks
    --
-   function  Size_Blocks (DUSizeParam : in DUSizeParam_Type) return FPositive
+   function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive
    is
     DataInBlock    : FPositive;
     DUSizeInBlocks : FPositive;
@@ -29,8 +29,8 @@ package body FITS is
      DUSizeInBlocks := (DUSize - 1) / DataInBlock + 1;
 
     return DUSizeInBlocks;
-   end Size_Blocks;
-   pragma Inline (Size_Blocks);
+   end Size_blocks;
+   pragma Inline (Size_blocks);
 
 
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise

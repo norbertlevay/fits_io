@@ -10,6 +10,8 @@ package FITS.File is
                            HDUSize  : in out HDU_Size_Type);
     -- extract HDU-size information
 
+   function DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
+
    ------------------------------------------
    -- List FITS-file content : HDU params  --
    ------------------------------------------
@@ -44,8 +46,6 @@ package FITS.File is
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
-
-   function DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
 
 end FITS.File;
 
