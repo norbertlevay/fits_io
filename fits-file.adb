@@ -127,7 +127,7 @@ package body FITS.File is
 
    end Parse_Header;
 
-   function FitsDataTypeSize_bits(dt : FitsData_Type) return FNatural
+   function  FitsDataTypeSize_bits(dt : FitsData_Type) return FNatural
    is
      Size : FNatural;
    begin
@@ -284,7 +284,7 @@ package body FITS.File is
    end Copy_Blocks;
 
    -- return size of the HDU where InFits points to
-   function HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
     HDUSizeRec : HDU_Size_Type;
    begin
@@ -294,7 +294,7 @@ package body FITS.File is
    end HDU_Size_blocks;
 
    -- return size of the HDU where InFits points to
-   function DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   function  DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
     HDUSizeRec : HDU_Size_Type;
    begin
