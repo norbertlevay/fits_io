@@ -57,11 +57,6 @@ package FITS is
    -- see testfits :: printing some data from a fits-file of whatever
    -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
 
-
-   ----------------------------------------------
-   -- HeaderUnit DataUnit types for Read/Write --
-   ----------------------------------------------
-
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
 
@@ -70,6 +65,52 @@ package FITS is
 
    ENDCard    : constant Card_Type := "END                                                                             ";
    EmptyCard  : constant Card_Type := (others => ' ');
+
+   BlockSize_bits  : FPositive := 2880*8;
+   -- FIXME [FITS ??]
+
+   -----------
+   -- Sizes --
+   -----------
+
+   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
+   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+   -- that no data follow the header in the HDU."
+
+   type Dim_Type is array (1..MaxAxes) of FPositive;
+   -- FITS poses no limit on max value of NAXISi
+   -- except the space in Card: 11..30 columns:
+   -- 19 decimal digits (called by FITS 'fixed integer')
+   -- That is slightly over Long_Long_Integer'Last ~ 9.2 x 10**19
+   -- vs 19 digits of 9: 9.9999..x10**19.
+   -- So max value NAXISn will be implementation limited.
+   -- derived from Count which is derived from Address_Size:
+   --  e.g. NAXISn will be 32bit or 64bit depending on the machine
+
+   type DUSizeParam_Type is record
+      Data     : FitsData_Type; -- data type as given by BITPIX
+      BITPIX   : Integer;       -- BITPIX from Header (data size in bits)
+      Naxes    : NAXIS_Type;  -- NAXIS  from header
+      Naxis    : Dim_Type;    -- NAXISi from header, 0 means dimension not in use
+   end record;
+   -- collects data which defines DataUnit size
+
+   type HDU_Size_Type is record
+      CardsCnt    : Positive;    -- number of cards in this Header
+      DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
+   end record;
+
+   procedure Parse_Card (Card        : in Card_Type;
+                         DUSizeParam : in out DUSizeParam_Type);
+
+
+   function  Size_Blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
+
+   ----------------------------------------------
+   -- HeaderUnit DataUnit types for Read/Write --
+   ----------------------------------------------
+
 
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
