@@ -126,6 +126,39 @@ package body FITS.File is
 
    end Parse_Header;
 
+   -- parse header in blocks
+   --  from current file-index,
+   --  read blocks until a block with END-card found
+   --  and try to fill in HDUSize
+   procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
+                                 HDUSize  : in out HDU_Size_Type)
+   is
+    HBlk         : DataArray_Type(HBlock,1);
+    Card         : Card_Type;
+    ENDCardFound : Boolean := false;
+    CardsCnt     : FNatural := 0;
+   begin
+
+    loop
+      DataArray_Type'Read( SIO.Stream(FitsFile), HBlk );
+
+      for I in HBlk.HBlockArr(1)'Range
+      loop
+        Card         := HBlk.HBlockArr(1)(I);
+        Parse_Card(Card, HDUSize.DUSizeParam);
+        CardsCnt     := CardsCnt + 1;
+        ENDCardFound := (Card = ENDCard);
+        exit when ENDCardFound;
+      end loop;
+
+      exit when ENDCardFound;
+    end loop;
+
+    HDUSize.CardsCnt := CardsCnt;
+    -- here CardsCnt is > 0 otherwise
+    -- we don't reach this line (leave by exception)
+   end Parse_HeaderBlocks;
+
    --
    -- conversion FIXME review why needed ??
    --

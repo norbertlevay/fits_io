@@ -8,7 +8,13 @@ package FITS.File is
 
    procedure Parse_Header (FitsFile : in SIO.File_Type;
                            HDUSize  : in out HDU_Size_Type);
-    -- extract HDU-size information
+    -- extract HDU-size information: read by cards.
+    -- After this call file pointer points to next card after END-card
+
+   procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
+                                 HDUSize  : in out HDU_Size_Type);
+    -- extract HDU-size information: read by Blocks.
+    -- After this call file-pointer points to DU (or next HDU)
 
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_Header & FITS.Size_blocks
