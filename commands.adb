@@ -169,6 +169,10 @@ package body Commands is
      end loop;
     end if;
 
+   -- FIXME now we should copy the DataUnit ?? up to next HDU
+   -- (including fill-up area of DU: Copy_Blocks would do
+   --  it if positioned correctly on the DU-start)
+
  end Remove_Cards_By_Key;
 
  --
@@ -336,6 +340,7 @@ package body Commands is
 
    -- now we are are positioned at HDUNum:
    -- modify (and copy) the HDU
+
    case Command is
    when cleanhead =>
    if CurHDUNum = 1 then
@@ -344,7 +349,11 @@ package body Commands is
    end if;
    when removekey =>
     Remove_Cards_By_Key(InFits, InKey, OutFits);
+    CurHDUNum := CurHDUNum + 1;
    end case;
+   -- both commands above modify Header
+   -- FIXME where to do Header fill-in area ?
+   -- FIXME should we copy here the DataUnit ?
 
    -- copy the rest of the file
 

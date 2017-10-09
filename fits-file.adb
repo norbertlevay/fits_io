@@ -110,10 +110,11 @@ package body FITS.File is
     end loop;
 
     -- FIXME should Parse_Header move upto next block limit ?
-    -- there is nothing to parse after ENDCard
-    -- procedure name does not suggest that - misleading
-    -- rather move to next block-boundary should happen outside
-    -- of Parse_Header by another explicit call
+    -- there is nothing to parse after ENDCard -> procedure name is misleading
+    -- Rather the move to next block-boundary should happen outside
+    -- of Parse_Header by another explicit call.
+    -- AND write other Parse_HeaderBlocks() which reads by
+    -- HeaderBlocks instead of cards
 
     FreeSlotCnt := Free_Card_Slots(HDUSize.CardsCnt);
     -- read up to block-limit

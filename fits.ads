@@ -109,6 +109,8 @@ package FITS is
 
    function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
    -- calc number of free cards to fill up HeaderBlock (always 0..35 < Cards/Block)
+   procedure Free_Data_Slots (DataCnt :  in FPositive; FreeDataCnt: out Natural) is null;
+   -- FIXME add (as function) later when needed: calc number of free data array slots to fill up DataBlock
 
    ----------------------------------------------
    -- HeaderUnit DataUnit types for Read/Write --
