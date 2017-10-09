@@ -7,6 +7,16 @@
 package body FITS is
 
    --
+   -- calculate Header size in FITS Blocks
+   --
+   function  Size_blocks (CardsCnt    : in FPositive       ) return FPositive
+   is
+   begin
+    return ( 1 + (CardsCnt - 1)/FPositive(CardsCntInBlock) );
+   end Size_blocks;
+   pragma Inline (Size_blocks);
+
+   --
    -- calculate DataUnit size in FITS Blocks
    --
    function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive
@@ -24,14 +34,13 @@ package body FITS is
       -- cannot be 0 (parsing would throw exception)
 
      DataInBlock := BlockSize_bits /  FNatural( abs DUSizeParam.BITPIX );
-     -- per FITS standard, these vlues are multiples
+     -- per FITS standard, these values are integer multiples (no remainder)
 
-     DUSizeInBlocks := (DUSize - 1) / DataInBlock + 1;
+     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
 
     return DUSizeInBlocks;
    end Size_blocks;
    pragma Inline (Size_blocks);
-
 
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
    -- and store parse value to DUSizeParam

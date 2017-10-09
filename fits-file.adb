@@ -98,7 +98,7 @@ package body FITS.File is
                            HDUSize  : in out HDU_Size_Type)
    is
     Card : Card_Type;
-    FreeSlotCnt : Natural;
+    FreeSlotCnt : FNatural;
    begin
 
     Card_Type'Read( SIO.Stream(FitsFile), Card );
@@ -112,9 +112,9 @@ package body FITS.File is
     end loop;
 
     -- calc free slots
-    FreeSlotCnt := CardsCntInBlock - (HDUSize.CardsCnt mod CardsCntInBlock);
+    FreeSlotCnt := FPositive(CardsCntInBlock) - (HDUSize.CardsCnt mod FPositive(CardsCntInBlock));
     -- mod is 0 when Block has 36 cards e.g. is full
-    if FreeSlotCnt = CardsCntInBlock then
+    if FreeSlotCnt = FPositive(CardsCntInBlock) then
      FreeSlotCnt := 0;
     end if;
 
@@ -283,17 +283,7 @@ package body FITS.File is
 
    end Copy_Blocks;
 
-   -- return size of the HDU where InFits points to
-   function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
-   is
-    HDUSizeRec : HDU_Size_Type;
-   begin
-    Parse_Header(InFits,HDUSizeRec);
-    return FNatural((HDUSizeRec.CardsCnt-1)/36+1) + Size_blocks(HDUSizeRec.DUSizeParam);
-    -- FIXME Header blocks size calc dirty...
-   end HDU_Size_blocks;
-
-   -- return size of the HDU where InFits points to
+   -- return size of the DU where InFits points to
    function  DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
     HDUSizeRec : HDU_Size_Type;
@@ -301,6 +291,15 @@ package body FITS.File is
     Parse_Header(InFits,HDUSizeRec);
     return Size_blocks(HDUSizeRec.DUSizeParam);
    end DU_Size_blocks;
+
+   -- return size of the HDU where InFits points to
+   function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   is
+    HDUSizeRec : HDU_Size_Type;
+   begin
+    Parse_Header(InFits,HDUSizeRec);
+    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeParam);
+   end HDU_Size_blocks;
 
    --
    -- Copy all HDU
@@ -311,12 +310,12 @@ package body FITS.File is
                        ChunkSize_blocks : in Positive := 10)
    is
      NBlocks : FPositive;
-     HDUStartIdx : SIO.Positive_Count;-- := SIO.Index(InFits);
+     HDUStartIdx : SIO.Positive_Count;
    begin
      HDUStartIdx := SIO.Index(InFits);
      -- calc size of HDU
      NBlocks := HDU_Size_blocks(InFits);
-     -- go back to start & start copying...
+     -- go back to HDU-start & start copying...
      SIO.Set_Index(InFits, HDUStartIdx);
      Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);
    end Copy_HDU;

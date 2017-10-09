@@ -93,14 +93,19 @@ package FITS is
    -- collects data which defines DataUnit size
 
    type HDU_Size_Type is record
-      CardsCnt    : Positive;    -- number of cards in this Header
-      DUSizeParam : DUSizeParam_Type; -- data type as given by BITPIX
+      CardsCnt    : FPositive;        -- number of cards in this Header (gives Header-size)
+      DUSizeParam : DUSizeParam_Type; -- keywords to calc DataUnit-size
    end record;
 
    procedure Parse_Card (Card        : in Card_Type;
                          DUSizeParam : in out DUSizeParam_Type);
+   -- to be called for every card in Header and will fill-in DUSizeParam's
+   -- if all correponding keywords existed in the header
+   -- FIXME : what if some needed key missing?
 
+   function  Size_blocks (CardsCnt    : in FPositive       ) return FPositive;
    function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
+   -- size of Header and DataUnit respectively, counted in FITS-blocks
 
    ----------------------------------------------
    -- HeaderUnit DataUnit types for Read/Write --
