@@ -89,16 +89,14 @@ package body FITS.File is
     return UType;
    end To_UnitType;
 
-
-
    -- parse one header for HDU-size information
    --  from current file-index,
    --  read cards until END-card found and try to fill in HDUSize
    procedure Parse_Header (FitsFile : in SIO.File_Type;
                            HDUSize  : in out HDU_Size_Type)
    is
-    Card : Card_Type;
-    FreeSlotCnt : FNatural;
+    Card        : Card_Type;
+    FreeSlotCnt : Natural;
    begin
 
     Card_Type'Read( SIO.Stream(FitsFile), Card );
@@ -111,13 +109,13 @@ package body FITS.File is
       HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
     end loop;
 
-    -- calc free slots
-    FreeSlotCnt := FPositive(CardsCntInBlock) - (HDUSize.CardsCnt mod FPositive(CardsCntInBlock));
-    -- mod is 0 when Block has 36 cards e.g. is full
-    if FreeSlotCnt = FPositive(CardsCntInBlock) then
-     FreeSlotCnt := 0;
-    end if;
+    -- FIXME should Parse_Header move upto next block limit ?
+    -- there is nothing to parse after ENDCard
+    -- procedure name does not suggest that - misleading
+    -- rather move to next block-boundary should happen outside
+    -- of Parse_Header by another explicit call
 
+    FreeSlotCnt := Free_Card_Slots(HDUSize.CardsCnt);
     -- read up to block-limit
     while FreeSlotCnt /= 0
     loop
@@ -127,6 +125,9 @@ package body FITS.File is
 
    end Parse_Header;
 
+   --
+   -- conversion FIXME review why needed ??
+   --
    function  FitsDataTypeSize_bits(dt : FitsData_Type) return FNatural
    is
      Size : FNatural;

@@ -107,6 +107,9 @@ package FITS is
    function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
    -- size of Header and DataUnit respectively, counted in FITS-blocks
 
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
+   -- calc number of free cards to fill up HeaderBlock (always 0..35 < Cards/Block)
+
    ----------------------------------------------
    -- HeaderUnit DataUnit types for Read/Write --
    ----------------------------------------------

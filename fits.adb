@@ -42,6 +42,19 @@ package body FITS is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
+   -- calc number of free cards to fill up HeaderBlock
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   is
+    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    -- explicit conversion ok: mod < CardsCntInBlock = 36;
+   begin
+    if FreeSlotCnt /= 0 then
+      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+    end if;
+    return FreeSlotCnt;
+   end Free_Card_Slots;
+   pragma Inline (Free_Card_Slots);
+
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
    -- and store parse value to DUSizeParam
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file

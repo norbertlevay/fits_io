@@ -28,22 +28,16 @@ package body Commands is
 
   procedure Print_HDU_Sizes (Index : Positive; HDUInfo : HDU_Size_Type)
   is
-      FreeSlotCnt : FNatural;
+      FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
       CardsPerBlock_FPos : FPositive := FPositive(CardsCntInBlock);
   begin
-       -- calc free slots
-       FreeSlotCnt := CardsPerBlock_FPos - (HDUInfo.CardsCnt mod CardsPerBlock_FPos);
-       -- mod is 0 when Block has 36 cards e.g. is full
-       if FreeSlotCnt = 36 then
-        FreeSlotCnt := 0;
-       end if;
 
        Ada.Text_IO.Put( Integer'Image(Index) &
                         Tab &
                         Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
                         " (" &
-                        Ada.Strings.Fixed.Tail(FInteger'Image( FreeSlotCnt ),2,' ') &
+                        Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
                         ")" );
 
        if HDUInfo.DUSizeParam.Naxes > 0 then
