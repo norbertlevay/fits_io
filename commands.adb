@@ -120,6 +120,7 @@ package body Commands is
  --
 
  -- as example do remove all occurences of card with given keyword InKey
+ -- read by HBlock's &write by Card's
  procedure Remove_Cards_By_Key(InFits  : SIO.File_Type;
                                InKey   : String;
                                OutFits : SIO.File_Type)
@@ -166,10 +167,6 @@ package body Commands is
      end loop;
     end if;
 
-   -- FIXME now we should copy the DataUnit ?? up to next HDU
-   -- (including fill-up area of DU: Copy_Blocks would do
-   --  it if positioned correctly on the DU-start)
-
  end Remove_Cards_By_Key;
 
  --
@@ -178,6 +175,8 @@ package body Commands is
  -- it is assumed file-pointers are positioned to the first Char of the Headers
   -- ref: [FITS, Sect 4.4.1 Table 7 Mandatory keywords for primary header.]
 
+ -- return all Card if its key is InKey
+ -- reads by Block
  function  Find_Card(InFits : SIO.File_Type;
                      InKey  : String ) return Card_Type
  is
@@ -228,9 +227,9 @@ package body Commands is
   NAxis  : Natural;
   NAXISKey : String := "NAXIS";
   ENDCardFound : Boolean := false;
-  FillCnt  : SIO.Count;
-  OutIndex : SIO.Positive_Count;
-  DUSize_blocks : FNatural;
+  FillCnt  : Positive;
+--  DUSize_blocks : FNatural;
+  InData  : DataArray_Type(HBlock, 1);
  begin
 
   Card := Find_Card(InFits,"SIMPLE");
@@ -264,48 +263,44 @@ package body Commands is
 
   SIO.Set_Index(InFits,InIdx);
 
+  -- read by Blocks, write by Cards
   loop
-     String'Read (SIO.Stream(InFits), Card);
-     if Card(1..6) /= "SIMPLE" and
-        Card(1..8) /= "XTENSION" and
-        Card(1..6) /= "BITPIX" and
-        Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
-     then
-        -- more checks on NAXIS: pos 9..10 is '= '
-        -- conversion will raise exception if not a number
-        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
-        -- AxisValue := Positive'Value(Card(6..8));
-        String'Write (SIO.Stream(OutFits), Card);
---        TIO.Put_Line("DBG >>" & Card & "<<");
-     end if;
+    DataArray_Type'Read (SIO.Stream(InFits), InData);
 
-     ENDCardFound := (Card = ENDCard);
+    for I in InData.HBlockArr(1)'Range
+    loop
+       Card := InData.HBlockArr(1)(I);
+
+       if Card(1..6) /= "SIMPLE" and
+          Card(1..8) /= "XTENSION" and
+          Card(1..6) /= "BITPIX" and
+          Card(1..5) /= "NAXIS" -- this is not enough there could a card NAXISWHATEVER
+       then
+          -- more checks on NAXIS: pos 9..10 is '= '
+          -- conversion will raise exception if not a number
+          -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
+          -- AxisValue := Positive'Value(Card(6..8));
+          String'Write (SIO.Stream(OutFits), Card);
+--          TIO.Put_Line("DBG >>" & Card & "<<");
+       end if;
+
+       ENDCardFound := (Card = ENDCard);
+       FillCnt := I;
+       exit when ENDCardFound;
+    end loop;
 
     exit when ENDCardFound;
-   end loop;
+  end loop;
 
    -- fill upto Block limit
 
-   -- FIXME make the below 3 lines FITS_SIO API: procedure Write_Fillin(OutFits,Fill_Value)
-   OutIndex := SIO.Index(OutFits);
-   FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
-   FillCnt := FillCnt / 80;
 --   TIO.Put_Line("DBG FillCnt B >>" & SIO.Count'Image(FillCnt) & "<<");
-   if FillCnt /= 36
-   then
-    while FillCnt < 36
-    loop
-        String'Read  (SIO.Stream(InFits),  Card); -- dummy only to move file pointer over fill area
+   while FillCnt < 36
+   loop
         String'Write (SIO.Stream(OutFits), EmptyCard);
         FillCnt := FillCnt + 1;
 --        TIO.Put_Line("DBG FillCnt >>" & SIO.Count'Image(FillCnt) & "<<");
-    end loop;
-   end if;
-
-   -- calc size of DU and copy it:
-   SIO.Set_Index(InFits,InIdx);
-   DUSize_blocks := DU_Size_blocks (InFits);
-   Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
+   end loop;
 
  end Clean_PrimaryHeader_Start;
 
@@ -322,6 +317,8 @@ package body Commands is
    InFits  : SIO.File_Type;
    OutFits : SIO.File_Type;
    CurHDUNum : Positive := 1;
+   InIdx  : SIO.Positive_Count;
+   DUSize_blocks : FNatural;
  begin
 
    SIO.Create(OutFits, SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?
@@ -336,21 +333,26 @@ package body Commands is
    end loop;
 
    -- now we are are positioned at HDUNum:
-   -- modify (and copy) the HDU
 
+   -- A, modify (and copy) the Header
+   InIdx := SIO.Index(InFits);
+   -- store header start position
    case Command is
-   when cleanhead =>
-   if CurHDUNum = 1 then
-    Clean_PrimaryHeader_Start(InFits,OutFits);
-    CurHDUNum := CurHDUNum + 1;
-   end if;
-   when removekey =>
-    Remove_Cards_By_Key(InFits, InKey, OutFits);
-    CurHDUNum := CurHDUNum + 1;
+     when cleanhead =>
+       if CurHDUNum = 1 then
+        Clean_PrimaryHeader_Start(InFits,OutFits);
+        CurHDUNum := CurHDUNum + 1;
+       end if;
+     when removekey =>
+       Remove_Cards_By_Key(InFits, InKey, OutFits);
+       CurHDUNum := CurHDUNum + 1;
    end case;
-   -- both commands above modify Header
-   -- FIXME where to do Header fill-in area ?
-   -- FIXME should we copy here the DataUnit ?
+   -- both commands above modify HeaderBlocks
+   -- so now file index points to DataUnit start
+   -- B, copy the DataUnit (first get the size and then copy)
+   SIO.Set_Index(InFits,InIdx);
+   DUSize_blocks := DU_Size_blocks (InFits);
+   Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
 
    -- copy the rest of the file
 
@@ -365,6 +367,32 @@ package body Commands is
 
  end Copy_File_And_Modify_HDU;
 
+ --
+ -- Writes fill-in data from curent file-index until next Block limit
+ -- FIXME consider to implement for Header and also DataUnit padding
+ procedure Write_Fillin (OutFits : in SIO.File_Type)
+ is
+  OutIndex : SIO.Positive_Count;
+  FillCnt  : SIO.Positive_Count;
+ begin
+   -- FIXME make the below 3 lines FITS_SIO API: procedure Write_Fillin(OutFits,Fill_Value)
+   OutIndex := SIO.Index(OutFits);
+   FillCnt  := (OutIndex - 1) mod 2880;-- FIXME proper conversion to be added
+   FillCnt := FillCnt / 80;
+--   TIO.Put_Line("DBG FillCnt B >>" & SIO.Count'Image(FillCnt) & "<<");
+   if FillCnt /= 36
+   then
+    while FillCnt < 36
+    loop
+        String'Write (SIO.Stream(OutFits), EmptyCard);
+        FillCnt := FillCnt + 1;
+--        TIO.Put_Line("DBG FillCnt >>" & SIO.Count'Image(FillCnt) & "<<");
+    end loop;
+   end if;
+ end Write_Fillin;
+
 
 end Commands;
+
+
 
