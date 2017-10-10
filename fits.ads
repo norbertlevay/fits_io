@@ -44,28 +44,16 @@ package FITS is
    -- note: package division into FITS and FITS.File
    --       favours 2. (from FITS Standard)
 
-   type FitsData_Type is
-       (HBlock, Card, Char,        -- Header types
-        Int8, Int16, Int32,        -- DataUnit types
-        Int64, Float32, Float64);
-         -- [FITS, Sect 4.4.1.1 Table 8]
-
-   function  To_FitsDataType (BITPIX : in Integer )
-     return FitsData_Type;
-   -- FIXME needed when accessing DataUnit-data in general, for whatever type is given in Header
-   -- see testfits :: printing some data from a fits-file of whatever
-   -- data-type as spec'd in Header -> needed to init variable record DataArray_Type(type,length)
-
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
 
    subtype Card_Type is String(1..CardSize);
    -- makes sure index start with 1
 
-   ENDCard    : constant Card_Type := "END                                                                             ";
-   EmptyCard  : constant Card_Type := (others => ' ');
+   ENDCard   : constant Card_Type := "END                                                                             ";
+   EmptyCard : constant Card_Type := (others => ' ');
 
-   BlockSize_bits  : FPositive := 2880*8;
+   BlockSize_bits : constant FPositive := 2880*8;
    -- FIXME add reference [FITS ??]
 
    -----------
@@ -88,9 +76,17 @@ package FITS is
    --  e.g. NAXISn will be 32bit or 64bit depending on the machine
    -- FIXME If derived from Long_Long_Integer - see [GNAT??]
 
+   type FitsData_Type is
+       (HBlock, Card, Char,        -- Header types
+        Int8, Int16, Int32,        -- DataUnit types
+        Int64, Float32, Float64);
+         -- [FITS, Sect 4.4.1.1 Table 8]
+
    type DUSizeParam_Type is record
       Data   : FitsData_Type; -- data type as given by BITPIX
       BITPIX : Integer;       -- BITPIX from Header (data size in bits)
+      -- FIXME Data & BITPIX consolidate: duplicate info; here we need only the type ?
+      -- In generaL: we need the type and its size and BITPIX is only for DU.
       Naxes  : NAXIS_Type;    -- NAXIS  from header
       Naxis  : Dim_Type;      -- NAXISi from header, 0 means dimension not in use
    end record;

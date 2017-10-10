@@ -107,7 +107,7 @@ begin
  Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
  declare
-   dt    : FitsData_Type := To_FitsDataType (HDUSize.DUSizeParam.BITPIX);
+   dt    : FitsData_Type := HDUSize.DUSizeParam.Data;
    DataD : DataArray_Type(dt,4);
  begin
    Put_Line("> and read DataUnit of type: " & FitsData_Type'Image(dt));

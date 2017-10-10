@@ -55,6 +55,27 @@ package body FITS is
    end Free_Card_Slots;
    pragma Inline (Free_Card_Slots);
 
+   --
+   -- convert BITPIX keyword from Header to internal FitsData_Type
+   --
+   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type
+   is
+    bp : FitsData_Type;
+   begin
+    case BITPIX is
+    when   8 => bp := Int8;
+    when  16 => bp := Int16;
+    when  32 => bp := Int32;
+    when  64 => bp := Int64;
+    when -32 => bp := Float32;
+    when -64 => bp := Float64;
+    when others =>
+     null;
+     -- FIXME ? raise exception "out of range"
+    end case;
+    return bp;
+   end To_FITSDataType;
+
    -- parse from Card value if it is one of DUSizeParam_Type, do nothng otherwise
    -- and store parse value to DUSizeParam
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
@@ -71,7 +92,7 @@ package body FITS is
      -- pos 31 is comment ' /'
      -- then : pos 10..20 is value
      if    (Card(1..9) = "BITPIX  =") then
-       DUSizeParam.Data   := To_FITSDataType(Integer'Value(Card(10..30)));
+       DUSizeParam.Data   := To_FitsDataType(Integer'Value(Card(10..30)));
        DUSizeParam.BITPIX := Integer'Value(Card(10..30));
 
      elsif (Card(1..5) = "NAXIS") then
@@ -93,27 +114,6 @@ package body FITS is
      end if;
 
    end Parse_Card;
-
-   --
-   -- convert BITPIX keyword from Header to internal FitsData_Type
-   --
-   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type
-   is
-    bp : FitsData_Type;
-   begin
-    case BITPIX is
-    when   8 => bp := Int8;
-    when  16 => bp := Int16;
-    when  32 => bp := Int32;
-    when  64 => bp := Int64;
-    when -32 => bp := Float32;
-    when -64 => bp := Float64;
-    when others =>
-     null;
-     -- FIXME ? raise exception "out of range"
-    end case;
-    return bp;
-   end To_FITSDataType;
 
 end FITS;
 
