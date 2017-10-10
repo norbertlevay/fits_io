@@ -28,8 +28,8 @@ procedure testfits is
 
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
- HDUNum : Positive :=Integer'Value( Argument(1) );
- Name : String := Argument(2);
+ HDUNum : Positive := Integer'Value( Argument(1) );
+ Name   : String   := Argument(2);
 
  FitsFile : SIO.File_Type;
  Inx1 : SIO.Count;
@@ -79,7 +79,7 @@ begin
 
  SIO.Open (FitsFile, SIO.In_File, Name);
 
- Set_Index(FitsFile,HDUNum,Data.FitsType);
+ Set_Index(FitsFile,HDUNum);
 
  inx1 := SIO.Index(FitsFile);
  DataArray_Type'Read (SIO.Stream(FitsFile), Data);
@@ -110,14 +110,15 @@ begin
    dt    : FitsData_Type := To_FitsDataType (HDUSize.DUSizeParam.BITPIX);
    DataD : DataArray_Type(dt,4);
  begin
-   Put_Line("> and read DataUnit...");
+   Put_Line("> and read DataUnit of type: " & FitsData_Type'Image(dt));
 --   Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
+--   FIXME now that above call does not support Offset, how to move in DataUnit ?
    DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    New_Line;
-   Put("> 'Write(Stdout,DataD): >>");
-   DataArray_Type'Write(StdoutStream, DataD);
-   Put_Line("<<");
+   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+   PutFITSData(DataD);
+   New_Line;
  end; -- declare
 
  SIO.Close(FitsFile);
@@ -128,11 +129,12 @@ begin
  New_Line(2);
  Put_Line(">> Print Limits:");
 
- Put_Line("Max NAXIS  : " & Positive'Image(MaxAxes));
- Put_Line("Max NAXISn : " & FPositive'Image(FPositive'Last));
+ Put_Line("Max NAXIS         : " & Positive'Image(MaxAxes));
+ Put_Line("Max NAXISn        : " & FPositive'Image(FPositive'Last));
  Put_Line("Max File size     : " & SIO.Count'Image(SIO.Positive_Count'Last));
- Put_Line("Max DataUnit size : ???" );
- Put_Line("Supportes machines with wordsize not bigger then min(BITPIX)=8 and divisible." );
+ Put_Line("Max DataUnit size = Max File size - 1 block (header) " );
+ Put_Line("The code supports machines with wordsize = min(BITPIX) = 8." );
+ Put_Line("16bit machines (often some DSP's) not supported: code to pack/unpack two 8-bit FITS characters into 16bit words not implemented." );
 
  --
  -- error handling

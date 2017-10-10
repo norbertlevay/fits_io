@@ -103,7 +103,7 @@ package body Commands is
  begin
    SIO.Open(FitsFile, SIO.In_File, FileName);
 
-   Set_Index(FitsFile,HDUNum,Data.FitsType);
+   Set_Index(FitsFile,HDUNum);
 
    loop
     DataArray_Type'Read(SIO.Stream(FitsFile) , Data);

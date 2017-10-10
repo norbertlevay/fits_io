@@ -19,23 +19,14 @@ package FITS.File is
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_Header & FITS.Size_blocks
 
-   ------------------------------------------
-   -- List FITS-file content : HDU params  --
-   ------------------------------------------
-
    procedure List_Content (FitsFile : in SIO.File_Type;
                            Print : not null access
                            procedure(HDUNum : Positive;
                                      HDUSize : HDU_Size_Type) );
-
-   ------------------------------
-   -- Positioning in FITS-file --
-   ------------------------------
+   -- list each HDU's size related parameters
 
    procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive;      -- which HDU
-                       DataType : in FitsData_Type := Card; -- decide to position to start of HeaderUnit or DataUnit
-                       Offset   : in FNatural := 0); -- offset within the Unit (in units of FitsData_Type)
+                       HDUNum   : in Positive); 
    -- set file-index to correct position before 'Read/'Write
 
    --

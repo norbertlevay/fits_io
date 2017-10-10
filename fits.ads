@@ -19,6 +19,10 @@
 -- which is array of base Ada-types and so supported by
 -- Ada GNAT implementation [FITS ?][GNAT ?].
 --
+-- FIXME Note: currently only PrimaryHeader supported. Extensions to be added.
+-- (Parse_Card recognizes only mandatory keywords for primary header;
+--  each extension-type has its own set of mandatory keywords).
+--
 
 with Interfaces;
 
@@ -62,7 +66,7 @@ package FITS is
    EmptyCard  : constant Card_Type := (others => ' ');
 
    BlockSize_bits  : FPositive := 2880*8;
-   -- FIXME [FITS ??]
+   -- FIXME add reference [FITS ??]
 
    -----------
    -- Sizes --

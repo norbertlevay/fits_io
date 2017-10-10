@@ -62,32 +62,12 @@ package body FITS.File is
     --               +(2 ** (Standard'Address_Size - 1)) - 1;
     -- Address_Size is 32 or 64bit nowadays
 
-   BlockSize_bytes : FPositive := 2880*8 / StreamElemSize_bits;
+   BlockSize_bytes : FPositive := BlockSize_bits / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost
    -- in units of Stream_Element size (usually octet-byte)
-   -- which is unit for positioning in Stream_IO by Set_Index() & Index()
+   -- which is unit for positioning in Stream_IO by Set_Index()
 
-
-   type Unit_Type is (HeaderUnit, DataUnit);
-
-   -- from Data-type decide whether it is for Header or Data Unit
-   --  arrays derived from Character are for Header Read/Write
-   --  other (arrays derived from BITPIX) are for Data Unit access
-   function  To_UnitType (DataType : in FitsData_Type) return Unit_Type
-   is
-    UType : Unit_Type := HeaderUnit;
-   begin
-
-    case DataType is
-    when Int8 | Int16 | Int32 | Int64 | Float32 | Float64 =>
-     UType := DataUnit;
-    when others =>
-     UType := HeaderUnit;
-    end case;
-
-    return UType;
-   end To_UnitType;
 
    -- parse one header for HDU-size information
    --  from current file-index,
@@ -190,16 +170,13 @@ package body FITS.File is
    -- Set file index to position given by params
    --
    procedure Set_Index (FitsFile : in SIO.File_Type;
-                        HDUNum   : in Positive;      -- which HDU
-                        DataType : in FitsData_Type := Card; -- decide to position to start of HeaderUnit or DataUnit
-                        Offset   : in FNatural := 0)  -- offset within the Unit (in units of FitsData_Type)
+                        HDUNum   : in Positive) -- to which HDU
+
    is
     CurDUSize_blocks : FPositive;
     CurDUSize_bytes  : FPositive;
-    Offset_bytes     : FNatural;
     CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
-    DataTypeSize_bits : FNatural := FitsDataTypeSize_bits(DataType);
    begin
 
     SIO.Set_Index(FitsFile, 1);
@@ -221,22 +198,6 @@ package body FITS.File is
      -- next HDU
      CurHDUNum := CurHDUNum + 1;
     end loop;
-
-    -- if DataType indicates DataUnit move past current Header
-    if DataUnit = To_UnitType(DataType)
-    then
-     -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
-    end if;
-
-    -- add Offset
-    if Offset /= 0
-    then
-     Offset_bytes := Offset * DataTypeSize_bits / StreamElemSize_bits;
-      -- explicit conversions Natural -> Count ok:
-      -- it is under if then... cannot be zero.
-     Move_Index(FitsFile,SIO.Positive_Count(Offset_bytes));
-    end if;
 
    end Set_Index;
 
