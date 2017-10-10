@@ -58,7 +58,7 @@ package body FITS is
    --
    -- convert BITPIX keyword from Header to internal FitsData_Type
    --
-   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type
+   function  To_FitsDataType (BITPIX : in Integer) return FitsData_Type
    is
     bp : FitsData_Type;
    begin
@@ -72,9 +72,13 @@ package body FITS is
     when others =>
      null;
      -- FIXME raise exception "out of range"
+     -- BITPIX is read from file, can be "whatever"
     end case;
     return bp;
    end To_FITSDataType;
+   -- we need to separate BITPIX and FitsData_Type definition because
+   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
+
 
    -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
    -- and store parse value to DUSizeKeyVals
@@ -104,13 +108,14 @@ package body FITS is
        else
            dim := Positive'Value(Card(6..8));
            DUSizeKeyVals.NAXISn(dim) := FPositive'Value(Card(10..30));
-           -- FIXME [FITS Section??: NAXISn is always positive and zero]
+           -- [FITS Sect 4.4.1.1] NAXISn is non-negative integer
            -- [FITS fixed integer]:
-   	   -- Theoretical problem: Fixed integer is defined as 19 decimal digits
+           -- Fixed integer is defined as 19 decimal digits
    	   -- (Header Card Integer value occupying columns 11..20)
    	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
    	   -- fixed integer can reach 9.9 x 10**19)
-           -- Conclude: range of NAXISn will be implementation limited.
+           -- Conclude: range of NAXISn will be implementation
+           -- limited as suggested in [FITS 4.2.3 Integer number]:
        end if;
 
      end if;

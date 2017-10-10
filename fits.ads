@@ -63,9 +63,9 @@ package FITS is
    BlockSize_bits : constant FPositive := 2880*8;
    -- FIXME add reference [FITS ??]
 
-   -----------
-   -- Sizes --
-   -----------
+   ------------------
+   -- Parse Header --
+   ------------------
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;
@@ -73,15 +73,10 @@ package FITS is
    -- that no data follow the header in the HDU."
 
    type Dims_Type is array (1..MaxAxes) of FPositive;
-   -- FITS poses no limit on max value of NAXISi
-   -- except the space in Card: 11..30 columns:
-   -- 19 decimal digits (called by FITS 'fixed integer')
-   -- That is slightly over Long_Long_Integer'Last ~ 9.2 x 10**19
-   -- vs 19 digits of 9: 9.9999..x10**19.
-   -- So max value NAXISn will be implementation limited.
-   -- If derived from Stream_IO.Count: which is derived from Address_Size:
-   --  e.g. NAXISn will be 32bit or 64bit depending on the machine
-   -- FIXME If derived from Long_Long_Integer - see [GNAT??]
+   -- [FITS 4.2.3 Integer number]:
+   -- FITS poses no limit on max value of Integer / NAXISn.
+   -- So max value NAXISn will be implementation limited:
+   -- 0 .. FPositive'Last
 
    type DU_Size_Type is record
       BITPIX : Integer;     -- BITPIX from header (data size in bits)
@@ -100,6 +95,10 @@ package FITS is
    -- to be called for every card in Header and will fill-in DUSizeKeyVals's
    -- if all correponding keywords existed in the header
    -- FIXME : what if some needed key missing?
+
+   -----------------------
+   -- Size computations --
+   -----------------------
 
    function  Size_blocks (CardsCnt      : in FPositive   ) return FPositive;
    function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive;
