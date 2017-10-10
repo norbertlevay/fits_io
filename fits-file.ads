@@ -17,7 +17,7 @@ package FITS.File is
     -- After this call file-pointer points to DU (or next HDU)
 
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
-    -- calls Parse_Header & FITS.Size_blocks
+    -- calls Parse_HeaderBlocks & FITS.Size_blocks
 
    procedure List_Content (FitsFile : in SIO.File_Type;
                            Print : not null access
@@ -25,8 +25,8 @@ package FITS.File is
                                      HDUSize : HDU_Size_Type) );
    -- list each HDU's size related parameters
 
-   procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive); 
+   procedure Set_Index (FitsFile : in SIO.File_Type;
+                        HDUNum   : in Positive);
    -- set file-index to correct position before 'Read/'Write
 
    --

@@ -5,6 +5,10 @@
 -- (for files yes, for network maybe?, for pipes?, for stdin stdout?).
 --
 -- FIXME shouldn't FitsFile : File_Type be 'in out' ? we update the Index...
+-- File_Type is Access. Nevertheless verify in out...
+--
+-- General API problem: which API call should move the file-index ?
+--   And how to convey info where the new file-index points ?
 --
 -- Re-consider API:
 --   Offset in Set_Index() should be in 'Read() 'Write().
@@ -18,6 +22,9 @@
 --   procedure Stream(File_Type; HDUNum) <- position to begining of HDU
 --   procedure used for 'Read (FITSStream, FITS_Data_Type, Offset )
 --   procedure used for 'Write(FITSStream, FITS_Data_Type, Offset )
+--
+--   Possible at all(?): 'Read/'Write are pre-defined Stream attributes with 2 param only(?)
+--
 --   Drawback:
 --   Read/Write of DataUnit would need to calculate Header size
 --   at first call of multiple writes. Successive writes can be
@@ -31,6 +38,7 @@
 --   FIST_Data_Type'Write(FITS, Data(3) );
 --   ... n-times
 --
+
 
 with Ada.Streams.Stream_IO;
 use  Ada.Streams.Stream_IO;
@@ -280,6 +288,9 @@ package body FITS.File is
     Parse_HeaderBlocks(InFits,HDUSizeRec);
     return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeParam);
    end HDU_Size_blocks;
+-- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
+-- by func-name Parse_Header should be enough to calc sizes.
+
 
    --
    -- Copy all HDU
