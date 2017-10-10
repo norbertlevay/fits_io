@@ -51,6 +51,10 @@ package FITS is
    -- note: package division into FITS and FITS.File
    --       favours 2. (from FITS Standard)
 
+   ------------------
+   -- Parse Header --
+   ------------------
+
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
 
@@ -60,12 +64,9 @@ package FITS is
    ENDCard   : constant Card_Type := "END                                                                             ";
    EmptyCard : constant Card_Type := (others => ' ');
 
-   BlockSize_bits : constant FPositive := 2880*8;
-   -- FIXME add reference [FITS ??]
+   BlockSize_bits : constant FPositive := 2880*8; -- 23040 bits
+   -- [FITS 3.1 Overall file structure]
 
-   ------------------
-   -- Parse Header --
-   ------------------
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;
