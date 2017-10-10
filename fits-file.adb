@@ -75,8 +75,7 @@ package body FITS.File is
    procedure Parse_Header (FitsFile : in SIO.File_Type;
                            HDUSize  : in out HDU_Size_Type)
    is
-    Card        : Card_Type;
-    FreeSlotCnt : Natural;
+    Card : Card_Type;
    begin
 
     Card_Type'Read( SIO.Stream(FitsFile), Card );
@@ -87,21 +86,6 @@ package body FITS.File is
       Parse_Card (Card, HDUSize.DUSizeParam);
       Card_Type'Read( SIO.Stream(FitsFile), Card );
       HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
-    end loop;
-
-    -- FIXME should Parse_Header move upto next block limit ?
-    -- there is nothing to parse after ENDCard -> procedure name is misleading
-    -- Rather the move to next block-boundary should happen outside
-    -- of Parse_Header by another explicit call.
-    -- AND write other Parse_HeaderBlocks() which reads by
-    -- HeaderBlocks instead of cards
-
-    FreeSlotCnt := Free_Card_Slots(HDUSize.CardsCnt);
-    -- read up to block-limit
-    while FreeSlotCnt /= 0
-    loop
-      Card_Type'Read( SIO.Stream(FitsFile), Card );
-      FreeSlotCnt := FreeSlotCnt - 1;
     end loop;
 
    end Parse_Header;
@@ -185,7 +169,7 @@ package body FITS.File is
     while CurHDUNum < HDUNum
     loop
      -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
+     Parse_HeaderBlocks(FitsFile, HDUSize);
 
      -- skip DataUnit if exists
      if HDUSize.DUSizeParam.Naxes /= 0
@@ -222,7 +206,7 @@ package body FITS.File is
     while not SIO.End_Of_File(FitsFile)
     loop
      -- move past current Header
-     Parse_Header(FitsFile, HDUSize);
+     Parse_HeaderBlocks(FitsFile, HDUSize);
 
      -- do the callback
      Print(HDUCnt,HDUSize);
@@ -284,7 +268,7 @@ package body FITS.File is
    is
     HDUSizeRec : HDU_Size_Type;
    begin
-    Parse_Header(InFits,HDUSizeRec);
+    Parse_HeaderBlocks(InFits,HDUSizeRec);
     return Size_blocks(HDUSizeRec.DUSizeParam);
    end DU_Size_blocks;
 
@@ -293,7 +277,7 @@ package body FITS.File is
    is
     HDUSizeRec : HDU_Size_Type;
    begin
-    Parse_Header(InFits,HDUSizeRec);
+    Parse_HeaderBlocks(InFits,HDUSizeRec);
     return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeParam);
    end HDU_Size_blocks;
 

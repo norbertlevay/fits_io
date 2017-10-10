@@ -104,7 +104,7 @@ begin
  Put_Line("> reset to HDU start");
 
  Set_Index(FitsFile,HDUNum);
- Parse_Header(FitsFile,HDUSize);-- move behind the Header
+ Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
  declare
    dt    : FitsData_Type := To_FitsDataType (HDUSize.DUSizeParam.BITPIX);
