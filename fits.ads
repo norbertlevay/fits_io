@@ -64,9 +64,6 @@ package FITS is
    ENDCard   : constant Card_Type := "END                                                                             ";
    EmptyCard : constant Card_Type := (others => ' ');
 
-   BlockSize_bits : constant FPositive := 2880*8; -- 23040 bits
-   -- [FITS 3.1 Overall file structure]
-
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;
@@ -100,6 +97,9 @@ package FITS is
    -----------------------
    -- Size computations --
    -----------------------
+
+   BlockSize_bits : constant FPositive := 2880*8; -- 23040 bits
+   -- [FITS 3.1 Overall file structure]
 
    function  Size_blocks (CardsCnt      : in FPositive   ) return FPositive;
    function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive;
