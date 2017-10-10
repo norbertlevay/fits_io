@@ -40,14 +40,14 @@ package body Commands is
                         Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
                         ")" );
 
-       if HDUInfo.DUSizeParam.Naxes > 0 then
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(HDUInfo.DUSizeParam.Data),8,' ') );
+       if HDUInfo.DUSizeKeyVals.NAXIS > 0 then
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(To_FitsDataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
         Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUInfo.DUSizeParam.Naxes - 1)
+        for J in 1 .. (HDUInfo.DUSizeKeyVals.NAXIS - 1)
          loop
-          Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeParam.Naxis(J)) & " x " );
+          Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeKeyVals.NAXISn(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeParam.Naxis(HDUInfo.DUSizeParam.Naxes)));
+        Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeKeyVals.NAXISn(HDUInfo.DUSizeKeyVals.NAXIS)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
   end Print_HDU_Sizes;

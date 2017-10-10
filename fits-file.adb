@@ -91,7 +91,7 @@ package body FITS.File is
 
     while Card /= ENDCard
     loop
-      Parse_Card (Card, HDUSize.DUSizeParam);
+      Parse_Card (Card, HDUSize.DUSizeKeyVals);
       Card_Type'Read( SIO.Stream(FitsFile), Card );
       HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
     end loop;
@@ -117,7 +117,7 @@ package body FITS.File is
       for I in HBlk.HBlockArr(1)'Range
       loop
         Card         := HBlk.HBlockArr(1)(I);
-        Parse_Card(Card, HDUSize.DUSizeParam);
+        Parse_Card(Card, HDUSize.DUSizeKeyVals);
         CardsCnt     := CardsCnt + 1;
         ENDCardFound := (Card = ENDCard);
         exit when ENDCardFound;
@@ -180,9 +180,9 @@ package body FITS.File is
      Parse_HeaderBlocks(FitsFile, HDUSize);
 
      -- skip DataUnit if exists
-     if HDUSize.DUSizeParam.Naxes /= 0
+     if HDUSize.DUSizeKeyVals.NAXIS /= 0
      then
-       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeParam);
+       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeKeyVals);
        CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
        Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;
@@ -220,9 +220,9 @@ package body FITS.File is
      Print(HDUCnt,HDUSize);
 
      -- skip DataUnit if exists
-     if HDUSize.DUSizeParam.Naxes /= 0
+     if HDUSize.DUSizeKeyVals.NAXIS /= 0
      then
-       CurDUSize_blocks := Size_blocks(HDUSize.DUSizeParam);
+       CurDUSize_blocks := Size_blocks(HDUSize.DUSizeKeyVals);
        CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
        Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;
@@ -277,7 +277,7 @@ package body FITS.File is
     HDUSizeRec : HDU_Size_Type;
    begin
     Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.DUSizeParam);
+    return Size_blocks(HDUSizeRec.DUSizeKeyVals);
    end DU_Size_blocks;
 
    -- return size of the HDU where InFits points to
@@ -286,7 +286,7 @@ package body FITS.File is
     HDUSizeRec : HDU_Size_Type;
    begin
     Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeParam);
+    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeKeyVals);
    end HDU_Size_blocks;
 -- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
 -- by func-name Parse_Header should be enough to calc sizes.

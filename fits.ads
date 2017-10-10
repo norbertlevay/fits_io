@@ -19,9 +19,16 @@
 -- which is array of base Ada-types and so supported by
 -- Ada GNAT implementation [FITS ?][GNAT ?].
 --
--- FIXME Note: currently only PrimaryHeader supported. Extensions to be added.
--- (Parse_Card recognizes only mandatory keywords for primary header;
---  each extension-type has its own set of mandatory keywords).
+-- FIXME Note: currently only PrimaryHeader & Image extension supported.
+-- Table Extensions to be added.
+-- Parse_Card recognizes only mandatory keywords for primary header which
+-- are essentially the same as for IMAGE extension [FITS Sect 7.1, Table 13].
+-- Each extension-type has its own set of mandatory keywords.
+-- [FITS Sect 4.4.1.2 Conforming Extensions]: Extensions have
+-- PCOUNT & GCOUNT keys, but except of BINTABLE (where PCOUNT/=0)
+-- their value is 0 & 1 respectively, and so yield (Eq2) the same
+-- DU size as Primary haeder (Eq1).
+-- PCOUNT & GCOUNT were meant for Random Groups [FITS Section 6]
 --
 
 with Interfaces;
@@ -65,7 +72,7 @@ package FITS is
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
-   type Dim_Type is array (1..MaxAxes) of FPositive;
+   type Dims_Type is array (1..MaxAxes) of FPositive;
    -- FITS poses no limit on max value of NAXISi
    -- except the space in Card: 11..30 columns:
    -- 19 decimal digits (called by FITS 'fixed integer')
@@ -76,35 +83,26 @@ package FITS is
    --  e.g. NAXISn will be 32bit or 64bit depending on the machine
    -- FIXME If derived from Long_Long_Integer - see [GNAT??]
 
-   type FitsData_Type is
-       (HBlock, Card, Char,        -- Header types
-        Int8, Int16, Int32,        -- DataUnit types
-        Int64, Float32, Float64);
-         -- [FITS, Sect 4.4.1.1 Table 8]
-
-   type DUSizeParam_Type is record
-      Data   : FitsData_Type; -- data type as given by BITPIX
-      BITPIX : Integer;       -- BITPIX from Header (data size in bits)
-      -- FIXME Data & BITPIX consolidate: duplicate info; here we need only the type ?
-      -- In generaL: we need the type and its size and BITPIX is only for DU.
-      Naxes  : NAXIS_Type;    -- NAXIS  from header
-      Naxis  : Dim_Type;      -- NAXISi from header, 0 means dimension not in use
+   type DU_Size_Type is record
+      BITPIX : Integer;     -- BITPIX from header (data size in bits)
+      NAXIS  : NAXIS_Type;  -- NAXIS  from header
+      NAXISn : Dims_Type;   -- NAXISn from header, 0 means dimension not in use
    end record;
-   -- collects data which defines DataUnit size
+   -- collects keyword values which define DataUnit size
 
    type HDU_Size_Type is record
-      CardsCnt    : FPositive;        -- number of cards in this Header (gives Header-size)
-      DUSizeParam : DUSizeParam_Type; -- keywords to calc DataUnit-size
+      CardsCnt      : FPositive;    -- number of cards in this Header (gives Header-size)
+      DUSizeKeyVals : DU_Size_Type; -- keyword values to calc DataUnit-size
    end record;
 
-   procedure Parse_Card (Card        : in Card_Type;
-                         DUSizeParam : in out DUSizeParam_Type);
-   -- to be called for every card in Header and will fill-in DUSizeParam's
+   procedure Parse_Card (Card          : in Card_Type;
+                         DUSizeKeyVals : in out DU_Size_Type);
+   -- to be called for every card in Header and will fill-in DUSizeKeyVals's
    -- if all correponding keywords existed in the header
    -- FIXME : what if some needed key missing?
 
-   function  Size_blocks (CardsCnt    : in FPositive       ) return FPositive;
-   function  Size_blocks (DUSizeParam : in DUSizeParam_Type) return FPositive;
+   function  Size_blocks (CardsCnt      : in FPositive   ) return FPositive;
+   function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive;
    -- size of Header and DataUnit respectively, counted in FITS-blocks
 
    function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
@@ -132,6 +130,13 @@ package FITS is
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
+   type FitsData_Type is
+       (HBlock, Card, Char,        -- Header types
+        Int8, Int16, Int32,        -- DataUnit types
+        Int64, Float32, Float64);
+         -- [FITS, Sect 4.4.1.1 Table 8]
+
+   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type;
 
    type DataArray_Type ( FitsType : FitsData_Type ;
                          Length   : Positive ) is
