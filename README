@@ -1,0 +1,18 @@
+
+
+FITS package
+
+Covers FITS v3 Standard approx up to Section 4 Header
+
+Supports:
+- positioning in FITS file by HDU number
+-- over primary HDU and conforming extensions
+-- mandatory keys BITPIX NAXIS, NAXISn, and PCOUNT, GCOUNT recognized
+- Read/Write IMAGE's to Primary-HDU and Extension-HDU:
+-- Read/Write Headers by Cards
+-- Read/Write Data as 1 dimensional array (client must convert between N-dim -> 1-dim)
+
+- Endianness not supported
+- TABLES not supported
+- WCS not supported
+- Random Groups and non standard extesions not supported
