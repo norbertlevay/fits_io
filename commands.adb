@@ -35,7 +35,7 @@ package body Commands is
 
        Ada.Text_IO.Put( Integer'Image(Index) &
                         Tab &
-                        HDUInfo.Xtension &
+                        HDUInfo.XTENSION &
                         Tab &
                         Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
                         " (" &

@@ -89,7 +89,7 @@ package FITS is
    -- collects keyword values which define DataUnit size
 
    type HDU_Size_Type is record
-      Xtension      : String(1..10); -- XTENSION type string or empty
+      XTENSION      : String(1..10); -- XTENSION type string or empty
       CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
