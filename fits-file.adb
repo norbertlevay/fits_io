@@ -77,27 +77,6 @@ package body FITS.File is
    -- which is unit for positioning in Stream_IO by Set_Index()
 
 
-   -- parse one header for HDU-size information
-   --  from current file-index,
-   --  read cards until END-card found and try to fill in HDUSize
-   procedure Parse_Header (FitsFile : in SIO.File_Type;
-                           HDUSize  : in out HDU_Size_Type)
-   is
-    Card : Card_Type;
-   begin
-
-    Card_Type'Read( SIO.Stream(FitsFile), Card );
-    HDUSize.CardsCnt := 1;
-
-    while Card /= ENDCard
-    loop
-      Parse_Card (Card, HDUSize.DUSizeKeyVals);
-      Card_Type'Read( SIO.Stream(FitsFile), Card );
-      HDUSize.CardsCnt := HDUSize.CardsCnt + 1;
-    end loop;
-
-   end Parse_Header;
-
    -- parse header in blocks
    --  from current file-index,
    --  read blocks until a block with END-card found
@@ -110,6 +89,15 @@ package body FITS.File is
     ENDCardFound : Boolean := false;
     CardsCnt     : FNatural := 0;
    begin
+
+    -- FIXME the below is not nice but relates to broader problem:
+    -- how to make sure that each value needed for Size() calculations
+    -- was set during parsing process (in Parse_Card/ParseHeaderBlock) ?
+    HDUSize.DUSizeKeyVals.PCOUNT := 0;
+    HDUSize.DUSizeKeyVals.GCOUNT := 1;
+     -- init these for HDU's which do not use them
+     -- BINTABLE and RandomGroup extensions, if present,
+     -- will overwrite these values
 
     loop
       DataArray_Type'Read( SIO.Stream(FitsFile), HBlk );
@@ -129,6 +117,7 @@ package body FITS.File is
     HDUSize.CardsCnt := CardsCnt;
     -- here CardsCnt is > 0 otherwise
     -- we don't reach this line (leave by exception)
+
    end Parse_HeaderBlocks;
 
    --

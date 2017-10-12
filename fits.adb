@@ -19,19 +19,33 @@ package body FITS is
    --
    -- calculate DataUnit size in FITS Blocks
    --
+   -- implements Eq(1), (2) and (4) from [FITS]
+   -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
+   -- establish HDU type - FIXME what strategy to take here ?
    function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive
    is
     DataInBlock    : FPositive;
     DUSizeInBlocks : FPositive;
     DUSize         : FPositive := 1;
+    From : Positive := 1;
    begin
 
-     for I in 1..DUSizeKeyVals.NAXIS
+     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
+     -- calculations [FITS Sect 6, Eq.(4)]
+     if DUSizeKeyVals.NAXISn(1) = 0 then
+      From := 2;
+     end if;
+
+     for I in From..DUSizeKeyVals.NAXIS
      loop
       DUSize := DUSize * DUSizeKeyVals.NAXISn(I);
      end loop;
       -- DUSize cannot be 0: Naxis(I) is FPositive
       -- cannot be 0 (parsing would throw exception)
+
+     -- Conforming extensions (or 0 and 1 for Primary Header):
+     DUSize := DUSize + DUSizeKeyVals.PCOUNT;
+     DUSize := DUSize * DUSizeKeyVals.GCOUNT;
 
      DataInBlock := BlockSize_bits /  FNatural( abs DUSizeKeyVals.BITPIX );
      -- per FITS standard, these values are integer multiples (no remainder)
@@ -117,6 +131,12 @@ package body FITS is
            -- Conclude: range of NAXISn will be implementation
            -- limited as suggested in [FITS 4.2.3 Integer number]:
        end if;
+
+     elsif (Card(1..5) = "PCOUNT") then
+       DUSizeKeyVals.PCOUNT := FNatural'Value(Card(10..30));
+
+     elsif (Card(1..5) = "GCOUNT") then
+       DUSizeKeyVals.GCOUNT := FPositive'Value(Card(10..30));
 
      end if;
 

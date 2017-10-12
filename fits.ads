@@ -77,9 +77,14 @@ package FITS is
    -- 0 .. FPositive'Last
 
    type DU_Size_Type is record
+      -- Primary HDU:
       BITPIX : Integer;     -- BITPIX from header (data size in bits)
       NAXIS  : NAXIS_Type;  -- NAXIS  from header
       NAXISn : Dims_Type;   -- NAXISn from header, 0 means dimension not in use
+      -- Conforming extensions:
+      PCOUNT : FNatural;    -- BINTABLE: size of heap OR Random Groups: param count preceding each group
+      GCOUNT : FPositive;   -- Number of Random Groups present
+      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
    end record;
    -- collects keyword values which define DataUnit size
 

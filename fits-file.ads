@@ -6,11 +6,6 @@ package FITS.File is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   procedure Parse_Header (FitsFile : in SIO.File_Type;
-                           HDUSize  : in out HDU_Size_Type);
-    -- extract HDU-size information: read by cards.
-    -- After this call file pointer points to next card after END-card
-
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
                                  HDUSize  : in out HDU_Size_Type);
     -- extract HDU-size information: read by Blocks.
