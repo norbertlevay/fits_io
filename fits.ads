@@ -61,7 +61,7 @@ package FITS is
    subtype Card_Type is String(1..CardSize);
    -- makes sure index start with 1
 
-   ENDCard   : constant Card_Type := "END                                                                             ";
+   ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
    EmptyCard : constant Card_Type := (others => ' ');
 
 
