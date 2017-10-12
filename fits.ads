@@ -89,8 +89,9 @@ package FITS is
    -- collects keyword values which define DataUnit size
 
    type HDU_Size_Type is record
-      CardsCnt      : FPositive;    -- number of cards in this Header (gives Header-size)
-      DUSizeKeyVals : DU_Size_Type; -- keyword values to calc DataUnit-size
+      Xtension      : String(1..10); -- XTENSION type string or empty
+      CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
+      DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
 
    procedure Parse_Card (Card          : in Card_Type;
@@ -98,6 +99,9 @@ package FITS is
    -- to be called for every card in Header and will fill-in DUSizeKeyVals's
    -- if all correponding keywords existed in the header
    -- FIXME : what if some needed key missing?
+
+   procedure Parse_Card (Card         : in Card_Type;
+                         XtensionType : in out String);
 
    -----------------------
    -- Size computations --

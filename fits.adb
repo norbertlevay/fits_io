@@ -142,5 +142,15 @@ package body FITS is
 
    end Parse_Card;
 
+   procedure Parse_Card (Card         : in Card_Type;
+                         XtensionType : in out String)
+   is
+   begin
+     if    (Card(1..9) = "XTENSION=") then
+       XtensionType := Card(11..20);
+     end if;
+   end Parse_Card;
+
+
 end FITS;
 

@@ -35,6 +35,8 @@ package body Commands is
 
        Ada.Text_IO.Put( Integer'Image(Index) &
                         Tab &
+                        HDUInfo.Xtension &
+                        Tab &
                         Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
                         " (" &
                         Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
@@ -55,7 +57,7 @@ package body Commands is
   procedure Print_Headline is
     Tab : Character := Ada.Characters.Latin_1.HT;
   begin
-   Ada.Text_IO.Put_Line ("HDU#" & Tab & " Cards" & Tab & "Data");
+   Ada.Text_IO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
   end Print_Headline;
 
 

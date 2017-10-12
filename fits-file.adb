@@ -88,6 +88,7 @@ package body FITS.File is
     Card         : Card_Type;
     ENDCardFound : Boolean := false;
     CardsCnt     : FNatural := 0;
+    XtensionType : String(1..10) := (others => ' ');
    begin
 
     -- FIXME the below is not nice but relates to broader problem:
@@ -106,6 +107,7 @@ package body FITS.File is
       loop
         Card         := HBlk.HBlockArr(1)(I);
         Parse_Card(Card, HDUSize.DUSizeKeyVals);
+        Parse_Card(Card, XtensionType);
         CardsCnt     := CardsCnt + 1;
         ENDCardFound := (Card = ENDCard);
         exit when ENDCardFound;
@@ -114,6 +116,7 @@ package body FITS.File is
       exit when ENDCardFound;
     end loop;
 
+    HDUSize.Xtension := XtensionType;
     HDUSize.CardsCnt := CardsCnt;
     -- here CardsCnt is > 0 otherwise
     -- we don't reach this line (leave by exception)
