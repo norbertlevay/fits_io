@@ -1,0 +1,24 @@
+
+
+main_src=png_chunks.adb png_dump.adb png_properties.adb png_test.adb png_compare.adb
+
+
+# uses -largs switch to pass linker switch -L<path> with the path where libz.a is
+build:
+	gnatmake $(main_src) -aI../zlib-ada -aO../zlib-ada -largs -L../libz/src/libz-1.2.8.2015.12.26/ -lz
+
+
+run:
+	./png_test help_menu.png  aa.png
+	./png_properties help_menu.png
+	./png_properties aa.png
+
+
+
+clean: 
+	rm -f png_chunks png_dump png_properties png_test png_compare
+
+distclean: clean
+	rm -f *.o *.ali *~
+
+
