@@ -12,7 +12,7 @@ build_date.ads :
 	@echo "BuildDate : constant String := \"${builddate}\";" >> build_date.ads
 	@echo "end Build_Date;" >> build_date.ads
 
-fits : main.adb build_date.ads commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb
+fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb
 	gnatmake -g -gnat05 -we main.adb -o fits -bargs -E
 # -bargs -E ?? -> for addr2line ?? at excpetion
 # -we turns warnings into errors
