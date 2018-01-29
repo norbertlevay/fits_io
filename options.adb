@@ -26,7 +26,7 @@ package body Options is
 
     exit when Arg(1) /= '-';
 
-    Put_Line( "DBG: " & Arg );
+--    Put_Line( "DBG: " & Arg );
 
     for opt in Opts'Range
     loop
@@ -37,21 +37,21 @@ package body Options is
       if Opts(opt).HasValue = False
       then
         Opts(opt).State := True;
-        Put_Line("DBG: "
-                 & All_Options'Image(opt)
-                 & " WithValue: " & Boolean'Image(Opts(opt).HasValue)
-                 & " State: " & Boolean'Image(Opts(opt).State)
-                 & " > " & To_String(Opts(opt).Description)
-                 );
+--        Put_Line("DBG: "
+--                 & All_Options'Image(opt)
+--                 & " WithValue: " & Boolean'Image(Opts(opt).HasValue)
+--                 & " State: " & Boolean'Image(Opts(opt).State)
+--                 & " > " & To_String(Opts(opt).Description)
+--                 );
       else
         Next := Next + 1;
         Opts(opt).Value := tUS(CLI.Argument(Next));
-        Put_Line("DBG: "
-                 & All_Options'Image(opt)
-                 & " WithValue: " & Boolean'Image(Opts(opt).HasValue)
-                 & " Value: " & To_String(Opts(opt).Value)
-                 & " > " & To_String(Opts(opt).Description)
-                 );
+--        Put_Line("DBG: "
+--                 & All_Options'Image(opt)
+--                 & " WithValue: " & Boolean'Image(Opts(opt).HasValue)
+--                 & " Value: " & To_String(Opts(opt).Value)
+--                 & " > " & To_String(Opts(opt).Description)
+--                 );
       end if;
      end if;
 

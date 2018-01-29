@@ -100,9 +100,9 @@ procedure main is
 
   Parse_Options(Next,Known_Options);
 
-  Put_Line("DBG> Next / ArgCnt "
-           & Positive'Image(Next)
-           & Positive'Image(Argument_Count));
+--  Put_Line("DBG> Next / ArgCnt "
+--           & Positive'Image(Next)
+--           & Positive'Image(Argument_Count));
 
   Cmd_Given := not (Argument_Count < Next);
 
@@ -118,7 +118,7 @@ procedure main is
 
   Param_Cnt := Argument_Count - Next + 1;
 
-  Put_Line("DBG> Param_Cnt: " & Natural'Image(Param_Cnt));
+--  Put_Line("DBG> Param_Cnt: " & Natural'Image(Param_Cnt));
 
  --
  -- run the command with Next Param_Cnt and Opts
