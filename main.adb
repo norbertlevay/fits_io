@@ -143,7 +143,7 @@ procedure main is
     Next := Next + 1;
    end loop;
 
- elsif Cur_Argument = "header" then
+ elsif Command = "header" then
 
    Input_File_Path := SB.To_Bounded_String(Argument(i+1));
    HDUNum          := Positive'Value(To_String(Known_Options(hdu).Value));
