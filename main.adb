@@ -151,7 +151,11 @@ procedure main is
 
  elsif Command = "headerwrite" then
 
-   Put_Line("Write Header is not implemented.");
+   Put_Line("Command not implemented.");
+
+ elsif Command = "float32" then
+
+   Put_Line("Command not implemented.");
 
  elsif Command = "cleanhead" then
 
