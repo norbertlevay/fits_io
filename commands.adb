@@ -393,6 +393,15 @@ package body Commands is
    end if;
  end Write_Fillin;
 
+ -- convert FITS to PNG image
+ -- how to handle more then 2D files ?
+ procedure FITS_To_PNG (FitsFileName : in String)
+ is
+  FitsFile : SIO.File_Type;
+ begin
+   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
+   SIO.Close(FitsFile);
+ end FITS_To_PNG;
 
 end Commands;
 

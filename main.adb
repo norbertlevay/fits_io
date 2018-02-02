@@ -32,17 +32,20 @@ procedure main is
                                        Option_Array => FitsOption_Array);
 
  Known_Options : FitsOption_Array := (
+  --      HasValue    Token       Description         State/Value
    v   => (False, tUS("-v"),    tUS("print version"),    False    ),
    h   => (False, tUS("-h"),    tUS("print help"),       False    ),
    hdu => (True,  tUS("--hdu"), tUS("HDU number 1.. (Default 1 = Primary Header)"), tUS("1") )
  );
 
  Commands: array (Positive range <>) of Option_Record := (
+  -- HasValue   Token           Description                               State
    (False, tUS("limits"),  tUS("list implementation/system limitations"), False ),
    (False, tUS("list"),    tUS("list HDU's in FITS-file"),                False ),
    (False, tUS("header"),  tUS("show header"),                            False ),
    (False, tUS("headerwrite"),  tUS("write header"),                      False ),
-   (False, tUS("float32"), tUS("convert data to FLOAT32 data type"),      False ),
+   (False, tUS("float32"),   tUS("convert data to FLOAT32 data type"),    False ),
+   (False, tUS("png"),       tUS("convert fits file to png image"),       False ),
    (False, tUS("removekey"), tUS("remove all cards starting with given string"), False ),
    (False, tUS("cleanhead"), tUS("guarantee header starts with cards as defined by FITS standard"), False )
  );
@@ -85,8 +88,6 @@ procedure main is
  Header_File_Path : SB.Bounded_String;
  Input_File_Path  : SB.Bounded_String;
  Output_File_Path : SB.Bounded_String;
-
- i : Natural := 1;
 
  NoOptions : Natural := 0;
  HDUNum   : Positive := 1;
@@ -151,7 +152,7 @@ procedure main is
 
  elsif Command = "header" then
 
-   Input_File_Path := SB.To_Bounded_String(Argument(i+1));
+   Input_File_Path := SB.To_Bounded_String(Argument(Next));
    HDUNum          := Positive'Value(To_String(Known_Options(hdu).Value));
    Print_Header( To_String(Input_File_Path), HDUNum );
 
@@ -162,6 +163,13 @@ procedure main is
  elsif Command = "float32" then
 
    Put_Line("Command not implemented.");
+
+ elsif Command = "png" then
+
+   while Next <= Argument_Count loop
+    FITS_To_PNG (Argument(Next));
+    Next := Next + 1;
+   end loop;
 
  elsif Command = "cleanhead" then
 
