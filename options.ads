@@ -39,13 +39,9 @@ package Options is
 
  function tUS ( s : String ) return Unbounded_String renames To_Unbounded_String;
 
- type All_Options is ( v, h, hdu );
- -- FIXME Option tables are defined in main.adb !!
- -- But we need range to be options to identify certain opton in the code.
- -- otherwise one would need to map range index to certain option.
-
- type Option_Array is array (All_Options) of Option_Record;
-
+ generic
+  type All_Options is (<>);
+  type Option_Array is array (All_Options) of Option_Record;
  procedure Parse_Options
            ( Next : in out Positive;
              Opts : in out Option_Array);

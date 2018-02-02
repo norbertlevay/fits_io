@@ -25,7 +25,13 @@ procedure main is
 
  Version : String := "fits 0.3.0 Build: " & Build_Date.BuildDate ;
 
- Known_Options : Option_Array := (
+ type FitsOptions is (v,h,hdu);
+ type FitsOption_Array is array (FitsOptions) of Option_Record;
+ procedure Parse_FitsOptions is new Parse_Options
+                                      (All_Options  => FitsOptions,
+                                       Option_Array => FitsOption_Array);
+
+ Known_Options : FitsOption_Array := (
    v   => (False, tUS("-v"),    tUS("print version"),    False    ),
    h   => (False, tUS("-h"),    tUS("print help"),       False    ),
    hdu => (True,  tUS("--hdu"), tUS("HDU number 1.. (Default 1 = Primary Header)"), tUS("1") )
@@ -98,7 +104,7 @@ procedure main is
 
  begin
 
-  Parse_Options(Next,Known_Options);
+  Parse_FitsOptions(Next,Known_Options);
 
 --  Put_Line("DBG> Next / ArgCnt "
 --           & Positive'Image(Next)
@@ -114,7 +120,7 @@ procedure main is
   Command := tUS(Argument(Next));
   Next    := Next + 1;
 
-  Parse_Options(Next,Known_Options);
+  Parse_FitsOptions(Next,Known_Options);
 
   Param_Cnt := Argument_Count - Next + 1;
 
