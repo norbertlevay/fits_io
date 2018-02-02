@@ -18,7 +18,8 @@ zlib-ada: buildlibz
 	gnatmake -Pzlib-ada/zlib.gpr
 
 
-png_4_6: zlib-ada
+#png_4_6: zlib-ada
+png_4_6:
 	unzip png_4_6.zip
 	cp Microscope.png png_4_6/
 	cp Makefile.png_4_6 png_4_6/Makefile
