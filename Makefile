@@ -19,7 +19,7 @@ fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb
 # -gnaty <-- prints warnings on identation style
 
 testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file.adb
-	gnatmake -g -we testfits.adb -o testfits
+	gnatmake -g -we  testfits.adb -o testfits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz 
 
 
 .PHONY: clean distclean
