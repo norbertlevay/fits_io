@@ -14,6 +14,10 @@ use  Ada.Streams.Stream_IO,
      FITS.File;
 
 
+with PNG_IO;
+use  PNG_IO;
+
+
 package body Commands is
 
    package TIO renames Ada.Text_IO;
@@ -398,12 +402,41 @@ package body Commands is
  procedure FITS_To_PNG (FitsFileName : in String)
  is
   FitsFile : SIO.File_Type;
+  PngFileName : String := FitsFileName & ".png";
  begin
    SIO.Open(FitsFile,SIO.In_File,FitsFileName);
+
+   -- write PNG file:
+   -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
+   -- needs 3 things:
+   --   something what holds the pixels -> Image_Handle - below not used
+   --   type of one pixel/Sample -> below Natural
+   --   written function which returns each pixel by coordinates from the Image_Handle
+
+   -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
+
+   declare
+    type My_Image_Handle is array (Natural range <>) of Natural;
+    function My_Grey_Sample(I    : My_Image_Handle;
+                            R, C : Coordinate) return Natural is
+    begin
+     return I(R);
+     -- return C;
+    end My_Grey_Sample;
+    procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
+
+    W : constant Dimension        := 100;--Width(F);
+    H : constant Dimension        := 100;--Height(F);
+    F : My_Image_Handle(0..W*H-1) := (others => 127);
+--    D : constant Depth            := Eight;--Bit_Depth(F);
+--    I : constant Boolean          := False;--Interlaced(F);
+--    L : Chunk_List                := Null_Chunk_List;
+   begin
+    Write_0(PngFileName, F, W, H); --, D, I, L); Last 3 params have defaults
+   end;
+   -- END write PNG file
+
    SIO.Close(FitsFile);
  end FITS_To_PNG;
 
 end Commands;
-
-
-
