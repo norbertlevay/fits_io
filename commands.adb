@@ -436,32 +436,34 @@ package body Commands is
   end PutFITSData;
 
   type My_Image_Handle is array (Natural range <>, Natural range <>) of Natural;
-  W : constant Dimension        := 256;--Width(F);
-  H : constant Dimension        := 256;--Height(F);
-  F : My_Image_Handle(0..W-1,0..H-1);-- := (others => 127);
-  -- holds data for PNG image write
 
  begin
-   -- -----------------
-   -- read FITS file:
-   --
-   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
+  -- -----------------
+  -- read FITS file:
+  --
+  SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
-   Set_Index(FitsFile,HDUNum);
-   Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+  Set_Index(FitsFile,HDUNum);
+  Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
-   declare
+  declare
      dt    : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     W : constant Dimension        := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
+     H : constant Dimension        := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
+                                  -- FIXME explicit cast!
+     F : My_Image_Handle(0..W-1,0..H-1);-- := (others => 127);
+        -- holds data for PNG image write
+
      DataD : DataArray_Type( dt, W*H );
      wi    : Natural := 0;
      hi    : Natural := 0;
      fmin : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Large;
      fmax : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Small;
-   begin
-     Ada.Text_IO.Put_Line("> and read DataUnit of type: " & FitsData_Type'Image(dt));
+  begin
+     Ada.Text_IO.Put_Line("> Read DataUnit of type: " & FitsData_Type'Image(dt));
 
      -- skip some planes
-     for i in 1..14 loop
+     for i in 1..0 loop
       DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
      end loop;
 
@@ -470,12 +472,12 @@ package body Commands is
 
        begin
 
-        if dd < 60.0 and dd > -60.0 then
+        if dd < 63.0 and dd > -63.0 then
          F(wi,hi) := Standard.Natural(dd);
-         -- Ada.Text_IO.Put_Line(Interfaces.IEEE_Float_32'Image(dd));
+         Ada.Text_IO.Put_Line(" " & Interfaces.IEEE_Float_32'Image(dd));
         else
          F(wi,hi) := 0;
-         -- Ada.Text_IO.Put_Line("Zero " & Interfaces.IEEE_Float_32'Image(dd));
+         Ada.Text_IO.Put_Line(" Zero " & Interfaces.IEEE_Float_32'Image(dd));
         end if;
        exception
         when Constraint_Error =>
@@ -483,7 +485,7 @@ package body Commands is
          F(wi,hi) := 0;
        end;
 
-       if wi = 255 then
+       if wi = W-1 then
         hi := hi + 1;
         wi := 0;
        else
@@ -492,7 +494,6 @@ package body Commands is
 
      end loop;
      Ada.Text_IO.New_Line;
-   end; -- declare
 
    -- -----------------
    -- write PNG file:
@@ -507,9 +508,9 @@ package body Commands is
 
     function My_Grey_Sample(I    : My_Image_Handle;
                             R, C : Coordinate) return Natural is
-    begin
-     return I(R,C);
-    end My_Grey_Sample;
+      begin
+       return I(R,C);
+      end My_Grey_Sample;
 
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
 
@@ -520,6 +521,9 @@ package body Commands is
    -- ------------------
 
    SIO.Close(FitsFile);
+
+  end; -- 1st declare
+
  end FITS_To_PNG;
 
 end Commands;
