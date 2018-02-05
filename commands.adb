@@ -17,6 +17,10 @@ use  Ada.Streams.Stream_IO,
 with PNG_IO;
 use  PNG_IO;
 
+with Interfaces;
+use  Interfaces;
+-- for PutFITSData debug only
+
 
 package body Commands is
 
@@ -401,40 +405,119 @@ package body Commands is
  -- how to handle more then 2D files ?
  procedure FITS_To_PNG (FitsFileName : in String)
  is
-  FitsFile : SIO.File_Type;
+  HDUNum  : Positive := 1;--Integer'Value( Argument(1) );
+  FitsFile    : SIO.File_Type;
   PngFileName : String := FitsFileName & ".png";
+  HDUSize : HDU_Size_Type;
+
+  procedure PutFITSData (Data : in DataArray_Type)
+  is
+  begin
+   for I in Positive range 1 .. Data.Length
+   loop
+    case Data.FitsType is
+    when Int8 =>
+     Ada.Text_IO.Put( Interfaces.Integer_8'Image(Data.Int8Arr(I)) & " ");
+    when Int16 =>
+     Ada.Text_IO.Put( Interfaces.Integer_16'Image(Data.Int16Arr(I)) & " ");
+    when Int32 =>
+     Ada.Text_IO.Put( Interfaces.Integer_32'Image(Data.Int32Arr(I)) & " ");
+    when Int64 =>
+     Ada.Text_IO.Put( Interfaces.Integer_64'Image(Data.Int64Arr(I)) & " ");
+    when Float32 =>
+     Ada.Text_IO.Put( Interfaces.IEEE_Float_32'Image(Data.Float32Arr(I)) & " ");
+    when Float64 =>
+     Ada.Text_IO.Put( Interfaces.IEEE_Float_64'Image(Data.Float64Arr(I)) & " ");
+    when others =>
+      null; -- FIXME exception or ?
+    end case;
+   end loop;
+   Ada.Text_IO.New_Line;
+  end PutFITSData;
+
+  type My_Image_Handle is array (Natural range <>, Natural range <>) of Natural;
+  W : constant Dimension        := 256;--Width(F);
+  H : constant Dimension        := 256;--Height(F);
+  F : My_Image_Handle(0..W-1,0..H-1);-- := (others => 127);
+  -- holds data for PNG image write
+
  begin
+   -- -----------------
+   -- read FITS file:
+   --
    SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
+   Set_Index(FitsFile,HDUNum);
+   Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+
+   declare
+     dt    : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     DataD : DataArray_Type( dt, W*H );
+     wi    : Natural := 0;
+     hi    : Natural := 0;
+     fmin : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Large;
+     fmax : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Small;
+   begin
+     Ada.Text_IO.Put_Line("> and read DataUnit of type: " & FitsData_Type'Image(dt));
+
+     -- skip some planes
+     for i in 1..14 loop
+      DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+     end loop;
+
+     for dd of DataD.Float32Arr
+     loop
+
+       begin
+
+        if dd < 60.0 and dd > -60.0 then
+         F(wi,hi) := Standard.Natural(dd);
+         -- Ada.Text_IO.Put_Line(Interfaces.IEEE_Float_32'Image(dd));
+        else
+         F(wi,hi) := 0;
+         -- Ada.Text_IO.Put_Line("Zero " & Interfaces.IEEE_Float_32'Image(dd));
+        end if;
+       exception
+        when Constraint_Error =>
+         -- Ada.Text_IO.Put_Line(Interfaces.IEEE_Float_32'Image(dd));
+         F(wi,hi) := 0;
+       end;
+
+       if wi = 255 then
+        hi := hi + 1;
+        wi := 0;
+       else
+        wi := wi + 1;
+       end if;
+
+     end loop;
+     Ada.Text_IO.New_Line;
+   end; -- declare
+
+   -- -----------------
    -- write PNG file:
+   --
    -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
    -- needs 3 things:
    --   something what holds the pixels -> Image_Handle - below not used
    --   type of one pixel/Sample -> below Natural
    --   written function which returns each pixel by coordinates from the Image_Handle
-
    -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
-
    declare
-    type My_Image_Handle is array (Natural range <>) of Natural;
+
     function My_Grey_Sample(I    : My_Image_Handle;
                             R, C : Coordinate) return Natural is
     begin
-     return I(R);
-     -- return C;
+     return I(R,C);
     end My_Grey_Sample;
+
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
 
-    W : constant Dimension        := 100;--Width(F);
-    H : constant Dimension        := 100;--Height(F);
-    F : My_Image_Handle(0..W*H-1) := (others => 127);
---    D : constant Depth            := Eight;--Bit_Depth(F);
---    I : constant Boolean          := False;--Interlaced(F);
---    L : Chunk_List                := Null_Chunk_List;
    begin
     Write_0(PngFileName, F, W, H); --, D, I, L); Last 3 params have defaults
    end;
    -- END write PNG file
+   -- ------------------
 
    SIO.Close(FitsFile);
  end FITS_To_PNG;

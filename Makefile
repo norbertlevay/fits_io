@@ -13,7 +13,8 @@ build_date.ads :
 	@echo "end Build_Date;" >> build_date.ads
 
 fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb
-	gnatmake -g -gnat05 -we main.adb -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz  -bargs -E
+	gnatmake -g -gnat12 -we main.adb -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz -bargs -E -g
+# before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E ?? -> for addr2line ?? at excpetion
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
