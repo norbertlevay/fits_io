@@ -472,9 +472,10 @@ package body Commands is
 
        begin
 
-        if dd < 63.0 and dd > -63.0 then
+        if (dd < 63.0) and (dd > -63.0) then
          F(wi,hi) := Standard.Natural(dd);
-         Ada.Text_IO.Put_Line(" " & Interfaces.IEEE_Float_32'Image(dd));
+         -- Ada.Text_IO.Put_Line(" " & Interfaces.IEEE_Float_32'Image(dd));
+         Ada.Text_IO.Put_Line(" " & Natural'Image(F(wi,hi)));
         else
          F(wi,hi) := 0;
          Ada.Text_IO.Put_Line(" Zero " & Interfaces.IEEE_Float_32'Image(dd));
