@@ -443,8 +443,12 @@ package body Commands is
   --
   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
-  Set_Index(FitsFile,HDUNum);
+--  Set_Index(FitsFile,HDUNum);
   Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+  Ada.Text_IO.Put_Line("DU start: " & Count'Image(Index(FitsFile)));
+  Ada.Text_IO.Put_Line("DU start: " & Count'Image(Index(FitsFile)+1));
+
+  Set_Index(FitsFile,Index(FitsFile)+1);-- WHY +1 FIXME !!!!
 
   declare
      dt    : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
@@ -457,28 +461,29 @@ package body Commands is
      DataD : DataArray_Type( dt, W*H );
      wi    : Natural := 0;
      hi    : Natural := 0;
-     fmin : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Large;
-     fmax : Interfaces.IEEE_Float_32 := Interfaces.IEEE_Float_32'Small;
   begin
-     Ada.Text_IO.Put_Line("> Read DataUnit of type: " & FitsData_Type'Image(dt));
+     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
 
-     -- skip some planes
-     for i in 1..0 loop
       DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
-     end loop;
 
      for dd of DataD.Float32Arr
      loop
 
        begin
 
-        if (dd < 63.0) and (dd > -63.0) then
+        dd := dd * 127.0/2000.0; -- with WFPC2ASSNu5780205bx.fits
+
+        if (dd >= 0.0) and (dd <= 127.0) then
          F(wi,hi) := Standard.Natural(dd);
-         -- Ada.Text_IO.Put_Line(" " & Interfaces.IEEE_Float_32'Image(dd));
-         Ada.Text_IO.Put_Line(" " & Natural'Image(F(wi,hi)));
-        else
+         -- Ada.Text_IO.Put(" [" & Natural'Image(wi));
+         -- Ada.Text_IO.Put(" " & Natural'Image(hi));
+         -- Ada.Text_IO.Put("] " & Interfaces.IEEE_Float_32'Image(dd));
+         -- Ada.Text_IO.Put_Line(" " & Natural'Image(F(wi,hi)));
+        elsif (dd<0.0) then
          F(wi,hi) := 0;
-         Ada.Text_IO.Put_Line(" Zero " & Interfaces.IEEE_Float_32'Image(dd));
+        else
+         F(wi,hi) := 127;
+         -- Ada.Text_IO.Put_Line(" Clip127 " & Interfaces.IEEE_Float_32'Image(dd));
         end if;
        exception
         when Constraint_Error =>
