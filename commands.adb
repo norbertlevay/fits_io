@@ -410,86 +410,49 @@ package body Commands is
   PngFileName : String := FitsFileName & ".png";
   HDUSize : HDU_Size_Type;
 
-  procedure PutFITSData (Data : in DataArray_Type)
-  is
-  begin
-   for I in Positive range 1 .. Data.Length
-   loop
-    case Data.FitsType is
-    when Int8 =>
-     Ada.Text_IO.Put( Interfaces.Integer_8'Image(Data.Int8Arr(I)) & " ");
-    when Int16 =>
-     Ada.Text_IO.Put( Interfaces.Integer_16'Image(Data.Int16Arr(I)) & " ");
-    when Int32 =>
-     Ada.Text_IO.Put( Interfaces.Integer_32'Image(Data.Int32Arr(I)) & " ");
-    when Int64 =>
-     Ada.Text_IO.Put( Interfaces.Integer_64'Image(Data.Int64Arr(I)) & " ");
-    when Float32 =>
-     Ada.Text_IO.Put( Interfaces.IEEE_Float_32'Image(Data.Float32Arr(I)) & " ");
-    when Float64 =>
-     Ada.Text_IO.Put( Interfaces.IEEE_Float_64'Image(Data.Float64Arr(I)) & " ");
-    when others =>
-      null; -- FIXME exception or ?
-    end case;
-   end loop;
-   Ada.Text_IO.New_Line;
-  end PutFITSData;
-
-  type My_Image_Handle is array (Natural range <>, Natural range <>) of Natural;
-
+  subtype pixval is Integer range 0 .. 127;
+  type My_Image_Handle is array (Natural range <>, Natural range <>) of pixval;
  begin
+
   -- -----------------
   -- read FITS file:
   --
   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
---  Set_Index(FitsFile,HDUNum);
   Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
-  Ada.Text_IO.Put_Line("DU start: " & Count'Image(Index(FitsFile)));
-  Ada.Text_IO.Put_Line("DU start: " & Count'Image(Index(FitsFile)+1));
-
-  Set_Index(FitsFile,Index(FitsFile)+1);-- WHY +1 FIXME !!!!
 
   declare
-     dt    : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
-     W : constant Dimension        := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
-     H : constant Dimension        := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
+     dt : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     W  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
+     H  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
                                   -- FIXME explicit cast!
-     F : My_Image_Handle(0..W-1,0..H-1);-- := (others => 127);
+     F : My_Image_Handle(0..(W-1),0..(H-1));-- := (others => 127);
         -- holds data for PNG image write
 
      DataD : DataArray_Type( dt, W*H );
+        -- holds data from FITS-file
+
      wi    : Natural := 0;
      hi    : Natural := 0;
+     pix   : pixval;
   begin
-     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
+      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
+       Ada.Text_IO.Put(Integer'Image(W) & " x " );
+       Ada.Text_IO.Put_Line(Integer'Image(H) );
 
       DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
 
-     for dd of DataD.Float32Arr
+     for dd of DataD.Int8Arr
      loop
 
-       begin
+--       Ada.Text_IO.Put(Integer'Image(wi) & " " );
+--       Ada.Text_IO.Put(Integer'Image(hi) & ": " );
+--       Ada.Text_IO.Put_Line(Interfaces.Integer_8'Image(dd));
 
-        dd := dd * 127.0/2000.0; -- with WFPC2ASSNu5780205bx.fits
+       pix := Integer(Abs(dd))/2;-- FIXME why needed /2?
+       F(wi,hi) := pix;
 
-        if (dd >= 0.0) and (dd <= 127.0) then
-         F(wi,hi) := Standard.Natural(dd);
-         -- Ada.Text_IO.Put(" [" & Natural'Image(wi));
-         -- Ada.Text_IO.Put(" " & Natural'Image(hi));
-         -- Ada.Text_IO.Put("] " & Interfaces.IEEE_Float_32'Image(dd));
-         -- Ada.Text_IO.Put_Line(" " & Natural'Image(F(wi,hi)));
-        elsif (dd<0.0) then
-         F(wi,hi) := 0;
-        else
-         F(wi,hi) := 127;
-         -- Ada.Text_IO.Put_Line(" Clip127 " & Interfaces.IEEE_Float_32'Image(dd));
-        end if;
-       exception
-        when Constraint_Error =>
-         -- Ada.Text_IO.Put_Line(Interfaces.IEEE_Float_32'Image(dd));
-         F(wi,hi) := 0;
-       end;
+--       Ada.Text_IO.Put_Line(pixval'Image( pix ));
 
        if wi = W-1 then
         hi := hi + 1;
@@ -515,13 +478,14 @@ package body Commands is
     function My_Grey_Sample(I    : My_Image_Handle;
                             R, C : Coordinate) return Natural is
       begin
+--       Ada.Text_IO.Put_Line(Coordinate'Image(R) & " x " & Coordinate'Image(C));
        return I(R,C);
       end My_Grey_Sample;
 
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
 
    begin
-    Write_0(PngFileName, F, W, H); --, D, I, L); Last 3 params have defaults
+    Write_0(PngFileName, F, H, W); --, D, I, L); Last 3 params have defaults
    end;
    -- END write PNG file
    -- ------------------
