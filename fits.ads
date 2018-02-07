@@ -32,6 +32,7 @@
 --
 
 with Interfaces;
+with System.Storage_Elements; use System.Storage_Elements;
 
 
 package FITS is
@@ -162,6 +163,8 @@ package FITS is
        when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
       end case;
      end record;
+
+
 
    -- in file all data are packed
    pragma Pack (HBlockArr_Type);

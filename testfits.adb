@@ -9,6 +9,7 @@ with
     Ada.Strings.Unbounded,
     Ada.Strings.Bounded,
     Ada.Strings.Fixed,
+    Ada.Unchecked_Conversion,
     System,
     Interfaces,
     GNAT.Traceback.Symbolic;
@@ -80,118 +81,6 @@ procedure testfits is
 begin
 
  New_Line;
- Put_Line("Trying PNGlib... ");
-  declare
-    PNG_Filename : constant String := Argument(2);-- "./png/png_4_6/Microscope.png";
-    F : Ada.Streams.Stream_IO.File_Type;
-  begin
-
-    begin
-      Ada.Streams.Stream_IO.Open(F, Ada.Streams.Stream_IO.In_File, PNG_Filename);
-    exception
-      when E : others =>
-        Put_Line("Failed to open file: " & PNG_Filename);
-        Put_Line(Exception_Information(E));
-        return;
-    end;
-
-    -- verify PNG file's signature
-    declare
-      Signature : Ada.Streams.Stream_Element_Array(1 .. 8) := (others => 0);
-      Last      : Ada.Streams.Stream_Element_Offset;
-    begin
-      Ada.Streams.Stream_IO.Read(F, Signature, Last);
-      if Signature /= PNG_Signature then
-        Put_Line(PNG_Filename & " is not a PNG file: incorrect signature");
-        Ada.Streams.Stream_IO.Close(F);
-        return;
-      end if;
-    end;
-
-    -- list chunks
-    declare
-
-      SF : constant Stream_Access := Stream(F);
-      
-      function Next_Long return Unsigned_32 is
-        -- Reads the next four bytes from the current index position in
-        -- file F and returns them as an unsigned 32-bit value.
-      begin
-        return Shift_Left(Unsigned_32(Unsigned_8'Input(SF)), 24) +
-               Shift_Left(Unsigned_32(Unsigned_8'Input(SF)), 16) +
-               Shift_Left(Unsigned_32(Unsigned_8'Input(SF)),  8) +
-                          Unsigned_32(Unsigned_8'Input(SF));
-      end Next_Long;
-
-      File_Size : constant Ada.Streams.Stream_IO.Count := Size(F);
-
-      IDAT_Total_Size : Unsigned_32 := 0;
-
-      function Number_of_Hex_Digits(H : Ada.Streams.Stream_IO.Count)
-                                 return Ada.Streams.Stream_IO.Count is
-      begin
-        if H < 16 then
-          return 1;
-        else
-          return Number_of_Hex_Digits(H/16) + 1;
-        end if;
-      end Number_of_Hex_Digits;
-
-      -- The address field width (minimum 4 hex characters).
-      W : constant Ada.Streams.Stream_IO.Count :=
-                   Ada.Streams.Stream_IO.Count'Max(4,
-                                          Number_of_Hex_Digits(File_Size));
-    begin
-      Put_Line("PNG file: " & PNG_Filename);
-      New_Line;
-
-      Put("Addr"); Set_Col(Ada.Text_IO.Count(W + 2)); Put_Line("Name Length");
-
-      loop -- For each chunk in the file.
-
-        declare
-          Chunk_Index  : constant Ada.Streams.Stream_IO.Count :=
-                                  Ada.Streams.Stream_IO.Index(F);
-          Chunk_Length : constant Unsigned_32 := Next_Long;
-          Chunk_Type   : constant Unsigned_32 := Next_Long;
-        begin
-
-          if Chunk_Type = IDAT then
-            IDAT_Total_Size := IDAT_Total_Size + Chunk_Length;
-          end if;
-
-          Put_Line(To_Hex_String(Natural(Chunk_Index), Natural(W)) & ' ' &
-                   To_Chunk_Name(Chunk_Type) &
-                   Unsigned_32'Image(Chunk_Length));
-
-          Set_Index(F, Chunk_Index +
-                       Ada.Streams.Stream_IO.Count(Chunk_Length) + 12);
-
-          exit when Chunk_Type = IEND;
-        end;
-      end loop;
-
-      if not End_of_File(F) then
-        Put_Line("Warning: File contains bytes beyond IEND chunk.");
-      end if;
-      Ada.Streams.Stream_IO.Close(F);
-
-      New_Line;
-      Put_Line("File size: " & Ada.Streams.Stream_IO.Count'Image(File_Size)
-                             & " bytes");
-      Put_Line("IDAT size: " & Unsigned_32'Image(IDAT_Total_Size)
-                             & " bytes");
-      New_Line;
-
-    end;
-    -- list chunks END
-  end;
- Put_Line("END PNGlib");
- New_Line;
-
-
-
- New_Line;
  Put_Line("Usage ./testfits HDUNum file.fits");
  New_Line(2);
 
@@ -237,10 +126,46 @@ begin
    DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    New_Line;
-   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
-   PutFITSData(DataD);
+--   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+--   PutFITSData(DataD);
    New_Line;
- end; -- declare
+ end; -- declare1
+
+ --New_Line;
+ Put_Line("> reset to HDU start");
+
+ Set_Index(FitsFile,HDUNum);
+ Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+
+ declare
+  type MyFloat is new Float;
+  type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
+  Val : MyFloat;
+  Arr : Arr4xU8;
+
+  function Arr_To_MyFloat is
+    new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
+
+  procedure SwapBytes(arr : in out Arr4xU8) is
+   temp : Arr4xU8;
+  begin
+   temp(1) := arr(4);
+   temp(2) := arr(3);
+   temp(3) := arr(2);
+   temp(4) := arr(1);
+   arr := temp;
+  end SwapBytes;
+
+ begin
+   for I in 1..4 loop
+   --MyFloat'Read (SIO.Stream(FitsFile), Val);
+   Arr4xU8'Read (SIO.Stream(FitsFile), Arr);
+   SwapBytes(Arr);
+   Val := Arr_To_MyFloat(Arr);
+   Ada.Text_IO.Put(" " & MyFloat'Image(Val));
+   end loop;
+   Ada.Text_IO.New_Line;
+ end; -- declare2
 
  SIO.Close(FitsFile);
 
