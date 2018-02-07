@@ -3,6 +3,7 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Strings.Fixed,
      Ada.Streams.Stream_IO,
      Ada.Characters.Latin_1,
+     Ada.Unchecked_Conversion,
      GNAT.OS_Lib,
      FITS,
      FITS.File,
@@ -401,6 +402,7 @@ package body Commands is
    end if;
  end Write_Fillin;
 
+
  -- convert FITS to PNG image
  -- how to handle more then 2D files ?
  procedure FITS_To_PNG (FitsFileName : in String)
@@ -412,6 +414,66 @@ package body Commands is
 
   subtype pixval is Integer range 0 .. 127;
   type My_Image_Handle is array (Natural range <>, Natural range <>) of pixval;
+
+   -- convert Float32 to PNG 8bit
+   procedure Float32_To_PNGType( data : in  Float32Arr_Type;
+                                 im   : out My_Image_Handle;
+                                 W    : in  Natural)-- Width: scanline length
+   is
+     wi    : Natural := 0;
+     hi    : Natural := 0;
+
+     -- conversion
+     type MyFloat is new Interfaces.IEEE_Float_32;
+     type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
+
+     function MyFloat_To_Arr is
+       new Ada.Unchecked_Conversion(Source => MyFloat, Target => Arr4xU8);
+     function Arr_To_MyFloat is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
+
+     procedure SwapBytes(arr : in out Arr4xU8) is
+      temp : Arr4xU8;
+     begin
+      temp(1) := arr(4);
+      temp(2) := arr(3);
+      temp(3) := arr(2);
+      temp(4) := arr(1);
+      arr := temp;
+     end SwapBytes;
+
+     aaaa : Arr4xU8;
+     valf : Float;
+     vali : Integer;
+   begin
+    for dd of data
+     loop
+
+       -- swap bytes in FLoat32
+       aaaa := MyFloat_To_Arr(MyFloat(dd));
+       SwapBytes(aaaa);
+       valf := Float(Arr_To_MyFloat(aaaa));
+
+       vali := Integer(valf);
+
+       if vali >= 0 and vali <= 127 then
+         im(wi,hi) := vali;
+       elsif vali < 0 then
+         im(wi,hi) := 0;
+       else
+         im(wi,hi) := 127;
+       end if;
+
+       if wi = W-1 then
+        hi := hi + 1;
+        wi := 0;
+       else
+        wi := wi + 1;
+       end if;
+
+     end loop;
+   end Float32_To_PNGType;
+
  begin
 
   -- -----------------
@@ -436,11 +498,18 @@ package body Commands is
      hi    : Natural := 0;
      pix   : pixval;
   begin
-      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
-       Ada.Text_IO.Put(Integer'Image(W) & " x " );
-       Ada.Text_IO.Put_Line(Integer'Image(H) );
+     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
+     Ada.Text_IO.Put(Integer'Image(W) & " x " );
+     Ada.Text_IO.Put_Line(Integer'Image(H) );
 
-      DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+     DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+
+     if dt = Float32 then
+
+        Ada.Text_IO.Put_Line(" Swap FLoat32 bytes... " );
+        Float32_To_PNGType( DataD.Float32Arr,
+                            F, W);
+     else
 
      for dd of DataD.Int8Arr
      loop
@@ -463,6 +532,9 @@ package body Commands is
 
      end loop;
      Ada.Text_IO.New_Line;
+     end if;
+
+
 
    -- -----------------
    -- write PNG file:
