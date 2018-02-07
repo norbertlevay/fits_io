@@ -132,7 +132,7 @@ begin
  end; -- declare1
 
  --New_Line;
- Put_Line("> reset to HDU start");
+ Put_Line("> reset to HDU start - BigEndian Float32 by swapping bytes");
 
  Set_Index(FitsFile,HDUNum);
  Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
@@ -163,6 +163,52 @@ begin
    SwapBytes(Arr);
    Val := Arr_To_MyFloat(Arr);
    Ada.Text_IO.Put(" " & MyFloat'Image(Val));
+   end loop;
+   Ada.Text_IO.New_Line;
+ end; -- declare2
+
+ Put_Line("> reset to HDU start - BigEndian Float32 by defining own Float32");
+
+ Set_Index(FitsFile,HDUNum);
+ Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+
+ declare
+   type MyFloat is record
+      byte1 : Interfaces.Unsigned_8;
+      byte2 : Interfaces.Unsigned_8;
+      byte3 : Interfaces.Unsigned_8;
+      byte4 : Interfaces.Unsigned_8;
+   end record;
+
+   for MyFloat use record
+      byte1 at 0 range  0 ..  7;
+      byte2 at 0 range  8 .. 15;
+      byte3 at 0 range 16 .. 23;
+      byte4 at 0 range 24 .. 31;
+   end record;
+
+   type MyFloat_LE is new MyFloat;
+   for MyFloat_LE'Bit_Order use System.Low_Order_First;
+   for MyFloat_LE'Scalar_Storage_Order use System.Low_Order_First;
+
+   type MyFloat_BE is new MyFloat;
+   for MyFloat_BE'Bit_Order use System.High_Order_First;
+   for MyFloat_BE'Scalar_Storage_Order use System.High_Order_First;
+
+  function Float32BE_To_Float is
+    new Ada.Unchecked_Conversion(Source => MyFloat_BE, Target => Float);
+
+  function Float32LE_To_Float is
+    new Ada.Unchecked_Conversion(Source => MyFloat_LE, Target => Float);
+
+  ValBE : MyFloat_BE;
+  ValLE : MyFloat_LE;
+  Valf : Float;
+ begin
+   for I in 1..4 loop
+   MyFloat_BE'Read (SIO.Stream(FitsFile), ValBE);
+   Valf := Float32BE_To_Float(ValBE);
+   Ada.Text_IO.Put(" " & Float'Image(Valf));
    end loop;
    Ada.Text_IO.New_Line;
  end; -- declare2
