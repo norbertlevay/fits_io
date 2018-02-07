@@ -23,6 +23,7 @@ use
     Ada.Streams.Stream_IO,
     Ada.Command_Line;
 
+with FitsFloat;      use FitsFloat;
 with FITS;      use FITS;
 with FITS.File; use FITS.File;
 
@@ -68,6 +69,7 @@ procedure testfits is
     when Int64 =>
      Ada.Text_IO.Put( Interfaces.Integer_64'Image(Data.Int64Arr(I)) & " ");
     when Float32 =>
+--     Ada.Text_IO.Put( Float'Image(FFloat32BE_To_Float(Data.Float32Arr(I))) & " ");
      Ada.Text_IO.Put( Interfaces.IEEE_Float_32'Image(Data.Float32Arr(I)) & " ");
     when Float64 =>
      Ada.Text_IO.Put( Interfaces.IEEE_Float_64'Image(Data.Float64Arr(I)) & " ");
@@ -173,41 +175,18 @@ begin
  Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
  declare
-   type MyFloat is record
-      byte1 : Interfaces.Unsigned_8;
-      byte2 : Interfaces.Unsigned_8;
-      byte3 : Interfaces.Unsigned_8;
-      byte4 : Interfaces.Unsigned_8;
-   end record;
+  ValBE : FFloat32_BE;
+--  ValLE : FFloat32_LE;
+  type arrf is array(1..4) of FFloat32_BE;
 
-   for MyFloat use record
-      byte1 at 0 range  0 ..  7;
-      byte2 at 0 range  8 .. 15;
-      byte3 at 0 range 16 .. 23;
-      byte4 at 0 range 24 .. 31;
-   end record;
-
-   type MyFloat_LE is new MyFloat;
-   for MyFloat_LE'Bit_Order use System.Low_Order_First;
-   for MyFloat_LE'Scalar_Storage_Order use System.Low_Order_First;
-
-   type MyFloat_BE is new MyFloat;
-   for MyFloat_BE'Bit_Order use System.High_Order_First;
-   for MyFloat_BE'Scalar_Storage_Order use System.High_Order_First;
-
-  function Float32BE_To_Float is
-    new Ada.Unchecked_Conversion(Source => MyFloat_BE, Target => Float);
-
-  function Float32LE_To_Float is
-    new Ada.Unchecked_Conversion(Source => MyFloat_LE, Target => Float);
-
-  ValBE : MyFloat_BE;
-  ValLE : MyFloat_LE;
   Valf : Float;
  begin
+   Ada.Text_IO.Put("Size  " & Integer'Image(FFloat32_BE'Size));
+   Ada.Text_IO.Put_Line("  SizeA " & Integer'Image(arrf'Size));
+
    for I in 1..4 loop
-   MyFloat_BE'Read (SIO.Stream(FitsFile), ValBE);
-   Valf := Float32BE_To_Float(ValBE);
+   FFloat32_BE'Read (SIO.Stream(FitsFile), ValBE);
+   Valf := FFloat32BE_To_Float(ValBE);
    Ada.Text_IO.Put(" " & Float'Image(Valf));
    end loop;
    Ada.Text_IO.New_Line;

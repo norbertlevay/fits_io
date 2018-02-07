@@ -5,6 +5,7 @@ with Ada.Text_IO,-- Ada.Integer_Text_IO,
      Ada.Characters.Latin_1,
      Ada.Unchecked_Conversion,
      GNAT.OS_Lib,
+     FitsFloat,
      FITS,
      FITS.File,
      System,
@@ -454,14 +455,16 @@ package body Commands is
        SwapBytes(aaaa);
        valf := Float(Arr_To_MyFloat(aaaa));
 
-       vali := Integer(valf);
+       --valf := FitsFloat.FFloat32BE_To_Float(dd);
+
+      vali := Integer(valf);
 
        if vali >= 0 and vali <= 127 then
-         im(wi,hi) := vali;
+         im(hi,wi) := vali;
        elsif vali < 0 then
-         im(wi,hi) := 0;
+         im(hi,wi) := 0;
        else
-         im(wi,hi) := 127;
+         im(hi,wi) := 127;
        end if;
 
        if wi = W-1 then
@@ -488,18 +491,18 @@ package body Commands is
      W  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
      H  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
                                   -- FIXME explicit cast!
-     F : My_Image_Handle(0..(W-1),0..(H-1));-- := (others => 127);
-        -- holds data for PNG image write
-
      DataD : DataArray_Type( dt, W*H );
         -- holds data from FITS-file
 
+     F : My_Image_Handle(0..(H-1), 0..(W-1));-- := (others => 127);
+        -- holds data for PNG image write
      wi    : Natural := 0;
      hi    : Natural := 0;
+
      pix   : pixval;
   begin
      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
-     Ada.Text_IO.Put(Integer'Image(W) & " x " );
+     Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
 
      DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
@@ -519,7 +522,7 @@ package body Commands is
 --       Ada.Text_IO.Put_Line(Interfaces.Integer_8'Image(dd));
 
        pix := Integer(Abs(dd))/2;-- FIXME why needed /2?
-       F(wi,hi) := pix;
+       F(hi,wi) := pix;
 
 --       Ada.Text_IO.Put_Line(pixval'Image( pix ));
 

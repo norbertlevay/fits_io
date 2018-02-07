@@ -34,6 +34,8 @@
 with Interfaces;
 with System.Storage_Elements; use System.Storage_Elements;
 
+with FitsFloat;
+
 
 package FITS is
 
@@ -137,6 +139,7 @@ package FITS is
    type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
    type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;
+--   type Float32Arr_Type is array ( Positive range <> ) of FitsFloat.FFloat32_BE;
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
