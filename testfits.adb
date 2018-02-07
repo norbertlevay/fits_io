@@ -175,19 +175,39 @@ begin
  Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
  declare
+  DUStart : SIO.Count := Index(FitsFile);
   ValBE : FFloat32_BE;
 --  ValLE : FFloat32_LE;
   type arrf is array(1..4) of FFloat32_BE;
+     pragma Pack (arrf);
+
+
+  af : arrf;
 
   Valf : Float;
  begin
-   Ada.Text_IO.Put("Size  " & Integer'Image(FFloat32_BE'Size));
+   Ada.Text_IO.Put(" CompSize " & Integer'Image(arrf'Component_Size));
+   Ada.Text_IO.Put(" VaSize   " & Integer'Image(FFloat32_BE'VAlue_Size));
+   Ada.Text_IO.Put(" ObjSize  " & Integer'Image(FFloat32_BE'Object_Size));
+   Ada.Text_IO.Put(" Size  " & Integer'Image(FFloat32_BE'Size));
    Ada.Text_IO.Put_Line("  SizeA " & Integer'Image(arrf'Size));
 
+
+   Ada.Text_IO.Put("Index  " & SIO.Count'Image(Index(FitsFile)));
+   arrf'Read (SIO.Stream(FitsFile), af);
+   Ada.Text_IO.Put_Line(" --> " & SIO.Count'Image(Index(FitsFile)));
+
+   Set_Index(FitsFile,DUStart);
+
    for I in 1..4 loop
-   FFloat32_BE'Read (SIO.Stream(FitsFile), ValBE);
-   Valf := FFloat32BE_To_Float(ValBE);
-   Ada.Text_IO.Put(" " & Float'Image(Valf));
+
+    SIO.Set_Index(FitsFile,DUStart);
+    Ada.Text_IO.Put("Index  " & SIO.Count'Image(Index(FitsFile)));
+    FFloat32_BE'Read (SIO.Stream(FitsFile), ValBE);
+    DUStart := DUStart + 4;
+
+    Valf := FFloat32BE_To_Float(af(I));
+    Ada.Text_IO.Put_Line(" " & Float'Image(Valf));
    end loop;
    Ada.Text_IO.New_Line;
  end; -- declare2

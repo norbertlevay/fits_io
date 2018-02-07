@@ -22,6 +22,7 @@ package FitsFloat is
       e : Exponent;
       f : Mantissa;
    end record;
+     pragma Pack(FFloat32);
 
    for FFloat32 use record
       s at 0 range 0 ..  0;
