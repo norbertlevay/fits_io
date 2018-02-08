@@ -2,6 +2,7 @@ with
     Options,
     Build_Date,
     Commands,
+    Commands.PNG,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -15,6 +16,7 @@ with
 use
     Options,
     Commands,
+    Commands.PNG,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,

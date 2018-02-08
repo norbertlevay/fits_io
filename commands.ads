@@ -20,7 +20,5 @@ package Commands is
                                     InKey       : in String; -- FIXME use variant record when params for more commands needed
                                     HDUNum      : in Positive := 1);
 
- procedure FITS_To_PNG (FitsFileName : in String);
-
 end Commands;
 
