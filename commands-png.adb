@@ -87,7 +87,7 @@ package body Commands.PNG is
   HDUSize  : HDU_Size_Type;
  begin
 
-  -- -----------------
+  --
   -- read FITS file:
   --
   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
@@ -133,7 +133,7 @@ package body Commands.PNG is
 
      end if;
 
-   -- -----------------
+   --
    -- write PNG file:
    --
    -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
@@ -156,8 +156,9 @@ package body Commands.PNG is
    begin
     Write_0(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
    end;
+   --
    -- END write PNG file
-   -- ------------------
+   --
 
    SIO.Close(FitsFile);
 
