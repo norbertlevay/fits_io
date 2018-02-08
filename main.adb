@@ -168,9 +168,16 @@ procedure main is
 
  elsif Command = "png" then
 
+   HDUNum := Positive'Value(To_String(Known_Options(hdu).Value));
+
    while Next <= Argument_Count loop
-    FITS_To_PNG (Argument(Next));
-    Next := Next + 1;
+    declare
+      FitsFileName : String := Argument(Next);
+      PngFileName  : String := FitsFileName & ".png";
+    begin
+      FITS_To_PNG(FitsFileName, PngFileName, HDUNum);
+      Next := Next + 1;
+    end;
    end loop;
 
  elsif Command = "cleanhead" then

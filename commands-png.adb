@@ -20,57 +20,82 @@ use  Interfaces;
 
 package body Commands.PNG is
 
+ subtype pixval is Integer range 0 .. 127;
+ type My_Image_Handle is
+   array (Natural range <>, Natural range <>) of pixval;
+
+  -- convert Int8 to PNG 8bit
+ procedure Int8_To_PNGType( data : in out Int8Arr_Type;
+                               -- FIXME 'in' should be enough No 'in out'
+                               im   : out My_Image_Handle;
+                               W    : in  Natural)
+                               -- Width: scanline length
+ is
+  wi    : Natural := 0;
+  hi    : Natural := 0;
+ begin
+
+  for dd of data
+  loop
+    im(hi,wi) := Integer(Abs(dd))/2;
+                 -- FIXME why needed /2?
+    if wi = W-1 then
+     hi := hi + 1;
+     wi := 0;
+    else
+     wi := wi + 1;
+    end if;
+  end loop;
+
+ end Int8_To_PNGType;
+
+  -- convert Float32 to PNG 8bit
+ procedure Float32_To_PNGType( data : in out Float32Arr_Type;
+                               -- FIXME 'in' should be enough No 'in out'
+                               im   : out My_Image_Handle;
+                               W    : in  Natural)
+                               -- Width: scanline length
+ is
+   wi    : Natural := 0;
+   hi    : Natural := 0;
+ begin
+
+  -- reverse byte order if system is LittleEndian
+  -- FITS standard requires BigEndian IEEE Float32
+  if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+  then
+    Endianness_Float32(data);
+  end if;
+
+  for dd of data
+   loop
+     if dd >= 0.0 and dd <= 127.0 then
+       im(hi,wi) := Natural(dd);
+     elsif dd < 0.0 then
+       im(hi,wi) := Natural(0.0);
+     else
+       im(hi,wi) := Natural(127.0);
+     end if;
+
+     if wi = W-1 then
+      hi := hi + 1;
+      wi := 0;
+     else
+      wi := wi + 1;
+     end if;
+   end loop;
+
+ end Float32_To_PNGType;
+
+
  -- convert FITS to PNG image
  -- how to handle more then 2D files ?
- procedure FITS_To_PNG (FitsFileName : in String)
+ procedure FITS_To_PNG (FitsFileName : in String;
+                        PngFileName  : String;
+                        HDUNum       : Positive := 1)
  is
-  HDUNum  : Positive := 1;--Integer'Value( Argument(1) );
-  FitsFile    : SIO.File_Type;
-  PngFileName : String := FitsFileName & ".png";
-  HDUSize : HDU_Size_Type;
-
-  subtype pixval is Integer range 0 .. 127;
-  type My_Image_Handle is
-    array (Natural range <>, Natural range <>) of pixval;
-
-   -- convert Float32 to PNG 8bit
-   procedure Float32_To_PNGType( data : in out Float32Arr_Type;
-                                 -- FIXME 'in' should be enough No 'in out'
-                                 im   : out My_Image_Handle;
-                                 W    : in  Natural)
-                                 -- Width: scanline length
-   is
-     wi    : Natural := 0;
-     hi    : Natural := 0;
-   begin
-    -- reverse byte order if system is LittleEndian
-    -- FITS standard requires BigEndian IEEE Float32
-    if System.Default_Bit_Order = System.LOW_ORDER_FIRST
-    then
-      Endianness_Float32(data);
-    end if;
-
-    for dd of data
-     loop
-
-       if dd >= 0.0 and dd <= 127.0 then
-         im(hi,wi) := Natural(dd);
-       elsif dd < 0.0 then
-         im(hi,wi) := Natural(0.0);
-       else
-         im(hi,wi) := Natural(127.0);
-       end if;
-
-       if wi = W-1 then
-        hi := hi + 1;
-        wi := 0;
-       else
-        wi := wi + 1;
-       end if;
-
-     end loop;
-   end Float32_To_PNGType;
-
+  FitsFile : SIO.File_Type;
+  HDUSize  : HDU_Size_Type;
  begin
 
   -- -----------------
@@ -92,7 +117,6 @@ package body Commands.PNG is
         -- holds data for PNG image write
      wi    : Natural := 0;
      hi    : Natural := 0;
-     pix   : pixval;
   begin
      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
@@ -106,24 +130,12 @@ package body Commands.PNG is
 
      elsif dt = Int8 then
 
-       for dd of DataD.Int8Arr
-        loop
-
-         pix := Integer(Abs(dd))/2;-- FIXME why needed /2?
-         F(hi,wi) := pix;
-
-         if wi = W-1 then
-          hi := hi + 1;
-          wi := 0;
-         else
-          wi := wi + 1;
-         end if;
-
-       end loop;
-      Ada.Text_IO.New_Line;
+        Int8_To_PNGType( DataD.Int8Arr, F, W);
 
      else
+
        Ada.Text_IO.Put_Line("Not implemented for " & FitsData_Type'Image(dt));
+
      end if;
 
    -- -----------------
