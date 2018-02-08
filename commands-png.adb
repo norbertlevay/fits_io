@@ -18,7 +18,7 @@ use  Interfaces;
 
 package body Commands.PNG is
 
- subtype pixval is Integer range 0 .. 127;
+ subtype pixval is Integer range 0 .. 255;
 -- subtype pixval is Integer range 0 .. 65535;
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
@@ -35,8 +35,10 @@ package body Commands.PNG is
 
   for dd of Data
   loop
-    Img(wi,hi) := Integer(Abs(dd))/2;
-                 -- FIXME why needed /2?
+
+    Img(wi,hi) := Integer(dd) + 128;
+                 -- FIXME explicit conversion
+                 -- from Interfaces.Integer_8 -> Standard.Integer
     if wi = W-1 then
      hi := hi + 1;
      wi := 0;
@@ -67,17 +69,24 @@ package body Commands.PNG is
   for dd of Data
    loop
 
-     -- sd := ( 127.0 / Max ) * dd;
+     -- sd := ( pixval'Last / Max ) * dd;
      sd := dd;
 
-     if sd >= 0.0 and sd <= 127.0 then
---     if sd >= 0.0 and sd <= 65535.0 then
+     if sd >= IEEE_Float_32(pixval'First) and
+        sd <= IEEE_Float_32(pixval'Last)
+     then
+
        Img(hi,wi) := Natural(sd);
-     elsif sd < 0.0 then
-       Img(hi,wi) := Natural(0.0);
+
+     elsif sd < IEEE_Float_32(pixval'First)
+     then
+
+       Img(hi,wi) := pixval'First;
+
      else
-       Img(hi,wi) := Natural(127.0);
-  --     Img(hi,wi) := Natural(65535.0);
+
+       Img(hi,wi) := pixval'Last;
+
      end if;
 
      if wi = W-1 then
