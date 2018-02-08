@@ -6,6 +6,9 @@
 
 with Ada.Unchecked_Conversion;
 
+with Interfaces;
+use  Interfaces;
+
 package body FITS is
 
    --
@@ -188,6 +191,28 @@ package body FITS is
      end loop;
 
    end Endianness_Float32;
+
+   -- find minimum and maximum value of the Float32 data array
+   procedure Find_MinMax_Float32
+              (F32Arr : in  Float32Arr_Type;
+               Min    : out Interfaces.IEEE_Float_32;
+               Max    : out Interfaces.IEEE_Float_32)
+   is
+     type MyFloat is new Interfaces.IEEE_Float_32;
+   begin
+
+     Min := Interfaces.IEEE_Float_32'Large;
+     Max := Interfaces.IEEE_Float_32'Small;
+
+     for D of F32Arr
+      loop
+
+       if D > Max then Max := D; end if;
+       if D < Min then Min := D; end if;
+
+     end loop;
+
+   end Find_MinMax_Float32;
 
 
 

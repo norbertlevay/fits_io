@@ -147,6 +147,12 @@ package FITS is
     -- For each Float32 in the array, reverses order of the 4 bytes
     -- within one Float32
 
+   procedure Find_MinMax_Float32
+              (F32Arr : in  Float32Arr_Type;
+               Min    : out Interfaces.IEEE_Float_32;
+               Max    : out Interfaces.IEEE_Float_32);
+   -- find minimum and maximum value of the Float32 data array
+
    type FitsData_Type is
        (HBlock, Card, Char,        -- Header types
         Int8, Int16, Int32,        -- DataUnit types

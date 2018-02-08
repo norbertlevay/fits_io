@@ -55,14 +55,25 @@ package body Commands.PNG is
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
+   Min : Interfaces.IEEE_Float_32;
+   Max : Interfaces.IEEE_Float_32;
+   sd  : Interfaces.IEEE_Float_32;
  begin
+
+  Find_MinMax_Float32(Data, Min, Max);
+  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
+  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
 
   for dd of Data
    loop
-     if dd >= 0.0 and dd <= 127.0 then
---     if dd >= 0.0 and dd <= 65535.0 then
-       Img(hi,wi) := Natural(dd);
-     elsif dd < 0.0 then
+
+     -- sd := ( 127.0 / Max ) * dd;
+     sd := dd;
+
+     if sd >= 0.0 and sd <= 127.0 then
+--     if sd >= 0.0 and sd <= 65535.0 then
+       Img(hi,wi) := Natural(sd);
+     elsif sd < 0.0 then
        Img(hi,wi) := Natural(0.0);
      else
        Img(hi,wi) := Natural(127.0);
