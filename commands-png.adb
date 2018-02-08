@@ -19,6 +19,7 @@ use  Interfaces;
 package body Commands.PNG is
 
  subtype pixval is Integer range 0 .. 127;
+-- subtype pixval is Integer range 0 .. 65535;
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
 
@@ -59,11 +60,13 @@ package body Commands.PNG is
   for dd of Data
    loop
      if dd >= 0.0 and dd <= 127.0 then
+--     if dd >= 0.0 and dd <= 65535.0 then
        Img(hi,wi) := Natural(dd);
      elsif dd < 0.0 then
        Img(hi,wi) := Natural(0.0);
      else
        Img(hi,wi) := Natural(127.0);
+  --     Img(hi,wi) := Natural(65535.0);
      end if;
 
      if wi = W-1 then
@@ -154,7 +157,8 @@ package body Commands.PNG is
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
 
    begin
-    Write_0(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
+    Write_0(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
+    --Write_0(PngFileName, Img, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
    end;
    --
    -- END write PNG file
