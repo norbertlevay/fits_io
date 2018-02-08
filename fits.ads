@@ -143,6 +143,10 @@ package FITS is
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
+   procedure Endianness_Float32( F32Arr : in out Float32Arr_Type );
+    -- For each Float32 in the array, reverses order of the 4 bytes
+    -- within one Float32
+
    type FitsData_Type is
        (HBlock, Card, Char,        -- Header types
         Int8, Int16, Int32,        -- DataUnit types

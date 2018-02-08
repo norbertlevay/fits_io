@@ -4,6 +4,8 @@
 -- FIXME make sure Ada Character type [Ada?][GNAT?]
 -- is of same size as FITS Standard [FITS?] header-character
 
+with Ada.Unchecked_Conversion;
+
 package body FITS is
 
    --
@@ -150,6 +152,43 @@ package body FITS is
        XtensionType := Card(11..20);
      end if;
    end Parse_Card;
+
+   -- reverse byte order for each FLoat32:
+   --  4->1 3->2 2->3 1->4
+   procedure Endianness_Float32( F32Arr : in out Float32Arr_Type )
+   is
+     type MyFloat is new Interfaces.IEEE_Float_32;
+     type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
+
+     function MyFloat_To_Arr is
+       new Ada.Unchecked_Conversion(Source => MyFloat, Target => Arr4xU8);
+     function Arr_To_MyFloat is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
+
+     procedure SwapBytes(arr : in out Arr4xU8) is
+      temp : Arr4xU8;
+     begin
+      temp(1) := arr(4);
+      temp(2) := arr(3);
+      temp(3) := arr(2);
+      temp(4) := arr(1);
+      arr := temp;
+     end SwapBytes;
+
+     aaaa : Arr4xU8;
+   begin
+
+     for I in F32Arr'Range
+      loop
+
+       aaaa := MyFloat_To_Arr(MyFloat(F32Arr(I)));
+       SwapBytes(aaaa);
+       F32Arr(I) := Interfaces.IEEE_Float_32(Arr_To_MyFloat(aaaa));
+
+     end loop;
+
+   end Endianness_Float32;
+
 
 
 end FITS;
