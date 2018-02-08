@@ -5,17 +5,15 @@ with Ada.Text_IO,
      System;
 
 use
-     System,
      FITS,
-     FITS.File;
-
+     FITS.File,
+     System;
 
 with PNG_IO;
 use  PNG_IO;
 
 with Interfaces;
 use  Interfaces;
--- for PutFITSData debug only
 
 
 package body Commands.PNG is
@@ -24,20 +22,19 @@ package body Commands.PNG is
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
 
-  -- convert Int8 to PNG 8bit
- procedure Int8_To_PNGType( data : in out Int8Arr_Type;
-                               -- FIXME 'in' should be enough No 'in out'
-                               im   : out My_Image_Handle;
-                               W    : in  Natural)
-                               -- Width: scanline length
+
+ procedure Convert_FITS_Int8_To_PNG_Int8
+           (Data : in  Int8Arr_Type;    -- FITS data
+            Img  : out My_Image_Handle; -- PNG pixels (the image)
+            W    : in  Natural)         -- Image/Data width
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
  begin
 
-  for dd of data
+  for dd of Data
   loop
-    im(hi,wi) := Integer(Abs(dd))/2;
+    Img(wi,hi) := Integer(Abs(dd))/2;
                  -- FIXME why needed /2?
     if wi = W-1 then
      hi := hi + 1;
@@ -47,34 +44,26 @@ package body Commands.PNG is
     end if;
   end loop;
 
- end Int8_To_PNGType;
+ end Convert_FITS_Int8_To_PNG_Int8;
 
-  -- convert Float32 to PNG 8bit
- procedure Float32_To_PNGType( data : in out Float32Arr_Type;
-                               -- FIXME 'in' should be enough No 'in out'
-                               im   : out My_Image_Handle;
-                               W    : in  Natural)
-                               -- Width: scanline length
+
+ procedure Convert_FITS_Float32_To_PNG_Int8
+           (Data : in  Float32Arr_Type; -- FITS data
+            Img  : out My_Image_Handle; -- PNG pixels (the image)
+            W    : in  Natural)         -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
  begin
 
-  -- reverse byte order if system is LittleEndian
-  -- FITS standard requires BigEndian IEEE Float32
-  if System.Default_Bit_Order = System.LOW_ORDER_FIRST
-  then
-    Endianness_Float32(data);
-  end if;
-
-  for dd of data
+  for dd of Data
    loop
      if dd >= 0.0 and dd <= 127.0 then
-       im(hi,wi) := Natural(dd);
+       Img(hi,wi) := Natural(dd);
      elsif dd < 0.0 then
-       im(hi,wi) := Natural(0.0);
+       Img(hi,wi) := Natural(0.0);
      else
-       im(hi,wi) := Natural(127.0);
+       Img(hi,wi) := Natural(127.0);
      end if;
 
      if wi = W-1 then
@@ -85,14 +74,14 @@ package body Commands.PNG is
      end if;
    end loop;
 
- end Float32_To_PNGType;
+ end Convert_FITS_Float32_To_PNG_Int8;
 
 
  -- convert FITS to PNG image
  -- how to handle more then 2D files ?
  procedure FITS_To_PNG (FitsFileName : in String;
-                        PngFileName  : String;
-                        HDUNum       : Positive := 1)
+                        PngFileName  : in String;
+                        HDUNum       : in Positive := 1)
  is
   FitsFile : SIO.File_Type;
   HDUSize  : HDU_Size_Type;
@@ -107,34 +96,40 @@ package body Commands.PNG is
    -- move behind the Header
 
   declare
-     dt : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
-     W  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
-     H  : constant Dimension    := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
+     DataType : constant FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     W : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
+     H : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                   -- FIXME explicit cast!
-     DataD : DataArray_Type( dt, W*H );
+     Data : DataArray_Type( DataType, W*H );
         -- holds data from FITS-file
-     F : My_Image_Handle(0..(H-1), 0..(W-1));-- := (others => 127);
+     Img  : My_Image_Handle(0..(W-1), 0..(H-1));
         -- holds data for PNG image write
-     wi    : Natural := 0;
-     hi    : Natural := 0;
   begin
-     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(dt));
+     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
 
-     DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+     DataArray_Type'Read (SIO.Stream(FitsFile), Data);
 
-     if dt = Float32 then
+     if DataType = Float32 then
 
-        Float32_To_PNGType( DataD.Float32Arr, F, W);
+        -- [FITS App. E] defines BigEndian byte order for IEEE Float32
+        -- reverse byte order if system is LittleEndian
+        if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+        then
+          Endianness_Float32(Data.Float32Arr);
+        end if;
 
-     elsif dt = Int8 then
+        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
 
-        Int8_To_PNGType( DataD.Int8Arr, F, W);
+     elsif DataType = Int8 then
+
+        Convert_FITS_Int8_To_PNG_Int8(Data.Int8Arr, Img, W);
 
      else
 
-       Ada.Text_IO.Put_Line("Not implemented for " & FitsData_Type'Image(dt));
+       Ada.Text_IO.Put_Line("Not implemented for "
+                           & FitsData_Type'Image(DataType));
 
      end if;
 
@@ -159,7 +154,7 @@ package body Commands.PNG is
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
 
    begin
-    Write_0(PngFileName, F, H, W); --, D, I, L); Last 3 params have defaults
+    Write_0(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
    end;
    -- END write PNG file
    -- ------------------
