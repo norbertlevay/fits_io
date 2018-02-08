@@ -1,28 +1,17 @@
 
-with Ada.Text_IO,-- Ada.Integer_Text_IO,
+with Ada.Text_IO,
      Ada.Strings.Fixed,
      Ada.Streams.Stream_IO,
      Ada.Characters.Latin_1,
-     Ada.Unchecked_Conversion,
-     GNAT.OS_Lib,
-     FitsFloat,
      FITS,
      FITS.File,
      System,
      System.Storage_Elements;
 
-use  Ada.Streams.Stream_IO,
-     System,
+use
+     Ada.Streams.Stream_IO,
      FITS,
      FITS.File;
-
-
-with PNG_IO;
-use  PNG_IO;
-
-with Interfaces;
-use  Interfaces;
--- for PutFITSData debug only
 
 
 package body Commands is
