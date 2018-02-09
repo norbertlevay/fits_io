@@ -20,10 +20,16 @@ use  Interfaces;
 
 package body Commands.PNG is
 
- subtype pixval is Integer range 0 .. 255;
--- subtype pixval is Integer range 0 .. 65535;
+ -- grey (8bit) image
+ subtype pixval is Natural range 0 .. 255;
+ -- subtype pixval is Integer range 0 .. 65535;
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
+
+ -- RGB ('Truecolor') image
+ subtype RGBpixval is Natural range 0 .. 2**(23-1);
+ type My_RGBImage_Handle is
+   array (Natural range <>, Natural range <>) of RGBpixval;
 
  function Scale_FITS_Float32_To_PNG_Int8
           (Min : in Interfaces.IEEE_Float_32;
@@ -110,6 +116,105 @@ package body Commands.PNG is
 
  end Convert_FITS_Float32_To_PNG_Int8;
 
+
+ procedure Write_PNG_Greyscale
+           (PngFileName : in String;
+            Img         : in My_Image_Handle;
+            H,W         : in Positive)
+ is
+ begin
+   --
+   -- write PNG file:
+   --
+   -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
+   -- needs 3 things:
+   --   something what holds the pixels -> Image_Handle - below not used
+   --   type of one pixel/Sample -> below pixval (derived from Natural)
+   --   written function which returns each pixel by coordinates from the Image_Handle
+   -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
+   declare
+
+    function My_Grey_Sample(I    : My_Image_Handle;
+                            R, C : Coordinate) return pixval is
+      begin
+--       Ada.Text_IO.Put_Line(Coordinate'Image(R) & " x " & Coordinate'Image(C));
+       return I(R,C);
+      end My_Grey_Sample;
+
+    procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, pixval, My_Grey_Sample);
+
+   begin
+    Write_0(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
+    --Write_0(PngFileName, Img, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
+   end;
+   --
+   -- END write PNG file
+   --
+ end Write_PNG_Greyscale;
+
+
+ procedure Write_PNG_Truecolor
+           (PngFileName : in String;
+            Img         : in My_RGBImage_Handle;
+            H,W         : in Positive)
+ is
+ begin
+   --
+   -- write PNG file:
+   --
+   -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
+   -- needs 3 things:
+   --   something what holds the pixels -> Image_Handle - below not used
+   --   type of one pixel/Sample -> below pixval (derived from Natural)
+   --   written function which returns each pixel by coordinates from the Image_Handle
+   -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
+   declare
+
+    function My_Red_Value(Img  : My_RGBImage_Handle;
+                          R, C : Coordinate) return pixval
+      is
+       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+      begin
+--       return Img(R,C);-- FIXME pick highest 8-bits & shift down
+       -- somethig like: B : Unsigned_8
+       -- Shift_Right(B,      7 - (K rem 8))  and 2#0000_0001#
+       -- B : Unsigned_32 := Unsigned_32(Img(R,C));
+       return pixval(Shift_Right(U32, 16) and 16#0000_00FF#);
+      end My_Red_Value;
+
+    function My_Green_Value(Img : My_RGBImage_Handle;
+                            R, C  : Coordinate) return pixval
+      is
+       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+      begin
+--       return Img(R,C);-- FIXME pick middle 8-bits & shift down
+       return pixval(Shift_Right(U32,  8) and 16#0000_00FF#);
+      end My_Green_Value;
+
+    function My_Blue_Value(Img : My_RGBImage_Handle;
+                           R, C : Coordinate) return pixval
+      is
+       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+      begin
+--       return Img(R,C);-- FIXME pick lowest 8-bits
+       return pixval(U32 and 16#0000_00FF#);
+      end My_Blue_Value;
+
+    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Handle, pixval,
+                                              My_Red_Value, My_Green_Value, My_Blue_Value);
+
+   begin
+    Write_2(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
+   end;
+   --
+   -- END write PNG file
+   --
+
+ end Write_PNG_Truecolor;
+
+
+
+
  -- convert FITS to PNG image
  -- how to handle more then 2D files ?
  procedure FITS_To_PNG (FitsFileName : in String;
@@ -162,10 +267,12 @@ package body Commands.PNG is
         end if;
 
         Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
+        Write_PNG_GreyScale(PngFileName,Img,W,H);
 
      elsif DataType = Int8 then
 
         Convert_FITS_Int8_To_PNG_Int8(Data.Int8Arr, Img, W);
+        Write_PNG_GreyScale(PngFileName,Img,W,H);
 
      else
 
@@ -174,35 +281,6 @@ package body Commands.PNG is
 
      end if;
 
-   --
-   -- write PNG file:
-   --
-   -- requires instantiation of generic Write_PNG_Type_0() func from PNG_IO.ads
-   -- needs 3 things:
-   --   something what holds the pixels -> Image_Handle - below not used
-   --   type of one pixel/Sample -> below Natural
-   --   written function which returns each pixel by coordinates from the Image_Handle
-   -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
-   declare
-
-    function My_Grey_Sample(I    : My_Image_Handle;
-                            R, C : Coordinate) return Natural is
-                                 -- FIXME instead Natural type should be type pixval ?!?
-      begin
---       Ada.Text_IO.Put_Line(Coordinate'Image(R) & " x " & Coordinate'Image(C));
-       return I(R,C);
-      end My_Grey_Sample;
-
-    procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
-                                 -- FIXME instead Natural type should be type pixval ?!?
-
-   begin
-    Write_0(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
-    --Write_0(PngFileName, Img, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
-   end;
-   --
-   -- END write PNG file
-   --
 
    SIO.Close(FitsFile);
 
