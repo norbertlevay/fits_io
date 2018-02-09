@@ -44,6 +44,19 @@ package body Commands.PNG is
    return PixelF32;
  end Scale_FITS_Float32_To_PNG_Int8;
 
+ function Scale_FITS_Float32_To_PNG_rgb24
+          (Min : in Interfaces.IEEE_Float_32;
+           Max : in Interfaces.IEEE_Float_32;
+           Val : in Interfaces.IEEE_Float_32) return Interfaces.IEEE_Float_32
+ is
+   PixelF32    : Interfaces.IEEE_Float_32;
+   MaxPixelF32 : constant Interfaces.IEEE_Float_32
+                          := Interfaces.IEEE_Float_32(RGBpixval'Last);
+ begin
+   PixelF32 := MaxPixelF32 * (Val - Min) / (Max - Min);
+   return PixelF32;
+ end Scale_FITS_Float32_To_PNG_rgb24;
+
 
  procedure Convert_FITS_Int8_To_PNG_Int8
            (Data : in  Int8Arr_Type;    -- FITS data
@@ -115,6 +128,39 @@ package body Commands.PNG is
    end loop;
 
  end Convert_FITS_Float32_To_PNG_Int8;
+
+
+ procedure Convert_FITS_Float32_To_PNG_rgb24
+           (Data : in  Float32Arr_Type; -- FITS data
+            Img  : out My_RGBImage_Handle; -- PNG pixels (the image)
+            W    : in  Natural)         -- Image/Data width
+ is
+   wi    : Natural := 0;
+   hi    : Natural := 0;
+   Min : Interfaces.IEEE_Float_32;
+   Max : Interfaces.IEEE_Float_32;
+   sd  : Interfaces.IEEE_Float_32;
+ begin
+
+  Find_MinMax_Float32(Data, Min, Max);
+  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
+  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
+
+  for dd of Data
+   loop
+
+     sd := Scale_FITS_Float32_To_PNG_rgb24(Min,Max, dd);
+     Img(hi,wi) := RGBpixval(sd);
+
+     if wi = W-1 then
+      hi := hi + 1;
+      wi := 0;
+     else
+      wi := wi + 1;
+     end if;
+   end loop;
+
+ end Convert_FITS_Float32_To_PNG_rgb24;
 
 
  procedure Write_PNG_Greyscale
@@ -243,6 +289,8 @@ package body Commands.PNG is
         -- holds data from FITS-file
      Img  : My_Image_Handle(0..(W-1), 0..(H-1));
         -- holds data for PNG image write
+     RGBImg  : My_RGBImage_Handle(0..(W-1), 0..(H-1));
+        -- holds data for PNG image write
      IdxPlaneNum : SIO.Count := SIO.Index(FitsFile)
                               + SIO.Count((PlaneNum-1)*(W*H*4));
                               -- FIXME Explicit conversion
@@ -266,8 +314,13 @@ package body Commands.PNG is
           Endianness_Float32(Data.Float32Arr);
         end if;
 
+        -- Write Greyscale Image
         Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
         Write_PNG_GreyScale(PngFileName,Img,W,H);
+
+        -- Write Truecolor Image
+        Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, RGBImg, W);
+        Write_PNG_Truecolor(PngFileName&".png",RGBImg,W,H);
 
      elsif DataType = Int8 then
 
