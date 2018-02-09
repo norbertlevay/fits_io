@@ -140,7 +140,8 @@ package body Commands.PNG is
         -- holds data for PNG image write
      IdxPlaneNum : SIO.Count := SIO.Index(FitsFile)
                               + SIO.Count((PlaneNum-1)*(W*H*4));
-                                                   -- FIXME Explicit conversion
+                              -- FIXME Explicit conversion
+                              -- FIXME Float32 size (*4) given explicitely
   begin
      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );

@@ -47,7 +47,6 @@ procedure main is
    (False, tUS("list"),    tUS("list HDU's in FITS-file"),                False ),
    (False, tUS("header"),  tUS("show header"),                            False ),
    (False, tUS("headerwrite"),  tUS("write header"),                      False ),
-   (False, tUS("float32"),   tUS("convert data to FLOAT32 data type"),    False ),
    (False, tUS("png"),       tUS("convert fits file to png image"),       False ),
    (False, tUS("removekey"), tUS("remove all cards starting with given string"), False ),
    (False, tUS("cleanhead"), tUS("guarantee header starts with cards as defined by FITS standard"), False )
@@ -160,10 +159,6 @@ procedure main is
    Print_Header( To_String(Input_File_Path), HDUNum );
 
  elsif Command = "headerwrite" then
-
-   Put_Line("Command not implemented.");
-
- elsif Command = "float32" then
 
    Put_Line("Command not implemented.");
 
