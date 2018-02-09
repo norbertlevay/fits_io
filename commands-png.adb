@@ -2,12 +2,14 @@
 with Ada.Text_IO,
      FITS,
      FITS.File,
-     System;
+     System,
+     Ada.Streams.Stream_IO;
 
 use
      FITS,
      FITS.File,
-     System;
+     System,
+     Ada.Streams.Stream_IO;
 
 with PNG_IO;
 use  PNG_IO;
@@ -112,7 +114,8 @@ package body Commands.PNG is
  -- how to handle more then 2D files ?
  procedure FITS_To_PNG (FitsFileName : in String;
                         PngFileName  : in String;
-                        HDUNum       : in Positive := 1)
+                        HDUNum       : in Positive := 1;
+                        PlaneNum     : in Positive := 1)
  is
   FitsFile : SIO.File_Type;
   HDUSize  : HDU_Size_Type;
@@ -135,10 +138,16 @@ package body Commands.PNG is
         -- holds data from FITS-file
      Img  : My_Image_Handle(0..(W-1), 0..(H-1));
         -- holds data for PNG image write
+     IdxPlaneNum : SIO.Count := SIO.Index(FitsFile)
+                              + SIO.Count((PlaneNum-1)*(W*H*4));
+                                                   -- FIXME Explicit conversion
   begin
      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
+
+     -- skip planes before PlaneNum
+     Ada.Streams.Stream_IO.Set_Index(FitsFile,IdxPlaneNum);
 
      DataArray_Type'Read (SIO.Stream(FitsFile), Data);
 

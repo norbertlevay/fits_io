@@ -27,7 +27,7 @@ procedure main is
 
  Version : String := "fits 0.3.0 Build: " & Build_Date.BuildDate ;
 
- type FitsOptions is (v,h,hdu);
+ type FitsOptions is (v,h,hdu,plane);
  type FitsOption_Array is array (FitsOptions) of Option_Record;
  procedure Parse_FitsOptions is new Parse_Options
                                       (All_Options  => FitsOptions,
@@ -37,7 +37,8 @@ procedure main is
   --      HasValue    Token       Description         State/Value
    v   => (False, tUS("-v"),    tUS("print version"),    False    ),
    h   => (False, tUS("-h"),    tUS("print help"),       False    ),
-   hdu => (True,  tUS("--hdu"), tUS("HDU number 1.. (Default 1 = Primary Header)"), tUS("1") )
+   hdu => (True,  tUS("--hdu"), tUS("HDU number 1.. (Default 1 = Primary Header)"), tUS("1") ),
+   plane => (True,  tUS("--plane"), tUS("Plane number if more than 2D data (Default 1)"), tUS("1") )
  );
 
  Commands: array (Positive range <>) of Option_Record := (
@@ -174,8 +175,10 @@ procedure main is
     declare
       FitsFileName : String := Argument(Next);
       PngFileName  : String := FitsFileName & ".png";
+      PlaneNum     : Positive := Positive'Value(
+                                 To_String(Known_Options(plane).Value));
     begin
-      FITS_To_PNG(FitsFileName, PngFileName, HDUNum);
+      FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
       Next := Next + 1;
     end;
    end loop;
