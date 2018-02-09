@@ -135,7 +135,9 @@ package FITS is
    type CharArr_Type    is array ( Positive range <> ) of Character;
 
    -- Access DataUnit
-   type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;
+   type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;-- <-- Fix this!!
+    -- FIXME [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED all others are SIGNED
+    -- Note: if unsigned needed for Int16..Int64 BZERO keyword is used to shift the value range
    type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
    type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;

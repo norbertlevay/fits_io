@@ -23,6 +23,19 @@ package body Commands.PNG is
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
 
+ function Scale_FITS_Float32_To_PNG_Int8
+          (Min : in Interfaces.IEEE_Float_32;
+           Max : in Interfaces.IEEE_Float_32;
+           Val : in Interfaces.IEEE_Float_32) return Interfaces.IEEE_Float_32
+ is
+   PixelF32    : Interfaces.IEEE_Float_32;
+   MaxPixelF32 : constant Interfaces.IEEE_Float_32
+                          := Interfaces.IEEE_Float_32(pixval'Last);
+ begin
+   PixelF32 := MaxPixelF32 * (Val - Min) / (Max - Min);
+   return PixelF32;
+ end Scale_FITS_Float32_To_PNG_Int8;
+
 
  procedure Convert_FITS_Int8_To_PNG_Int8
            (Data : in  Int8Arr_Type;    -- FITS data
@@ -69,25 +82,21 @@ package body Commands.PNG is
   for dd of Data
    loop
 
-     -- sd := ( pixval'Last / Max ) * dd;
-     sd := dd;
+     sd := Scale_FITS_Float32_To_PNG_Int8(Min,Max, dd);
+     Img(hi,wi) := pixval(sd);
 
-     if sd >= IEEE_Float_32(pixval'First) and
-        sd <= IEEE_Float_32(pixval'Last)
-     then
-
-       Img(hi,wi) := Natural(sd);
-
-     elsif sd < IEEE_Float_32(pixval'First)
-     then
-
-       Img(hi,wi) := pixval'First;
-
-     else
-
-       Img(hi,wi) := pixval'Last;
-
-     end if;
+-- solution2: clipping at pixval limits:
+--     sd := dd;
+--     if sd >= IEEE_Float_32(pixval'First) and
+--        sd <= IEEE_Float_32(pixval'Last)
+--     then
+--       Img(hi,wi) := pixval(sd);
+--     elsif sd < IEEE_Float_32(pixval'First)
+--     then
+--       Img(hi,wi) := pixval'First;
+--     else
+--       Img(hi,wi) := pixval'Last;
+--     end if;
 
      if wi = W-1 then
       hi := hi + 1;
@@ -98,7 +107,6 @@ package body Commands.PNG is
    end loop;
 
  end Convert_FITS_Float32_To_PNG_Int8;
-
 
  -- convert FITS to PNG image
  -- how to handle more then 2D files ?
@@ -169,12 +177,14 @@ package body Commands.PNG is
 
     function My_Grey_Sample(I    : My_Image_Handle;
                             R, C : Coordinate) return Natural is
+                                 -- FIXME instead Natural type should be type pixval ?!?
       begin
 --       Ada.Text_IO.Put_Line(Coordinate'Image(R) & " x " & Coordinate'Image(C));
        return I(R,C);
       end My_Grey_Sample;
 
     procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, Natural, My_Grey_Sample);
+                                 -- FIXME instead Natural type should be type pixval ?!?
 
    begin
     Write_0(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
