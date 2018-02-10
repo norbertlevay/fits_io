@@ -1,5 +1,6 @@
 
 with Ada.Text_IO,
+     Ada.Float_Text_IO,
      FITS,
      FITS.File,
      System,
@@ -27,34 +28,35 @@ package body Commands.PNG is
    array (Natural range <>, Natural range <>) of pixval;
 
  -- RGB ('Truecolor') image
- subtype RGBpixval is Natural range 0 .. 2**(23-1);
+ subtype RGBpixval is Natural range 0 .. ((2**24) -1);
+ -- type RGBpixval is new Unsigned_32;
  type My_RGBImage_Handle is
    array (Natural range <>, Natural range <>) of RGBpixval;
+
 
  function Scale_FITS_Float32_To_PNG_Int8
           (Min : in Interfaces.IEEE_Float_32;
            Max : in Interfaces.IEEE_Float_32;
-           Val : in Interfaces.IEEE_Float_32) return Interfaces.IEEE_Float_32
+           Val : in Interfaces.IEEE_Float_32) return pixval
  is
-   PixelF32    : Interfaces.IEEE_Float_32;
-   MaxPixelF32 : constant Interfaces.IEEE_Float_32
-                          := Interfaces.IEEE_Float_32(pixval'Last);
+   Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
  begin
-   PixelF32 := MaxPixelF32 * (Val - Min) / (Max - Min);
-   return PixelF32;
+   return pixval(255.0 * Factor);
  end Scale_FITS_Float32_To_PNG_Int8;
+
 
  function Scale_FITS_Float32_To_PNG_rgb24
           (Min : in Interfaces.IEEE_Float_32;
            Max : in Interfaces.IEEE_Float_32;
-           Val : in Interfaces.IEEE_Float_32) return Interfaces.IEEE_Float_32
+           Val : in Interfaces.IEEE_Float_32) return RGBpixval
  is
-   PixelF32    : Interfaces.IEEE_Float_32;
-   MaxPixelF32 : constant Interfaces.IEEE_Float_32
-                          := Interfaces.IEEE_Float_32(RGBpixval'Last);
+   Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
  begin
-   PixelF32 := MaxPixelF32 * (Val - Min) / (Max - Min);
-   return PixelF32;
+--     Ada.Float_Text_IO.Put(Float(MaxPixelF32), 2, 15, 3);
+--     Ada.Text_IO.New_Line;
+
+   -- Float(2**24 - 1) = 16777215.0
+   return RGBpixval(16777215.0 * Factor);
  end Scale_FITS_Float32_To_PNG_rgb24;
 
 
@@ -93,7 +95,6 @@ package body Commands.PNG is
    hi    : Natural := 0;
    Min : Interfaces.IEEE_Float_32;
    Max : Interfaces.IEEE_Float_32;
-   sd  : Interfaces.IEEE_Float_32;
  begin
 
   Find_MinMax_Float32(Data, Min, Max);
@@ -103,21 +104,7 @@ package body Commands.PNG is
   for dd of Data
    loop
 
-     sd := Scale_FITS_Float32_To_PNG_Int8(Min,Max, dd);
-     Img(hi,wi) := pixval(sd);
-
--- solution2: clipping at pixval limits:
---     sd := dd;
---     if sd >= IEEE_Float_32(pixval'First) and
---        sd <= IEEE_Float_32(pixval'Last)
---     then
---       Img(hi,wi) := pixval(sd);
---     elsif sd < IEEE_Float_32(pixval'First)
---     then
---       Img(hi,wi) := pixval'First;
---     else
---       Img(hi,wi) := pixval'Last;
---     end if;
+     Img(hi,wi) := Scale_FITS_Float32_To_PNG_Int8(Min,Max, dd);
 
      if wi = W-1 then
       hi := hi + 1;
@@ -139,7 +126,6 @@ package body Commands.PNG is
    hi    : Natural := 0;
    Min : Interfaces.IEEE_Float_32;
    Max : Interfaces.IEEE_Float_32;
-   sd  : Interfaces.IEEE_Float_32;
  begin
 
   Find_MinMax_Float32(Data, Min, Max);
@@ -149,8 +135,7 @@ package body Commands.PNG is
   for dd of Data
    loop
 
-     sd := Scale_FITS_Float32_To_PNG_rgb24(Min,Max, dd);
-     Img(hi,wi) := RGBpixval(sd);
+     Img(hi,wi) := Scale_FITS_Float32_To_PNG_rgb24(Min,Max, dd);
 
      if wi = W-1 then
       hi := hi + 1;
