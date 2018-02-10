@@ -243,7 +243,8 @@ package body Commands.PNG is
 
    begin
     Ada.Text_IO.Put_Line("Calling Write_2...");
-    Write_2(PngFileName, RGBImg, H, W); --, D, I, L); Last 3 params have defaults
+--    Write_2(PngFileName, RGBImg, H, W); --, D, I, L); Last 3 params have defaults
+    Write_2(PngFileName, RGBImg, H, W, Eight, False, Null_Chunk_List, No_Compression); --, D, I, L); Last 3 params have defaults
    end;
    --
    -- END write PNG file
