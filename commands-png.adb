@@ -141,8 +141,8 @@ package body Commands.PNG is
 
   for dd of Data
    loop
-
-     Img(hi,wi) := Scale_FITS_Float32_To_PNG_rgb24(Min,Max, dd);
+                                                                -- FIXME: overflow in zlib
+     Img(hi,wi) := Scale_FITS_Float32_To_PNG_rgb24(Min,Max, dd);--/5100; dividing by 5100 eliminates exception in zlib.adb:542
 
      if wi = W-1 then
       hi := hi + 1;
@@ -193,7 +193,7 @@ package body Commands.PNG is
 
  procedure Write_PNG_Truecolor
            (PngFileName : in String;
-            Img         : in My_RGBImage_Handle;
+            RGBImg      : in My_RGBImage_Handle;
             H,W         : in Positive)
  is
  begin
@@ -208,41 +208,42 @@ package body Commands.PNG is
    -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
    declare
 
-    function My_Red_Value(Img  : My_RGBImage_Handle;
-                          R, C : Coordinate) return pixval
+    function My_Red_Value(RGBImg  : My_RGBImage_Handle;
+                          R, C : Coordinate) return RGBpixval
       is
-       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+       U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
       begin
---       return Img(R,C);-- FIXME pick highest 8-bits & shift down
+--       return RGBImg(R,C);-- FIXME pick highest 8-bits & shift down
        -- somethig like: B : Unsigned_8
        -- Shift_Right(B,      7 - (K rem 8))  and 2#0000_0001#
-       -- B : Unsigned_32 := Unsigned_32(Img(R,C));
-       return pixval(Shift_Right(U32, 16) and 16#0000_00FF#);
+       -- B : Unsigned_32 := Unsigned_32(RGBImg(R,C));
+       return RGBpixval(Shift_Right(U32, 16) and 16#0000_00FF#);
       end My_Red_Value;
 
-    function My_Green_Value(Img : My_RGBImage_Handle;
-                            R, C  : Coordinate) return pixval
+    function My_Green_Value(RGBImg : My_RGBImage_Handle;
+                            R, C  : Coordinate) return RGBpixval
       is
-       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+       U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
       begin
---       return Img(R,C);-- FIXME pick middle 8-bits & shift down
-       return pixval(Shift_Right(U32,  8) and 16#0000_00FF#);
+--       return RGBImg(R,C);-- FIXME pick middle 8-bits & shift down
+       return RGBpixval(Shift_Right(U32,  8) and 16#0000_00FF#);
       end My_Green_Value;
 
-    function My_Blue_Value(Img : My_RGBImage_Handle;
-                           R, C : Coordinate) return pixval
+    function My_Blue_Value(RGBImg : My_RGBImage_Handle;
+                           R, C : Coordinate) return RGBpixval
       is
-       U32 : Unsigned_32 := Unsigned_32(Img(R,C));
+       U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
       begin
---       return Img(R,C);-- FIXME pick lowest 8-bits
-       return pixval(U32 and 16#0000_00FF#);
+--       return RGBImg(R,C);-- FIXME pick lowest 8-bits
+       return RGBpixval(U32 and 16#0000_00FF#);
       end My_Blue_Value;
 
-    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Handle, pixval,
+    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Handle, RGBpixval,
                                               My_Red_Value, My_Green_Value, My_Blue_Value);
 
    begin
-    Write_2(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
+    Ada.Text_IO.Put_Line("Calling Write_2...");
+    Write_2(PngFileName, RGBImg, H, W); --, D, I, L); Last 3 params have defaults
    end;
    --
    -- END write PNG file
@@ -307,8 +308,8 @@ package body Commands.PNG is
         end if;
 
         -- Write Greyscale Image
-        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
-        Write_PNG_GreyScale(PngFileName,Img,W,H);
+        --Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
+        --Write_PNG_GreyScale(PngFileName,Img,W,H);
 
         -- Write Truecolor Image
         Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, RGBImg, W);
