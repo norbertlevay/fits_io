@@ -61,7 +61,7 @@ package body Commands.PNG is
  is
    Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
  begin
-   return RGBpixval(RGBpixval_Last * Factor);
+   return RGBpixval(RGBpixval_Last * Factor) and 16#00FF_FFFF#;
  end Scale_FITS_Float32_To_PNG_rgb24;
 
  -- FIXME see [FITS] 8bit BITPIX type is UNSIGNED.
