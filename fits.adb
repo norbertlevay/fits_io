@@ -9,6 +9,9 @@ with Ada.Unchecked_Conversion;
 with Interfaces;
 use  Interfaces;
 
+with System;
+use  System;
+
 package body FITS is
 
    --
@@ -191,6 +194,54 @@ package body FITS is
      end loop;
 
    end Endianness_Float32;
+
+
+
+   procedure Float32Arr_Write
+             (S      : access Ada.Streams.Root_Stream_Type'Class;
+              F32Arr : in Float32Arr_Type)
+   is
+     type MyFloat is new Interfaces.IEEE_Float_32;
+     type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
+
+     function MyFloat_To_Arr is
+       new Ada.Unchecked_Conversion(Source => MyFloat, Target => Arr4xU8);
+     function Arr_To_MyFloat is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
+
+     procedure SwapBytes(arr : in out Arr4xU8) is
+      temp : Arr4xU8;
+     begin
+      temp(1) := arr(4);
+      temp(2) := arr(3);
+      temp(3) := arr(2);
+      temp(4) := arr(1);
+      arr := temp;
+     end SwapBytes;
+
+     aaaa : Arr4xU8;
+     FBuff : MyFloat;
+   begin
+
+     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+     then
+
+       for I in F32Arr'Range
+        loop
+         aaaa := MyFloat_To_Arr(MyFloat(F32Arr(I)));
+         SwapBytes(aaaa);
+         FBuff := Arr_To_MyFloat(aaaa);
+         MyFloat'Write(S, FBuff);
+       end loop;
+
+     else
+
+       Float32Arr_Type'Write(S,F32Arr);
+
+     end if;
+
+   end Float32Arr_Write;
+
 
    -- find minimum and maximum value of the Float32 data array
    procedure Find_MinMax_Float32

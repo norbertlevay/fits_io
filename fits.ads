@@ -32,6 +32,7 @@
 --
 
 with Interfaces;
+with Ada.Streams.Stream_IO;
 with System.Storage_Elements; use System.Storage_Elements;
 
 with FitsFloat;
@@ -145,9 +146,20 @@ package FITS is
    type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
+
+   -- Endianness
+   -- [FITS] Float32/64 are always BigEndian
+   -- Write: if machine not BigEndian swap bytes in all Floats of the array
+   procedure Float32Arr_Write
+              (S :  access Ada.Streams.Root_Stream_Type'Class;
+              F32Arr : in Float32Arr_Type);
+   for Float32Arr_Type'Write use Float32Arr_Write;
+   -- FIXME redefi of Write attrib should on Float_32 type itself; not the array
+
    procedure Endianness_Float32( F32Arr : in out Float32Arr_Type );
     -- For each Float32 in the array, reverses order of the 4 bytes
     -- within one Float32
+    -- Finish Endianness section
 
    procedure Find_MinMax_Float32
               (F32Arr : in  Float32Arr_Type;
