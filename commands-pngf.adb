@@ -27,9 +27,15 @@ use  Interfaces;
 
 package body Commands.PNGf is
 
+ -- grey 8bit image
+ Depth : PNG_IO.Depth := Eight;
+ subtype TPixVal16 is Natural range 0 .. 255; -- 2**8 - 1
+ TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 255.0;
+
+ -- Depth : PNG_IO.Depth := Sixteen;
  -- grey 16bit image
- subtype TPixVal16 is Natural range 0 .. 65535; -- 2**16 - 1
- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
+-- subtype TPixVal16 is Natural range 0 .. 65535; -- 2**16 - 1
+-- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
 
  type My_Image_Handle is
   record
@@ -201,7 +207,7 @@ package body Commands.PNGf is
 
      if DataType = Float32 then
 
-        Write_0(PngFileName,FITS_Data,W,H);
+        Write_0(PngFileName,FITS_Data,W,H,Depth);
         -- internally calls:
         -- My_Grea_Sample(FitsFile, R,C) return UInt16bit
 
