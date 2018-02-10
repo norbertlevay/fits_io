@@ -18,18 +18,27 @@ use  PNG_IO;
 with Interfaces;
 use  Interfaces;
 
+-- Note: print Float with 2 digits in front, 15 digits after decimal, 3 digits exponent
+--     Ada.Float_Text_IO.Put(Float(MaxPixelF32), 2, 15, 3);
+--     Ada.Text_IO.New_Line;
+-- Note: Conversion of Unsigned_32'Last (2**32-1) to Float yields value bigger by one (2**32) !!??
+
 
 package body Commands.PNG is
 
  -- grey (8bit) image
  subtype pixval is Natural range 0 .. 255;
  -- subtype pixval is Integer range 0 .. 65535;
+ pixval_Last : constant Interfaces.IEEE_Float_32 := 255.0;
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
 
  -- RGB ('Truecolor') image
- subtype RGBpixval is Natural range 0 .. ((2**24) -1);
- -- type RGBpixval is new Unsigned_32;
+ -- FIXME which type def : 32bit or 24bit for storage ? (Max value is always 24bit)
+ -- subtype RGBpixval is Natural range 0 .. ((2**24) -1);
+ -- ! In any case Last valid value for scaling is: Float(2**24 - 1) = 16777215.0
+ type RGBpixval is new Unsigned_32;
+ RGBpixval_Last : constant Interfaces.IEEE_Float_32 := 16777215.0;
  type My_RGBImage_Handle is
    array (Natural range <>, Natural range <>) of RGBpixval;
 
@@ -41,7 +50,7 @@ package body Commands.PNG is
  is
    Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
  begin
-   return pixval(255.0 * Factor);
+   return pixval(pixval_Last * Factor);
  end Scale_FITS_Float32_To_PNG_Int8;
 
 
@@ -52,11 +61,7 @@ package body Commands.PNG is
  is
    Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
  begin
---     Ada.Float_Text_IO.Put(Float(MaxPixelF32), 2, 15, 3);
---     Ada.Text_IO.New_Line;
-
-   -- Float(2**24 - 1) = 16777215.0
-   return RGBpixval(16777215.0 * Factor);
+   return RGBpixval(RGBpixval_Last * Factor);
  end Scale_FITS_Float32_To_PNG_rgb24;
 
 
