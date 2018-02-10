@@ -28,14 +28,14 @@ use  Interfaces;
 package body Commands.PNGf is
 
  -- grey 8bit image
- Depth : PNG_IO.Depth := Eight;
- subtype TPixVal16 is Natural range 0 .. 255; -- 2**8 - 1
- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 255.0;
+-- Depth : PNG_IO.Depth := Eight;
+-- subtype TPixVal16 is Natural range 0 .. 255; -- 2**8 - 1
+-- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 255.0;
 
- -- Depth : PNG_IO.Depth := Sixteen;
  -- grey 16bit image
--- subtype TPixVal16 is Natural range 0 .. 65535; -- 2**16 - 1
--- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
+ Depth : PNG_IO.Depth := Sixteen;
+ subtype TPixVal16 is Natural range 0 .. 65535; -- 2**16 - 1
+ TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
 
  type My_Image_Handle is
   record
