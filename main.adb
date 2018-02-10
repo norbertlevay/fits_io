@@ -3,6 +3,7 @@ with
     Build_Date,
     Commands,
     Commands.PNG,
+    Commands.PNGf,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -17,7 +18,6 @@ with
 use
     Options,
     Commands,
-    Commands.PNG,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Strings.Unbounded,
@@ -176,7 +176,7 @@ procedure main is
       PlaneNum     : Positive := Positive'Value(
                                  To_String(Known_Options(plane).Value));
     begin
-      FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
+      PNGf.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
       Next := Next + 1;
     end;
    end loop;
