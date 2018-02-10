@@ -35,8 +35,8 @@ package body Commands.PNG is
 
  -- RGB ('Truecolor') image
  -- FIXME which type def : 32bit or 24bit for storage ? (Max value is always 24bit)
- -- subtype RGBpixval is Natural range 0 .. ((2**24) -1);
  -- ! In any case Last valid value for scaling is: Float(2**24 - 1) = 16777215.0
+ -- subtype RGBpixval is Natural range 0 .. ((2**24) -1);
  type RGBpixval is new Unsigned_32;
  RGBpixval_Last : constant Interfaces.IEEE_Float_32 := 16777215.0;
  type My_RGBImage_Handle is
@@ -64,7 +64,9 @@ package body Commands.PNG is
    return RGBpixval(RGBpixval_Last * Factor);
  end Scale_FITS_Float32_To_PNG_rgb24;
 
-
+ -- FIXME see [FITS] 8bit BITPIX type is UNSIGNED.
+ -- All other FITS-integer types are signed. If those need unsigned range,
+ -- an offset (BZERO key?) needs to be applied on them.
  procedure Convert_FITS_Int8_To_PNG_Int8
            (Data : in  Int8Arr_Type;    -- FITS data
             Img  : out My_Image_Handle; -- PNG pixels (the image)
