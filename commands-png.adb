@@ -33,6 +33,8 @@ package body Commands.PNG is
  type My_Image_Handle is
    array (Natural range <>, Natural range <>) of pixval;
 
+ type My_Image_Ptr is access My_Image_Handle;
+
  -- RGB ('Truecolor') image
  -- FIXME which type def : 32bit or 24bit for storage ? (Max value is always 24bit)
  -- ! In any case Last valid value for scaling is: Float(2**24 - 1) = 16777215.0
@@ -41,6 +43,8 @@ package body Commands.PNG is
  RGBpixval_Last : constant Interfaces.IEEE_Float_32 := 16777215.0;
  type My_RGBImage_Handle is
    array (Natural range <>, Natural range <>) of RGBpixval;
+
+ type My_RGBImage_Ptr is access My_RGBImage_Handle;
 
 
  function Scale_FITS_Float32_To_PNG_Int8
@@ -69,7 +73,8 @@ package body Commands.PNG is
  -- an offset (BZERO key?) needs to be applied on them.
  procedure Convert_FITS_Int8_To_PNG_Int8
            (Data : in  Int8Arr_Type;    -- FITS data
-            Img  : out My_Image_Handle; -- PNG pixels (the image)
+            Img  : in out My_Image_Ptr; -- PNG pixels (the image)
+         --   Img  : out My_Image_Handle; -- PNG pixels (the image)
             W    : in  Natural)         -- Image/Data width
  is
   wi    : Natural := 0;
@@ -95,7 +100,8 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_Int8
            (Data : in  Float32Arr_Type; -- FITS data
-            Img  : out My_Image_Handle; -- PNG pixels (the image)
+--            Img  : out My_Image_Handle; -- PNG pixels (the image)
+            Img  : in out My_Image_Ptr; -- PNG pixels (the image)
             W    : in  Natural)         -- Image/Data width
  is
    wi    : Natural := 0;
@@ -126,7 +132,8 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_rgb24
            (Data : in  Float32Arr_Type; -- FITS data
-            Img  : out My_RGBImage_Handle; -- PNG pixels (the image)
+--            Img  : out My_RGBImage_Handle; -- PNG pixels (the image)
+            Img  : in out My_RGBImage_Ptr; -- PNG pixels (the image)
             W    : in  Natural)         -- Image/Data width
  is
    wi    : Natural := 0;
@@ -157,7 +164,8 @@ package body Commands.PNG is
 
  procedure Write_PNG_Greyscale
            (PngFileName : in String;
-            Img         : in My_Image_Handle;
+            Img         : in My_Image_Ptr;
+--            Img         : in My_Image_Handle;
             H,W         : in Positive)
  is
  begin
@@ -172,14 +180,16 @@ package body Commands.PNG is
    -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
    declare
 
-    function My_Grey_Sample(I    : My_Image_Handle;
+--    function My_Grey_Sample(I    : My_Image_Handle;
+    function My_Grey_Sample(I    : My_Image_Ptr;
                             R, C : Coordinate) return pixval is
       begin
 --       Ada.Text_IO.Put_Line(Coordinate'Image(R) & " x " & Coordinate'Image(C));
        return I(R,C);
       end My_Grey_Sample;
 
-    procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, pixval, My_Grey_Sample);
+--    procedure Write_0 is new Write_PNG_Type_0(My_Image_Handle, pixval, My_Grey_Sample);
+    procedure Write_0 is new Write_PNG_Type_0(My_Image_Ptr, pixval, My_Grey_Sample);
 
    begin
     Write_0(PngFileName, Img, H, W, Eight); --, D, I, L); Last 3 params have defaults
@@ -193,7 +203,8 @@ package body Commands.PNG is
 
  procedure Write_PNG_Truecolor
            (PngFileName : in String;
-            RGBImg      : in My_RGBImage_Handle;
+--            RGBImg      : in My_RGBImage_Handle;
+            RGBImg      : in My_RGBImage_Ptr;
             H,W         : in Positive)
  is
  begin
@@ -208,7 +219,8 @@ package body Commands.PNG is
    -- Read the long comment in: png_io.ads l.367 before generic decl of Write_PNG_Type_0
    declare
 
-    function My_Red_Value(RGBImg  : My_RGBImage_Handle;
+--    function My_Red_Value(RGBImg  : My_RGBImage_Handle;
+    function My_Red_Value(RGBImg  : My_RGBImage_Ptr;
                           R, C : Coordinate) return RGBpixval
       is
        U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
@@ -220,7 +232,8 @@ package body Commands.PNG is
        return RGBpixval(Shift_Right(U32, 16) and 16#0000_00FF#);
       end My_Red_Value;
 
-    function My_Green_Value(RGBImg : My_RGBImage_Handle;
+--    function My_Green_Value(RGBImg : My_RGBImage_Handle;
+    function My_Green_Value(RGBImg : My_RGBImage_Ptr;
                             R, C  : Coordinate) return RGBpixval
       is
        U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
@@ -229,7 +242,8 @@ package body Commands.PNG is
        return RGBpixval(Shift_Right(U32,  8) and 16#0000_00FF#);
       end My_Green_Value;
 
-    function My_Blue_Value(RGBImg : My_RGBImage_Handle;
+--    function My_Blue_Value(RGBImg : My_RGBImage_Handle;
+    function My_Blue_Value(RGBImg : My_RGBImage_Ptr;
                            R, C : Coordinate) return RGBpixval
       is
        U32 : Unsigned_32 := Unsigned_32(RGBImg(R,C));
@@ -238,7 +252,8 @@ package body Commands.PNG is
        return RGBpixval(U32 and 16#0000_00FF#);
       end My_Blue_Value;
 
-    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Handle, RGBpixval,
+--    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Handle, RGBpixval,
+    procedure Write_2 is new Write_PNG_Type_2(My_RGBImage_Ptr, RGBpixval,
                                               My_Red_Value, My_Green_Value, My_Blue_Value);
 
    begin
@@ -279,12 +294,20 @@ package body Commands.PNG is
      W : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
      H : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                   -- FIXME explicit cast!
-     Data : DataArray_Type( DataType, W*H );
+     --DataD : DataArray_Type( DataType, W*H );
         -- holds data from FITS-file
-     Img  : My_Image_Handle(0..(W-1), 0..(H-1));
+
+     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
+     Data : DataArray_Ptr := new DataArray_Type( DataType, W*H ) ;
+     -- will be freed automatically at exit from begin..end section
+
+     Img : My_Image_Ptr := new My_Image_Handle(0..(W-1), 0..(H-1));
+     --Img  : My_Image_Handle(0..(W-1), 0..(H-1));
         -- holds data for PNG image write
-     RGBImg  : My_RGBImage_Handle(0..(W-1), 0..(H-1));
+     RGBImg  : My_RGBImage_Ptr := new My_RGBImage_Handle(0..(W-1), 0..(H-1));
+     --RGBImg  : My_RGBImage_Handle(0..(W-1), 0..(H-1));
         -- holds data for PNG image write
+
      IdxPlaneNum : SIO.Count := SIO.Index(FitsFile)
                               + SIO.Count((PlaneNum-1)*(W*H*4));
                               -- FIXME Explicit conversion
@@ -297,7 +320,8 @@ package body Commands.PNG is
      -- skip planes before PlaneNum
      Ada.Streams.Stream_IO.Set_Index(FitsFile,IdxPlaneNum);
 
-     DataArray_Type'Read (SIO.Stream(FitsFile), Data);
+     DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
+--     DataArray_Ptr'Read (SIO.Stream(FitsFile), Data.all);
 
      if DataType = Float32 then
 
@@ -309,8 +333,8 @@ package body Commands.PNG is
         end if;
 
         -- Write Greyscale Image
-        --Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
-        --Write_PNG_GreyScale(PngFileName,Img,W,H);
+        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
+        Write_PNG_GreyScale(PngFileName,Img,W,H);
 
         -- Write Truecolor Image
         Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, RGBImg, W);
@@ -331,7 +355,7 @@ package body Commands.PNG is
 
    SIO.Close(FitsFile);
 
-  end; -- 1st declare
+  end; -- release Heap mem resorved in Declare
 
  end FITS_To_PNG;
 

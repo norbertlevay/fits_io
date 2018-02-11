@@ -176,7 +176,7 @@ procedure main is
       PlaneNum     : Positive := Positive'Value(
                                  To_String(Known_Options(plane).Value));
     begin
-      PNGf.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
+      PNG.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
       Next := Next + 1;
     end;
    end loop;
