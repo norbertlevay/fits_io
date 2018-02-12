@@ -254,8 +254,8 @@ procedure main is
       Put_Line(Error, "Exception_Information: ");
       Put_Line(Error, Exception_Information( Except_ID ) );
       New_Line(Error);
-      Put_Line(" > Trace-back of call stack: " );
-      Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
+--      Put_Line(" > Trace-back of call stack: " );
+--      Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
       -- See more at: http://compgroups.net/comp.lang.ada/gnat-symbolic-traceback-on-exceptions/1409155#sthash.lNdkTjq6.dpuf
       -- Do teh same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
