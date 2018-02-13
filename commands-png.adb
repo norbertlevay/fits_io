@@ -204,19 +204,14 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_Int8
            (Data : in     Float32Arr_Type;    -- FITS data
+            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Min    : Interfaces.IEEE_Float_32;
-   Max    : Interfaces.IEEE_Float_32;
    Factor : Interfaces.IEEE_Float_32;
  begin
-
-  Find_MinMax_Float32(Data, Min, Max);
-  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
-  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
 
@@ -238,19 +233,14 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_Int16
            (Data : in     Float32Arr_Type;     -- FITS data
+            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)             -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Min    : Interfaces.IEEE_Float_32;
-   Max    : Interfaces.IEEE_Float_32;
    Factor : Interfaces.IEEE_Float_32;
  begin
-
-  Find_MinMax_Float32(Data, Min, Max);
-  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
-  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
 
@@ -272,26 +262,22 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_rgb24
            (Data : in     Float32Arr_Type;    -- FITS data
+            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
 -- FIXME img should be IN or OUT or IN OUT ? It is a pointer type
             Img  : in out RGBImage_24bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Min    : Interfaces.IEEE_Float_32;
-   Max    : Interfaces.IEEE_Float_32;
    Factor : Interfaces.IEEE_Float_32;
    flast  : Interfaces.IEEE_Float_32 :=
             Interfaces.IEEE_Float_32(RGBPixel_24bit_Type'Last);
  begin
 
-  Find_MinMax_Float32(Data, Min, Max);
-  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
-  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
-
-  Ada.Float_Text_IO.Put(Float(flast),2,15,3);
-  Ada.Float_Text_IO.Put(Float(RGBPixel_24bit_Type_Last),2,15,3);
-  Ada.Text_IO.New_Line;
+-- debug: suspect rounding incorrect for 'flast'
+--  Ada.Float_Text_IO.Put(Float(flast),2,15,3);
+--  Ada.Float_Text_IO.Put(Float(RGBPixel_24bit_Type_Last),2,15,3);
+--  Ada.Text_IO.New_Line;
 
   factor :=  (RGBPixel_24bit_Type_Last-1.0) / (Max - Min);
   -- FIXME needs -1.0 otherwise overflow error
@@ -338,6 +324,8 @@ package body Commands.PNG is
      W        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
      H        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                           -- FIXME explicit cast!
+     Min    : Interfaces.IEEE_Float_32;
+     Max    : Interfaces.IEEE_Float_32;
 
      -- below Data and Img's are on Heap (instead of Stack)
      -- due to their size: we read into memory all FITS DataUnit
@@ -372,6 +360,7 @@ package body Commands.PNG is
 
      DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
 
+
      if DataType = Float32 then
 
         -- [FITS App. E] defines BigEndian byte order for IEEE Float32
@@ -382,21 +371,25 @@ package body Commands.PNG is
           Endianness_Float32(Data.Float32Arr);
         end if;
 
+        Find_MinMax_Float32(Data.all.Float32Arr, Min, Max);
+        Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
+        Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
+
         -- Write  8bit Greyscale Image
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
+        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Min, Max, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
 
         -- Write 16bit Greyscale Image
         Img16 := new GreyImage_16bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_Int16(Data.Float32Arr, Img16, W);
+        Convert_FITS_Float32_To_PNG_Int16(Data.Float32Arr, Min, Max, Img16, W);
         Write_GreyImage_16bit(PngFileName&"_G16.png", Img16, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_16bit(Img16);
 
         -- Write Truecolor Image
         RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, RGBImg, W);
+        Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, Min, Max, RGBImg, W);
         Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W);
                            --  Eight, False, Null_Chunk_List, No_Compression);
         Free_RGBImage_24bit(RGBImg);
