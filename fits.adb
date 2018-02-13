@@ -85,7 +85,7 @@ package body FITS is
     bp : FitsData_Type;
    begin
     case BITPIX is
-    when   8 => bp := Int8;
+    when   8 => bp := UInt8;
     when  16 => bp := Int16;
     when  32 => bp := Int32;
     when  64 => bp := Int64;

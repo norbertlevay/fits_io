@@ -60,8 +60,8 @@ procedure testfits is
    for I in Positive range 1 .. Data.Length
    loop
     case Data.FitsType is
-    when Int8 =>
-     Ada.Text_IO.Put( Interfaces.Integer_8'Image(Data.Int8Arr(I)) & " ");
+    when UInt8 =>
+     Ada.Text_IO.Put( Interfaces.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
     when Int16 =>
      Ada.Text_IO.Put( Interfaces.Integer_16'Image(Data.Int16Arr(I)) & " ");
     when Int32 =>

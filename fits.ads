@@ -136,9 +136,12 @@ package FITS is
    type CharArr_Type    is array ( Positive range <> ) of Character;
 
    -- Access DataUnit
-   type Int8Arr_Type    is array ( Positive range <> ) of Interfaces.Integer_8;-- <-- Fix this!!
-    -- FIXME [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED all others are SIGNED
-    -- Note: if unsigned needed for Int16..Int64 BZERO keyword is used to shift the value range
+
+    -- [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED
+    -- all others are SIGNED (see  Table 8)
+    -- If unsigned needed for Int16..Int64 BZERO keyword is used
+    -- to shift the value range (see Table 11)
+   type UInt8Arr_Type   is array ( Positive range <> ) of Interfaces.Unsigned_8;
    type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
    type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
    type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;
@@ -154,7 +157,7 @@ package FITS is
               (S :  access Ada.Streams.Root_Stream_Type'Class;
               F32Arr : in Float32Arr_Type);
    for Float32Arr_Type'Write use Float32Arr_Write;
-   -- FIXME redefi of Write attrib should on Float_32 type itself; not the array
+   -- FIXME redef of Write attrib should be on Float_32 type itself; not the array
 
    procedure Endianness_Float32( F32Arr : in out Float32Arr_Type );
     -- For each Float32 in the array, reverses order of the 4 bytes
@@ -169,7 +172,7 @@ package FITS is
 
    type FitsData_Type is
        (HBlock, Card, Char,        -- Header types
-        Int8, Int16, Int32,        -- DataUnit types
+        UInt8, Int16, Int32,        -- DataUnit types
         Int64, Float32, Float64);
          -- [FITS, Sect 4.4.1.1 Table 8]
 
@@ -182,7 +185,7 @@ package FITS is
        when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
        when Card  =>   CardArr    : CardArr_Type (1 .. Length);
        when Char  =>   CharArr    : CharArr_Type (1 .. Length);
-       when Int8  =>   Int8Arr    : Int8Arr_Type (1 .. Length);
+       when UInt8 =>   UInt8Arr   : UInt8Arr_Type(1 .. Length);
        when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
        when Int32 =>   Int32Arr   : Int32Arr_Type(1 .. Length);
        when Int64 =>   Int64Arr   : Int64Arr_Type(1 .. Length);
@@ -198,7 +201,7 @@ package FITS is
    pragma Pack (CardArr_Type);
    pragma Pack (CharArr_Type);
 
-   pragma Pack (Int8Arr_Type);
+   pragma Pack (UInt8Arr_Type);
    pragma Pack (Int16Arr_Type);
    pragma Pack (Int32Arr_Type);
    pragma Pack (Int64Arr_Type);

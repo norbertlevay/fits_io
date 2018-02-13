@@ -131,8 +131,8 @@ package body FITS.File is
      Size : FNatural;
    begin
    case dt is
-    when Int8 =>
-     Size := Interfaces.Integer_8'Size;
+    when UInt8 =>
+     Size := Interfaces.Unsigned_8'Size;
     when Int16 =>
      Size := Interfaces.Integer_16'Size;
     when Int32 =>

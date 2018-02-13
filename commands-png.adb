@@ -172,11 +172,11 @@ package body Commands.PNG is
 -- conversions from FITS data to PNG pixels
 --
 
- -- FIXME see [FITS] 8bit BITPIX type is UNSIGNED.
+ -- Note: see [FITS] 8bit BITPIX type is UNSIGNED.
  -- All other FITS-integer types are signed. If those need unsigned range,
  -- an offset (BZERO key?) needs to be applied on them.
- procedure Convert_FITS_Int8_To_PNG_Int8
-           (Data : in     Int8Arr_Type;       -- FITS data
+ procedure Convert_FITS_UInt8_To_PNG_Int8
+           (Data : in     UInt8Arr_Type;      -- FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
@@ -187,9 +187,8 @@ package body Commands.PNG is
   for dd of Data
   loop
 
-    Img(wi,hi) := GreyPixel_8bit_Type(dd) + 128;
+    Img(wi,hi) := GreyPixel_8bit_Type(dd);
                  -- FIXME explicit conversion
-                 -- from Interfaces.Integer_8 -> Standard.Integer
     if wi = W-1 then
      hi := hi + 1;
      wi := 0;
@@ -198,7 +197,7 @@ package body Commands.PNG is
     end if;
   end loop;
 
- end Convert_FITS_Int8_To_PNG_Int8;
+ end Convert_FITS_UInt8_To_PNG_Int8;
 
 
 
@@ -395,10 +394,10 @@ package body Commands.PNG is
                              -- No_Compression Best_Speed Best_Compression Default_Compression
         Free_RGBImage_24bit(RGBImg);
 
-     elsif DataType = Int8 then
+     elsif DataType = UInt8 then
 
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Int8_To_PNG_Int8(Data.Int8Arr, Img, W);
+        Convert_FITS_UInt8_To_PNG_Int8(Data.UInt8Arr, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
 
