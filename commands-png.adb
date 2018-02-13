@@ -175,7 +175,7 @@ package body Commands.PNG is
  -- Note: see [FITS] 8bit BITPIX type is UNSIGNED.
  -- All other FITS-integer types are signed. If those need unsigned range,
  -- an offset (BZERO key?) needs to be applied on them.
- procedure Convert_FITS_UInt8_To_PNG_Int8
+ procedure Convert_FITS_UInt8_To_PNG_8bit
            (Data : in     UInt8Arr_Type;      -- FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
@@ -197,11 +197,11 @@ package body Commands.PNG is
     end if;
   end loop;
 
- end Convert_FITS_UInt8_To_PNG_Int8;
+ end Convert_FITS_UInt8_To_PNG_8bit;
 
 
 
- procedure Convert_FITS_Float32_To_PNG_Int8
+ procedure Convert_FITS_Float32_To_PNG_8bit
            (Data : in     Float32Arr_Type;    -- FITS data
             Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
@@ -227,10 +227,10 @@ package body Commands.PNG is
      end if;
    end loop;
 
- end Convert_FITS_Float32_To_PNG_Int8;
+ end Convert_FITS_Float32_To_PNG_8bit;
 
 
- procedure Convert_FITS_Float32_To_PNG_Int16
+ procedure Convert_FITS_Float32_To_PNG_16bit
            (Data : in     Float32Arr_Type;     -- FITS data
             Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
@@ -256,10 +256,10 @@ package body Commands.PNG is
      end if;
    end loop;
 
- end Convert_FITS_Float32_To_PNG_Int16;
+ end Convert_FITS_Float32_To_PNG_16bit;
 
 
- procedure Convert_FITS_Float32_To_PNG_rgb24
+ procedure Convert_FITS_Float32_To_PNG_24rgb
            (Data : in     Float32Arr_Type;    -- FITS data
             Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
 -- FIXME img should be IN or OUT or IN OUT ? It is a pointer type
@@ -296,7 +296,7 @@ package body Commands.PNG is
      end if;
    end loop;
 
- end Convert_FITS_Float32_To_PNG_rgb24;
+ end Convert_FITS_Float32_To_PNG_24rgb;
 
 
 
@@ -376,19 +376,19 @@ package body Commands.PNG is
 
         -- Write  8bit Greyscale Image
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Min, Max, Img, W);
+        Convert_FITS_Float32_To_PNG_8bit(Data.Float32Arr, Min, Max, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
 
         -- Write 16bit Greyscale Image
         Img16 := new GreyImage_16bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_Int16(Data.Float32Arr, Min, Max, Img16, W);
+        Convert_FITS_Float32_To_PNG_16bit(Data.Float32Arr, Min, Max, Img16, W);
         Write_GreyImage_16bit(PngFileName&"_G16.png", Img16, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_16bit(Img16);
 
         -- Write Truecolor Image
         RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, Min, Max, RGBImg, W);
+        Convert_FITS_Float32_To_PNG_24rgb(Data.Float32Arr, Min, Max, RGBImg, W);
         Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W);
                              -- Eight, False, Null_Chunk_List, Best_Compression);
                              -- No_Compression Best_Speed Best_Compression Default_Compression
@@ -397,7 +397,7 @@ package body Commands.PNG is
      elsif DataType = UInt8 then
 
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_UInt8_To_PNG_Int8(Data.UInt8Arr, Img, W);
+        Convert_FITS_UInt8_To_PNG_8bit(Data.UInt8Arr, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
 
