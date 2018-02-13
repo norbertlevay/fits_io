@@ -172,12 +172,16 @@ procedure main is
    while Next <= Argument_Count loop
     declare
       FitsFileName : String := Argument(Next);
-      PngFileName  : String := FitsFileName & ".png";
       PlaneNum     : Positive := Positive'Value(
                                  To_String(Known_Options(plane).Value));
+      PngFileName  : String := FitsFileName & "_P" &
+                     To_String(Known_Options(plane).Value) & ".png";
     begin
+      Ada.Text_IO.Put_Line(FitsFileName);
       PNG.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
+     -- PNGf.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
       Next := Next + 1;
+      Ada.Text_IO.New_Line;
     end;
    end loop;
 

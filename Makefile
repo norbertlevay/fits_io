@@ -29,6 +29,14 @@ debug:
 	gdb --batch --command=zlib.gdb --args ./fits png ngc6503.fits
 
 
+test:
+	rm *.png
+	./fits png $(shell ls *.fits)
+	./fits png --plane 2 WFPC2u5780205r_c0fx.fits
+	./fits png --plane 3 WFPC2u5780205r_c0fx.fits
+	./fits png --plane 4 WFPC2u5780205r_c0fx.fits
+	./fits png --plane 15 ngc6503.fits
+
 clean:
 	rm -f fits fitsio testfits testfits_dio testfits_io *.o *.ali build_date.* b~*.ad? b~*.ad?
 

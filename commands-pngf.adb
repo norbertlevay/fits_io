@@ -130,7 +130,7 @@ package body Commands.PNGf is
     -- here Offset = CalcOffset_Float32Arr(R,C);
     -- SIO.Set_Index(FITS_Data.FitsFile, FITS_Data.DUStart + Offset )
 
-    Ada.Text_IO.Put(Count'Image(Index(FITS_Data.FitsFile)));
+--    Ada.Text_IO.Put(Count'Image(Index(FITS_Data.FitsFile)));
     Interfaces.IEEE_Float_32'Read (SIO.Stream(FITS_Data.FitsFile), Data);
 
     -- [FITS App. E] defines BigEndian byte order for IEEE Float32
@@ -140,13 +140,13 @@ package body Commands.PNGf is
       Reverse_Float32(Data);
     end if;
 
-     Ada.Text_IO.Put(" [" & Coordinate'Image(R) & "," & Coordinate'Image(C)&"] ");
-     Ada.Float_Text_IO.Put(Float(Data), 2, 15, 3);
+--     Ada.Text_IO.Put(" [" & Coordinate'Image(R) & "," & Coordinate'Image(C)&"] ");
+--     Ada.Float_Text_IO.Put(Float(Data), 2, 15, 3);
 
     D16 := Scale_FITS_Float32_To_PNG_UInt16(FITS_Data.Min,FITS_Data.Max, Data);
 
-     Ada.Text_IO.Put(" -> " & TPixVal16'Image(D16));
-     Ada.Text_IO.New_Line;
+--     Ada.Text_IO.Put(" -> " & TPixVal16'Image(D16));
+--     Ada.Text_IO.New_Line;
 
     return D16;
   end My_Grey_Sample;
