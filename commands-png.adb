@@ -69,6 +69,21 @@ package body Commands.PNG is
 
  GreyPixel_8bit_Type_Last : constant Interfaces.IEEE_Float_32 := 255.0;
 
+ -- grey (16bit) image
+
+ type GreyPixel_16bit_Type is new Interfaces.Unsigned_16;
+
+ type GreyImage_16bit_Type is
+   array (Natural range <>, Natural range <>) of GreyPixel_16bit_Type;
+ type GreyImage_16bit_Ptr is access GreyImage_16bit_Type;
+
+ procedure Free_GreyImage_16bit is
+   new Ada.Unchecked_Deallocation
+      (Object => GreyImage_16bit_Type,
+       Name   => GreyImage_16bit_Ptr);
+
+ GreyPixel_16bit_Type_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
+
  -- RGB (24bit 'Truecolor') image
 
  type RGBPixel_24bit_Type is new Interfaces.Unsigned_24;
@@ -87,20 +102,35 @@ package body Commands.PNG is
 
  -- instantiate Write-funcs for above types (from the package PNG_IO)
 
- -- write greyscale image
+ -- write 8bit greyscale image
 
- function My_Grey_Sample(I    : GreyImage_8bit_Ptr;
-                         R, C : Coordinate) return GreyPixel_8bit_Type
+ function My_Grey8_Sample(I    : GreyImage_8bit_Ptr;
+                          R, C : Coordinate) return GreyPixel_8bit_Type
  is
  begin
    return I(R,C);
- end My_Grey_Sample;
+ end My_Grey8_Sample;
 
  procedure Write_GreyImage_8bit is
    new Write_PNG_Type_0
        (GreyImage_8bit_Ptr,  -- image pixels
         GreyPixel_8bit_Type, -- pixel type
-        My_Grey_Sample);     -- func returns pixel for given [row, column]
+        My_Grey8_Sample);     -- func returns pixel for given [row, column]
+
+ -- write 16bit greyscale image
+
+ function My_Grey16_Sample(I    : GreyImage_16bit_Ptr;
+                           R, C : Coordinate) return GreyPixel_16bit_Type
+ is
+ begin
+   return I(R,C);
+ end My_Grey16_Sample;
+
+ procedure Write_GreyImage_16bit is
+   new Write_PNG_Type_0
+       (GreyImage_16bit_Ptr,  -- image pixels
+        GreyPixel_16bit_Type, -- pixel type
+        My_Grey16_Sample);     -- func returns pixel for given [row, column]
 
  -- write RGB 'Truecolor' image
 
@@ -171,6 +201,7 @@ package body Commands.PNG is
  end Convert_FITS_Int8_To_PNG_Int8;
 
 
+
  procedure Convert_FITS_Float32_To_PNG_Int8
            (Data : in     Float32Arr_Type;    -- FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
@@ -203,6 +234,40 @@ package body Commands.PNG is
    end loop;
 
  end Convert_FITS_Float32_To_PNG_Int8;
+
+
+ procedure Convert_FITS_Float32_To_PNG_Int16
+           (Data : in     Float32Arr_Type;     -- FITS data
+            Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
+            W    : in     Natural)             -- Image/Data width
+ is
+   wi    : Natural := 0;
+   hi    : Natural := 0;
+   Min    : Interfaces.IEEE_Float_32;
+   Max    : Interfaces.IEEE_Float_32;
+   Factor : Interfaces.IEEE_Float_32;
+ begin
+
+  Find_MinMax_Float32(Data, Min, Max);
+  Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
+  Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
+
+  Factor := GreyPixel_16bit_Type_Last / (Max - Min);
+
+  for Val of Data
+   loop
+
+     Img.all(hi,wi) := GreyPixel_16bit_Type(Factor * (Val - Min));
+
+     if wi = W-1 then
+      hi := hi + 1;
+      wi := 0;
+     else
+      wi := wi + 1;
+     end if;
+   end loop;
+
+ end Convert_FITS_Float32_To_PNG_Int16;
 
 
  procedure Convert_FITS_Float32_To_PNG_rgb24
@@ -287,6 +352,9 @@ package body Commands.PNG is
      Img    : GreyImage_8bit_Ptr;
      -- holds data for PNG image write
 
+     Img16  : GreyImage_16bit_Ptr;
+     -- holds data for PNG image write
+
      RGBImg : RGBImage_24bit_Ptr;
      -- holds data for PNG RGBimage write
 
@@ -314,11 +382,17 @@ package body Commands.PNG is
           Endianness_Float32(Data.Float32Arr);
         end if;
 
-        -- Write Greyscale Image
+        -- Write  8bit Greyscale Image
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
         Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
+
+        -- Write 16bit Greyscale Image
+        Img16 := new GreyImage_16bit_Type(0..(W-1), 0..(H-1));
+        Convert_FITS_Float32_To_PNG_Int16(Data.Float32Arr, Img16, W);
+        Write_GreyImage_16bit(PngFileName&"_G16.png", Img16, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
+        Free_GreyImage_16bit(Img16);
 
         -- Write Truecolor Image
         RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
