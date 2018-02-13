@@ -1,6 +1,7 @@
 
 with Ada.Text_IO,
      Ada.Float_Text_IO,
+     Ada.Unchecked_Deallocation,
      FITS,
      FITS.File,
      System,
@@ -56,18 +57,30 @@ package body Commands.PNG is
  -- grey (8bit) image
 
  type GreyPixel_8bit_Type is new Interfaces.Unsigned_8;
+
  type GreyImage_8bit_Type is
    array (Natural range <>, Natural range <>) of GreyPixel_8bit_Type;
  type GreyImage_8bit_Ptr is access GreyImage_8bit_Type;
+
+ procedure Free_GreyImage_8bit is
+   new Ada.Unchecked_Deallocation
+      (Object => GreyImage_8bit_Type,
+       Name   => GreyImage_8bit_Ptr);
 
  GreyPixel_8bit_Type_Last : constant Interfaces.IEEE_Float_32 := 255.0;
 
  -- RGB (24bit 'Truecolor') image
 
  type RGBPixel_24bit_Type is new Interfaces.Unsigned_24;
+
  type RGBImage_24bit_Type is
    array (Natural range <>, Natural range <>) of RGBPixel_24bit_Type;
  type RGBImage_24bit_Ptr is access RGBImage_24bit_Type;
+
+ procedure Free_RGBImage_24bit is
+   new Ada.Unchecked_Deallocation
+      (Object => RGBImage_24bit_Type,
+       Name   => RGBImage_24bit_Ptr);
 
  RGBPixel_24bit_Type_Last : constant Interfaces.IEEE_Float_32 := 16777215.0;
 
@@ -261,17 +274,20 @@ package body Commands.PNG is
      H        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                           -- FIXME explicit cast!
 
-     -- below all 3 new heap memory allocations
-     -- will be freed automatically at exit from begin..end section
+     -- below Data and Img's are on Heap (instead of Stack)
+     -- due to their size: we read into memory all FITS DataUnit
+     -- and we rely on virtual memory to have
+     -- enough space in case of big files
 
      type DataArray_Ptr is access DataArray_Type( DataType, W*H );
      Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
      -- holds data from FITS-file
+     -- will be de-alloc at exit from begin .. end section
 
-     Img    : GreyImage_8bit_Ptr := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
+     Img    : GreyImage_8bit_Ptr;
      -- holds data for PNG image write
 
-     RGBImg : RGBImage_24bit_Ptr := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
+     RGBImg : RGBImage_24bit_Ptr;
      -- holds data for PNG RGBimage write
 
      IdxPlaneNum : SIO.Count := SIO.Index(FitsFile)
@@ -283,7 +299,7 @@ package body Commands.PNG is
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
 
-     -- skip planes before PlaneNum
+     -- skip planes up to PlaneNum
      Ada.Streams.Stream_IO.Set_Index(FitsFile,IdxPlaneNum);
 
      DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
@@ -292,24 +308,31 @@ package body Commands.PNG is
 
         -- [FITS App. E] defines BigEndian byte order for IEEE Float32
         -- reverse byte order if system is LittleEndian
+        -- FIXME this should be implemented in IEEE_Float32'Write and 'Read attribs
         if System.Default_Bit_Order = System.LOW_ORDER_FIRST
         then
           Endianness_Float32(Data.Float32Arr);
         end if;
 
         -- Write Greyscale Image
+        Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
         Convert_FITS_Float32_To_PNG_Int8(Data.Float32Arr, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
+        Free_GreyImage_8bit(Img);
 
         -- Write Truecolor Image
+        RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
         Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, RGBImg, W);
-        Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W,
-                             Eight, False, Null_Chunk_List, No_Compression);
+        Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W);
+                           --  Eight, False, Null_Chunk_List, No_Compression);
+        Free_RGBImage_24bit(RGBImg);
 
      elsif DataType = Int8 then
 
+        Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
         Convert_FITS_Int8_To_PNG_Int8(Data.Int8Arr, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
+        Free_GreyImage_8bit(Img);
 
      else
 
@@ -321,7 +344,7 @@ package body Commands.PNG is
 
    SIO.Close(FitsFile);
 
-  end; -- release all Heap memory alloc made after begin
+  end; -- release all Heap memory alloc made in declare .. begin ...
 
  end FITS_To_PNG;
 
