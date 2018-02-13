@@ -391,7 +391,8 @@ package body Commands.PNG is
         RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
         Convert_FITS_Float32_To_PNG_rgb24(Data.Float32Arr, Min, Max, RGBImg, W);
         Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W);
-                           --  Eight, False, Null_Chunk_List, No_Compression);
+                             -- Eight, False, Null_Chunk_List, Best_Compression);
+                             -- No_Compression Best_Speed Best_Compression Default_Compression
         Free_RGBImage_24bit(RGBImg);
 
      elsif DataType = Int8 then
