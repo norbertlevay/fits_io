@@ -36,19 +36,20 @@ package FITS.Block_IO is
       array ( 1 .. BlockSize_bits / Data_Type'Size ) of Data_Type;
     pragma Pack (DataBlock_Type);
 
-   private
-
-    procedure Revert_Bytes( Data : in out Data_Type );
-
     procedure Write_BigEndian
      		(S    : access Ada.Streams.Root_Stream_Type'Class;
               	 Data : in Data_Type );
+   private
+    procedure Revert_Bytes( Data : in out Data_Type );
    end DataBlock;
 
 
 private
 
-
+    procedure Write_BigEndian_Float32
+     		(S    : access Ada.Streams.Root_Stream_Type'Class;
+              	 Data : in Float_32 );
+    for Float_32'Write use Write_BigEndian_Float32;
 
 ----------------------------------------------------
 -- examples if DataBlock_Type would be instatioated

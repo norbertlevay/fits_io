@@ -46,6 +46,13 @@ package body DataBlock is
 
 end DataBlock;
 
-
+    procedure Write_BigEndian_Float32
+     		(S    : access Ada.Streams.Root_Stream_Type'Class;
+              	 Data : in Float_32 )
+    is
+      package Float32 is new DataBlock(Float_32);
+    begin
+      Float32.Write_BigEndian(S,Data);
+    end Write_BigEndian_Float32;
 end FITS.Block_IO;
 
