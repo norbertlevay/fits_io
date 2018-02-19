@@ -77,30 +77,6 @@ package body FITS is
    end Free_Card_Slots;
    pragma Inline (Free_Card_Slots);
 
-   --
-   -- convert BITPIX keyword from Header to internal FitsData_Type
-   --
---   function  To_FitsDataType (BITPIX : in Integer) return FitsData_Type
---   is
---    bp : FitsData_Type;
---   begin
---    case BITPIX is
---    when   8 => bp := UInt8;
---    when  16 => bp := Int16;
---    when  32 => bp := Int32;
---    when  64 => bp := Int64;
---    when -32 => bp := Float32;
---    when -64 => bp := Float64;
---    when others =>
---     null;
-     -- FIXME raise exception "out of range"
-     -- BITPIX is read from file, can be "whatever"
---    end case;
---    return bp;
---   end To_FITSDataType;
-   -- we need to separate BITPIX and FitsData_Type definition because
-   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
-
 
    -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
    -- and store parse value to DUSizeKeyVals

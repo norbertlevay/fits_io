@@ -124,33 +124,6 @@ package body FITS.File is
    end Parse_HeaderBlocks;
 
    --
-   -- conversion FIXME review why needed ??
-   --
---   function  FitsDataTypeSize_bits(dt : FitsData_Type) return FNatural
---   is
---     Size : FNatural;
---   begin
---   case dt is
---    when UInt8 =>
---     Size := Interfaces.Unsigned_8'Size;
---    when Int16 =>
---     Size := Interfaces.Integer_16'Size;
---    when Int32 =>
---     Size := Interfaces.Integer_32'Size;
---    when Int64 =>
---     Size := Interfaces.Integer_64'Size;
---    when Float32 =>
---     Size := Interfaces.IEEE_Float_32'Size;
---    when Float64 =>
---     Size := Interfaces.IEEE_Float_64'Size;
---    when others =>
---      null; -- FIXME exception or ?
---    end case;
---    return Size;
---   end FITSDataTypeSize_bits;
-
-
-   --
    -- Set file index to position given by params
    --
    procedure Set_Index (FitsFile : in SIO.File_Type;

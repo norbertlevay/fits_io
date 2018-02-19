@@ -35,8 +35,6 @@ with Interfaces;
 with Ada.Streams.Stream_IO;
 with System.Storage_Elements; use System.Storage_Elements;
 
-with FitsFloat;
-
 
 package FITS is
 
@@ -126,17 +124,40 @@ package FITS is
    procedure Free_Data_Slots (DataCnt :  in FPositive; FreeDataCnt: out Natural) is null;
    -- FIXME add (as function) later when needed: calc number of free data array slots to fill up DataBlock
 
-   ----------------------------------------------
-   -- HeaderUnit DataUnit types for Read/Write --
-   ----------------------------------------------
+   --------------------------------
+   -- Heade types for Read/Write --
+   --------------------------------
 
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
 
    -- Access Header
+
    type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
    type CardArr_Type    is array ( Positive range <> ) of Card_Type;
    type CharArr_Type    is array ( Positive range <> ) of Character;
+
+   -- Header arrays
+
+   type FitsData_Type is
+       (HBlock, Card, Char);        -- Header types
+
+   type DataArray_Type ( FitsType : FitsData_Type ;
+                         Length   : Positive ) is
+     record
+       case FitsType is
+       when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
+       when Card  =>   CardArr    : CardArr_Type (1 .. Length);
+       when Char  =>   CharArr    : CharArr_Type (1 .. Length);
+      end case;
+     end record;
+
+   -- in file all data are packed
+   pragma Pack (HBlockArr_Type);
+   pragma Pack (CardArr_Type);
+   pragma Pack (CharArr_Type);
+   pragma Pack (DataArray_Type);
+
 
    -- Access DataUnit
 
@@ -165,61 +186,6 @@ package FITS is
 
    for Float_32'Read  use Float32_Read_BigEndian;
    for Float_32'Write use Float32_Write_BigEndian;
-
-
-   -- Data Unit arrays
-
---   type UInt8Arr_Type   is array ( Positive range <> ) of Unsigned_8;
---   type Int16Arr_Type   is array ( Positive range <> ) of Integer_16;
---   type Int32Arr_Type   is array ( Positive range <> ) of Integer_32;
---   type Int64Arr_Type   is array ( Positive range <> ) of Integer_64;
---   type Float32Arr_Type is array ( Positive range <> ) of Float_32;
---   type Float64Arr_Type is array ( Positive range <> ) of Float_64;
-
---   procedure Find_MinMax_Float32
---              (F32Arr : in  Float32Arr_Type;
---               Min    : out Float_32;
---               Max    : out Float_32);
-   -- find minimum and maximum value of the Float32 data array
-
-   type FitsData_Type is
-       (HBlock, Card, Char);        -- Header types
---        UInt8, Int16, Int32,        -- DataUnit types
---        Int64, Float32, Float64);
-         -- [FITS, Sect 4.4.1.1 Table 8]
-
---   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type;
-
-   type DataArray_Type ( FitsType : FitsData_Type ;
-                         Length   : Positive ) is
-     record
-       case FitsType is
-       when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
-       when Card  =>   CardArr    : CardArr_Type (1 .. Length);
-       when Char  =>   CharArr    : CharArr_Type (1 .. Length);
---       when UInt8 =>   UInt8Arr   : UInt8Arr_Type(1 .. Length);
---       when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
---       when Int32 =>   Int32Arr   : Int32Arr_Type(1 .. Length);
---       when Int64 =>   Int64Arr   : Int64Arr_Type(1 .. Length);
---       when Float32 => Float32Arr : Float32Arr_Type(1 .. Length);
---       when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
-      end case;
-     end record;
-
-
-
-   -- in file all data are packed
-   pragma Pack (HBlockArr_Type);
-   pragma Pack (CardArr_Type);
-   pragma Pack (CharArr_Type);
-
---   pragma Pack (UInt8Arr_Type);
---   pragma Pack (Int16Arr_Type);
---   pragma Pack (Int32Arr_Type);
---   pragma Pack (Int64Arr_Type);
---   pragma Pack (Float32Arr_Type);
---   pragma Pack (Float64Arr_Type);
-   pragma Pack (DataArray_Type);
 
 end FITS;
 

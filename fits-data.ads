@@ -47,7 +47,4 @@ package FITS.Data is
    pragma Pack (Float32Arr_Type);
    pragma Pack (Float64Arr_Type);
 
-
-
-
 end FITS.Data;
