@@ -119,7 +119,7 @@ begin
    FITS.Block_IO.Float32Block_Arr'Read(SIO.Stream(FitsFile), DataBlock);
 
    for I in DataBlock'Range loop
-     Ada.Text_IO.Put( FITS.Block_IO.Float_32'Image(DataBlock(I)) & " ");
+     Ada.Text_IO.Put( FITS.Float_32'Image(DataBlock(I)) & " ");
    end loop;
  end;
 

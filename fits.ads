@@ -110,8 +110,11 @@ package FITS is
    -----------------------
    -- Size computations --
    -----------------------
+   type Byte is mod 256;
+   for Byte'Size use 8;
+   -- [FITS] defines Byte as 8-bit
 
-   BlockSize_bits : constant FPositive := 2880*8; -- 23040 bits
+   BlockSize_bits : constant FPositive := 2880*Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
    function  Size_blocks (CardsCnt      : in FPositive   ) return FPositive;

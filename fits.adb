@@ -186,10 +186,6 @@ package body FITS is
 
    -- Endianness support
 
-   type Byte is mod 256;
-   for Byte'Size use 8;
-   -- [FITS] defines Byte as 8-bit
-
    generic
      type Data_Type is private;
    procedure Revert_Bytes( Data : in out Data_Type );
