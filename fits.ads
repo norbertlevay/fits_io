@@ -32,7 +32,7 @@
 -- PCOUNT & GCOUNT were meant for Random Groups [FITS Section 6]
 --
 
-with System.Storage_Elements; use System.Storage_Elements;
+--with System.Storage_Elements; use System.Storage_Elements;
 
 
 package FITS is

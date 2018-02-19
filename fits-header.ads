@@ -1,3 +1,9 @@
+--
+-- Notes:
+--
+-- FIXME make sure Ada Character type [Ada?][GNAT?]
+-- is of same size as FITS Standard [FITS?] header-character
+
 
 package FITS.Header is
 
