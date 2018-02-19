@@ -163,7 +163,7 @@ package body FITS is
    --  4->1 3->2 2->3 1->4
    procedure Endianness_Float32( F32Arr : in out Float32Arr_Type )
    is
-     type MyFloat is new Interfaces.IEEE_Float_32;
+     type MyFloat is new Float_32;
      type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
 
      function MyFloat_To_Arr is
@@ -189,7 +189,7 @@ package body FITS is
 
        aaaa := MyFloat_To_Arr(MyFloat(F32Arr(I)));
        SwapBytes(aaaa);
-       F32Arr(I) := Interfaces.IEEE_Float_32(Arr_To_MyFloat(aaaa));
+       F32Arr(I) := Float_32(Arr_To_MyFloat(aaaa));
 
      end loop;
 
@@ -201,7 +201,7 @@ package body FITS is
              (S      : access Ada.Streams.Root_Stream_Type'Class;
               F32Arr : in Float32Arr_Type)
    is
-     type MyFloat is new Interfaces.IEEE_Float_32;
+     type MyFloat is new Float_32;
      type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
 
      function MyFloat_To_Arr is
@@ -246,14 +246,14 @@ package body FITS is
    -- find minimum and maximum value of the Float32 data array
    procedure Find_MinMax_Float32
               (F32Arr : in  Float32Arr_Type;
-               Min    : out Interfaces.IEEE_Float_32;
-               Max    : out Interfaces.IEEE_Float_32)
+               Min    : out Float_32;
+               Max    : out Float_32)
    is
-     type MyFloat is new Interfaces.IEEE_Float_32;
+     type MyFloat is new Float_32;
    begin
 
-     Min := Interfaces.IEEE_Float_32'Large;
-     Max := Interfaces.IEEE_Float_32'Small;
+     Min := Float_32'Large;
+     Max := Float_32'Small;
 
      for D of F32Arr
       loop

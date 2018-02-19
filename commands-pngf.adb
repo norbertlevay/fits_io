@@ -30,33 +30,33 @@ package body Commands.PNGf is
  -- grey 8bit image
 -- Depth : PNG_IO.Depth := Eight;
 -- subtype TPixVal16 is Natural range 0 .. 255; -- 2**8 - 1
--- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 255.0;
+-- TPixVal16_Last : constant Float_32 := 255.0;
 
  -- grey 16bit image
  Depth : PNG_IO.Depth := Sixteen;
  subtype TPixVal16 is Natural range 0 .. 65535; -- 2**16 - 1
- TPixVal16_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
+ TPixVal16_Last : constant Float_32 := 65535.0;
 
  type My_Image_Handle is
   record
     FitsFile : SIO.File_Type;
     DUStart  : SIO.Count;
-    Min,Max  : Interfaces.IEEE_Float_32;
+    Min,Max  : Float_32;
   end record;
 
  procedure DU_MinMax(File     : in SIO.File_Type;
                      DUSize   : in Count;
-                     Min, Max : out Interfaces.IEEE_Float_32)
+                     Min, Max : out Float_32)
  is
    chunkSize : constant Count := 2880;
    ReadSize  : Count := 0;
    F32Arr : Float32Arr_Type(1 .. 2880/4);
-   locMin : Interfaces.IEEE_Float_32;
-   locMax : Interfaces.IEEE_Float_32;
+   locMin : Float_32;
+   locMax : Float_32;
  begin
 
-   Min := Interfaces.IEEE_Float_32'Large;
-   Max := Interfaces.IEEE_Float_32'Small;
+   Min := Float_32'Large;
+   Max := Float_32'Small;
 
 
    while ReadSize < DUSize
@@ -67,8 +67,8 @@ package body Commands.PNGf is
 
      Endianness_Float32( F32Arr );
 
-     locMin := Interfaces.IEEE_Float_32'Large;
-     locMax := Interfaces.IEEE_Float_32'Small;
+     locMin := Float_32'Large;
+     locMax := Float_32'Small;
      Find_MinMax_Float32(F32Arr,locMin,locMax);
 
      if locMin < Min then Min := locMin; end if;
@@ -80,20 +80,20 @@ package body Commands.PNGf is
 
 
  function Scale_FITS_Float32_To_PNG_UInt16
-          (Min : in Interfaces.IEEE_Float_32;
-           Max : in Interfaces.IEEE_Float_32;
-           Val : in Interfaces.IEEE_Float_32) return TPixVal16
+          (Min : in Float_32;
+           Max : in Float_32;
+           Val : in Float_32) return TPixVal16
  is
-   Factor : Interfaces.IEEE_Float_32 := (Val - Min) / (Max - Min);
+   Factor : Float_32 := (Val - Min) / (Max - Min);
  begin
    return TPixVal16(TPixVal16_Last * Factor);
  end Scale_FITS_Float32_To_PNG_UInt16;
 
    -- reverse byte order for each FLoat32:
    --  4->1 3->2 2->3 1->4
-   procedure Reverse_Float32( F32 : in out Interfaces.IEEE_Float_32 )
+   procedure Reverse_Float32( F32 : in out Float_32 )
    is
-     type MyFloat is new Interfaces.IEEE_Float_32;
+     type MyFloat is new Float_32;
      type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
 
      function MyFloat_To_Arr is
@@ -115,7 +115,7 @@ package body Commands.PNGf is
    begin
        aaaa := MyFloat_To_Arr(MyFloat(F32));
        SwapBytes(aaaa);
-       F32 := Interfaces.IEEE_Float_32(Arr_To_MyFloat(aaaa));
+       F32 := Float_32(Arr_To_MyFloat(aaaa));
    end Reverse_Float32;
 
 
@@ -123,7 +123,7 @@ package body Commands.PNGf is
   function My_Grey_Sample(FITS_Data : My_Image_Handle;
                           R, C : Coordinate) return TPixVal16
   is
-    Data : Interfaces.IEEE_Float_32;
+    Data : Float_32;
     D16  : TPixVal16;
   begin
 
@@ -131,7 +131,7 @@ package body Commands.PNGf is
     -- SIO.Set_Index(FITS_Data.FitsFile, FITS_Data.DUStart + Offset )
 
 --    Ada.Text_IO.Put(Count'Image(Index(FITS_Data.FitsFile)));
-    Interfaces.IEEE_Float_32'Read (SIO.Stream(FITS_Data.FitsFile), Data);
+    Float_32'Read (SIO.Stream(FITS_Data.FitsFile), Data);
 
     -- [FITS App. E] defines BigEndian byte order for IEEE Float32
     -- reverse byte order if system is LittleEndian
@@ -199,8 +199,8 @@ package body Commands.PNGf is
      Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
-     Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(FITS_Data.Min));
-     Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(FITS_Data.Max));
+     Ada.Text_IO.Put_Line("Min " & Float_32'Image(FITS_Data.Min));
+     Ada.Text_IO.Put_Line("Max " & Float_32'Image(FITS_Data.Max));
 
      -- skip planes before PlaneNum
      Ada.Streams.Stream_IO.Set_Index(FITS_Data.FitsFile,IdxPlaneNum);

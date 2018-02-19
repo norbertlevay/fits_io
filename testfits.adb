@@ -61,18 +61,17 @@ procedure testfits is
    loop
     case Data.FitsType is
     when UInt8 =>
-     Ada.Text_IO.Put( Interfaces.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
     when Int16 =>
-     Ada.Text_IO.Put( Interfaces.Integer_16'Image(Data.Int16Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_16'Image(Data.Int16Arr(I)) & " ");
     when Int32 =>
-     Ada.Text_IO.Put( Interfaces.Integer_32'Image(Data.Int32Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_32'Image(Data.Int32Arr(I)) & " ");
     when Int64 =>
-     Ada.Text_IO.Put( Interfaces.Integer_64'Image(Data.Int64Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_64'Image(Data.Int64Arr(I)) & " ");
     when Float32 =>
---     Ada.Text_IO.Put( Float'Image(FFloat32BE_To_Float(Data.Float32Arr(I))) & " ");
-     Ada.Text_IO.Put( Interfaces.IEEE_Float_32'Image(Data.Float32Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Float_32'Image(Data.Float32Arr(I)) & " ");
     when Float64 =>
-     Ada.Text_IO.Put( Interfaces.IEEE_Float_64'Image(Data.Float64Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Float_64'Image(Data.Float64Arr(I)) & " ");
     when others =>
       null; -- FIXME exception or ?
     end case;

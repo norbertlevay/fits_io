@@ -141,14 +141,24 @@ package FITS is
     -- all others are SIGNED (see  Table 8)
     -- If unsigned needed for Int16..Int64 BZERO keyword is used
     -- to shift the value range (see Table 11)
-   type UInt8Arr_Type   is array ( Positive range <> ) of Interfaces.Unsigned_8;
-   type Int16Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_16;
-   type Int32Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_32;
-   type Int64Arr_Type   is array ( Positive range <> ) of Interfaces.Integer_64;
---   type Float32Arr_Type is array ( Positive range <> ) of FitsFloat.FFloat32_BE;
-   type Float32Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_32;
-   type Float64Arr_Type is array ( Positive range <> ) of Interfaces.IEEE_Float_64;
 
+   type Unsigned_8 is new Interfaces.Unsigned_8;
+   type Integer_16 is new Interfaces.Integer_16;
+   type Integer_32 is new Interfaces.Integer_32;
+   type Integer_64 is new Interfaces.Integer_64;
+   type Float_32   is new Interfaces.IEEE_Float_32;
+   type Float_64   is new Interfaces.IEEE_Float_64;
+
+
+   type UInt8Arr_Type   is array ( Positive range <> ) of Unsigned_8;
+   type Int16Arr_Type   is array ( Positive range <> ) of Integer_16;
+   type Int32Arr_Type   is array ( Positive range <> ) of Integer_32;
+   type Int64Arr_Type   is array ( Positive range <> ) of Integer_64;
+   type Float32Arr_Type is array ( Positive range <> ) of Float_32;
+   type Float64Arr_Type is array ( Positive range <> ) of Float_64;
+
+-- FIXME attempt on own Float32
+--   type Float32Arr_Type is array ( Positive range <> ) of FitsFloat.FFloat32_BE;
 
    -- Endianness
    -- [FITS] Float32/64 are always BigEndian
@@ -166,8 +176,8 @@ package FITS is
 
    procedure Find_MinMax_Float32
               (F32Arr : in  Float32Arr_Type;
-               Min    : out Interfaces.IEEE_Float_32;
-               Max    : out Interfaces.IEEE_Float_32);
+               Min    : out Float_32;
+               Max    : out Float_32);
    -- find minimum and maximum value of the Float32 data array
 
    type FitsData_Type is

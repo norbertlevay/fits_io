@@ -67,7 +67,7 @@ package body Commands.PNG is
       (Object => GreyImage_8bit_Type,
        Name   => GreyImage_8bit_Ptr);
 
- GreyPixel_8bit_Type_Last : constant Interfaces.IEEE_Float_32 := 255.0;
+ GreyPixel_8bit_Type_Last : constant Float_32 := 255.0;
 
  -- grey (16bit) image
 
@@ -82,7 +82,7 @@ package body Commands.PNG is
       (Object => GreyImage_16bit_Type,
        Name   => GreyImage_16bit_Ptr);
 
- GreyPixel_16bit_Type_Last : constant Interfaces.IEEE_Float_32 := 65535.0;
+ GreyPixel_16bit_Type_Last : constant Float_32 := 65535.0;
 
  -- RGB (24bit 'Truecolor') image
 
@@ -97,7 +97,7 @@ package body Commands.PNG is
       (Object => RGBImage_24bit_Type,
        Name   => RGBImage_24bit_Ptr);
 
- RGBPixel_24bit_Type_Last : constant Interfaces.IEEE_Float_32 := 16777215.0;
+ RGBPixel_24bit_Type_Last : constant Float_32 := 16777215.0;
 
 
  -- instantiate Write-funcs for above types (from the package PNG_IO)
@@ -203,13 +203,13 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_8bit
            (Data : in     Float32Arr_Type;    -- FITS data
-            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
+            Min, Max :    Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Factor : Interfaces.IEEE_Float_32;
+   Factor : Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
@@ -232,13 +232,13 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_16bit
            (Data : in     Float32Arr_Type;     -- FITS data
-            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
+            Min, Max : Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)             -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Factor : Interfaces.IEEE_Float_32;
+   Factor : Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
@@ -261,16 +261,16 @@ package body Commands.PNG is
 
  procedure Convert_FITS_Float32_To_PNG_24rgb
            (Data : in     Float32Arr_Type;    -- FITS data
-            Min, Max : Interfaces.IEEE_Float_32; -- Min Max vals in FITS data
+            Min, Max : Float_32; -- Min Max vals in FITS data
 -- FIXME img should be IN or OUT or IN OUT ? It is a pointer type
             Img  : in out RGBImage_24bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
    wi    : Natural := 0;
    hi    : Natural := 0;
-   Factor : Interfaces.IEEE_Float_32;
-   flast  : Interfaces.IEEE_Float_32 :=
-            Interfaces.IEEE_Float_32(RGBPixel_24bit_Type'Last);
+   Factor : Float_32;
+   flast  : Float_32 :=
+            Float_32(RGBPixel_24bit_Type'Last);
  begin
 
 -- debug: suspect rounding incorrect for 'flast'
@@ -323,8 +323,8 @@ package body Commands.PNG is
      W        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
      H        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                           -- FIXME explicit cast!
-     Min    : Interfaces.IEEE_Float_32;
-     Max    : Interfaces.IEEE_Float_32;
+     Min    : Float_32;
+     Max    : Float_32;
 
      -- below Data and Img's are on Heap (instead of Stack)
      -- due to their size: we read into memory all FITS DataUnit
@@ -371,8 +371,8 @@ package body Commands.PNG is
         end if;
 
         Find_MinMax_Float32(Data.all.Float32Arr, Min, Max);
-        Ada.Text_IO.Put_Line("Min " & Interfaces.IEEE_Float_32'Image(Min));
-        Ada.Text_IO.Put_Line("Max " & Interfaces.IEEE_Float_32'Image(Max));
+        Ada.Text_IO.Put_Line("Min " & Float_32'Image(Min));
+        Ada.Text_IO.Put_Line("Max " & Float_32'Image(Max));
 
         -- Write  8bit Greyscale Image
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
