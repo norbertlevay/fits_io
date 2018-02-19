@@ -159,88 +159,6 @@ package body FITS is
      end if;
    end Parse_Card;
 
-   -- reverse byte order for each FLoat32:
-   --  4->1 3->2 2->3 1->4
-   procedure Endianness_Float32( F32Arr : in out Float32Arr_Type )
-   is
-     type MyFloat is new Float_32;
-     type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
-
-     function MyFloat_To_Arr is
-       new Ada.Unchecked_Conversion(Source => MyFloat, Target => Arr4xU8);
-     function Arr_To_MyFloat is
-       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
-
-     procedure SwapBytes(arr : in out Arr4xU8) is
-      temp : Arr4xU8;
-     begin
-      temp(1) := arr(4);
-      temp(2) := arr(3);
-      temp(3) := arr(2);
-      temp(4) := arr(1);
-      arr := temp;
-     end SwapBytes;
-
-     aaaa : Arr4xU8;
-   begin
-
-     for I in F32Arr'Range
-      loop
-
-       aaaa := MyFloat_To_Arr(MyFloat(F32Arr(I)));
-       SwapBytes(aaaa);
-       F32Arr(I) := Float_32(Arr_To_MyFloat(aaaa));
-
-     end loop;
-
-   end Endianness_Float32;
-
-
-
-   procedure Float32Arr_Write
-             (S      : access Ada.Streams.Root_Stream_Type'Class;
-              F32Arr : in Float32Arr_Type)
-   is
-     type MyFloat is new Float_32;
-     type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
-
-     function MyFloat_To_Arr is
-       new Ada.Unchecked_Conversion(Source => MyFloat, Target => Arr4xU8);
-     function Arr_To_MyFloat is
-       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
-
-     procedure SwapBytes(arr : in out Arr4xU8) is
-      temp : Arr4xU8;
-     begin
-      temp(1) := arr(4);
-      temp(2) := arr(3);
-      temp(3) := arr(2);
-      temp(4) := arr(1);
-      arr := temp;
-     end SwapBytes;
-
-     aaaa : Arr4xU8;
-     FBuff : MyFloat;
-   begin
-
-     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
-     then
-
-       for I in F32Arr'Range
-        loop
-         aaaa := MyFloat_To_Arr(MyFloat(F32Arr(I)));
-         SwapBytes(aaaa);
-         FBuff := Arr_To_MyFloat(aaaa);
-         MyFloat'Write(S, FBuff);
-       end loop;
-
-     else
-
-       Float32Arr_Type'Write(S,F32Arr);
-
-     end if;
-
-   end Float32Arr_Write;
 
 
    -- find minimum and maximum value of the Float32 data array
@@ -265,6 +183,74 @@ package body FITS is
 
    end Find_MinMax_Float32;
 
+
+   -- Endianness support
+
+   type Byte is mod 256;
+   for Byte'Size use 8;
+   -- [FITS] defines Byte as 8-bit
+
+   generic
+     type Data_Type is private;
+   procedure Revert_Bytes( Data : in out Data_Type );
+
+   procedure Revert_Bytes( Data : in out Data_Type )
+   is
+     Size_Bytes : Positive := Data_Type'Size / Byte'Size;
+     type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
+
+     function Data_To_Arr is
+       new Ada.Unchecked_Conversion(Source => Data_Type, Target => Arr4xU8);
+     function Arr_To_Data is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => Data_Type);
+
+     Arr  : Arr4xU8 := Data_To_Arr(Data);
+     ArrO : Arr4xU8;
+   begin
+
+     for I in Arr'Range
+     loop
+       ArrO(I) := Arr(1 + Size_Bytes - I);
+     end loop;
+
+     Data := Arr_To_Data(ArrO);
+
+   end Revert_Bytes;
+
+   procedure Float32_Read_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : out Float_32 )
+   is
+     procedure F32_Revert_Bytes is
+       new Revert_Bytes( Data_Type => Float_32 );
+   begin
+
+     Interfaces.IEEE_Float_32'Read(S,Interfaces.IEEE_Float_32(Data));
+
+     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+     then
+       F32_Revert_Bytes(Data);
+     end if;
+
+   end Float32_Read_BigEndian;
+
+   procedure Float32_Write_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : in Float_32 )
+   is
+     procedure F32_Revert_Bytes is
+       new Revert_Bytes( Data_Type => Float_32 );
+     DD : Float_32 := Float_32(Data);
+   begin
+
+     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+     then
+       F32_Revert_Bytes(DD);
+     end if;
+
+     Interfaces.IEEE_Float_32'Write(S,Interfaces.IEEE_Float_32(DD));
+
+   end Float32_Write_BigEndian;
 
 
 end FITS;

@@ -47,7 +47,7 @@ package body FITS.Block_IO is
        F32_Revert_Bytes(DD);
      end if;
 
-     Float_32'Write(S,DD);
+     Interfaces.IEEE_Float_32'Write(S, Interfaces.IEEE_Float_32(DD));
 
    end Float32_Write_BigEndian;
 

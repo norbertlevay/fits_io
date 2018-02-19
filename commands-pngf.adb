@@ -65,8 +65,6 @@ package body Commands.PNGf is
      Float32Arr_Type'Read(SIO.Stream(File), F32Arr);
      ReadSize := ReadSize + chunkSize;
 
-     Endianness_Float32( F32Arr );
-
      locMin := Float_32'Large;
      locMax := Float_32'Small;
      Find_MinMax_Float32(F32Arr,locMin,locMax);

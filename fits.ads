@@ -149,6 +149,22 @@ package FITS is
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
 
+   -- [FITS] defines BigEndian for all numeric types in file
+   -- revert byte order when reading/writing from/to FITS file
+
+   procedure Float32_Read_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : out Float_32 );
+
+   procedure Float32_Write_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : in Float_32 );
+
+   for Float_32'Read  use Float32_Read_BigEndian;
+   for Float_32'Write use Float32_Write_BigEndian;
+
+
+   -- Data Unit arrays
 
    type UInt8Arr_Type   is array ( Positive range <> ) of Unsigned_8;
    type Int16Arr_Type   is array ( Positive range <> ) of Integer_16;
@@ -156,23 +172,6 @@ package FITS is
    type Int64Arr_Type   is array ( Positive range <> ) of Integer_64;
    type Float32Arr_Type is array ( Positive range <> ) of Float_32;
    type Float64Arr_Type is array ( Positive range <> ) of Float_64;
-
--- FIXME attempt on own Float32
---   type Float32Arr_Type is array ( Positive range <> ) of FitsFloat.FFloat32_BE;
-
-   -- Endianness
-   -- [FITS] Float32/64 are always BigEndian
-   -- Write: if machine not BigEndian swap bytes in all Floats of the array
-   procedure Float32Arr_Write
-              (S :  access Ada.Streams.Root_Stream_Type'Class;
-              F32Arr : in Float32Arr_Type);
-   for Float32Arr_Type'Write use Float32Arr_Write;
-   -- FIXME redef of Write attrib should be on Float_32 type itself; not the array
-
-   procedure Endianness_Float32( F32Arr : in out Float32Arr_Type );
-    -- For each Float32 in the array, reverses order of the 4 bytes
-    -- within one Float32
-    -- Finish Endianness section
 
    procedure Find_MinMax_Float32
               (F32Arr : in  Float32Arr_Type;

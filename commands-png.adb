@@ -362,14 +362,6 @@ package body Commands.PNG is
 
      if DataType = Float32 then
 
-        -- [FITS App. E] defines BigEndian byte order for IEEE Float32
-        -- reverse byte order if system is LittleEndian
-        -- FIXME this should be implemented in IEEE_Float32'Write and 'Read attribs
-        if System.Default_Bit_Order = System.LOW_ORDER_FIRST
-        then
-          Endianness_Float32(Data.Float32Arr);
-        end if;
-
         Find_MinMax_Float32(Data.all.Float32Arr, Min, Max);
         Ada.Text_IO.Put_Line("Min " & Float_32'Image(Min));
         Ada.Text_IO.Put_Line("Max " & Float_32'Image(Max));
