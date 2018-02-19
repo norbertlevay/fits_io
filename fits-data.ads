@@ -19,9 +19,10 @@ package FITS.Data is
    -- find minimum and maximum value of the Float32 data array
 
    type Data_Type is
-       (UInt8, Int16, Int32,        -- DataUnit types
-        Int64, Float32, Float64);
-         -- [FITS, Sect 4.4.1.1 Table 8]
+       (UInt8,   Int16,
+        Int32,   Int64,
+        Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
 
    function  To_DataType (BITPIX : in Integer) return Data_Type;
 

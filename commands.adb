@@ -4,6 +4,7 @@ with Ada.Text_IO,
      Ada.Streams.Stream_IO,
      Ada.Characters.Latin_1,
      FITS,
+     FITS.Header,
      FITS.File,
      FITS.Data,
      System,
@@ -12,6 +13,7 @@ with Ada.Text_IO,
 use
      Ada.Streams.Stream_IO,
      FITS,
+     FITS.Header,
      FITS.File,
      FITS.Data;
 

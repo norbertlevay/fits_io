@@ -38,6 +38,10 @@ with System.Storage_Elements; use System.Storage_Elements;
 
 package FITS is
 
+   ----------------------------
+   -- Header/Data size calcs --
+   ----------------------------
+
    -- FITS numeric types are prefixed with F...
    --
    -- 1. deriving from file-system representation (Stream_IO):
@@ -52,19 +56,6 @@ package FITS is
    subtype FPositive is FNatural range 1 .. FNatural'Last;
    -- note: package division into FITS and FITS.File
    --       favours 2. (from FITS Standard)
-
-   ------------------
-   -- Parse Header --
-   ------------------
-
-   CardSize : constant Positive := 80;
-   -- [FITS Sects. 3.3.1, 4.4.1]
-
-   subtype Card_Type is String(1..CardSize);
-   -- makes sure index start with 1
-
-   ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
-   EmptyCard : constant Card_Type := (others => ' ');
 
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
@@ -96,14 +87,6 @@ package FITS is
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
 
-   procedure Parse_Card (Card          : in Card_Type;
-                         DUSizeKeyVals : in out DU_Size_Type);
-   -- to be called for every card in Header and will fill-in DUSizeKeyVals's
-   -- if all correponding keywords existed in the header
-   -- FIXME : what if some needed key missing?
-
-   procedure Parse_Card (Card         : in Card_Type;
-                         XtensionType : in out String);
 
    -----------------------
    -- Size computations --
@@ -112,7 +95,7 @@ package FITS is
    for Byte'Size use 8;
    -- [FITS] defines Byte as 8-bit
 
-   BlockSize_bits : constant FPositive := 2880*Byte'Size; -- 23040 bits
+   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
    function  Size_blocks (CardsCnt      : in FPositive   ) return FPositive;
@@ -124,42 +107,10 @@ package FITS is
    procedure Free_Data_Slots (DataCnt :  in FPositive; FreeDataCnt: out Natural) is null;
    -- FIXME add (as function) later when needed: calc number of free data array slots to fill up DataBlock
 
-   --------------------------------
-   -- Heade types for Read/Write --
-   --------------------------------
 
-   CardsCntInBlock : constant Positive := 36;
-   type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
-
-   -- Access Header
-
-   type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
-   type CardArr_Type    is array ( Positive range <> ) of Card_Type;
-   type CharArr_Type    is array ( Positive range <> ) of Character;
-
-   -- Header arrays
-
-   type FitsData_Type is
-       (HBlock, Card, Char);        -- Header types
-
-   type DataArray_Type ( FitsType : FitsData_Type ;
-                         Length   : Positive ) is
-     record
-       case FitsType is
-       when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
-       when Card  =>   CardArr    : CardArr_Type (1 .. Length);
-       when Char  =>   CharArr    : CharArr_Type (1 .. Length);
-      end case;
-     end record;
-
-   -- in file all data are packed
-   pragma Pack (HBlockArr_Type);
-   pragma Pack (CardArr_Type);
-   pragma Pack (CharArr_Type);
-   pragma Pack (DataArray_Type);
-
-
-   -- Access DataUnit
+   ---------------------
+   -- Data Unit types --
+   ---------------------
 
     -- [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED
     -- all others are SIGNED (see  Table 8)

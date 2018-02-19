@@ -12,6 +12,9 @@ use  Interfaces;
 with System;
 use  System;
 
+with FITS.Header;
+use  FITS.Header;
+
 package body FITS is
 
    --
@@ -77,63 +80,6 @@ package body FITS is
    end Free_Card_Slots;
    pragma Inline (Free_Card_Slots);
 
-
-   -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
-   -- and store parse value to DUSizeKeyVals
-   -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
-   -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
-   -- Size calc is valid also for IMAGE-extension, but not for TABLE extensions
-   -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
-   procedure Parse_Card (Card          : in Card_Type;
-                         DUSizeKeyVals : in out DU_Size_Type)
-   is
-    dim : Positive;
-   begin
-     -- FIXME what if parsed string is '' or '     ' etc...
-
-     -- [FITS 4.1.2 Components]:
-     -- pos 9..10 is '= '
-     -- pos 31 is comment ' /'
-     -- then : pos 10..20 is value
-
-     if    (Card(1..9) = "BITPIX  =") then
-       DUSizeKeyVals.BITPIX := Integer'Value(Card(10..30));
-
-     elsif (Card(1..5) = "NAXIS") then
-
-       if (Card(1..9) = "NAXIS   =") then
-           DUSizeKeyVals.NAXIS := Positive'Value(Card(10..30));
-       else
-           dim := Positive'Value(Card(6..8));
-           DUSizeKeyVals.NAXISn(dim) := FPositive'Value(Card(10..30));
-           -- [FITS Sect 4.4.1.1] NAXISn is non-negative integer
-           -- [FITS fixed integer]:
-           -- Fixed integer is defined as 19 decimal digits
-   	   -- (Header Card Integer value occupying columns 11..20)
-   	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
-   	   -- fixed integer can reach 9.9 x 10**19)
-           -- Conclude: range of NAXISn will be implementation
-           -- limited as suggested in [FITS 4.2.3 Integer number]:
-       end if;
-
-     elsif (Card(1..5) = "PCOUNT") then
-       DUSizeKeyVals.PCOUNT := FNatural'Value(Card(10..30));
-
-     elsif (Card(1..5) = "GCOUNT") then
-       DUSizeKeyVals.GCOUNT := FPositive'Value(Card(10..30));
-
-     end if;
-
-   end Parse_Card;
-
-   procedure Parse_Card (Card         : in Card_Type;
-                         XtensionType : in out String)
-   is
-   begin
-     if    (Card(1..9) = "XTENSION=") then
-       XtensionType := Card(11..20);
-     end if;
-   end Parse_Card;
 
 
    -- Endianness support
