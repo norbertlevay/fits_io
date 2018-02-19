@@ -3,7 +3,7 @@
 
 -- covers two issues:
 -- 1. Data alignment
--- 2. Endianness
+-- 2. Endianness  -> moved to FITS, because solved on Scalar types, not DU arrays (Blocks)
 --
 -- Data structs reflect data-images inside FITS-files and so allow
 -- (low level) Read / Write
