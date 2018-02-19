@@ -12,13 +12,16 @@ with Interfaces;
 with Ada.Streams.Stream_IO;
 
 
+with FITS.Data;
+use  FITS.Data;
+
 package FITS.Block_IO is
 
    -- arrays
 
    type Float32Block_Arr is
-     array ( 1 .. BlockSize_bits / Float_32'Size ) of Float_32;
-   for Float32Block_Arr'Size use BlockSize_bits;
+     array ( 1 .. (2880*8) / Float_32'Size ) of Float_32;
+   for Float32Block_Arr'Size use 2880*8;--BlockSize_bits;
    pragma Pack (Float32Block_Arr);
 
 private

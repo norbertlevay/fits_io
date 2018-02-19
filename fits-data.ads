@@ -1,7 +1,38 @@
 
 -- FITS file's Data Unit
 
+with Interfaces;
+with Ada.Streams.Stream_IO;
+
+
 package FITS.Data is
+
+   -- [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED
+   -- all others are SIGNED (see  Table 8)
+   -- If unsigned needed for Int16..Int64 BZERO keyword is used
+   -- to shift the value range (see Table 11)
+
+   type Unsigned_8 is new Interfaces.Unsigned_8;
+   type Integer_16 is new Interfaces.Integer_16;
+   type Integer_32 is new Interfaces.Integer_32;
+   type Integer_64 is new Interfaces.Integer_64;
+   type Float_32   is new Interfaces.IEEE_Float_32;
+   type Float_64   is new Interfaces.IEEE_Float_64;
+
+   -- [FITS] defines BigEndian for all numeric types in file
+   -- revert byte order when reading/writing from/to FITS file
+
+   procedure Float32_Read_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : out Float_32 );
+
+   procedure Float32_Write_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : in Float_32 );
+
+   for Float_32'Read  use Float32_Read_BigEndian;
+   for Float_32'Write use Float32_Write_BigEndian;
+
 
    -- Data Unit arrays
 
