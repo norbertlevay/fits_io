@@ -3,6 +3,7 @@ with Ada.Text_IO,
      Ada.Float_Text_IO,
      FITS,
      FITS.File,
+     FITS.Data,
      System,
      Ada.Unchecked_Conversion,
      Ada.Streams.Stream_IO;
@@ -10,6 +11,7 @@ with Ada.Text_IO,
 use
      FITS,
      FITS.File,
+     FITS.Data,
      System,
      Ada.Streams.Stream_IO;
 
@@ -185,7 +187,7 @@ package body Commands.PNGf is
   -- set back to DU Start
 
   declare
-     DataType : constant FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     DataType : constant Data_Type := To_DataType(HDUSize.DUSizeKeyVals.BITPIX);
      W : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
      H : constant Dimension := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                   -- FIXME explicit cast!
@@ -194,7 +196,7 @@ package body Commands.PNGf is
                               -- FIXME Explicit conversion
                               -- FIXME Float32 size (*4) given explicitely
   begin
-     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
+     Ada.Text_IO.Put_Line("DU type: " & Data_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
      Ada.Text_IO.Put_Line("Min " & Float_32'Image(FITS_Data.Min));
@@ -212,7 +214,7 @@ package body Commands.PNGf is
      else
 
        Ada.Text_IO.Put_Line("FITS_To_PNGf Not implemented for "
-                           & FitsData_Type'Image(DataType));
+                           & Data_Type'Image(DataType));
 
      end if;
 

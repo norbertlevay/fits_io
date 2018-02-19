@@ -5,13 +5,15 @@ with Ada.Text_IO,
      Ada.Characters.Latin_1,
      FITS,
      FITS.File,
+     FITS.Data,
      System,
      System.Storage_Elements;
 
 use
      Ada.Streams.Stream_IO,
      FITS,
-     FITS.File;
+     FITS.File,
+     FITS.Data;
 
 
 package body Commands is
@@ -43,7 +45,8 @@ package body Commands is
                         ")" );
 
        if HDUInfo.DUSizeKeyVals.NAXIS > 0 then
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(To_FitsDataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
+--        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(To_FitsDataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
         Ada.Text_IO.Put(" ( ");
         for J in 1 .. (HDUInfo.DUSizeKeyVals.NAXIS - 1)
          loop

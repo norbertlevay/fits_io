@@ -4,12 +4,14 @@ with Ada.Text_IO,
      Ada.Unchecked_Deallocation,
      FITS,
      FITS.File,
+     FITS.Data,
      System,
      Ada.Streams.Stream_IO;
 
 use
      FITS,
      FITS.File,
+     FITS.Data,
      System,
      Ada.Streams.Stream_IO;
 
@@ -319,7 +321,8 @@ package body Commands.PNG is
    -- move behind the Header
 
   declare
-     DataType : constant FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+--     DataType : constant FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
+     DataType : constant Data_Type     := To_DataType(HDUSize.DUSizeKeyVals.BITPIX);
      W        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
      H        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
                                           -- FIXME explicit cast!
@@ -331,8 +334,10 @@ package body Commands.PNG is
      -- and we rely on virtual memory to have
      -- enough space in case of big files
 
-     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
-     Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
+     type Data_Arr_Ptr is access Data_Arr( DataType, W*H );
+     Data : Data_Arr_Ptr  := new Data_Arr( DataType, W*H ) ;
+--     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
+--     Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
      -- holds data from FITS-file
      -- will be de-alloc at exit from begin .. end section
 
@@ -350,14 +355,15 @@ package body Commands.PNG is
                               -- FIXME Explicit conversion
                               -- FIXME Float32 size (*4) given explicitely
   begin
-     Ada.Text_IO.Put_Line("DU type: " & FitsData_Type'Image(DataType));
+     Ada.Text_IO.Put_Line("DU type: " & Data_Type'Image(DataType));
      Ada.Text_IO.Put     (Integer'Image(W) & " x " );
      Ada.Text_IO.Put_Line(Integer'Image(H) );
 
      -- skip planes up to PlaneNum
      Ada.Streams.Stream_IO.Set_Index(FitsFile,IdxPlaneNum);
 
-     DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
+--     DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
+     Data_Arr'Read (SIO.Stream(FitsFile), Data.all);
 
 
      if DataType = Float32 then
@@ -396,7 +402,7 @@ package body Commands.PNG is
      else
 
        Ada.Text_IO.Put_Line("Not implemented for "
-                           & FitsData_Type'Image(DataType));
+                           & Data_Type'Image(DataType));
 
      end if;
 

@@ -169,26 +169,26 @@ package FITS is
 
    -- Data Unit arrays
 
-   type UInt8Arr_Type   is array ( Positive range <> ) of Unsigned_8;
-   type Int16Arr_Type   is array ( Positive range <> ) of Integer_16;
-   type Int32Arr_Type   is array ( Positive range <> ) of Integer_32;
-   type Int64Arr_Type   is array ( Positive range <> ) of Integer_64;
-   type Float32Arr_Type is array ( Positive range <> ) of Float_32;
-   type Float64Arr_Type is array ( Positive range <> ) of Float_64;
+--   type UInt8Arr_Type   is array ( Positive range <> ) of Unsigned_8;
+--   type Int16Arr_Type   is array ( Positive range <> ) of Integer_16;
+--   type Int32Arr_Type   is array ( Positive range <> ) of Integer_32;
+--   type Int64Arr_Type   is array ( Positive range <> ) of Integer_64;
+--   type Float32Arr_Type is array ( Positive range <> ) of Float_32;
+--   type Float64Arr_Type is array ( Positive range <> ) of Float_64;
 
-   procedure Find_MinMax_Float32
-              (F32Arr : in  Float32Arr_Type;
-               Min    : out Float_32;
-               Max    : out Float_32);
+--   procedure Find_MinMax_Float32
+--              (F32Arr : in  Float32Arr_Type;
+--               Min    : out Float_32;
+--               Max    : out Float_32);
    -- find minimum and maximum value of the Float32 data array
 
    type FitsData_Type is
-       (HBlock, Card, Char,        -- Header types
-        UInt8, Int16, Int32,        -- DataUnit types
-        Int64, Float32, Float64);
+       (HBlock, Card, Char);        -- Header types
+--        UInt8, Int16, Int32,        -- DataUnit types
+--        Int64, Float32, Float64);
          -- [FITS, Sect 4.4.1.1 Table 8]
 
-   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type;
+--   function  To_FitsDataType (BITPIX : in Integer ) return FitsData_Type;
 
    type DataArray_Type ( FitsType : FitsData_Type ;
                          Length   : Positive ) is
@@ -197,12 +197,12 @@ package FITS is
        when HBlock =>  HBlockArr  : HBlockArr_Type (1 .. Length);
        when Card  =>   CardArr    : CardArr_Type (1 .. Length);
        when Char  =>   CharArr    : CharArr_Type (1 .. Length);
-       when UInt8 =>   UInt8Arr   : UInt8Arr_Type(1 .. Length);
-       when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
-       when Int32 =>   Int32Arr   : Int32Arr_Type(1 .. Length);
-       when Int64 =>   Int64Arr   : Int64Arr_Type(1 .. Length);
-       when Float32 => Float32Arr : Float32Arr_Type(1 .. Length);
-       when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
+--       when UInt8 =>   UInt8Arr   : UInt8Arr_Type(1 .. Length);
+--       when Int16 =>   Int16Arr   : Int16Arr_Type(1 .. Length);
+--       when Int32 =>   Int32Arr   : Int32Arr_Type(1 .. Length);
+--       when Int64 =>   Int64Arr   : Int64Arr_Type(1 .. Length);
+--       when Float32 => Float32Arr : Float32Arr_Type(1 .. Length);
+--       when Float64 => Float64Arr : Float64Arr_Type(1 .. Length);
       end case;
      end record;
 
@@ -213,12 +213,12 @@ package FITS is
    pragma Pack (CardArr_Type);
    pragma Pack (CharArr_Type);
 
-   pragma Pack (UInt8Arr_Type);
-   pragma Pack (Int16Arr_Type);
-   pragma Pack (Int32Arr_Type);
-   pragma Pack (Int64Arr_Type);
-   pragma Pack (Float32Arr_Type);
-   pragma Pack (Float64Arr_Type);
+--   pragma Pack (UInt8Arr_Type);
+--   pragma Pack (Int16Arr_Type);
+--   pragma Pack (Int32Arr_Type);
+--   pragma Pack (Int64Arr_Type);
+--   pragma Pack (Float32Arr_Type);
+--   pragma Pack (Float64Arr_Type);
    pragma Pack (DataArray_Type);
 
 end FITS;

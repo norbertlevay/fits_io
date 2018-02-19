@@ -27,6 +27,7 @@ use
 with FitsFloat;      use FitsFloat;
 with FITS;      use FITS;
 with FITS.File; use FITS.File;
+with FITS.Data; use FITS.Data;
 
 with FITS.Block_IO; --use FITS.File;
 
@@ -57,7 +58,7 @@ procedure testbio is
 
  HDUSize  : HDU_Size_Type;
 
-  procedure PutFITSData (Data : in DataArray_Type)
+  procedure PutFITSData (Data : in Data_Arr)
   is
   begin
    for I in Positive range 1 .. Data.Length
@@ -101,11 +102,11 @@ begin
  DUStart := Index(FitsFile);
 
  declare
-   dt    : FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
-   DataD : DataArray_Type(dt,4);
+   dt    : Data_Type := To_DataType(HDUSize.DUSizeKeyVals.BITPIX);
+   DataD : Data_Arr(dt,4);
  begin
-   Put_Line("> and read DataUnit of type: " & FitsData_Type'Image(dt));
-   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
+   Put_Line("> and read DataUnit of type: " & Data_Type'Image(dt));
+   Data_Arr'Read (SIO.Stream(FitsFile), DataD);
    PutFITSData(DataD);
    New_Line;
  end;
