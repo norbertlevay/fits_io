@@ -37,21 +37,6 @@
 
 package FITS is
 
-   -- FITS numeric types are prefixed with F...
-   --
-   -- 1. deriving from file-system representation (Stream_IO):
-   -- subtype FNatural  is SIO.Count;
-   -- subtype FPositive is SIO.Positive_Count;
-   -- FIXME check-out difference; this also possible:
-   -- type FPositive is new SIO.Count
-   --
-   -- 2. deriving from FITS-Standard:
-   type    FInteger  is new Long_Long_Integer;
-   subtype FNatural  is FInteger range 0 .. FInteger'Last;
-   subtype FPositive is FNatural range 1 .. FNatural'Last;
-   -- note: package division into FITS and FITS.File
-   --       favours 2. (from FITS Standard)
-
    type Byte is mod 256;
    for Byte'Size use 8;
    -- [FITS] defines Byte as 8-bit
