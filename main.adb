@@ -2,8 +2,8 @@ with
     Options,
     Build_Date,
     Commands,
-    Commands.PNG,
-    Commands.PNGf,
+--    Commands.PNG,
+--    Commands.PNGf,
     Ada.Exceptions,
     Ada.Text_IO,
     Ada.Direct_IO,
@@ -178,7 +178,7 @@ procedure main is
                      To_String(Known_Options(plane).Value) & ".png";
     begin
       Ada.Text_IO.Put_Line(FitsFileName);
-      PNG.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
+      FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
      -- PNGf.FITS_To_PNG(FitsFileName, PngFileName, HDUNum, PlaneNum);
       Next := Next + 1;
       Ada.Text_IO.New_Line;

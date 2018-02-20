@@ -54,7 +54,16 @@ use  Interfaces;
 
 
 
-package body Commands.PNG is
+--package body Commands.PNG is
+ --
+ -- exported entry point
+ --
+ separate(Commands)
+ procedure FITS_To_PNG (FitsFileName : in String;
+                        PngFileName  : in String;
+                        HDUNum       : in Positive := 1;
+                        PlaneNum     : in Positive := 1)
+ is
 
  -- grey (8bit) image
 
@@ -301,15 +310,8 @@ package body Commands.PNG is
  end Convert_FITS_Float32_To_PNG_24rgb;
 
 
+  -- Main Entry
 
- --
- -- exported entry point
- --
- procedure FITS_To_PNG (FitsFileName : in String;
-                        PngFileName  : in String;
-                        HDUNum       : in Positive := 1;
-                        PlaneNum     : in Positive := 1)
- is
   FitsFile : SIO.File_Type;
   HDUSize  : HDU_Size_Type;
  begin
@@ -413,5 +415,5 @@ package body Commands.PNG is
 
  end FITS_To_PNG;
 
-end Commands.PNG;
+--end Commands.PNG;
 
