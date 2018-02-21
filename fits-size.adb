@@ -139,6 +139,9 @@ package body FITS.Size is
     Parse_Card(Card, DUSizeKeyVals);
     DUSizeKeyVals.PCOUNT := 0;
     DUSizeKeyVals.GCOUNT := 1;
+     -- init these for HDU's which do not use them
+     -- BINTABLE and RandomGroup extensions, if present,
+     -- will overwrite these values
    end Parse_Card_For_Size;
 
 end FITS.Size;
