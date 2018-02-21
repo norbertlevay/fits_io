@@ -1,4 +1,7 @@
 
+
+with Ada.Text_IO;
+
 with FITS.Header; use FITS.Header;
 with FITS.File; use FITS.File;
 

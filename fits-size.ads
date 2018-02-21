@@ -4,7 +4,6 @@
 -- Header and Data unit Sizes --
 --------------------------------
 
-
 package FITS.Size is
 
    -- FITS numeric types are prefixed with F...
@@ -19,8 +18,6 @@ package FITS.Size is
    type    FInteger  is new Long_Long_Integer;
    subtype FNatural  is FInteger range 0 .. FInteger'Last;
    subtype FPositive is FNatural range 1 .. FNatural'Last;
-   -- note: package division into FITS and FITS.File
-   --       favours 2. (from FITS Standard)
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;

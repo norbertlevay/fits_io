@@ -3,6 +3,7 @@
 with Ada.Streams.Stream_IO;
 
 with FITS.Size; use FITS.Size;
+with FITS.Header; use FITS.Header;
 
 package FITS.File is
 
@@ -12,9 +13,23 @@ package FITS.File is
    -- [FITS 3.1 Overall file structure]
 
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
-                                 HDUSize  : in out HDU_Size_Type);
+                                 HDUSize  : out HDU_Size_Type);
     -- extract HDU-size information: read by Blocks.
     -- After this call file-pointer points to DU (or next HDU)
+
+   --
+   -- Read File until ENDCard found
+   --
+   generic
+     type Parsed_Type is limited private;
+     with procedure Parse_Card
+                    (Card : in Card_Type;
+                     Data : out Parsed_Type);
+   function Read_Header_Blocks
+            (FitsFile : in SIO.File_Type;
+             Data     : out Parsed_Type) return FPositive;
+
+
 
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_HeaderBlocks & FITS.Size.Size_blocks
