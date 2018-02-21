@@ -13,7 +13,9 @@ package FITS.File is
    -- [FITS 3.1 Overall file structure]
 
    --
-   -- Read File until ENDCard found
+   -- Read File until ENDCard found,
+   -- cal Parse_Card for each card and
+   -- return count of Cards
    --
    generic
      type Parsed_Type is limited private;
