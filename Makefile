@@ -12,7 +12,7 @@ build_date.ads :
 	@echo "BuildDate : constant String := \"${builddate}\";" >> build_date.ads
 	@echo "end Build_Date;" >> build_date.ads
 
-fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb fits-data.ads fits-data.adb
+fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb fits-data.ads fits-data.adb fits-size.ads fits-size.adb
 #	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs ./png/zlib-1.2.11/libz.a -bargs -E
 #	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -L /usr/lib/i386-linux-gnu -lz -bargs -E
 	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E

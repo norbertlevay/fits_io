@@ -80,117 +80,13 @@ package body FITS.File is
    -- which is unit for positioning in Stream_IO by Set_Index()
 
 
-   -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
-   -- and store parse value to DUSizeKeyVals
-   -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
-   -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
-   -- Size calc is valid also for IMAGE-extension, but not for TABLE extensions
-   -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
-   procedure Parse_Card (Card          : in Card_Type;
-                         DUSizeKeyVals : out DU_Size_Type)
-   is
-    dim : Positive;
-   begin
-     -- FIXME what if parsed string is '' or '     ' etc...
-
-     -- [FITS 4.1.2 Components]:
-     -- pos 9..10 is '= '
-     -- pos 31 is comment ' /'
-     -- then : pos 10..20 is value
-
-     if    (Card(1..9) = "BITPIX  =") then
-       DUSizeKeyVals.BITPIX := Integer'Value(Card(10..30));
-
-     elsif (Card(1..5) = "NAXIS") then
-
-       if (Card(1..9) = "NAXIS   =") then
-           DUSizeKeyVals.NAXIS := Positive'Value(Card(10..30));
-       else
-           dim := Positive'Value(Card(6..8));
-           DUSizeKeyVals.NAXISn(dim) := FPositive'Value(Card(10..30));
-           -- [FITS Sect 4.4.1.1] NAXISn is non-negative integer
-           -- [FITS fixed integer]:
-           -- Fixed integer is defined as 19 decimal digits
-   	   -- (Header Card Integer value occupying columns 11..20)
-   	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
-   	   -- fixed integer can reach 9.9 x 10**19)
-           -- Conclude: range of NAXISn will be implementation
-           -- limited as suggested in [FITS 4.2.3 Integer number]:
-       end if;
-
-     elsif (Card(1..5) = "PCOUNT") then
-       DUSizeKeyVals.PCOUNT := FNatural'Value(Card(10..30));
-
-     elsif (Card(1..5) = "GCOUNT") then
-       DUSizeKeyVals.GCOUNT := FPositive'Value(Card(10..30));
-
-     end if;
-
-   end Parse_Card;
-
-   procedure Parse_Card (Card         : in Card_Type;
-                         XtensionType : out String)
-   is
-   begin
-     if    (Card(1..9) = "XTENSION=") then
-       XtensionType := Card(11..20);
-     end if;
-   end Parse_Card;
-
-
-   -- parse header in blocks
-   --  from current file-index,
-   --  read blocks until a block with END-card found
-   --  and try to fill in HDUSize
-   procedure oldParse_HeaderBlocks (FitsFile : in SIO.File_Type;
-                                    HDUSize  : out HDU_Size_Type)
-   is
-    HBlk         : DataArray_Type(HBlock,1);
-    Card         : Card_Type;
-    ENDCardFound : Boolean := false;
-    CardsCnt     : FNatural := 0;
-    XtensionType : String(1..10) := (others => ' ');
-   begin
-
-    -- FIXME the below is not nice but relates to broader problem:
-    -- how to make sure that each value needed for Size() calculations
-    -- was set during parsing process (in Parse_Card/ParseHeaderBlock) ?
-    HDUSize.DUSizeKeyVals.PCOUNT := 0;
-    HDUSize.DUSizeKeyVals.GCOUNT := 1;
-     -- init these for HDU's which do not use them
-     -- BINTABLE and RandomGroup extensions, if present,
-     -- will overwrite these values
-
-    loop
-      DataArray_Type'Read( SIO.Stream(FitsFile), HBlk );
-
-      for I in HBlk.HBlockArr(1)'Range
-      loop
-        Card         := HBlk.HBlockArr(1)(I);
-        Parse_Card(Card, HDUSize.DUSizeKeyVals);
-        Parse_Card(Card, XtensionType);
-        CardsCnt     := CardsCnt + 1;
-        ENDCardFound := (Card = ENDCard);
-        exit when ENDCardFound;
-      end loop;
-
-      exit when ENDCardFound;
-    end loop;
-
-    HDUSize.Xtension := XtensionType;
-    HDUSize.CardsCnt := CardsCnt;
-    -- here CardsCnt is > 0 otherwise
-    -- we don't reach this line (leave by exception)
-
-   end oldParse_HeaderBlocks;
-
 
    --
    -- Read File until ENDCard found
    --
-   function Read_Header_Blocks
-            (FitsFile : in SIO.File_Type;
-             Data     : out Parsed_Type) return FPositive
+   function  Read_Header_Blocks
+             (FitsFile : in SIO.File_Type;
+              Data     : out Parsed_Type) return FPositive
    is
     HBlk         : DataArray_Type(HBlock,1);
     Card         : Card_Type;
@@ -224,20 +120,8 @@ package body FITS.File is
 
    end Read_Header_Blocks;
 
+   -- instantiate generic for Size parsing (see File.Size)
 
-   -- now try with generic
-
-   procedure Parse_Card_For_Size
-              (Card          : in  Card_Type;
-               DUSizeKeyVals : out DU_Size_Type)
-   is
-   begin
-    Parse_Card(Card, DUSizeKeyVals);
-    DUSizeKeyVals.PCOUNT := 0;
-    DUSizeKeyVals.GCOUNT := 1;
-   end Parse_Card_For_Size;
-
-   -- create Size-parsing func
    procedure Parse_HeaderBlocks (FitsFile : in  SIO.File_Type;
                                  HDUSize  : out HDU_Size_Type)
    is
@@ -247,8 +131,6 @@ package body FITS.File is
    begin
      HDUSize.CardsCnt := ParseSizes(FitsFile, HDUSize.DUSizeKeyVals);
    end Parse_HeaderBlocks;
-
-   -- END with GENERIC
 
 
    --

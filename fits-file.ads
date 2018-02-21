@@ -12,11 +12,6 @@ package FITS.File is
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
-   procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
-                                 HDUSize  : out HDU_Size_Type);
-    -- extract HDU-size information: read by Blocks.
-    -- After this call file-pointer points to DU (or next HDU)
-
    --
    -- Read File until ENDCard found
    --
@@ -28,6 +23,13 @@ package FITS.File is
    function Read_Header_Blocks
             (FitsFile : in SIO.File_Type;
              Data     : out Parsed_Type) return FPositive;
+
+
+   procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
+                                 HDUSize  : out HDU_Size_Type);
+    -- extract HDU-size information: read by Blocks.
+    -- After this call file-pointer points to DU (or next HDU)
+
 
 
 

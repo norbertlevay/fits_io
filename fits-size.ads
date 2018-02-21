@@ -1,4 +1,5 @@
 
+with FITS.Header; use FITS.Header;
 
 --------------------------------
 -- Header and Data unit Sizes --
@@ -78,6 +79,14 @@ package FITS.Size is
    --
    procedure Free_Data_Slots (DataCnt :  in FPositive; FreeDataCnt: out Natural) is null;
    -- FIXME add (as function) later when needed
+
+   ------------------------------------------------
+   -- Parsing from Header Keys into DU_Size_Type --
+   ------------------------------------------------
+
+   procedure Parse_Card_For_Size
+              (Card          : in  Card_Type;
+               DUSizeKeyVals : out DU_Size_Type);
 
 end FITS.Size;
 
