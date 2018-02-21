@@ -26,6 +26,7 @@ use
 
 with FitsFloat;      use FitsFloat;
 with FITS;      use FITS;
+with FITS.Size; use FITS.Size;
 with FITS.File; use FITS.File;
 with FITS.Data; use FITS.Data;
 

@@ -73,9 +73,6 @@ package body FITS.File is
     --               +(2 ** (Standard'Address_Size - 1)) - 1;
     -- Address_Size is 32 or 64bit nowadays
 
-   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
-   -- [FITS 3.1 Overall file structure]
-
    BlockSize_bytes : FPositive := BlockSize_bits / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost

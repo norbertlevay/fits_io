@@ -5,6 +5,7 @@ with Ada.Text_IO,
      Ada.Characters.Latin_1,
      FITS,
      FITS.Header,
+     FITS.Size,
      FITS.File,
      FITS.Data,
      System,
@@ -14,6 +15,7 @@ use
      Ada.Streams.Stream_IO,
      FITS,
      FITS.Header,
+     FITS.Size,
      FITS.File,
      FITS.Data;
 
