@@ -37,18 +37,26 @@ procedure exampleCreateFitsFile is
 
  Name   : String   := Command_Name & ".fits";
  FitsFile : SIO.File_Type;
- Cnt  : Positive := 5;
--- Data : DataArray_Type(Card,Cnt);
--- Card : Card_Type;
--- BITPIXVal : Integer;
+
  HDUNum  : Positive := 1;
--- HDUSize : HDU_Size_Type;
--- DUStart : SIO.Count;
 
  RowsCnt : constant Positive := 600;
  ColsCnt : constant Positive := RowsCnt;
  DataCnt : constant Positive := RowsCnt*ColsCnt;
+ DPadCnt : constant Natural  := 2880 - (DataCnt mod 2880);
+ -- padding data up to block size
 
+ Data : UInt8Arr_Type(1 .. DataCnt);
+ -- if data small enough to handle in memory do as above,
+ -- otherwise
+ -- writing by blocks:
+ -- DBlk : Data_Arr(UInt8,2880);-- := (
+ --   FitsType => UInt8,
+ --   Length   => 2880,
+ --   UInt8Arr => (others   => FITS.Data.Unsigned_8(128)));
+ Padding : UInt8Arr_Type(1 .. DPadCnt) := (others => 0);
+
+ -- Header for the above data:
  HBlk : HeaderBlock_Type := (
    1 => To_Card("SIMPLE","1","Standard FITS file"),
    2 => To_Card("BITPIX","8"," "),
@@ -58,12 +66,6 @@ procedure exampleCreateFitsFile is
    6 => ENDCard,
    others => EmptyCard);
 
- Data : UInt8Arr_Type(1 .. DataCnt);
-
--- DBlk : Data_Arr(UInt8,2880);-- := (
---   FitsType => UInt8,
---   Length   => 2880,
---   UInt8Arr => (others   => FITS.Data.Unsigned_8(128)));
 begin
 
  Put_Line("Usage " & Command_Name );
@@ -71,38 +73,31 @@ begin
  Put_Line(" output: " & Name );
  New_Line(2);
 
- -- DBG print
+ -- DBG print header
  for I in HBlk'Range
  loop
   Put_Line( HBlk(I) );
  end loop;
 
- -- generate the data as described in Header
+ -- generate the data
  for I in 1 .. RowsCnt loop
    for J in 1 .. ColsCnt loop
      Data((I-1)*ColsCnt + J) := FITS.Data.Unsigned_8((I mod 256)/2 + (J mod 256)/2);
    end loop;
  end loop;
 
+
+ -- create and write the FIST file
+
  SIO.Create (FitsFile, SIO.Out_File, Name);
  -- FIXME check behaviour AdaRM: overwrites if file already exists ?
-
- Set_Index(FitsFile,HDUNum);
- -- FIXME if AdaRM says SIO.Open guarantees File Index
- -- to be 1 after Open this line is not necessary
+ -- FIXME if AdaRM says SIO.Crete guarantees File Index
+ -- to be 1 after Create ? Otherwise call Set_Index(FitsFile,1)
 
  HeaderBlock_Type'Write(Stream(FitsFile),HBlk);
 
--- for I in 1 ..  (1 + DataCnt / 2880)
--- loop
---   for I in DBlk.UInt8Arr'Range
---   loop
---    DBlk.UInt8Arr(I) := FITS.Data.Unsigned_8(I mod 256);
---   end loop;
---   Data_Arr'Write(Stream(FitsFile),DBlk);
--- end loop;
-
  UInt8Arr_Type'Write(Stream(FitsFile),Data);
+ UInt8Arr_Type'Write(Stream(FitsFile),Padding);
 
 
  SIO.Close(FitsFile);
