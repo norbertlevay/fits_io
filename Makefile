@@ -24,8 +24,8 @@ fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb
 testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file.adb
 	gnatmake -g -gnat12 testfits.adb -o testfits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz -bargs -E
 
-exampleCreateFitsFile : build_date.ads exampleCreateFitsFile.adb fits.ads fits.adb fits-file.ads fits-file.adb
-	gnatmake -g -gnat12 exampleCreateFitsFile.adb -o exampleCreateFitsFile -largs -bargs -E
+exampleCreateFitsFile : build_date.ads examplecreatefitsfile.adb fits.ads fits.adb fits-file.ads fits-file.adb
+	gnatmake -g -gnat12 examplecreatefitsfile.adb -o exampleCreateFitsFile -largs -bargs -E
 
 
 .PHONY: clean distclean
