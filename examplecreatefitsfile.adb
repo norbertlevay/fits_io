@@ -2,14 +2,8 @@
 with
     Ada.Exceptions,
     Ada.Text_IO,
-    Ada.Text_IO.Bounded_IO,
-    Ada.Text_IO.Text_Streams,
-    Ada.Streams.Stream_IO,
     Ada.Command_Line,
-    Ada.Strings.Unbounded,
-    Ada.Strings.Bounded,
-    Ada.Strings.Fixed,
-    Ada.Unchecked_Conversion,
+    Ada.Streams.Stream_IO,
     System,
     Interfaces,
     GNAT.Traceback.Symbolic;
@@ -17,23 +11,17 @@ with
 use
     Ada.Exceptions,
     Ada.Text_IO,
-    Ada.Strings.Unbounded,
-    Ada.Strings.Bounded,
-    Ada.Streams,
-    Ada.Streams.Stream_IO,
-    System,
     Ada.Command_Line;
 
-with FITS.Header;      use FITS.Header;
-with FITS.Size; use FITS.Size;
-with FITS.File; use FITS.File;
-with FITS.Data; use FITS.Data;
 
-with Interfaces;
-use  Interfaces;
+
+with FITS.Header; use FITS.Header;
+with FITS.Data;   use FITS.Data;
 
 
 procedure exampleCreateFitsFile is
+
+ package SIO renames Ada.Streams.Stream_IO;
 
  Name     : String := Command_Name & ".fits";
  FitsFile : SIO.File_Type;
@@ -104,12 +92,11 @@ begin
  -- FIXME if AdaRM says SIO.Crete guarantees File Index
  -- to be 1 after Create ? Otherwise call Set_Index(FitsFile,1)
 
- HeaderBlock_Type'Write(Stream(FitsFile),HBlk);
+ HeaderBlock_Type'Write(SIO.Stream(FitsFile),HBlk);
 
- --UInt8Arr_Type'Write(Stream(FitsFile),Data);
- Buffer_Type'Write(Stream(FitsFile),Buffer.all);
+ Buffer_Type'Write(SIO.Stream(FitsFile),Buffer.all);
  if DPadCnt /= 2880 then
-  UInt8Arr_Type'Write(Stream(FitsFile),Padding);
+  UInt8Arr_Type'Write(SIO.Stream(FitsFile),Padding);
  end if;
 
  SIO.Close(FitsFile);
@@ -118,7 +105,7 @@ begin
 
   when Except_ID : others =>
      declare
-      Error :  Ada.Text_IO.File_Type := Standard_Error;
+      Error : Ada.Text_IO.File_Type := Standard_Error;
      begin
       New_Line(Error);
       Put_Line(Error, "Program error, send bug-report.");
