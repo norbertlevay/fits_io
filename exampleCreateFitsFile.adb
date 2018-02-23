@@ -24,23 +24,16 @@ use
     System,
     Ada.Command_Line;
 
-with FitsFloat;      use FitsFloat;
 with FITS;      use FITS;
 with FITS.Size; use FITS.Size;
 with FITS.File; use FITS.File;
 with FITS.Data; use FITS.Data;
 
-with FITS.Block_IO; --use FITS.File;
-
-with PNG_IO.Base;
-use  PNG_IO.Base;
-
 with Interfaces;
 use  Interfaces;
 
 
-
-procedure testbio is
+procedure exampleCreateFitsFile is
 
  StdoutStream : Ada.Text_IO.Text_Streams.Stream_Access := Ada.Text_IO.Text_Streams.Stream(Ada.Text_IO.Standard_Output);
 
@@ -164,5 +157,5 @@ begin
       -- Do the same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end testbio;
+end exampleCreateFitsFile;
 

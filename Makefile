@@ -4,7 +4,7 @@ builddate=$(shell date)
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
-all: fits testfits testbio
+all: fits testfits exampleCreateFitsFile
 
 
 build_date.ads :
@@ -24,8 +24,8 @@ fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb
 testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file.adb
 	gnatmake -g -gnat12 testfits.adb -o testfits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz -bargs -E
 
-testbio : build_date.ads testbio.adb fits.ads fits.adb fits-file.ads fits-file.adb fits-block_io.ads fits-block_io.adb
-	gnatmake -g -gnat12 testbio.adb -o testbio -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz -bargs -E
+exampleCreateFitsFile : build_date.ads exampleCreateFitsFile.adb fits.ads fits.adb fits-file.ads fits-file.adb
+	gnatmake -g -gnat12 exampleCreateFitsFile.adb -o exampleCreateFitsFile -largs -bargs -E
 
 
 .PHONY: clean distclean

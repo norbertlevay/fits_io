@@ -23,7 +23,6 @@ use
     Ada.Streams.Stream_IO,
     Ada.Command_Line;
 
-with FitsFloat;      use FitsFloat;
 with FITS;      use FITS;
 with FITS.Header; use FITS.Header;
 with FITS.Size; use FITS.Size;
@@ -135,84 +134,6 @@ begin
    New_Line;
  end; -- declare1
 
- --New_Line;
- Put_Line("> reset to HDU start - BigEndian Float32 by swapping bytes");
-
- Set_Index(FitsFile,HDUNum);
- Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
-
- declare
-  type MyFloat is new Float;
-  type Arr4xU8 is array (1..4) of Interfaces.Unsigned_8;
-  Val : MyFloat;
-  Arr : Arr4xU8;
-
-  function Arr_To_MyFloat is
-    new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => MyFloat);
-
-  procedure SwapBytes(arr : in out Arr4xU8) is
-   temp : Arr4xU8;
-  begin
-   temp(1) := arr(4);
-   temp(2) := arr(3);
-   temp(3) := arr(2);
-   temp(4) := arr(1);
-   arr := temp;
-  end SwapBytes;
-
- begin
-   for I in 1..4 loop
-   --MyFloat'Read (SIO.Stream(FitsFile), Val);
-   Arr4xU8'Read (SIO.Stream(FitsFile), Arr);
-   SwapBytes(Arr);
-   Val := Arr_To_MyFloat(Arr);
-   Ada.Text_IO.Put(" " & MyFloat'Image(Val));
-   end loop;
-   Ada.Text_IO.New_Line;
- end; -- declare2
-
- Put_Line("> reset to HDU start - BigEndian Float32 by defining own Float32");
-
- Set_Index(FitsFile,HDUNum);
- Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
-
- declare
-  DUStart : SIO.Count := Index(FitsFile);
-  ValBE : FFloat32_BE;
---  ValLE : FFloat32_LE;
-  type arrf is array(1..4) of FFloat32_BE;
-     pragma Pack (arrf);
-
-
-  af : arrf;
-
-  Valf : Float;
- begin
-   Ada.Text_IO.Put(" CompSize " & Integer'Image(arrf'Component_Size));
-   Ada.Text_IO.Put(" VaSize   " & Integer'Image(FFloat32_BE'VAlue_Size));
-   Ada.Text_IO.Put(" ObjSize  " & Integer'Image(FFloat32_BE'Object_Size));
-   Ada.Text_IO.Put(" Size  " & Integer'Image(FFloat32_BE'Size));
-   Ada.Text_IO.Put_Line("  SizeA " & Integer'Image(arrf'Size));
-
-
-   Ada.Text_IO.Put("Index  " & SIO.Count'Image(Index(FitsFile)));
-   arrf'Read (SIO.Stream(FitsFile), af);
-   Ada.Text_IO.Put_Line(" --> " & SIO.Count'Image(Index(FitsFile)));
-
-   Set_Index(FitsFile,DUStart);
-
-   for I in 1..4 loop
-
-    SIO.Set_Index(FitsFile,DUStart);
-    Ada.Text_IO.Put("Index  " & SIO.Count'Image(Index(FitsFile)));
-    FFloat32_BE'Read (SIO.Stream(FitsFile), ValBE);
-    DUStart := DUStart + 4;
-
-    Valf := FFloat32BE_To_Float(af(I));
-    Ada.Text_IO.Put_Line(" " & Float'Image(Valf));
-   end loop;
-   Ada.Text_IO.New_Line;
- end; -- declare2
 
  SIO.Close(FitsFile);
 
