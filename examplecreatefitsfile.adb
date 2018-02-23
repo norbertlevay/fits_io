@@ -35,12 +35,10 @@ use  Interfaces;
 
 procedure exampleCreateFitsFile is
 
- Name   : String   := Command_Name & ".fits";
+ Name     : String := Command_Name & ".fits";
  FitsFile : SIO.File_Type;
 
- HDUNum  : Positive := 1;
-
- RowsCnt : constant Positive := 500;
+ RowsCnt : constant Positive := 600;
  ColsCnt : constant Positive := RowsCnt;
  DataCnt : constant Positive := RowsCnt*ColsCnt;
  DPadCnt : constant Natural  := 2880 - (DataCnt mod 2880);
@@ -58,7 +56,7 @@ procedure exampleCreateFitsFile is
 
  -- Header for the above data:
  HBlk : HeaderBlock_Type := (
-   1 => To_Card("SIMPLE","1","Standard FITS file"),
+   1 => To_Card("SIMPLE","T","Standard FITS file"),
    2 => To_Card("BITPIX","8"," "),
    3 => To_Card("NAXIS", "2"," "),
    4 => To_Card("NAXIS1",Positive'Image(RowsCnt)," "),
