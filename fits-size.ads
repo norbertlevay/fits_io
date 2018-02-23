@@ -25,6 +25,7 @@ package FITS.Size is
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
+   type AxesLengths_Arr is array (Positive range <>) of FPositive;
    type Dims_Type is array (1..MaxAxes) of FPositive;
    -- [FITS 4.2.3 Integer number]:
    -- FITS poses no limit on max value of Integer / NAXISn.
@@ -87,6 +88,10 @@ package FITS.Size is
    procedure Parse_Card_For_Size
               (Card          : in  Card_Type;
                DUSizeKeyVals : out DU_Size_Type);
+
+   function  Write_Cards_For_Size
+              (BITPIX : Integer;
+               Dim    : AxesLengths_Arr ) return Card_Arr;
 
 end FITS.Size;
 

@@ -336,8 +336,8 @@ use  Interfaces;
      -- and we rely on virtual memory to have
      -- enough space in case of big files
 
-     type Data_Arr_Ptr is access Data_Arr( DataType, W*H );
-     Data : Data_Arr_Ptr  := new Data_Arr( DataType, W*H ) ;
+     type Data_Arr_Ptr is access Data_Arr( DataType, FPositive(W*H) );
+     Data : Data_Arr_Ptr  := new Data_Arr( DataType, FPositive(W*H) ) ;
 --     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
 --     Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
      -- holds data from FITS-file

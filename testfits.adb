@@ -59,7 +59,7 @@ procedure testfits is
   procedure PutFITSData (Data : in Data_Arr)
   is
   begin
-   for I in Positive range 1 .. Data.Length
+   for I in FPositive range 1 .. Data.Length
    loop
     case Data.FitsType is
     when UInt8 =>

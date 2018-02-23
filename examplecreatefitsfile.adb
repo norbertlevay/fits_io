@@ -1,3 +1,14 @@
+--
+-- Example create & write small FITS file
+--
+-- if data small enough to handle in memory (heap),
+-- otherwise
+-- writing by blocks:
+-- DBlk : Data_Arr(UInt8,2880);-- := (
+--   FitsType => UInt8,
+--   Length   => 2880,
+--   UInt8Arr => (others   => FITS.Data.Unsigned_8(128)));
+--
 
 with
     Ada.Exceptions,
@@ -14,69 +25,57 @@ use
     Ada.Command_Line;
 
 
-
+with FITS.Size;   use FITS.Size;
 with FITS.Header; use FITS.Header;
 with FITS.Data;   use FITS.Data;
 
 
-procedure exampleCreateFitsFile is
+procedure exampleCreateFitsFile
+is
 
  package SIO renames Ada.Streams.Stream_IO;
 
- Name     : String := Command_Name & ".fits";
- FitsFile : SIO.File_Type;
+ Name : constant String := Command_Name & ".fits";
+ File : SIO.File_Type;
 
- RowsCnt : constant Positive := 600;
- ColsCnt : constant Positive := 400;--RowsCnt;
- DataCnt : constant Positive := RowsCnt*ColsCnt;
- DPadCnt : constant Natural  := 2880 - (DataCnt mod 2880);
+ -- Describe the Data
+
+ RowsCnt : constant FPositive := 400;
+ ColsCnt : constant FPositive := 600;
+ DataCnt : constant FPositive := RowsCnt*ColsCnt;
+ DPadCnt : constant Positive  := 2880 - Natural(DataCnt mod FPositive(2880));
  -- padding data up to block size
 
  type Buffer_Type is new UInt8Arr_Type(1 .. DataCnt);
- for Buffer_Type'Size use DataCnt*(FITS.Data.Unsigned_8'Size);
+ for  Buffer_Type'Size use DataCnt*(FITS.Data.Unsigned_8'Size);
+ -- pack the data before write
 
  type Buffer_Ptr  is access Buffer_Type;
  Buffer : Buffer_Ptr;
 
+ Padding : constant UInt8Arr_Type(1 .. FPositive(DPadCnt)) := (others => 0);
+ for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
 
- -- if data small enough to handle in memory (heap),
- -- otherwise
- -- writing by blocks:
- -- DBlk : Data_Arr(UInt8,2880);-- := (
- --   FitsType => UInt8,
- --   Length   => 2880,
- --   UInt8Arr => (others   => FITS.Data.Unsigned_8(128)));
- Padding : UInt8Arr_Type(1 .. DPadCnt) := (others => 0);
+ -- Prepare the Header
 
- -- Header for the above data:
- HBlk : HeaderBlock_Type := (
-   1 => To_Card("SIMPLE","T","Standard FITS file"),
-   2 => To_Card("BITPIX","8"," "),
-   3 => To_Card("NAXIS", "2"," "),
-   4 => To_Card("NAXIS1",Positive'Image(RowsCnt)," "),
-   5 => To_Card("NAXIS2",Positive'Image(ColsCnt)," "),
-   6 => ENDCard,
-   others => EmptyCard);
-   -- data is stored as array where NAXIS1 varies
-   -- most rapidly, then NAXIS2, etc...
+ Cards : Card_Arr := Write_Cards_For_Size
+                      (BITPIX => 8,
+                       Dim    => (RowsCnt, ColsCnt) );
+ HPadCnt : constant Positive      := CardsCntInBlock - Positive((1+Cards'Length) mod CardsCntInBlock);
+                                                      -- 1+ is for ENDCard
+ HPad    : Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
+ -- padding Header up to block size
+
+ -- FIXME how to guarantee Cards & HPad arrays are packed ?
 
 begin
 
- Put_Line("Usage " & Command_Name );
- New_Line;
- Put_Line(" output: " & Name );
- New_Line(2);
-
- -- DBG print header
- for I in HBlk'Range
- loop
-  Put_Line( HBlk(I) );
- end loop;
+ Put_Line("Usage  " & Command_Name );
 
  Buffer := new Buffer_Type;
- -- will be relelased at exit from begin .. end section
+ -- will be released at exit from begin...end section
 
- -- generate the data
+ -- generate example data
  -- [FITS 3.4.1. Fig 1] NAXIS1 (Rows) varies most rapidly
  for J in 1 .. ColsCnt loop
    for I in 1 .. RowsCnt loop
@@ -85,21 +84,34 @@ begin
  end loop;
 
 
- -- create and write the FIST file
+ -- create and write the FITS file
 
- SIO.Create (FitsFile, SIO.Out_File, Name);
+ Put("Output " & Name & " ...");
+
+ SIO.Create (File, SIO.Out_File, Name);
  -- FIXME check behaviour AdaRM: overwrites if file already exists ?
- -- FIXME if AdaRM says SIO.Crete guarantees File Index
- -- to be 1 after Create ? Otherwise call Set_Index(FitsFile,1)
+ -- FIXME if AdaRM says SIO.Create guarantees File Index
+ -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- HeaderBlock_Type'Write(SIO.Stream(FitsFile),HBlk);
 
- Buffer_Type'Write(SIO.Stream(FitsFile),Buffer.all);
- if DPadCnt /= 2880 then
-  UInt8Arr_Type'Write(SIO.Stream(FitsFile),Padding);
+ -- write Header
+
+ Card_Arr'Write(SIO.Stream(File),Cards);
+ Card_Type'Write(SIO.Stream(File),ENDCard);
+ if HPadCnt /= CardsCntInBlock then
+   Card_Arr'Write(SIO.Stream(File),HPad);
  end if;
 
- SIO.Close(FitsFile);
+ -- write Data
+
+ Buffer_Type'Write(SIO.Stream(File),Buffer.all);
+ if DPadCnt /= 2880 then
+  UInt8Arr_Type'Write(SIO.Stream(File),Padding);
+ end if;
+
+ SIO.Close(File);
+
+ Put_Line(" writen.");
 
  exception
 

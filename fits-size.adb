@@ -144,6 +144,32 @@ package body FITS.Size is
      -- will overwrite these values
    end Parse_Card_For_Size;
 
+   function  Write_Cards_For_Size
+              (BITPIX : Integer;
+               Dim    : AxesLengths_Arr ) return Card_Arr
+   is
+    Cards : Card_Arr(1 .. (3 + Dim'Length));
+   begin
+    Cards(1) := To_Card("SIMPLE","T","Standard FITS file");
+    Cards(2) := To_Card("BITPIX",Integer'Image(BITPIX)," ");
+    -- verify BITPIX is legal value
+    Cards(3) := To_Card("NAXIS", Positive'Image(Dim'Length)," ");
+
+    for I in Dim'Range
+    loop
+      declare
+       Idx : String := Positive'Image(I);
+       Key : String := "NAXIS" & Idx(2 .. Idx'Last);
+      begin
+       Cards(3+I) := To_Card(Key,
+                             FPositive'Image( Dim(I) )
+                             ," ");
+      end;
+    end loop;
+
+    return Cards;
+   end Write_Cards_For_Size;
+
 end FITS.Size;
 
 

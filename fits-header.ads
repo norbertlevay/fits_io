@@ -28,9 +28,11 @@ package FITS.Header is
    -- Heade types for Read/Write --
    --------------------------------
 
+   type Card_Arr is array (Positive range <>) of Card_Type;
+
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;
-
+   for  HeaderBlock_Type'Size use (2880 * Byte'Size);
    -- Access Header
 
    type HBlockArr_Type  is array ( Positive range <> ) of HeaderBlock_Type;
@@ -53,6 +55,9 @@ package FITS.Header is
      end record;
 
    -- in file all data are packed
+   -- FIXME pragma Pack is only hint for compiler
+   -- to optimize for size on expense of speed,
+   -- use 'Size to guarantee that array is packed
    pragma Pack (HBlockArr_Type);
    pragma Pack (CardArr_Type);
    pragma Pack (CharArr_Type);
