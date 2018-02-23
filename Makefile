@@ -27,6 +27,11 @@ testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file
 exampleCreateFitsFile : build_date.ads examplecreatefitsfile.adb fits.ads fits.adb fits-file.ads fits-file.adb
 	gnatmake -g -gnat12 examplecreatefitsfile.adb -o exampleCreateFitsFile -largs -bargs -E
 
+examplerun: exampleCreateFitsFile
+	./exampleCreateFitsFile
+	./fits png exampleCreateFitsFile.fits
+	display exampleCreateFitsFile.fits_P1.png &
+
 
 .PHONY: clean distclean
 

@@ -20,6 +20,9 @@ package FITS.Header is
    ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
    EmptyCard : constant Card_Type := (others => ' ');
 
+   function To_Card(KeyName  : in String;
+                    KeyValue : in String;
+                    Comment  : in String) return Card_Type;
 
    --------------------------------
    -- Heade types for Read/Write --
