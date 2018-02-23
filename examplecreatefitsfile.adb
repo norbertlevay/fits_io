@@ -39,13 +39,19 @@ procedure exampleCreateFitsFile is
  FitsFile : SIO.File_Type;
 
  RowsCnt : constant Positive := 600;
- ColsCnt : constant Positive := RowsCnt;
+ ColsCnt : constant Positive := 400;--RowsCnt;
  DataCnt : constant Positive := RowsCnt*ColsCnt;
  DPadCnt : constant Natural  := 2880 - (DataCnt mod 2880);
  -- padding data up to block size
 
- Data : UInt8Arr_Type(1 .. DataCnt);
- -- if data small enough to handle in memory do as above,
+ type Buffer_Type is new UInt8Arr_Type(1 .. DataCnt);
+ for Buffer_Type'Size use DataCnt*(FITS.Data.Unsigned_8'Size);
+
+ type Buffer_Ptr  is access Buffer_Type;
+ Buffer : Buffer_Ptr;
+
+
+ -- if data small enough to handle in memory (heap),
  -- otherwise
  -- writing by blocks:
  -- DBlk : Data_Arr(UInt8,2880);-- := (
@@ -63,6 +69,8 @@ procedure exampleCreateFitsFile is
    5 => To_Card("NAXIS2",Positive'Image(ColsCnt)," "),
    6 => ENDCard,
    others => EmptyCard);
+   -- data is stored as array where NAXIS1 varies
+   -- most rapidly, then NAXIS2, etc...
 
 begin
 
@@ -77,10 +85,14 @@ begin
   Put_Line( HBlk(I) );
  end loop;
 
+ Buffer := new Buffer_Type;
+ -- will be relelased at exit from begin .. end section
+
  -- generate the data
- for I in 1 .. RowsCnt loop
-   for J in 1 .. ColsCnt loop
-     Data((I-1)*ColsCnt + J) := FITS.Data.Unsigned_8((I mod 256)/2 + (J mod 256)/2);
+ -- [FITS 3.4.1. Fig 1] NAXIS1 (Rows) varies most rapidly
+ for J in 1 .. ColsCnt loop
+   for I in 1 .. RowsCnt loop
+     Buffer.all((J-1)*RowsCnt + I) := FITS.Data.Unsigned_8((I mod 256)/2 + (J mod 256)/2);
    end loop;
  end loop;
 
@@ -94,7 +106,8 @@ begin
 
  HeaderBlock_Type'Write(Stream(FitsFile),HBlk);
 
- UInt8Arr_Type'Write(Stream(FitsFile),Data);
+ --UInt8Arr_Type'Write(Stream(FitsFile),Data);
+ Buffer_Type'Write(Stream(FitsFile),Buffer.all);
  if DPadCnt /= 2880 then
   UInt8Arr_Type'Write(Stream(FitsFile),Padding);
  end if;
