@@ -40,7 +40,7 @@ procedure exampleCreateFitsFile is
 
  HDUNum  : Positive := 1;
 
- RowsCnt : constant Positive := 600;
+ RowsCnt : constant Positive := 500;
  ColsCnt : constant Positive := RowsCnt;
  DataCnt : constant Positive := RowsCnt*ColsCnt;
  DPadCnt : constant Natural  := 2880 - (DataCnt mod 2880);
@@ -97,8 +97,9 @@ begin
  HeaderBlock_Type'Write(Stream(FitsFile),HBlk);
 
  UInt8Arr_Type'Write(Stream(FitsFile),Data);
- UInt8Arr_Type'Write(Stream(FitsFile),Padding);
-
+ if DPadCnt /= 2880 then
+  UInt8Arr_Type'Write(Stream(FitsFile),Padding);
+ end if;
 
  SIO.Close(FitsFile);
 
