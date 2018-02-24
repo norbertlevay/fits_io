@@ -96,6 +96,7 @@ begin
 
  -- write Header
 
+
  Card_Arr'Write(SIO.Stream(File),Cards);
  Card_Type'Write(SIO.Stream(File),ENDCard);
  if HPadCnt /= CardsCntInBlock then

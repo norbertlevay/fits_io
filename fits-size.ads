@@ -25,6 +25,7 @@ package FITS.Size is
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
+
    type AxesLengths_Arr is array (Positive range <>) of FPositive;
    type Dims_Type is array (1..MaxAxes) of FPositive;
    -- [FITS 4.2.3 Integer number]:
