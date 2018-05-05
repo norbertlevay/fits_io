@@ -4,15 +4,15 @@ with FITS.Data; -- Data_Arr needed
 
 package body ncube is
 
- type MyVector is array (Positive range <>) of Positive;
+-- type MyVector is array (Positive range <>) of Positive;
 
  procedure To_Coords (Offset    : in  Positive;
                       MaxCoords : in  MyVector;
                       Coords    : out MyVector)
  is
     Sizes : MyVector := MaxCoords;
-    Divs : MyVector := MaxCoords;
-    Rems : MyVector := MaxCoords;
+    Divs :  MyVector := MaxCoords;
+    Rems :  MyVector := MaxCoords;
     -- FIXME these inits are needed only to eliminate Ada error
     -- find other solution
  begin
@@ -48,7 +48,9 @@ package body ncube is
   --
   -- pick the coordinates from Divs & Rems
   --
-  Coords := Rems(Rems'Last) & Divs(Divs'Last..2);
+  Coords(1) := Rems(Rems'Last);
+  Coords(2..Coords'Last) := Divs(Divs'Last..2);
+ -- Coords := Rems(Rems'Last) & Divs(Divs'Last..2);
 
  end To_Coords;
 

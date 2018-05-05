@@ -4,6 +4,14 @@ with FITS.Data; -- Data_Arr needed
 
 package ncube is
 
+ type MyVector is array (Positive range <>) of Positive;
+
+ procedure To_Coords (Offset    : in  Positive;
+                      MaxCoords : in  MyVector;
+                      Coords    : out MyVector);
+
+-- -------------------------------------------------
+
  type Coord_Type is new FITS.Size.Dims_Type;
 -- type Coord_Type is array (1 .. <>) of XXXX;
 
