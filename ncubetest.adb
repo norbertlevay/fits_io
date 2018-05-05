@@ -6,7 +6,7 @@ use Ada.Text_IO;
 
 procedure ncubetest
 is
- Offset    :  Positive := 60;
+ Offset    :  Positive := 12;
  MaxCoords :  NCube.MyVector := (3,4,5);
  Coords    :  NCube.MyVector := (9,9,9);
 begin

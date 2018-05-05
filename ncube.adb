@@ -38,14 +38,14 @@ package body ncube is
   -- calc divisions and fractions
   --
   declare
-    PrevRem : Positive := Offset;
+    PrevRem : Natural := Offset - 1;
   begin
     for I in reverse MaxCoords'First .. MaxCoords'Last
     loop
       Divs(I) := 1 + PrevRem  /  Sizes(I);
-      Rems(I) := PrevRem rem Sizes(I);
+      Rems(I) := 1 + PrevRem rem Sizes(I);
       -- FIXME rem gives 0 for multiples
-      PrevRem := Rems(I);
+      PrevRem := Rems(I) - 1;
     end loop;
   end;
 
