@@ -2,6 +2,9 @@
 with FITS.Size; -- NAXISn Coordinate type needed
 with FITS.Data; -- Data_Arr needed
 
+with Ada.Text_IO;
+use  Ada.Text_IO;
+
 package body ncube is
 
 -- type MyVector is array (Positive range <>) of Positive;
@@ -37,10 +40,11 @@ package body ncube is
   declare
     PrevRem : Positive := Offset;
   begin
-    for I in MaxCoords'Last ..  MaxCoords'First
+    for I in reverse MaxCoords'First .. MaxCoords'Last
     loop
-      Divs(I) := PrevRem / Sizes(I);
+      Divs(I) := 1 + PrevRem  /  Sizes(I);
       Rems(I) := PrevRem rem Sizes(I);
+      -- FIXME rem gives 0 for multiples
       PrevRem := Rems(I);
     end loop;
   end;
@@ -48,10 +52,7 @@ package body ncube is
   --
   -- pick the coordinates from Divs & Rems
   --
-  Coords(1) := Rems(Rems'Last);
-  Coords(2..Coords'Last) := Divs(Divs'Last..2);
- -- Coords := Rems(Rems'Last) & Divs(Divs'Last..2);
-
+  Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
  end To_Coords;
 
 

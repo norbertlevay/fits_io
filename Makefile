@@ -31,7 +31,7 @@ doall : build_date.ads
 #	gnatmake -g -gnat12 examplecreatefitsfile.adb -o exampleCreateFitsFile -largs -bargs -E
 
 ncubetest : ncubetest.adb ncube.ads ncube.adb
-	gnatmake ncubetest.adb -o ncubetest
+	gnatmake -g ncubetest.adb -o ncubetest
 
 examplerun: exampleCreateFitsFile
 	./exampleCreateFitsFile
