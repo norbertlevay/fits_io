@@ -1,19 +1,26 @@
 
 with FITS.Size; -- NAXISn Coordinate type needed
+use  FITS.Size; -- NAXISn Coordinate type needed
 with FITS.Data; -- Data_Arr needed
 
 package ncube is
 
- type MyVector is array (Positive range <>) of Positive;
+ type Coord_Type is new FITS.Size.Dims_Type;
 
- procedure To_Coords (Offset    : in  Positive;
+-- type MyVector is array (Positive range <>) of Positive;
+ type MyVector is new FITS.Size.Dims_Type;
+
+ procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  MyVector;
                       Coords    : out MyVector);
 
 -- -------------------------------------------------
 
- type Coord_Type is new FITS.Size.Dims_Type;
--- type Coord_Type is array (1 .. <>) of XXXX;
+
+-- FITS.Size.ads :
+--   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
+--   type Dims_Type is array (1..MaxAxes) of FPositive;
+
 
  -- Solution 1:
  -- write all data in one step - "small" data compared to computer memory

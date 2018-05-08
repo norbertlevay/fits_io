@@ -7,9 +7,8 @@ use  Ada.Text_IO;
 
 package body ncube is
 
--- type MyVector is array (Positive range <>) of Positive;
 
- procedure To_Coords (Offset    : in  Positive;
+ procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  MyVector;
                       Coords    : out MyVector)
  is
@@ -24,7 +23,7 @@ package body ncube is
   -- generate size of each plane
   --
   declare
-    Accu  : Positive := 1;
+    Accu  : FPositive := 1;
   begin
     for I in MaxCoords'Range
     loop
@@ -38,7 +37,7 @@ package body ncube is
   -- calc divisions and fractions
   --
   declare
-    PrevRem : Natural := Offset - 1;
+    PrevRem : FNatural := Offset - 1;
   begin
     for I in reverse MaxCoords'First .. MaxCoords'Last
     loop
@@ -63,12 +62,13 @@ package body ncube is
 --  with function Value ( Coord : in Coord_Type ) return Item;
  procedure Fill_In (DataVector : in out Coll)
  is
-  Ita : Item;
+  Coord : Coord_Type;
  begin
   -- implement [FITS Sect xx] data order FORTRAN-style
   for I in DataVector'Range
   loop
-   DataVector(I) := Ita;
+   -- Coord := To_Coords(I,MaxCoords,Coords);
+   DataVector(I) := Value(Coord);
   end loop;
 
  end Fill_In;
