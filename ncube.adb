@@ -9,12 +9,12 @@ package body ncube is
 
 
  procedure To_Coords (Offset    : in  FPositive;
-                      MaxCoords : in  MyVector;
-                      Coords    : out MyVector)
+                      MaxCoords : in  Coord_Type;
+                      Coords    : out Coord_Type)
  is
-    Sizes : MyVector := MaxCoords;
-    Divs :  MyVector := MaxCoords;
-    Rems :  MyVector := MaxCoords;
+    Sizes : Coord_Type := MaxCoords;
+    Divs :  Coord_Type := MaxCoords;
+    Rems :  Coord_Type := MaxCoords;
     -- FIXME these inits are needed only to eliminate Ada error
     -- find other solution
  begin
@@ -60,14 +60,15 @@ package body ncube is
 --  type Item is (<>);
 --  type Coll is array(Index range <>) of Item;
 --  with function Value ( Coord : in Coord_Type ) return Item;
- procedure Fill_In (DataVector : in out Coll)
+ procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type)
  is
   Coord : Coord_Type;
  begin
   -- implement [FITS Sect xx] data order FORTRAN-style
   for I in DataVector'Range
   loop
-   -- Coord := To_Coords(I,MaxCoords,Coords);
+   To_Coords(I,MaxCoords,Coord);
+   -- FIXME explicit conversion
    DataVector(I) := Value(Coord);
   end loop;
 

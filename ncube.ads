@@ -8,11 +8,11 @@ package ncube is
  type Coord_Type is new FITS.Size.Dims_Type;
 
 -- type MyVector is array (Positive range <>) of Positive;
- type MyVector is new FITS.Size.Dims_Type;
+-- type MyVector is new FITS.Size.Dims_Type;
 
  procedure To_Coords (Offset    : in  FPositive;
-                      MaxCoords : in  MyVector;
-                      Coords    : out MyVector);
+                      MaxCoords : in  Coord_Type;
+                      Coords    : out Coord_Type);
 
 -- -------------------------------------------------
 
@@ -38,11 +38,11 @@ package ncube is
  -- into an 1-dimensional array
 
  generic
-  type Index is (<>);
   type Item is (<>);
-  type Coll is array(Index range <>) of Item;
+--  type Index is (<>);
+  type Coll is array(FPositive range <>) of Item;
   with function Value ( Coord : in Coord_Type ) return Item;
- procedure Fill_In (DataVector : in out Coll);-- is null;
+ procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type);-- is null;
 
 
 
