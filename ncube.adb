@@ -68,7 +68,6 @@ package body ncube is
   for I in DataVector'Range
   loop
    To_Coords(I,MaxCoords,Coord);
-   -- FIXME explicit conversion
    DataVector(I) := Value(Coord);
   end loop;
 

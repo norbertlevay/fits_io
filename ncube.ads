@@ -7,20 +7,15 @@ package ncube is
 
  type Coord_Type is new FITS.Size.Dims_Type;
 
--- type MyVector is array (Positive range <>) of Positive;
--- type MyVector is new FITS.Size.Dims_Type;
-
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;
                       Coords    : out Coord_Type);
 
 -- -------------------------------------------------
 
-
 -- FITS.Size.ads :
 --   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
 --   type Dims_Type is array (1..MaxAxes) of FPositive;
-
 
  -- Solution 1:
  -- write all data in one step - "small" data compared to computer memory
@@ -39,7 +34,6 @@ package ncube is
 
  generic
   type Item is (<>);
---  type Index is (<>);
   type Coll is array(FPositive range <>) of Item;
   with function Value ( Coord : in Coord_Type ) return Item;
  procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type);-- is null;
