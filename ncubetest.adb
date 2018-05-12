@@ -17,8 +17,7 @@ is
  Coords    :  NCube.Coord_Type := (9,9,9,others => 1);
 begin
 
- NCube.To_Coords (Offset, MaxCoords, Coords);
-
+-- NCube.To_Coords (Offset, MaxCoords, Coords);
 -- Put(FPositive'Image(Offset) & ": ");
 -- for I in Coords'Range
 -- loop
@@ -26,6 +25,7 @@ begin
 -- end loop;
 
  -- Generic : do all Offsets
+
 -- generic
 --  type Item is (<>);
 --  type Coll is array(FPositive range <>) of Item;
