@@ -68,6 +68,16 @@ package body ncube is
   for I in DataVector'Range
   loop
    To_Coords(I,MaxCoords,Coord);
+
+  -- Debug:
+  Put(FPositive'Image(I) & ": ");
+  for I in Coord'Range
+  loop
+   Put(" " & FPositive'Image(Coord(I)));
+  end loop;
+  New_Line;
+  -- Debug End
+
    DataVector(I) := Value(Coord);
   end loop;
 
