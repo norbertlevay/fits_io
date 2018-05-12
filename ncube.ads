@@ -12,7 +12,8 @@ package ncube is
  -- implements [FITS Sect ??] ordering N-dimensional data by columns
  -- into an 1-dimensional array
 
- type Coord_Type is new FITS.Size.Dims_Type;
+ -- type Coord_Type is new FITS.Size.Dims_Type;
+ type Coord_Type is array (FPositive range <> ) of FPositive;
 
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;

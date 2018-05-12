@@ -62,7 +62,8 @@ package body ncube is
 --  with function Value ( Coord : in Coord_Type ) return Item;
  procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type)
  is
-  Coord : Coord_Type;
+  Coord : Coord_Type := MaxCoords;
+  -- FIXME should be same length not necessary values
  begin
   -- implement [FITS Sect xx] data order FORTRAN-style
   for I in DataVector'Range
