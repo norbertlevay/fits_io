@@ -23,7 +23,8 @@ package ncube is
 --   type Dims_Type is array (1..MaxAxes) of FPositive;
 
  generic
-  type Item is (<>);
+  -- type Item is (<>); -- this allows only discete types like Integer
+  type Item is private; -- this allows also Float
   type Coll is array(FPositive range <>) of Item;
   with function Value ( Coord : in Coord_Type ) return Item;
  procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type);-- is null;
