@@ -28,8 +28,10 @@ package ncube is
   type Coll is array(FPositive range <>) of Item;
   with function Value ( Coord : in Coord_Type ) return Item;
  procedure Fill_In (DataVector : in out Coll; MaxCoords : in Coord_Type);-- is null;
-
-
+ -- FIXME:
+ -- Rename Value() to:               Set(coord,Item)
+ --   and Fill_In() to is Set array: Set_All(array,...)
+ -- Add generic get func:            Get(array, coord) return Item
 
 
  -- Solution 2:

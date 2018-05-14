@@ -32,18 +32,21 @@ is
   procedure Fill_In_Int32 is new
    NCube.Fill_In (Int32, MyData, Int32Value);
 
-  MaxCoords : NCube.Coord_Type := (3,4,5);
-  DInt32    : MyData(1..60);
-  -- FIXME 60 = 3*4*5
+  MaxCoords  : NCube.Coord_Type := (3,4,5);
+  DInt32_Acc : access MyData;
 
 begin
 
-  Fill_In_Int32(DInt32, MaxCoords);
+  -- FIXME 60 = 3*4*5
+  DInt32_Acc := new MyData(1..60);
+  -- memory will be released at 'end'
+
+  Fill_In_Int32(DInt32_Acc.all, MaxCoords);
 
   Put_Line("Data Arrary values: ");
-  for I in DInt32'Range
+  for I in DInt32_Acc.all'Range
   loop
-   Put(" " & Int32'Image(DInt32(I)));
+   Put(" " & Int32'Image(DInt32_Acc.all(I)));
   end loop;
 
 end ncubetest;
