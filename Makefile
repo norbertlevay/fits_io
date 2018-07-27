@@ -5,15 +5,15 @@ builddate=$(shell date)
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
 # Dependecies:
-ZLIB_ARCH=./png/libz-1.2.8.2015.12.26/libz.a
-ZLIBADA_SRC=./png/zlib-ada
-ZLIBADA_OBJ=./png/zlib-ada
-PNG_SRC=./png/png_4_6
-PNG_OBJ=./png/png_4_6
+# where /libz.a is, 
+# and where ZLib-Ada and PNG sources and *.o are:
+ZLIB_DIR=./png/libz-1.2.8.2015.12.26
+ZLIBADA_DIR=./png/zlib-ada
+PNG_DIR=./png/png_4_6
 
 SRC=main.adb
 
-all: doall
+all: fits tests
 #testfits exampleCreateFitsFile
 
 
@@ -22,21 +22,16 @@ build_date.ads :
 	@echo "BuildDate : constant String := \"${builddate}\";" >> build_date.ads
 	@echo "end Build_Date;" >> build_date.ads
 
-doall : build_date.ads
-	gnatmake -g -gnat05 $(SRC) -we -o fits -aI$(ZLIBADA_SRC) -aI$(PNG_SRC) -aO$(ZLIBADA_OBJ) -aO$(PNG_OBJ) -static -largs $(ZLIB_ARCH) -bargs -E
-#	gnatmake -g -gnat05 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
-#	gnatmake -g -gnat05 testfits.adb examplecreatefitsfile.adb -we -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+fits : build_date.ads
+	gnatmake -g -gnat05 -we $(SRC) -o fits -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+
+tests:
+	gnatmake -g -gnat05 -we testfits.adb examplecreatefitsfile.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
 # before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E -> for addr2line --exe=./fits 0x...  at excpetion: -E is passed to binder (-bargs)
 # -we turns warnings into errors
 # -gnaty <-- prints warnings on identation style
-
-#testfits : build_date.ads testfits.adb fits.ads fits.adb fits-file.ads fits-file.adb
-#	gnatmake -g -gnat12 testfits.adb -o testfits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -lz -bargs -E
-
-#exampleCreateFitsFile : build_date.ads examplecreatefitsfile.adb fits.ads fits.adb fits-file.ads fits-file.adb
-#	gnatmake -g -gnat12 examplecreatefitsfile.adb -o exampleCreateFitsFile -largs -bargs -E
 
 ncubetest : ncubetest.adb ncube.ads ncube.adb
 	gnatmake -g ncubetest.adb -o ncubetest
