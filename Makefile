@@ -4,6 +4,15 @@ builddate=$(shell date)
 #TESTFILE=unimap_l118_blue_wglss_rcal.fits
 TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 
+# Dependecies:
+ZLIB_ARCH=./png/libz-1.2.8.2015.12.26/libz.a
+ZLIBADA_SRC=./png/zlib-ada
+ZLIBADA_OBJ=./png/zlib-ada
+PNG_SRC=./png/png_4_6
+PNG_OBJ=./png/png_4_6
+
+SRC=main.adb
+
 all: doall
 #testfits exampleCreateFitsFile
 
@@ -13,12 +22,11 @@ build_date.ads :
 	@echo "BuildDate : constant String := \"${builddate}\";" >> build_date.ads
 	@echo "end Build_Date;" >> build_date.ads
 
-#fits : main.adb build_date.ads options.ads options.adb commands.ads commands.adb fits.ads fits.adb fits-file.ads fits-file.adb fits-data.ads fits-data.adb fits-size.ads fits-size.adb
 doall : build_date.ads
-#	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs ./png/zlib-1.2.11/libz.a -bargs -E
-#	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -L /usr/lib/i386-linux-gnu -lz -bargs -E
-	gnatmake -g -gnat05 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
-	gnatmake -g -gnat05 testfits.adb examplecreatefitsfile.adb -we -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+	gnatmake -g -gnat05 $(SRC) -we -o fits -aI$(ZLIBADA_SRC) -aI$(PNG_SRC) -aO$(ZLIBADA_OBJ) -aO$(PNG_OBJ) -static -largs $(ZLIB_ARCH) -bargs -E
+#	gnatmake -g -gnat05 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+#	gnatmake -g -gnat05 testfits.adb examplecreatefitsfile.adb -we -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+
 # before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E -> for addr2line --exe=./fits 0x...  at excpetion: -E is passed to binder (-bargs)
 # -we turns warnings into errors
