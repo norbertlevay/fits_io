@@ -17,8 +17,8 @@ build_date.ads :
 doall : build_date.ads
 #	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs ./png/zlib-1.2.11/libz.a -bargs -E
 #	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -largs -L /usr/lib/i386-linux-gnu -lz -bargs -E
-	gnatmake -g -gnat12 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
-	gnatmake -g -gnat12 testfits.adb examplecreatefitsfile.adb -we -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+	gnatmake -g -gnat05 main.adb -we -o fits -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
+	gnatmake -g -gnat05 testfits.adb examplecreatefitsfile.adb -we -aI./png/zlib-ada -aI./png/png_4_6 -aO./png/zlib-ada -aO./png/png_4_6 -static -largs ./png/libz-1.2.8.2015.12.26/libz.a -bargs -E
 # before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E -> for addr2line --exe=./fits 0x...  at excpetion: -E is passed to binder (-bargs)
 # -we turns warnings into errors

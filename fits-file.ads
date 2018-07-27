@@ -22,9 +22,10 @@ package FITS.File is
      with procedure Parse_Card
                     (Card : in Card_Type;
                      Data : out Parsed_Type);
-   function Read_Header_Blocks
-            (FitsFile : in SIO.File_Type;
-             Data     : out Parsed_Type) return FPositive;
+   procedure  Read_Header_Blocks
+             (FitsFile : in SIO.File_Type;
+              Data     : out Parsed_Type;
+              CardsCnt : out FNatural);
 
 
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;

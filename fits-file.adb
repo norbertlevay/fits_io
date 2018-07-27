@@ -84,20 +84,23 @@ package body FITS.File is
    --
    -- Read File until ENDCard found
    --
-   function  Read_Header_Blocks
+   procedure  Read_Header_Blocks
              (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type) return FPositive
+              Data     : out Parsed_Type;
+              CardsCnt : out FNatural)
    is
     HBlk         : DataArray_Type(HBlock,1);
     Card         : Card_Type;
     ENDCardFound : Boolean := false;
-    CardsCnt     : FNatural := 0;
+--    CardsCnt     : FNatural := 0;
    begin
 
     -- FIXME how to make sure that each value of Parsed_Type
     -- was set during parsing process ?
     -- Parsed_Card implementation mus keep track of which
     -- record fields were set
+
+    CardsCnt := 0;
 
     loop
 
@@ -116,8 +119,6 @@ package body FITS.File is
       exit when ENDCardFound;
     end loop;
 
-    return CardsCnt;
-
    end Read_Header_Blocks;
 
    -- instantiate generic for Size parsing (see File.Size)
@@ -125,11 +126,11 @@ package body FITS.File is
    procedure Parse_HeaderBlocks (FitsFile : in  SIO.File_Type;
                                  HDUSize  : out HDU_Size_Type)
    is
-    function ParseSizes is
+    procedure ParseSizes is
       new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
                               Parse_Card  => Parse_Card_For_Size);
    begin
-     HDUSize.CardsCnt := ParseSizes(FitsFile, HDUSize.DUSizeKeyVals);
+     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals, HDUSize.CardsCnt);
    end Parse_HeaderBlocks;
 
 

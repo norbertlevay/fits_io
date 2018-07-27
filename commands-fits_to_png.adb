@@ -193,10 +193,14 @@ use  Interfaces;
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
+  dd    : FITS.Data.Unsigned_8;
  begin
 
-  for dd of Data
+--  for dd of Data  <-- This is Ada2012 feature
+  for ix in Data'Range
   loop
+
+    dd := Data(ix);
 
     Img(wi,hi) := GreyPixel_8bit_Type(dd);
                  -- FIXME explicit conversion
@@ -221,12 +225,16 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
+   Val   : FITS.Data.Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
 
-  for Val of Data
+--  for Val of Data <--iterator is Ada2012 only
+  for ix in Data'Range
    loop
+
+     Val := Data(ix);
 
      Img.all(hi,wi) := GreyPixel_8bit_Type(Factor * (Val - Min));
 
@@ -250,12 +258,16 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
+   Val   : FITS.Data.Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
 
-  for Val of Data
+--  for Val of Data <--iterator is Ada2012 only
+  for ix in Data'Range
    loop
+
+     Val := Data(ix);
 
      Img.all(hi,wi) := GreyPixel_16bit_Type(Factor * (Val - Min));
 
@@ -280,6 +292,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
+   Val   : FITS.Data.Float_32;
    flast  : Float_32 :=
             Float_32(RGBPixel_24bit_Type'Last);
  begin
@@ -293,8 +306,12 @@ use  Interfaces;
   -- FIXME needs -1.0 otherwise overflow error
   --       on Float -> Unsigned24 conversion
 
-  for Val of Data
+--  for Val of Data
+--   loop
+  for ix in Data'Range
    loop
+
+     Val := Data(ix);
 
      Img.all(hi,wi) := RGBPixel_24bit_Type( Factor * (Val - Min) );
              --  and RGBPixel_24bit_Type(16#00FF_FFFF#); -- <--FIXME do we need this ? Pixel is defined 24bit!
