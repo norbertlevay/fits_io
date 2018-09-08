@@ -2,8 +2,8 @@
 
 with Ada.Streams.Stream_IO;
 
-with FITS.Size; use FITS.Size;
-with FITS.Header; use FITS.Header;
+with FITS.Size;  use FITS.Size;
+--with FITS.Header; use FITS.Header;
 
 package FITS.File is
 
@@ -11,21 +11,6 @@ package FITS.File is
 
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
-
-   --
-   -- Read File until ENDCard found,
-   -- cal Parse_Card for each card and
-   -- return count of Cards
-   --
-   generic
-     type Parsed_Type is limited private;
-     with procedure Parse_Card
-                    (Card : in Card_Type;
-                     Data : out Parsed_Type);
-   procedure  Read_Header_Blocks
-             (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type;
-              CardsCnt : out FNatural);
 
 
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;

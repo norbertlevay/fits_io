@@ -80,6 +80,21 @@ package body FITS.File is
    -- which is unit for positioning in Stream_IO by Set_Index()
 
 
+   --
+   -- Read File until ENDCard found,
+   -- cal Parse_Card for each card and
+   -- return count of Cards
+   --
+   generic
+     type Parsed_Type is limited private;
+     with procedure Parse_Card
+                    (Card : in Card_Type;
+                     Data : out Parsed_Type);
+   procedure  Read_Header_Blocks
+             (FitsFile : in SIO.File_Type;
+              Data     : out Parsed_Type;
+              CardsCnt : out FNatural);
+
 
    --
    -- Read File until ENDCard found
@@ -110,7 +125,7 @@ package body FITS.File is
       for I in HBlk.HBlockArr(1)'Range
       loop
         Card         := HBlk.HBlockArr(1)(I);
-        Parse_Card(Card, Data);
+        Parse_Card(Card, Data); -- generic
         CardsCnt     := CardsCnt + 1;
         ENDCardFound := (Card = ENDCard);
         exit when ENDCardFound;

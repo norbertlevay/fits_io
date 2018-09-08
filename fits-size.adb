@@ -1,9 +1,6 @@
 
-
-with Ada.Text_IO;
-
 with FITS.Header; use FITS.Header;
-with FITS.File; use FITS.File;
+with FITS.File;   use FITS.File;
 
 package body FITS.Size is
 
