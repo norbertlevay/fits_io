@@ -12,11 +12,24 @@ package FITS.File is
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
+   --
+   -- returns information about one HDU
+   --
+   type DimArr_Type is array (1 .. 999) of FPositive; -- size of data cube (aka NAXIS NAXISn)
+   -- FIXME allow memory optimization by specifying 1..MaxAxes < 999
+   -- Print as implementation limit
+   type HDU_Info_Type is record
+      XTENSION   : String(1..10); -- XTENSION type string or empty
+      CardsCnt   : FPositive;     -- number of cards in this Header (gives Header-size)
+
+      BITPIX     : Integer;     -- DataType (aka BITPIX)
+      Dimensions : DimArr_Type;
+   end record;
+   -- FIXME replace HDU_Size_Type with HDU_Info_Type in this ads:
+   -- (allows to remove with FITS.Size from the interface)
 
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
                                  HDUSize  : out HDU_Size_Type);
-    -- extract HDU-size information: read by Blocks.
-    -- After this call file-pointer points to DU (or next HDU)
 
 
 
