@@ -1,4 +1,43 @@
 
+-- Interface func description:
+-- this library supports SEQUENTIAL reading/writing of FITS files
+-- (no random access possible)
+-- Note: Actually we could allow random access for reading, assuming file does not change.
+
+-- Set_Index(in Stream, in HDUNum)
+-- position file pointer to begining of Header of the given HDU
+
+-- HDU info struct: xtension name, cards cnt, data type, dimensions per axis
+-- Get(in Stream, in HDUNum, out HDU_Info_Record)
+
+-- HDU-Data access is ALWAYS SEQUENTIAL
+-- (repeated reads/writes - no positioning - read/write consecutive data):
+-- user has to use below funcs in cycle until
+-- Header-end reached (known by END-card),
+-- DU-end reached (size known from Header when Reading).
+--
+-- User may position to given HDU (Set_Index),
+-- but cannot position within HDU.
+
+-- Read_Cards (in Stream, in N, out CardArr) <- when ENDCard read, skip padding to position to beginig of DU
+-- Write_Cards(in Stream, in CardArr) <- if CardArr contains ENDCard do padding
+
+-- Below funcs have 6 variants of DataArr for all
+-- DU data types (UInt8 Int16/32/64, Float32/64):
+--
+-- 6x Read_Data (in Stream, in N, out DataArr) <- padding no issue: always use Set_index to position to Header
+-- 6x Write_Data(in Stream, in DataArr, in Bool Last=False) <- If DataArr reached DU full size (Last=True), do pading
+-- or
+-- 6x Write_Data(in Stream, in DataArr) <- Use Write_Padding (same as above with Last=False)
+-- Write_Padding(in Stream) <- to be called after last Write_Data (with all having Last=False)
+--  (uses file index to pad until next multiple of BlockSize)
+
+-- NEXT:
+-- DataArr means 1-dimensional represenation of N-dimensional data.
+-- How to do similar interface funcs with NCube ? like in PNG:
+-- -> user gives 'func Data(indeces) returns DataType' which we call
+-- when reading/writing
+
 
 with Ada.Streams.Stream_IO;
 
