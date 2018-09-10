@@ -18,19 +18,33 @@
 --
 -- User may position to given HDU (Set_Index),
 -- but cannot position within HDU.
-
--- Read_Cards (in Stream, in N, out CardArr) <- when ENDCard read, skip padding to position to beginig of DU
--- Write_Cards(in Stream, in CardArr) <- if CardArr contains ENDCard do padding
+-- CardArr is definite: arbitrary but knwon length
+--
+-- Read_Cards (in Stream, out CardArr) <- when ENDCard read, skip padding to position to beginig of DU
+-- Write_Cards(in Stream, in  CardArr) <- if CardArr contains ENDCard do padding
 
 -- Below funcs have 6 variants of DataArr for all
--- DU data types (UInt8 Int16/32/64, Float32/64):
+-- DU data types (UInt8 Int16/32/64, Float32/64).
+-- DataArr is always definite: arbitrary but known length
 --
--- 6x Read_Data (in Stream, in N, out DataArr) <- padding no issue: always use Set_index to position to Header
--- 6x Write_Data(in Stream, in DataArr, in Bool Last=False) <- If DataArr reached DU full size (Last=True), do pading
--- or
--- 6x Write_Data(in Stream, in DataArr) <- Use Write_Padding (same as above with Last=False)
--- Write_Padding(in Stream) <- to be called after last Write_Data (with all having Last=False)
---  (uses file index to pad until next multiple of BlockSize)
+-- 6x Read_Data (in Stream, out DataArr)
+-- Read_Padding(in Stream) <- to be called after last Read_Data,
+--   for successive reading of next HDU if any (if none raise exception)
+--   Alternatively always call Set_Index(Stream, HDUNum)
+--   to position at Header (this is less efficient as it
+--   re-reads all Headers from becginig)
+--
+-- 6x Write_Data(in Stream, in DataArr)
+-- Write_Padding(in Stream) <- to be called after last Write_Data
+
+-- Both Read/Write_Padding use file index to pad/to move until next
+-- multiple of BlockSize.
+
+-- Note: solution below not possible if 'Write(Stream,Data) attribute func
+-- is is to be used: attrib func 'Write cannot have 3rd parameter.
+-- 6x Write_Data(in Stream, in DataArr, in Bool Last=False)
+--  <- If DataArr reached DU full size (Last=True), do pading
+
 
 -- NEXT:
 -- DataArr means 1-dimensional represenation of N-dimensional data.
