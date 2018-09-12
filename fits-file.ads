@@ -27,14 +27,14 @@
 -- DU data types (UInt8 Int16/32/64, Float32/64).
 -- DataArr is always definite: arbitrary but known length
 --
--- 6x Read_Data (in Stream, out DataArr)
+-- 6x Read_Data (in Stream, in N, out DataArr[])
 -- Read_Padding(in Stream) <- to be called after last Read_Data,
 --   for successive reading of next HDU if any (if none raise exception)
 --   Alternatively always call Set_Index(Stream, HDUNum)
 --   to position at Header (this is less efficient as it
 --   re-reads all Headers from becginig)
 --
--- 6x Write_Data(in Stream, in DataArr)
+-- 6x Write_Data(in Stream, in DataArr[N])
 -- Write_Padding(in Stream) <- to be called after last Write_Data
 
 -- Both Read/Write_Padding use file index to pad/to move until next
