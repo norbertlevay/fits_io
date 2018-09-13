@@ -1,85 +1,189 @@
 
 -- Interface func description:
--- this library supports SEQUENTIAL reading/writing of FITS files
--- (no random access possible)
--- Note: Actually we could allow random access for reading, assuming file does not change.
-
+--
+-- this library supports RANDOM access in reading and SEQUENTIAL writing
+-- of FITS files
+--
 -- Set_Index(in Stream, in HDUNum)
 -- position file pointer to begining of Header of the given HDU
-
+--
 -- HDU info struct: xtension name, cards cnt, data type, dimensions per axis
 -- Get(in Stream, in HDUNum, out HDU_Info_Record)
-
--- HDU-Data access is ALWAYS SEQUENTIAL
--- (repeated reads/writes - no positioning - read/write consecutive data):
--- user has to use below funcs in cycle until
--- Header-end reached (known by END-card),
--- DU-end reached (size known from Header when Reading).
 --
--- User may position to given HDU (Set_Index),
--- but cannot position within HDU.
--- CardArr is definite: arbitrary but knwon length
 --
--- Read_Cards (in Stream, out CardArr) <- when ENDCard read, skip padding to position to beginig of DU
--- Write_Cards(in Stream, in  CardArr) <- if CardArr contains ENDCard do padding
-
--- Below funcs have 6 variants of DataArr for all
--- DU data types (UInt8 Int16/32/64, Float32/64).
--- DataArr is always definite: arbitrary but known length
+-- Read (user knows which coords' data he wants, but has not the data)
 --
--- 6x Read_Data (in Stream, in N, out DataArr[])
--- Read_Padding(in Stream) <- to be called after last Read_Data,
---   for successive reading of next HDU if any (if none raise exception)
---   Alternatively always call Set_Index(Stream, HDUNum)
---   to position at Header (this is less efficient as it
---   re-reads all Headers from becginig)
+-- Reading is RANDOM ACCESS, user may position to given HDU (Set_Index),
+-- and then specify an OFFSET (Set_Offset). Offset is counted from the
+-- begining of the Header or DataUnit.
 --
--- 6x Write_Data(in Stream, in DataArr[N])
--- Write_Padding(in Stream) <- to be called after last Write_Data
+-- Set_Offset(Stream, CardIndex)          <- move in Stream to Card given by CardIndex
+-- Set_Offset(Stream, CharIndexVector[2]) <- move in Stream to Character given by 2-dimensional CharIndexVector
+-- Set_Offset(Stream, ElementIndexVector[N], ElementType)<- move in Stream to Element given by ElementIndex
+--
+-- Read_Card (in Stream, out Card)
+-- Read_Card (in Stream, out CardArr[M])
+-- -- reads only upto ENDCard
+-- -- if ENDCard read, Read_Card() will skip the padding and move
+-- -- file index to begining of the Data Unit
+--
+-- 6x Read_Data (in Stream, in (N1,N2,...), out DataArr[<>])
+-- -- DataArr is 1-dimensional and has 6 variants: UInt8 Int16/32/64, Float32/64 and is of size N1*N2*...
+-- -- (N1,N2,...) is vector which specifies the size of the
+-- --  data cube to be read
+-- -- It is responsibility of the caller to ensure that we do not
+-- -- read behind data unit end (Set_Offset + (N1*N2*...) < DUEnd).
+--
+-- FIXME we should hide DataArr[] implementation ??
+--
+-- 6x function Element(DataArr[<>],(I1,I2,...)) returns Element_Type
+--
+--
+-- Write (user has the data but does not know where to write it)
+--
+-- Writing is alway SEQUENTIAL. So below function need to be called in a loop
+-- until all data is written.
+--
+-- Write_Cards(in Stream, in  CardArr[N])
+   -- if CardArr[N] contains ENDCard do padding
 
--- Both Read/Write_Padding use file index to pad/to move until next
--- multiple of BlockSize.
-
--- Note: solution below not possible if 'Write(Stream,Data) attribute func
--- is is to be used: attrib func 'Write cannot have 3rd parameter.
--- 6x Write_Data(in Stream, in DataArr, in Bool Last=False)
---  <- If DataArr reached DU full size (Last=True), do pading
-
-
--- NEXT:
--- DataArr means 1-dimensional represenation of N-dimensional data.
--- How to do similar interface funcs with NCube ? like in PNG:
--- -> user gives 'func Data(indeces) returns DataType' which we call
--- when reading/writing
-
+-- generic
+--  ElementType : UInt8 INT16/32/64 Float32/64
+--  function Element(Coord : Vector[Dims]) return ElementType;
+-- Write_Data(in Stream);
+--
+-- -- user has to supply the implementation of the Element() function
+-- -- Element() function return one data element in coordinats given
+-- -- in vector Vector[Dims]
+--
+-- Misc
+--
+-- function Card(key: in String,value: in String,comment=null: in String) return Card_Type
+--
 
 with Ada.Streams.Stream_IO;
+with Ada.Strings.Bounded;
 
+with FITS.Data;  use FITS.Data;-- DU Types
 with FITS.Size;  use FITS.Size;
 --with FITS.Header; use FITS.Header;
 
+   -- FIXME replace HDU_Size_Type with HDU_Info_Type in this ads:
+   -- (allows to remove with FITS.Size from the interface)
+
 package FITS.File is
 
+-- BEGIN new IF
    package SIO renames Ada.Streams.Stream_IO;
+
+   -- FITS-file content info
+
+   NAXIS_Max : constant Positive := 999;
+
+   type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
+
+   type HDU_Info_Type is record
+      XTENSION : String(1..10);   -- XTENSION string or empty
+      CardsCnt : FPositive;       -- number of cards in this Header
+      BITPIX   : Integer;     -- data type
+      NAXISn   : NAXISn_Type; -- data length
+   end record;
+
+   procedure Get (FitsFile : in  SIO.File_Type;
+                  HDUNum   : in  Positive;
+                  HDUInfo  : out HDU_Info_Type) is null;
+
+   -- positioning
+
+   procedure Set_Index_newif(FitsFile  : in SIO.File_Type;
+                             HDUNum    : in Positive;
+                             CardIndex : in Positive := 1) is null;
+
+   type Coord_Arr    is array (Positive range <>) of Positive;
+   type Element_Type is (UInt8, Int16, Int32, Int64, Float32, Float64);
+
+   procedure Set_Index(FitsFile    : in SIO.File_Type;
+                       HDUNum      : in Positive;
+                       Coord       : in Coord_Arr;
+                       ElementType : in Element_Type) is null;
+
+   -- Header Cards
+
+   type Card_Type_newif is array (1 .. 80) of Character;
+   type Card_Arr_newif  is array (Positive range <>) of Card_Type_newif;
+
+   ENDCard_newif : constant Card_Type_newif := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
+
+   package Max_8                          -- FIXME check lengths:
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 8);
+   package Max11
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 11);
+   package Max59
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 80-21);
+
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Value   : in Max11.Bounded_String;
+                     Comment : in Max59.Bounded_String)
+                     return Card_Type_newif;
+
+   -- Data Unit
+
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+   -- FITS.Data has BigEndian conversion for FLoat32 & 64
+
+   function Element(Data  : in UInt8_Arr;
+                    Coord : in Coord_Arr) return Unsigned_8;
+
+   function Element(Data  : in Float32_Arr;
+                    Coord : in Coord_Arr) return Float_32;
+
+
+
+   -- Read
+
+   procedure Read_Cards  (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+                          Cards  : out Card_Arr_newif) is null;
+   for Card_Arr_newif'Read  use Read_Cards;
+
+   procedure Read_Data (FitsFile : in  SIO.File_Type;
+                        Size     : in  Coord_Arr;
+                        Data     : out UInt8_Arr) is null;
+
+   procedure Read_Data (FitsFile : in  SIO.File_Type;
+                        Size     : in  Coord_Arr;
+                        Data     : out Float32_Arr) is null;
+
+   -- Write
+
+   procedure Write_Cards (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+                          Cards  : in  Card_Arr_newif) is null;
+   for Card_Arr_newif'Write use Write_Cards;
+
+   generic
+    type Item is private;
+    type Item_Arr is array (FPositive range <>) of Item;
+    with function Element (Coord : in Coord_Arr) return Item;
+   procedure Write_Data (FitsFile : in  SIO.File_Type);
+
+   -- Notes:
+   -- Write_Data writes the complete DataUnit
+   -- Write_Data first moves to begining of next Block (writes Header padding)
+   -- Write_Data adds DataUnit padding after last Item written
+
+-- END new IF
+
+
+   procedure Set_Index(FitsFile  : in SIO.File_Type;
+   		       HDUNum    : in Positive);
 
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
-   --
-   -- returns information about one HDU
-   --
-   type DimArr_Type is array (1 .. 999) of FPositive; -- size of data cube (aka NAXIS NAXISn)
-   -- FIXME allow memory optimization by specifying 1..MaxAxes < 999
-   -- Print as implementation limit
-   type HDU_Info_Type is record
-      XTENSION   : String(1..10); -- XTENSION type string or empty
-      CardsCnt   : FPositive;     -- number of cards in this Header (gives Header-size)
-
-      BITPIX     : Integer;     -- DataType (aka BITPIX)
-      Dimensions : DimArr_Type;
-   end record;
-   -- FIXME replace HDU_Size_Type with HDU_Info_Type in this ads:
-   -- (allows to remove with FITS.Size from the interface)
 
    procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
                                  HDUSize  : out HDU_Size_Type);
@@ -95,10 +199,6 @@ package FITS.File is
                            procedure(HDUNum : Positive;
                                      HDUSize : HDU_Size_Type) );
    -- list each HDU's size related parameters
-
-   procedure Set_Index (FitsFile : in SIO.File_Type;
-                        HDUNum   : in Positive);
-   -- set file-index to correct position before 'Read/'Write
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks

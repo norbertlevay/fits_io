@@ -48,6 +48,43 @@ use  FITS.Header;
 
 package body FITS.File is
 
+   -- BEGIN newIF : dummy funcs
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Value   : in Max11.Bounded_String;
+                     Comment : in Max59.Bounded_String)
+                     return Card_Type_newif
+   is
+    Card : Card_Type_newif := ENDCard_newif;
+   begin
+    return Card;
+   end To_Card;
+
+   -- should use generic
+   function Element(Data  : in UInt8_Arr;
+                    Coord : in Coord_Arr) return Unsigned_8
+   is
+    Elem : Unsigned_8 := 0;
+   begin
+    return Elem;
+   end Element;
+
+   function Element(Data  : in Float32_Arr;
+                    Coord : in Coord_Arr) return Float_32
+   is
+    Elem : Float_32 := 0.0;
+   begin
+    return Elem;
+   end Element;
+
+   procedure Write_Data (FitsFile : in  SIO.File_Type)
+   is
+   begin
+    null;
+   end Write_Data;
+
+   -- END newIF
+
+
    procedure Move_Index
              (FitsFile : in SIO.File_Type;
               ByCount  : in SIO.Positive_Count) is
