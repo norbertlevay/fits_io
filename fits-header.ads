@@ -12,15 +12,6 @@ package FITS.Header is
    -- Parse Header --
    ------------------
 
-   CardSize : constant Positive := 80;
-   -- [FITS Sects. 3.3.1, 4.4.1]
-
-   subtype Card_Type is String(1..CardSize);
-   -- makes sure index start with 1
-
-   ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
-   EmptyCard : constant Card_Type := (others => ' ');
-
    function To_Card(KeyName  : in String;
                     KeyValue : in String;
                     Comment  : in String) return Card_Type;
@@ -29,7 +20,6 @@ package FITS.Header is
    -- Heade types for Read/Write --
    --------------------------------
 
-   type Card_Arr is array (Positive range <>) of Card_Type;
 
    CardsCntInBlock : constant Positive := 36;
    type HeaderBlock_Type is array (1 .. CardsCntInBlock) of Card_Type;

@@ -25,6 +25,7 @@ use
     Ada.Command_Line;
 
 
+with FITS;        use FITS;
 with FITS.Size;   use FITS.Size;
 with FITS.Header; use FITS.Header;
 with FITS.Data;   use FITS.Data;

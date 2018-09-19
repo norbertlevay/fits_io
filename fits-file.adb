@@ -52,9 +52,9 @@ package body FITS.File is
    function To_Card (Key     : in Max_8.Bounded_String;
                      Value   : in Max11.Bounded_String;
                      Comment : in Max59.Bounded_String)
-                     return Card_Type_newif
+                     return Card_Type
    is
-    Card : Card_Type_newif := ENDCard_newif;
+    Card : Card_Type := ENDCard;
    begin
     return Card;
    end To_Card;
@@ -189,8 +189,9 @@ package body FITS.File is
    --
    -- Set file index to position given by params
    --
-   procedure Set_Index (FitsFile : in SIO.File_Type;
-                        HDUNum   : in Positive) -- to which HDU
+   procedure Set_Index (FitsFile  : in SIO.File_Type;
+                        HDUNum    : in Positive;
+                        CardIndex : in Positive := 1)
 
    is
     CurDUSize_blocks : FPositive;
@@ -218,6 +219,11 @@ package body FITS.File is
      -- next HDU
      CurHDUNum := CurHDUNum + 1;
     end loop;
+
+    if CardIndex /= 1
+    then
+      null; -- FIXME Move_Index to position at Nth card (N=CardIndex)
+    end if;
 
    end Set_Index;
 

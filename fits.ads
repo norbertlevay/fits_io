@@ -41,6 +41,18 @@ package FITS is
    for Byte'Size use 8;
    -- [FITS] defines Byte as 8-bit
 
+   CardSize : constant Positive := 80;
+   -- [FITS Sects. 3.3.1, 4.4.1]
+
+   subtype Card_Type is String(1..CardSize);
+   -- makes sure index start with 1
+
+   ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
+   EmptyCard : constant Card_Type := (others => ' ');
+
+   type Card_Arr   is array (Positive range <>)    of Card_Type;
+   type Card_Block is array (Positive range 1..32) of Card_Type;
+
 private
 
    procedure dummy;

@@ -4,6 +4,15 @@
 -- this library supports RANDOM access in reading and SEQUENTIAL writing
 -- of FITS files
 --
+-- Note:
+-- high level user IF for Read has 2 variants:
+-- 1 can read/write one object of Header_Type -> such
+--   func (Header'Read/'Write attrib) should handle padding
+-- 2 if Header considered "big" -> user has to read/write it in cycle by
+--   CardBlocks (Card_Arr'Write/'Read which is defined by language).
+--   CardBlock has 32 cards, so it covers the padding.
+-- Next is case 2.:
+--
 -- Set_Index(in Stream, in HDUNum)
 -- position file pointer to begining of Header of the given HDU
 --
@@ -78,6 +87,10 @@ package FITS.File is
 
    -- FITS-file content info
 
+   procedure Set_Index (FitsFile  : in SIO.File_Type;
+                        HDUNum    : in Positive;
+                        CardIndex : in Positive := 1);
+
    NAXIS_Max : constant Positive := 999;
 
    type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
@@ -90,17 +103,12 @@ package FITS.File is
    end record;
 
    procedure Get (FitsFile : in  SIO.File_Type;
-                  HDUNum   : in  Positive;
                   HDUInfo  : out HDU_Info_Type) is null;
 
-   -- positioning
-
-   procedure Set_Index_newif(FitsFile  : in SIO.File_Type;
-                             HDUNum    : in Positive;
-                             CardIndex : in Positive := 1) is null;
 
    type Coord_Arr    is array (Positive range <>) of Positive;
    type Element_Type is (UInt8, Int16, Int32, Int64, Float32, Float64);
+   -- FIXME check: use exactly (example: FLOAT_32 vs Float32) same type names as in FITS standard
 
    procedure Set_Index(FitsFile    : in SIO.File_Type;
                        HDUNum      : in Positive;
@@ -109,12 +117,7 @@ package FITS.File is
 
    -- Header Cards
 
-   type Card_Type_newif is array (1 .. 80) of Character;
-   type Card_Arr_newif  is array (Positive range <>) of Card_Type_newif;
-
-   ENDCard_newif : constant Card_Type_newif := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
-
-   package Max_8                          -- FIXME check lengths:
+   package Max_8                   -- FIXME check lengths in FITS-Standard:
      is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 8);
    package Max11
      is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 11);
@@ -124,7 +127,7 @@ package FITS.File is
    function To_Card (Key     : in Max_8.Bounded_String;
                      Value   : in Max11.Bounded_String;
                      Comment : in Max59.Bounded_String)
-                     return Card_Type_newif;
+                     return Card_Type;
 
    -- Data Unit
 
@@ -142,27 +145,19 @@ package FITS.File is
    function Element(Data  : in Float32_Arr;
                     Coord : in Coord_Arr) return Float_32;
 
-
-
    -- Read
-
-   procedure Read_Cards  (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-                          Cards  : out Card_Arr_newif) is null;
-   for Card_Arr_newif'Read  use Read_Cards;
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
                         Size     : in  Coord_Arr;
                         Data     : out UInt8_Arr) is null;
+
+   -- ... for all types ...
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
                         Size     : in  Coord_Arr;
                         Data     : out Float32_Arr) is null;
 
    -- Write
-
-   procedure Write_Cards (Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-                          Cards  : in  Card_Arr_newif) is null;
-   for Card_Arr_newif'Write use Write_Cards;
 
    generic
     type Item is private;
@@ -178,8 +173,8 @@ package FITS.File is
 -- END new IF
 
 
-   procedure Set_Index(FitsFile  : in SIO.File_Type;
-   		       HDUNum    : in Positive);
+--   procedure Set_Index(FitsFile  : in SIO.File_Type;
+--   		       HDUNum    : in Positive);
 
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
