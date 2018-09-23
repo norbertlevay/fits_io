@@ -189,10 +189,8 @@ package body FITS.File is
    --
    -- Set file index to position given by params
    --
-   procedure Set_Index (FitsFile  : in SIO.File_Type;
-                        HDUNum    : in Positive;
-                        CardIndex : in Positive := 1)
-
+   procedure Set_Index_HDU (FitsFile  : in SIO.File_Type;
+                            HDUNum    : in Positive)
    is
     CurDUSize_blocks : FPositive;
     CurDUSize_bytes  : FPositive;
@@ -220,13 +218,36 @@ package body FITS.File is
      CurHDUNum := CurHDUNum + 1;
     end loop;
 
-    if CardIndex /= 1
-    then
-      null; -- FIXME Move_Index to position at Nth card (N=CardIndex)
-    end if;
+   end Set_Index_HDU;
+
+   procedure Set_Index(FitsFile    : in SIO.File_Type;
+                       HDUNum      : in Positive;
+                       Coord       : in Coord_Arr := (1,1);
+                       ElementType : in Element_Type := Char)
+   is
+   begin
+     Set_Index_HDU(FitsFIle,HDUNum);
+
+     -- FIXME add code to move FileIndex forward by Coord x ElementType
 
    end Set_Index;
 
+   procedure Write_Padding(FitsFile : in SIO.File_Type)
+   is
+    Pos      : constant SIO.Positive_Count := Index(FitsFile);
+    -- FIXME make sure CardSize and Pos are counted in
+    --       equal units (Stream ElemSize aka Bytes):
+    CardsCnt : constant SIO.Positive_Count :=
+               SIO.Positive_Count((Pos-1)/SIO.Positive_Count(CardSize));
+               -- distance from start of file in Card size
+    HPadCnt  : constant Positive := CardsCntInBlock -
+               Positive((CardsCnt) mod SIO.Positive_Count(CardsCntInBlock));
+    HPadArr  : constant Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
+   begin
+     if HPadCnt /= CardsCntInBlock then
+        Card_Arr'Write(SIO.Stream(FitsFile),HPadArr);
+     end if;
+   end Write_Padding;
 
    --
    -- List size-related params of HDU

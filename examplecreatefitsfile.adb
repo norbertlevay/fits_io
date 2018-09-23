@@ -29,6 +29,7 @@ with FITS;        use FITS;
 with FITS.Size;   use FITS.Size;
 with FITS.Header; use FITS.Header;
 with FITS.Data;   use FITS.Data;
+with FITS.File;   use FITS.File;
 
 
 procedure exampleCreateFitsFile
@@ -98,11 +99,12 @@ begin
  -- write Header
 
 
- Card_Arr'Write(SIO.Stream(File),Cards);
+ Card_Arr 'Write(SIO.Stream(File),Cards);
  Card_Type'Write(SIO.Stream(File),ENDCard);
- if HPadCnt /= CardsCntInBlock then
-   Card_Arr'Write(SIO.Stream(File),HPad);
- end if;
+ Write_Padding(File);
+-- if HPadCnt /= CardsCntInBlock then
+--   Card_Arr'Write(SIO.Stream(File),HPad);
+-- end if;
 
  -- write Data
 

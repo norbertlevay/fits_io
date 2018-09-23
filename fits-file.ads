@@ -11,7 +11,6 @@
 -- 2 if Header considered "big" -> user has to read/write it in cycle by
 --   CardBlocks (Card_Arr'Write/'Read which is defined by language).
 --   CardBlock has 32 cards, so it covers the padding.
--- Next is case 2.:
 --
 -- Set_Index(in Stream, in HDUNum)
 -- position file pointer to begining of Header of the given HDU
@@ -20,7 +19,8 @@
 -- Get(in Stream, in HDUNum, out HDU_Info_Record)
 --
 --
--- Read (user knows which coords' data he wants, but has not the data)
+-- Read (user knows which coords' data he wants - but does not know
+--       where in file it is - and he has not the data)
 --
 -- Reading is RANDOM ACCESS, user may position to given HDU (Set_Index),
 -- and then specify an OFFSET (Set_Offset). Offset is counted from the
@@ -48,13 +48,14 @@
 -- 6x function Element(DataArr[<>],(I1,I2,...)) returns Element_Type
 --
 --
--- Write (user has the data but does not know where to write it)
+-- Write (user has the data and knows its coordinates
+--        but does not know where to write it)
 --
 -- Writing is alway SEQUENTIAL. So below function need to be called in a loop
 -- until all data is written.
 --
 -- Write_Cards(in Stream, in  CardArr[N])
-   -- if CardArr[N] contains ENDCard do padding
+-- Write_Padding(in Stream)
 
 -- generic
 --  ElementType : UInt8 INT16/32/64 Float32/64
@@ -85,11 +86,16 @@ package FITS.File is
 -- BEGIN new IF
    package SIO renames Ada.Streams.Stream_IO;
 
-   -- FITS-file content info
+   type Coord_Arr    is array (Positive range <>) of Positive;
+   type Element_Type is (Char, UInt8, Int16, Int32, Int64, Float32, Float64);
+   -- FIXME check: use exactly (example: FLOAT_32 vs Float32) same type names as in FITS standard
 
-   procedure Set_Index (FitsFile  : in SIO.File_Type;
-                        HDUNum    : in Positive;
-                        CardIndex : in Positive := 1);
+   procedure Set_Index(FitsFile    : in SIO.File_Type;
+                       HDUNum      : in Positive;
+                       Coord       : in Coord_Arr := (1,1);
+                       ElementType : in Element_Type := Char);
+
+   -- FITS-file content info
 
    NAXIS_Max : constant Positive := 999;
 
@@ -105,17 +111,7 @@ package FITS.File is
    procedure Get (FitsFile : in  SIO.File_Type;
                   HDUInfo  : out HDU_Info_Type) is null;
 
-
-   type Coord_Arr    is array (Positive range <>) of Positive;
-   type Element_Type is (UInt8, Int16, Int32, Int64, Float32, Float64);
-   -- FIXME check: use exactly (example: FLOAT_32 vs Float32) same type names as in FITS standard
-
-   procedure Set_Index(FitsFile    : in SIO.File_Type;
-                       HDUNum      : in Positive;
-                       Coord       : in Coord_Arr;
-                       ElementType : in Element_Type) is null;
-
-   -- Header Cards
+   -- Read Header Cards
 
    package Max_8                   -- FIXME check lengths in FITS-Standard:
      is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 8);
@@ -129,7 +125,12 @@ package FITS.File is
                      Comment : in Max59.Bounded_String)
                      return Card_Type;
 
-   -- Data Unit
+
+   procedure Read_Cards (FitsFile  : in  SIO.File_Type;
+                         Cards     : out Card_Arr  ) is null;
+
+
+   -- Read Data Unit
 
    type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
    type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
@@ -145,7 +146,6 @@ package FITS.File is
    function Element(Data  : in Float32_Arr;
                     Coord : in Coord_Arr) return Float_32;
 
-   -- Read
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
                         Size     : in  Coord_Arr;
@@ -158,6 +158,13 @@ package FITS.File is
                         Data     : out Float32_Arr) is null;
 
    -- Write
+
+   procedure Write_Cards (FitsFile : in SIO.File_Type;
+                          Cards    : in Card_Arr) is null;
+
+   procedure Write_Padding(FitsFile : in SIO.File_Type);
+   -- must be called right after Write_Cards when END Card was written
+   -- File Index must not change between the two calls
 
    generic
     type Item is private;
@@ -172,9 +179,6 @@ package FITS.File is
 
 -- END new IF
 
-
---   procedure Set_Index(FitsFile  : in SIO.File_Type;
---   		       HDUNum    : in Positive);
 
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
