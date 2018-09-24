@@ -63,10 +63,6 @@ is
  Cards : Card_Arr := Write_Cards_For_Size
                       (BITPIX => 8,
                        Dim    => (RowsCnt, ColsCnt) );
- HPadCnt : constant Positive      := CardsCntInBlock - Positive((1+Cards'Length) mod CardsCntInBlock);
-                                                      -- 1+ is for ENDCard
- HPad    : Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
- -- padding Header up to block size
 
  -- FIXME how to guarantee Cards & HPad arrays are packed ?
 
@@ -102,9 +98,7 @@ begin
  Card_Arr 'Write(SIO.Stream(File),Cards);
  Card_Type'Write(SIO.Stream(File),ENDCard);
  Write_Padding(File);
--- if HPadCnt /= CardsCntInBlock then
---   Card_Arr'Write(SIO.Stream(File),HPad);
--- end if;
+
 
  -- write Data
 
