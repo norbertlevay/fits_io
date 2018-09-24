@@ -78,8 +78,10 @@ package body FITS.File is
 
    procedure Write_Data (FitsFile : in  SIO.File_Type)
    is
+    IArr  : Item_Arr(1..2);
+    Coord : Coord_Arr := (1,1);
    begin
-    null;
+    IArr(1) := Element (Coord);
    end Write_Data;
 
    -- END newIF
