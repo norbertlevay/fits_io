@@ -52,7 +52,8 @@ package FITS is
 
    type Card_Arr   is array (Positive range <>)    of Card_Type;
    type Card_Block is array (Positive range 1..32) of Card_Type;
-
+--   for Card_Arr'Size use Card_Arr'Length*(CardSize);
+-- how to guarantee these Arrs are packed OR do we need to guarantee ?
 private
 
    procedure dummy;

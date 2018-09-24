@@ -76,12 +76,88 @@ package body FITS.File is
     return Elem;
    end Element;
 
-   procedure Write_Data (FitsFile : in  SIO.File_Type)
+ procedure To_Coords (Offset    : in  FPositive;
+                      MaxCoords : in  Coord_Arr;
+                      Coords    : out Coord_Arr)
+ is
+    Sizes : Coord_Arr := MaxCoords;
+    Divs :  Coord_Arr := MaxCoords;
+    Rems :  Coord_Arr := MaxCoords;
+    -- FIXME these inits are needed only to eliminate Ada error
+    -- find other solution
+ begin
+
+  --
+  -- generate size of each plane
+  --
+  declare
+    Accu  : FPositive := 1;
+  begin
+    for I in MaxCoords'Range
+    loop
+     Accu := Accu * MaxCoords(I);
+     Sizes(I) := Accu;
+     -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+    end loop;
+  end;
+
+  --
+  -- calc divisions and fractions
+  --
+  declare
+    PrevRem : FNatural := Offset - 1;
+  begin
+    for I in reverse MaxCoords'First .. MaxCoords'Last
+    loop
+      Divs(I) := 1 + PrevRem  /  Sizes(I);
+      Rems(I) := 1 + PrevRem rem Sizes(I);
+      -- FIXME rem gives 0 for multiples
+      PrevRem := Rems(I) - 1;
+    end loop;
+  end;
+
+  --
+  -- pick the coordinates from Divs & Rems
+  --
+  Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
+ end To_Coords;
+
+   function  multiply (MaxCoords : in  Coord_Arr) return FPositive
    is
-    IArr  : Item_Arr(1..2);
-    Coord : Coord_Arr := (1,1);
+    Accu  : FPositive := 1;
    begin
-    IArr(1) := Element (Coord);
+    for I in MaxCoords'Range
+    loop
+     Accu := Accu * MaxCoords(I);
+    end loop;
+    return Accu;
+   end multiply;
+
+   procedure Write_Data (FitsFile  : in  SIO.File_Type;
+                         MaxCoords : in  Coord_Arr;
+                         PadValue  : in  Item)
+   is
+    IArrLen : FPositive := multiply(MaxCoords);
+    IArr    : Item_Arr(1..IArrLen);
+--    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
+    Coord   : Coord_Arr := MaxCoords;
+    DPadCnt : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
+    Padding : constant Item_Arr(1 .. FPositive(DPadCnt)) := (others => PadValue);
+--    for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
+-- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
+   begin
+
+    for I in IArr'Range
+    loop
+     To_Coords (I, MaxCoords, Coord);
+     IArr(I) := Element (Coord);
+    end loop;
+
+    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,IArr);
+    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,Padding);
+
+    -- FIXME write by Blocks
+
    end Write_Data;
 
    -- END newIF

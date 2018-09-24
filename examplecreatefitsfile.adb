@@ -44,43 +44,32 @@ is
 
  RowsCnt : constant FPositive := 400;
  ColsCnt : constant FPositive := 600;
- DataCnt : constant FPositive := RowsCnt*ColsCnt;
- DPadCnt : constant Positive  := 2880 - Natural(DataCnt mod FPositive(2880));
- -- padding data up to block size
 
- type Buffer_Type is new UInt8Arr_Type(1 .. DataCnt);
- for  Buffer_Type'Size use DataCnt*(FITS.Data.Unsigned_8'Size);
- -- pack the data before write
-
- type Buffer_Ptr  is access Buffer_Type;
- Buffer : Buffer_Ptr;
-
- Padding : constant UInt8Arr_Type(1 .. FPositive(DPadCnt)) := (others => 0);
- for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
+ MaxCoords : constant Coord_Arr := (RowsCnt,ColsCnt);
 
  -- Prepare the Header
 
  Cards : Card_Arr := Write_Cards_For_Size
                       (BITPIX => 8,
-                       Dim    => (RowsCnt, ColsCnt) );
+                       Dim    => (RowsCnt,ColsCnt) );
+     -- FIXME unnecessary type mismatch; should be: Dim => MaxCoords );
 
- -- FIXME how to guarantee Cards & HPad arrays are packed ?
+ -- Data
+
+ function Squares (Coord : in Coord_Arr) return Unsigned_8
+ is
+ begin
+  return Unsigned_8(Coord(1)*Coord(2) mod 256);
+ end Squares;
+
+ procedure Write_Data_UInt8 is
+       new Write_Data(Unsigned_8,
+                      UInt8_Arr,
+                      Squares);
 
 begin
 
  Put_Line("Usage  " & Command_Name );
-
- Buffer := new Buffer_Type;
- -- will be released at exit from begin...end section
-
- -- generate example data
- -- [FITS 3.4.1. Fig 1] NAXIS1 (Rows) varies most rapidly
- for J in 1 .. ColsCnt loop
-   for I in 1 .. RowsCnt loop
-     Buffer.all((J-1)*RowsCnt + I) := FITS.Data.Unsigned_8((I mod 256)/2 + (J mod 256)/2);
-   end loop;
- end loop;
-
 
  -- create and write the FITS file
 
@@ -93,23 +82,18 @@ begin
 
 
  -- write Header
-
-
  Card_Arr 'Write(SIO.Stream(File),Cards);
  Card_Type'Write(SIO.Stream(File),ENDCard);
  Write_Padding(File);
 
 
  -- write Data
-
- Buffer_Type'Write(SIO.Stream(File),Buffer.all);
- if DPadCnt /= 2880 then
-  UInt8Arr_Type'Write(SIO.Stream(File),Padding);
- end if;
+ Write_Data_UInt8(File,MaxCoords,0);
 
  SIO.Close(File);
 
  Put_Line(" writen.");
+
 
  exception
 

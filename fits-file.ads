@@ -86,7 +86,7 @@ package FITS.File is
 -- BEGIN new IF
    package SIO renames Ada.Streams.Stream_IO;
 
-   type Coord_Arr    is array (Positive range <>) of Positive;
+   type Coord_Arr    is array (FPositive range <>) of FPositive;
    type Element_Type is (Char, UInt8, Int16, Int32, Int64, Float32, Float64);
    -- FIXME check: use exactly (example: FLOAT_32 vs Float32) same type names as in FITS standard
 
@@ -170,7 +170,11 @@ package FITS.File is
     type Item is private;
     type Item_Arr is array (FPositive range <>) of Item;
     with function Element (Coord : in Coord_Arr) return Item;
-   procedure Write_Data (FitsFile : in  SIO.File_Type);
+   procedure Write_Data (FitsFile  : in  SIO.File_Type;
+                         MaxCoords : in  Coord_Arr;
+                         PadValue  : in  Item);
+                         -- FIXME no PadValue in IF
+                         -- but Item(0) conversion not allowed (see body)
 
    -- Notes:
    -- Write_Data writes the complete DataUnit
