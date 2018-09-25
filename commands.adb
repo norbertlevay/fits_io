@@ -34,15 +34,17 @@ package body Commands is
    Ada.Text_IO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
   end Print_Headline;
 
-  procedure Print_HDU_Info (Index : Positive; HDUInfo : HDU_Info_Type)
+  procedure Print_HDU_Info (Index   : in Positive;
+                            HDUInfo : in HDU_Info_Type)
   is
       FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
       CardsPerBlock_FPos : FPositive := FPositive(CardsCntInBlock);
   begin
 
-       Ada.Text_IO.Put( Integer'Image(Index) &
+       Ada.Text_IO.Put( Ada.Strings.Fixed.Tail(Integer'Image(Index),2,' ') &
                         Tab &
+                        -- Integer'Image(HDUInfo.XTENSION'Length) &
                         HDUInfo.XTENSION &
                         Tab &
                         Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
@@ -50,14 +52,14 @@ package body Commands is
                         Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
                         ")" );
 
-       if HDUInfo.NAXIS > 0 then
+       if HDUInfo.NAXISn'Length > 0 then
         Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.BITPIX)),8,' ') );
         Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUInfo.NAXIS - 1)
+        for J in 1 .. (HDUInfo.NAXISn'Last - 1)
          loop
           Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXIS)));
+        Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXISn'Last)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
   end Print_HDU_Info;
@@ -65,7 +67,6 @@ package body Commands is
  procedure List_HDUs_In_File (FitsFileName : in String)
  is
   FitsFile : SIO.File_Type;
-  HDUInfo  : HDU_Info_Type;
   HDUNum   : Positive := 1;
  begin
    SIO.Open(FitsFile,SIO.In_File,FitsFileName);
@@ -73,10 +74,13 @@ package body Commands is
    Print_Headline;
    while not SIO.End_Of_File(FitsFile)
     loop
-     Get(FitsFile,HDUInfo);
-     Print_HDU_Info(HDUNum,HDUInfo);
-     HDUNum := HDUNum + 1;
-     Set_Index(FitsFile, HDUNum);
+     declare
+      HDUInfo : HDU_Info_Type := Get(FitsFile);
+     begin
+      Print_HDU_Info(HDUNum,HDUInfo);
+      HDUNum := HDUNum + 1;
+      Set_Index(FitsFile, HDUNum);
+     end;
     end loop;
    SIO.Close(FitsFile);
  end List_HDUs_In_File;

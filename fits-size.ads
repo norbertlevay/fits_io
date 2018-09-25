@@ -40,7 +40,7 @@ package FITS.Size is
    -- collects keyword values which define DataUnit size
 
    type HDU_Size_Type is record
-      XTENSION      : String(1..10); -- XTENSION type string or empty
+      XTENSION      : String(1..10) := (others => '_'); -- XTENSION type string or empty
       CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
@@ -75,6 +75,9 @@ package FITS.Size is
    --
    procedure Free_Data_Slots (DataCnt :  in FPositive; FreeDataCnt: out Natural) is null;
    -- FIXME add (as function) later when needed
+
+   procedure Parse_Card (Card         : in Card_Type;
+                         XtensionType : out String);
 
 end FITS.Size;
 

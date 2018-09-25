@@ -235,8 +235,8 @@ package body FITS.File is
    procedure  Read_Header_Blocks
              (FitsFile : in SIO.File_Type;
               Data     : out Parsed_Type;
-              CardsCnt : out FNatural);
-
+              CardsCnt : out FNatural;
+              Xtension : out String);
 
    --
    -- Read File until ENDCard found
@@ -244,7 +244,8 @@ package body FITS.File is
    procedure  Read_Header_Blocks
              (FitsFile : in SIO.File_Type;
               Data     : out Parsed_Type;
-              CardsCnt : out FNatural)
+              CardsCnt : out FNatural;
+              Xtension : out String)
    is
     HBlk         : DataArray_Type(HBlock,1);
     Card         : Card_Type;
@@ -267,6 +268,7 @@ package body FITS.File is
       for I in HBlk.HBlockArr(1)'Range
       loop
         Card         := HBlk.HBlockArr(1)(I);
+        Parse_Card(Card, Xtension);
         Parse_Card(Card, Data); -- generic
         CardsCnt     := CardsCnt + 1;
         ENDCardFound := (Card = ENDCard);
@@ -287,7 +289,22 @@ package body FITS.File is
       new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
                               Parse_Card  => Parse_Card_For_Size);
    begin
-     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals, HDUSize.CardsCnt);
+     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
+                HDUSize.CardsCnt, HDUSize.Xtension);
+   end Parse_HeaderBlocks;
+
+   -- the same as procedure above but as HDUSize struct generating function
+   function Parse_HeaderBlocks (FitsFile : in  SIO.File_Type)
+    return HDU_Size_Type
+   is
+    procedure ParseSizes is
+      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
+                              Parse_Card  => Parse_Card_For_Size);
+    HDUSize : HDU_Size_Type;
+   begin
+     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
+                          HDUSize.CardsCnt,HDUSize.Xtension);
+     return HDUSize;
    end Parse_HeaderBlocks;
 
 
@@ -440,42 +457,20 @@ package body FITS.File is
 
 
    -- New IF
-   procedure Get (FitsFile : in  SIO.File_Type;
-                  HDUInfo  : out HDU_Info_Type)
-   is
-    HDUSize : HDU_Size_Type;
--- discriminated record sets NAXISn length:
--- HDUSize : HDU_Size_Type(Parse_NAXIS(FitsFile));
-   begin
-    Parse_HeaderBlocks(FitsFile, HDUSize);
 
+   function Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
+   is
+    HDUSize : HDU_Size_Type := Parse_HeaderBlocks(FitsFile);
+    HDUInfo : HDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
+   begin
     HDUInfo.XTENSION := HDUSize.XTENSION;
     HDUInfo.CardsCnt := HDUSize.CardsCnt;
     HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
-    HDUInfo.NAXIS    := HDUSize.DUSizeKeyVals.NAXIS;
-    HDUInfo.NAXISn   := HDUSize.DUSizeKeyVals.NAXISn;
-   end Get;
-
-   -- same as above but in "constructor" mode:
-   function Get (FitsFile : in  SIO.File_Type) return dHDU_Info_Type
-   is
-    HDUSize : HDU_Size_Type;
-    HDUInfoDUMMY : dHDU_Info_Type(5);
-   begin
-    Parse_HeaderBlocks(FitsFile, HDUSize);
-    declare
-      HDUInfo : dHDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
-    begin
-      HDUInfo.XTENSION := HDUSize.XTENSION;
-      HDUInfo.CardsCnt := HDUSize.CardsCnt;
-      HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
-      for I in HDUInfo.NAXISn'Range
+    for I in HDUInfo.NAXISn'Range
       loop
         HDUInfo.NAXISn(I) := HDUSize.DUSizeKeyVals.NAXISn(I);
       end loop;
-    end;
-    return HDUInfoDUMMY;
-    -- FIXME this is wrong!!! reformulate
+    return HDUInfo;
    end Get;
 
 end FITS.File;
