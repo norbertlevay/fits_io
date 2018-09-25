@@ -344,6 +344,13 @@ package body FITS.File is
      end if;
    end Write_Padding;
 
+   procedure Write_ENDCard(FitsFile : in SIO.File_Type)
+   is
+   begin
+     Card_Type'Write(Stream(FitsFile),ENDCard);
+     Write_Padding(FitsFile);
+   end Write_ENDCard;
+
    --
    -- List size-related params of HDU
    --

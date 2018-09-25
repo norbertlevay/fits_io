@@ -54,8 +54,7 @@ is
    To_Card ("BITPIX",   "8", "Unsigned 8-bit integer data"),
    To_Card ("NAXIS",    "2", "2-dimensional image"),
    To_Card ("NAXIS1", "400", "columns"),
-   To_Card ("NAXIS2", "600", "rows"),
-   ENDCard
+   To_Card ("NAXIS2", "600", "rows")
    );
 
  -- Define the Data
@@ -85,7 +84,7 @@ begin
 
  -- write Header
  Card_Arr'Write(SIO.Stream(File),Cards);
- Write_Padding(File);
+ Write_ENDCard(File);
 
 
  -- write Data

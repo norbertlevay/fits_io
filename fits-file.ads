@@ -88,7 +88,6 @@ package FITS.File is
 
    type Coord_Arr    is array (FPositive range <>) of FPositive;
    type Element_Type is (Char, UInt8, Int16, Int32, Int64, Float32, Float64);
-   -- FIXME check: use exactly (example: FLOAT_32 vs Float32) same type names as in FITS standard
 
    procedure Set_Index(FitsFile    : in SIO.File_Type;
                        HDUNum      : in Positive;
@@ -113,22 +112,11 @@ package FITS.File is
 
    -- Read Header Cards
 
-   package Max_8
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
-   package Max20
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
-   package Max48
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
-
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max20.Bounded_String;
-                     Comment : in Max48.Bounded_String)
-                     return Card_Type;
-
+   procedure Read_Card  (FitsFile  : in  SIO.File_Type;
+                         Card      : out Card_Type ) is null;
 
    procedure Read_Cards (FitsFile  : in  SIO.File_Type;
-                         Cards     : out Card_Arr  ) is null;
-
+                         Cards     : out Card_Block ) is null;
 
    -- Read Data Unit
 
@@ -159,9 +147,27 @@ package FITS.File is
 
    -- Write
 
+   package Max_8
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
+   package Max20
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
+   package Max48
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
+
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Value   : in Max20.Bounded_String;
+                     Comment : in Max48.Bounded_String)
+                     return Card_Type;
+
+   procedure Write_Card  (FitsFile : in SIO.File_Type;
+                          Card     : in Card_Type) is null;
+
    procedure Write_Cards (FitsFile : in SIO.File_Type;
                           Cards    : in Card_Arr) is null;
 
+   -- FIXME which is preferred from the 2 below:
+   -- (Write_ENDCard will also do padding)
+   procedure Write_ENDCard(FitsFile : in SIO.File_Type);
    procedure Write_Padding(FitsFile : in SIO.File_Type);
    -- must be called right after Write_Cards when END Card was written
    -- File Index must not change between the two calls
