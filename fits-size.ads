@@ -45,6 +45,8 @@ package FITS.Size is
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
 
+   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
+   -- [FITS 3.1 Overall file structure]
 
    -----------------------
    -- Size computations --

@@ -193,10 +193,6 @@ package FITS.File is
 -- END new IF
 
 
-   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
-   -- [FITS 3.1 Overall file structure]
-
-
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_HeaderBlocks & FITS.Size.Size_blocks
 
