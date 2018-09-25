@@ -104,6 +104,14 @@ package FITS.File is
       NAXISn   : NAXISn_Type; -- data length
    end record;
 
+   type dHDU_Info_Type(Len : Positive) is record
+      XTENSION : String(1..10);   -- XTENSION string or empty
+      CardsCnt : FPositive;       -- number of cards in this Header
+      BITPIX   : Integer;     -- data type
+--      NAXIS    : Positive;    -- data length
+      NAXISn   : dNAXISn_Type(1..Len); -- data length
+   end record;
+
    procedure Get (FitsFile : in  SIO.File_Type;
                   HDUInfo  : out HDU_Info_Type);
 

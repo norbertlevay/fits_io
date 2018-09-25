@@ -444,6 +444,8 @@ package body FITS.File is
                   HDUInfo  : out HDU_Info_Type)
    is
     HDUSize : HDU_Size_Type;
+-- discriminated record sets NAXISn length:
+-- HDUSize : HDU_Size_Type(Parse_NAXIS(FitsFile));
    begin
     Parse_HeaderBlocks(FitsFile, HDUSize);
 
@@ -452,6 +454,28 @@ package body FITS.File is
     HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
     HDUInfo.NAXIS    := HDUSize.DUSizeKeyVals.NAXIS;
     HDUInfo.NAXISn   := HDUSize.DUSizeKeyVals.NAXISn;
+   end Get;
+
+   -- same as above but in "constructor" mode:
+   function Get (FitsFile : in  SIO.File_Type) return dHDU_Info_Type
+   is
+    HDUSize : HDU_Size_Type;
+    HDUInfoDUMMY : dHDU_Info_Type(5);
+   begin
+    Parse_HeaderBlocks(FitsFile, HDUSize);
+    declare
+      HDUInfo : dHDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
+    begin
+      HDUInfo.XTENSION := HDUSize.XTENSION;
+      HDUInfo.CardsCnt := HDUSize.CardsCnt;
+      HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
+      for I in HDUInfo.NAXISn'Range
+      loop
+        HDUInfo.NAXISn(I) := HDUSize.DUSizeKeyVals.NAXISn(I);
+      end loop;
+    end;
+    return HDUInfoDUMMY;
+    -- FIXME this is wrong!!! reformulate
    end Get;
 
 end FITS.File;

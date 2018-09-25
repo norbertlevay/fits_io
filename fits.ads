@@ -62,7 +62,7 @@ package FITS is
 
    NAXIS_Max : constant Positive := 999;
    type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
---   type NAXISn_Type is array (Positive range <>) of FPositive;
+   type dNAXISn_Type is array (Positive range <>) of FPositive;
   -- FIXME would it be possible use array with length given at run-time (NAXIS read)?
 
 private
