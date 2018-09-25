@@ -330,20 +330,16 @@ use  Interfaces;
   -- Main Entry
 
   FitsFile : SIO.File_Type;
-  HDUSize  : HDU_Size_Type;
  begin
 
   -- read FITS file:
   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
-  Parse_HeaderBlocks(FitsFile,HDUSize);
-   -- move behind the Header
-
   declare
---     DataType : constant FitsData_Type := To_FitsDataType(HDUSize.DUSizeKeyVals.BITPIX);
-     DataType : constant Data_Type     := To_DataType(HDUSize.DUSizeKeyVals.BITPIX);
-     W        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(1));
-     H        : constant Dimension     := Integer(HDUSize.DUSizeKeyVals.NAXISn(2));
+     HDUInfo  : HDU_Info_Type := Get(FitsFile);
+     DataType : constant Data_Type     := To_DataType(HDUInfo.BITPIX);
+     W        : constant Dimension     := Integer(HDUInfo.NAXISn(1));
+     H        : constant Dimension     := Integer(HDUInfo.NAXISn(2));
                                           -- FIXME explicit cast!
      Min    : Float_32;
      Max    : Float_32;

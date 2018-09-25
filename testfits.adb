@@ -54,8 +54,6 @@ procedure testfits is
  Card : Card_Type;
  BITPIXVal : Integer;
 
- HDUSize  : HDU_Size_Type;
-
   procedure PutFITSData (Data : in Data_Arr)
   is
   begin
@@ -117,10 +115,11 @@ begin
  Put_Line("> reset to HDU start");
 
  Set_Index(FitsFile,HDUNum);
- Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
+-- Parse_HeaderBlocks(FitsFile,HDUSize);-- move behind the Header
 
  declare
-   dt    : Data_Type := To_DataType(HDUSize.DUSizeKeyVals.BITPIX);
+   HDUInfo : HDU_Info_Type := Get(FitsFile);
+   dt    : Data_Type := To_DataType(HDUInfo.BITPIX);
    DataD : Data_Arr(dt,4);
  begin
    Put_Line("> and read DataUnit of type: " & Data_Type'Image(dt));

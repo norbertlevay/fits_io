@@ -197,12 +197,6 @@ package FITS.File is
    -- [FITS 3.1 Overall file structure]
 
 
-   procedure Parse_HeaderBlocks (FitsFile : in SIO.File_Type;
-                                 HDUSize  : out HDU_Size_Type);
-
-
-
-
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_HeaderBlocks & FITS.Size.Size_blocks
 
