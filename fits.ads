@@ -54,6 +54,17 @@ package FITS is
    type Card_Block is array (Positive range 1..32) of Card_Type;
 --   for Card_Arr'Size use Card_Arr'Length*(CardSize);
 -- how to guarantee these Arrs are packed OR do we need to guarantee ?
+
+   -- 2. deriving from FITS-Standard:
+   type    FInteger  is new Long_Long_Integer;
+   subtype FNatural  is FInteger range 0 .. FInteger'Last;
+   subtype FPositive is FNatural range 1 .. FNatural'Last;
+
+   NAXIS_Max : constant Positive := 999;
+   type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
+--   type NAXISn_Type is array (Positive range <>) of FPositive;
+  -- FIXME would it be possible use array with length given at run-time (NAXIS read)?
+
 private
 
    procedure dummy;

@@ -96,19 +96,16 @@ package FITS.File is
 
    -- FITS-file content info
 
-   NAXIS_Max : constant Positive := 999;
-
-   type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
-
    type HDU_Info_Type is record
       XTENSION : String(1..10);   -- XTENSION string or empty
       CardsCnt : FPositive;       -- number of cards in this Header
       BITPIX   : Integer;     -- data type
+      NAXIS    : Positive;    -- data length
       NAXISn   : NAXISn_Type; -- data length
    end record;
 
    procedure Get (FitsFile : in  SIO.File_Type;
-                  HDUInfo  : out HDU_Info_Type) is null;
+                  HDUInfo  : out HDU_Info_Type);
 
    -- Read Header Cards
 

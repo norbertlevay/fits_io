@@ -28,11 +28,13 @@ package body Commands is
  -- List HDU sizes. For Header: number of cards (and empty slots),
  -- for Data type and axes length
  --
- procedure List_HDUs_In_File (FitsFileName : in String)
- is
-  FitsFile : SIO.File_Type;
+  procedure Print_Headline is
+    Tab : Character := Ada.Characters.Latin_1.HT;
+  begin
+   Ada.Text_IO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
+  end Print_Headline;
 
-  procedure Print_HDU_Sizes (Index : Positive; HDUInfo : HDU_Size_Type)
+  procedure Print_HDU_Info (Index : Positive; HDUInfo : HDU_Info_Type)
   is
       FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
@@ -48,30 +50,34 @@ package body Commands is
                         Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
                         ")" );
 
-       if HDUInfo.DUSizeKeyVals.NAXIS > 0 then
---        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( FitsData_Type'Image(To_FitsDataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.DUSizeKeyVals.BITPIX)),8,' ') );
+       if HDUInfo.NAXIS > 0 then
+        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.BITPIX)),8,' ') );
         Ada.Text_IO.Put(" ( ");
-        for J in 1 .. (HDUInfo.DUSizeKeyVals.NAXIS - 1)
+        for J in 1 .. (HDUInfo.NAXIS - 1)
          loop
-          Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeKeyVals.NAXISn(J)) & " x " );
+          Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(FPositive'Image(HDUInfo.DUSizeKeyVals.NAXISn(HDUInfo.DUSizeKeyVals.NAXIS)));
+        Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXIS)));
         Ada.Text_IO.Put_Line(" ) ");
        end if;
-  end Print_HDU_Sizes;
+  end Print_HDU_Info;
 
-  procedure Print_Headline is
-    Tab : Character := Ada.Characters.Latin_1.HT;
-  begin
-   Ada.Text_IO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
-  end Print_Headline;
-
-
+ procedure List_HDUs_In_File (FitsFileName : in String)
+ is
+  FitsFile : SIO.File_Type;
+  HDUInfo  : HDU_Info_Type;
+  HDUNum   : Positive := 1;
  begin
    SIO.Open(FitsFile,SIO.In_File,FitsFileName);
+   -- see Ada RM: is guaranteed that FileIndex=1 after Open??
    Print_Headline;
-   List_Content (FitsFile, Print_HDU_Sizes'Access);
+   while not SIO.End_Of_File(FitsFile)
+    loop
+     Get(FitsFile,HDUInfo);
+     Print_HDU_Info(HDUNum,HDUInfo);
+     HDUNum := HDUNum + 1;
+     Set_Index(FitsFile, HDUNum);
+    end loop;
    SIO.Close(FitsFile);
  end List_HDUs_In_File;
 

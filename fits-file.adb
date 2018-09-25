@@ -73,7 +73,7 @@ package body FITS.File is
                      Comment : in Max70.Bounded_String)
                      return Card_Type
    is
-    Card : Card_Type := EmptyCard
+    Card : Card_Type := EmptyCard;
    begin
     -- FIXME implement!
     return Card;
@@ -478,6 +478,21 @@ package body FITS.File is
      Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);
    end Copy_HDU;
 
+
+   -- New IF
+   procedure Get (FitsFile : in  SIO.File_Type;
+                  HDUInfo  : out HDU_Info_Type)
+   is
+    HDUSize : HDU_Size_Type;
+   begin
+    Parse_HeaderBlocks(FitsFile, HDUSize);
+
+    HDUInfo.XTENSION := HDUSize.XTENSION;
+    HDUInfo.CardsCnt := HDUSize.CardsCnt;
+    HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
+    HDUInfo.NAXIS    := HDUSize.DUSizeKeyVals.NAXIS;
+    HDUInfo.NAXISn   := HDUSize.DUSizeKeyVals.NAXISn;
+   end Get;
 
 end FITS.File;
 

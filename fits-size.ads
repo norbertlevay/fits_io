@@ -13,10 +13,6 @@ package FITS.Size is
    -- FIXME check-out difference; this also possible:
    -- type FPositive is new SIO.Count
    --
-   -- 2. deriving from FITS-Standard:
-   type    FInteger  is new Long_Long_Integer;
-   subtype FNatural  is FInteger range 0 .. FInteger'Last;
-   subtype FPositive is FNatural range 1 .. FNatural'Last;
 
    MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
    subtype NAXIS_Type is Natural range 0 .. MaxAxes;
@@ -25,7 +21,7 @@ package FITS.Size is
 
 
    type AxesLengths_Arr is array (Positive range <>) of FPositive;
-   type Dims_Type is array (1..MaxAxes) of FPositive;
+--   type Dims_Type is array (1..MaxAxes) of FPositive;
    -- [FITS 4.2.3 Integer number]:
    -- FITS poses no limit on max value of Integer / NAXISn.
    -- So max value NAXISn will be implementation limited:
@@ -35,7 +31,7 @@ package FITS.Size is
       -- Primary HDU:
       BITPIX : Integer;     -- BITPIX from header (data size in bits)
       NAXIS  : NAXIS_Type;  -- NAXIS  from header
-      NAXISn : Dims_Type;   -- NAXISn from header, 0 means dimension not in use
+      NAXISn : NAXISn_Type;   -- NAXISn from header, 0 means dimension not in use
       -- Conforming extensions:
       PCOUNT : FNatural;    -- BINTABLE: size of heap OR Random Groups: param count preceding each group
       GCOUNT : FPositive;   -- Number of Random Groups present
