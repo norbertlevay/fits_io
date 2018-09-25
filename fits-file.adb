@@ -133,16 +133,23 @@ package body FITS.File is
     return Accu;
    end multiply;
 
+   -- Padding Data Unit: [FITS 3.3.2 Primary Data Array]
+   -- If the data array does not fill the final data block, the remain-
+   -- der of the data block shall be filled by setting all bits to zero.
+   -- And for conforming Data Extensions [FITS 7.1.3]:
+   -- The data format shall be identical to that of a primary data array
+   -- as described in Sect. 3.3.2.
    procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  Coord_Arr;
-                         PadValue  : in  Item)
+                         MaxCoords : in  Coord_Arr)
    is
     IArrLen : FPositive := multiply(MaxCoords);
     IArr    : Item_Arr(1..IArrLen);
 --    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
     Coord   : Coord_Arr := MaxCoords;
-    DPadCnt : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
-    Padding : constant Item_Arr(1 .. FPositive(DPadCnt)) := (others => PadValue);
+
+    DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
+    ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
+    PadUInt8 : constant UInt8_Arr(1 .. FPositive(DPadCnt*ItemSize)) := (others => 0);
 --    for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
 -- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
    begin
@@ -154,7 +161,7 @@ package body FITS.File is
     end loop;
 
     Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,IArr);
-    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,Padding);
+    UInt8_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,PadUInt8);
 
     -- FIXME write by Blocks
 

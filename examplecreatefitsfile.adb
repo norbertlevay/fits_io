@@ -88,7 +88,7 @@ begin
 
 
  -- write Data
- Write_Data_UInt8(File,MaxCoords,0);
+ Write_Data_UInt8(File,MaxCoords);
 
  SIO.Close(File);
 

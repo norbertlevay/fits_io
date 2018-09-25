@@ -171,10 +171,7 @@ package FITS.File is
     type Item_Arr is array (FPositive range <>) of Item;
     with function Element (Coord : in Coord_Arr) return Item;
    procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  Coord_Arr;
-                         PadValue  : in  Item);
-                         -- FIXME no PadValue in IF
-                         -- but Item(0) conversion not allowed (see body)
+                         MaxCoords : in  Coord_Arr);
 
    -- Notes:
    -- Write_Data writes the complete DataUnit
