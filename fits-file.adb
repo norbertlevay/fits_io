@@ -69,6 +69,16 @@ package body FITS.File is
     return Card;
    end To_Card;
 
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Comment : in Max70.Bounded_String)
+                     return Card_Type
+   is
+    Card : Card_Type := EmptyCard
+   begin
+    -- FIXME implement!
+    return Card;
+   end To_Card;
+
    -- should use generic
    function Element(Data  : in UInt8_Arr;
                     Coord : in Coord_Arr) return Unsigned_8

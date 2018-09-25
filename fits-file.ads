@@ -126,7 +126,7 @@ package FITS.File is
    type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
    type Float32_Arr is array ( FPositive range <> ) of Float_32;
    type Float64_Arr is array ( FPositive range <> ) of Float_64;
-   -- FITS.Data has BigEndian conversion for FLoat32 & 64
+   -- FITS.Data has BigEndian conversion for Float32 & 64
 
    function Element(Data  : in UInt8_Arr;
                     Coord : in Coord_Arr) return Unsigned_8;
@@ -147,17 +147,27 @@ package FITS.File is
 
    -- Write
 
-   package Max_8
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
-   package Max20
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
-   package Max48
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
+   package Max_8 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
+   package Max20 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
+   package Max48 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
+   package Max70 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 70);
 
    function To_Card (Key     : in Max_8.Bounded_String;
                      Value   : in Max20.Bounded_String;
                      Comment : in Max48.Bounded_String)
                      return Card_Type;
+    -- for cards with value
+
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Comment : in Max70.Bounded_String)
+                     return Card_Type;
+    -- for cards with text (like HISTORY or COMMENT, see FITS 4.1.2.2)
+
+    -- FIXME add one more: for cards with Key and long Value (see FITS 4.1.2.3)
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
                           Card     : in Card_Type) is null;
@@ -181,7 +191,7 @@ package FITS.File is
 
    -- Notes:
    -- Write_Data writes the complete DataUnit
-   -- Write_Data first moves to begining of next Block (writes Header padding)
+   -- ?? Write_Data first moves to begining of next Block (writes Header padding)
    -- Write_Data adds DataUnit padding after last Item written
 
 -- END new IF
