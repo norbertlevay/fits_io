@@ -207,12 +207,6 @@ package FITS.File is
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
     -- calls Parse_HeaderBlocks & FITS.Size.Size_blocks
 
-   procedure List_Content (FitsFile : in SIO.File_Type;
-                           Print : not null access
-                           procedure(HDUNum : Positive;
-                                     HDUSize : HDU_Size_Type) );
-   -- list each HDU's size related parameters
-
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
    --
