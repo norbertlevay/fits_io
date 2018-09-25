@@ -46,16 +46,26 @@ use  Ada.Streams.Stream_IO;
 with FITS.Header;
 use  FITS.Header;
 
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+with Ada.Strings.Bounded; use Ada.Strings.Bounded;
+
 package body FITS.File is
 
-   -- BEGIN newIF : dummy funcs
+   -- BEGIN newIF : some dummy funcs
    function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max11.Bounded_String;
-                     Comment : in Max59.Bounded_String)
+                     Value   : in Max20.Bounded_String;
+                     Comment : in Max48.Bounded_String)
                      return Card_Type
    is
-    Card : Card_Type := ENDCard;
+    Card : Card_Type := EmptyCard;
    begin
+    -- FIXME how to guarantee Key and Comment are right justified
+    --       Value (often) left justified
+    Card(1 .. 8) := Max_8.To_String(Key);
+    Card(9 ..10) := "= ";
+    Card(11..30) := Max20.To_String(Value);
+    Card(31..32) := " /"; -- [FITS 4.1.2.3: "Space strongly recommended" ]
+    Card(33..80) := Max48.To_String(Comment);
     return Card;
    end To_Card;
 

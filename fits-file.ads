@@ -113,16 +113,16 @@ package FITS.File is
 
    -- Read Header Cards
 
-   package Max_8                   -- FIXME check lengths in FITS-Standard:
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 8);
-   package Max11
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 11);
-   package Max59
-     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 80-21);
+   package Max_8
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
+   package Max20
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
+   package Max48
+     is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
 
    function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max11.Bounded_String;
-                     Comment : in Max59.Bounded_String)
+                     Value   : in Max20.Bounded_String;
+                     Comment : in Max48.Bounded_String)
                      return Card_Type;
 
 

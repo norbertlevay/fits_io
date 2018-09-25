@@ -49,12 +49,16 @@ is
 
  -- Prepare the Header
 
- Cards : Card_Arr := Write_Cards_For_Size
-                      (BITPIX => 8,
-                       Dim    => (RowsCnt,ColsCnt) );
-     -- FIXME unnecessary type mismatch; should be: Dim => MaxCoords );
+ Cards : Card_Arr :=  (
+   To_Card ("SIMPLE",   "T", "Standard FITS file"),
+   To_Card ("BITPIX",   "8", "Unsigned 8-bit integer data"),
+   To_Card ("NAXIS",    "2", "2-dimensional image"),
+   To_Card ("NAXIS1", "400", "columns"),
+   To_Card ("NAXIS2", "600", "rows"),
+   ENDCard
+   );
 
- -- Data
+ -- Define the Data
 
  function Squares (Coord : in Coord_Arr) return Unsigned_8
  is
@@ -63,9 +67,7 @@ is
  end Squares;
 
  procedure Write_Data_UInt8 is
-       new Write_Data(Unsigned_8,
-                      UInt8_Arr,
-                      Squares);
+       new Write_Data(Unsigned_8,UInt8_Arr,Squares);
 
 begin
 
@@ -82,8 +84,7 @@ begin
 
 
  -- write Header
- Card_Arr 'Write(SIO.Stream(File),Cards);
- Card_Type'Write(SIO.Stream(File),ENDCard);
+ Card_Arr'Write(SIO.Stream(File),Cards);
  Write_Padding(File);
 
 
