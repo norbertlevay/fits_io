@@ -193,7 +193,7 @@ use  Interfaces;
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
-  dd    : FITS.Data.Unsigned_8;
+  dd    : FITS.Unsigned_8;
  begin
 
 --  for dd of Data  <-- This is Ada2012 feature
@@ -225,7 +225,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Data.Float_32;
+   Val   : FITS.Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
@@ -258,7 +258,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Data.Float_32;
+   Val   : FITS.Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
@@ -292,7 +292,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Data.Float_32;
+   Val   : FITS.Float_32;
    flast  : Float_32 :=
             Float_32(RGBPixel_24bit_Type'Last);
  begin

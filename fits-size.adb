@@ -54,20 +54,6 @@ package body FITS.Size is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
-   -- calc number of free cards to fill up HeaderBlock
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
-   is
-    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
-    -- explicit conversion ok: mod < CardsCntInBlock = 36;
-   begin
-    if FreeSlotCnt /= 0 then
-      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
-    end if;
-    return FreeSlotCnt;
-   end Free_Card_Slots;
-   pragma Inline (Free_Card_Slots);
-
-
    -- Header Cards from which above data is taken
 
    -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise

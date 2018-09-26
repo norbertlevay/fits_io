@@ -34,6 +34,8 @@
 
 --with System.Storage_Elements; use System.Storage_Elements;
 
+with Interfaces;
+with Ada.Streams.Stream_IO;
 
 package FITS is
 
@@ -55,18 +57,54 @@ package FITS is
 --   for Card_Arr'Size use Card_Arr'Length*(CardSize);
 -- how to guarantee these Arrs are packed OR do we need to guarantee ?
 
+   -- FITS numeric types are prefixed with F...
+   --
+   -- 1. deriving from file-system representation (Stream_IO):
+   -- subtype FNatural  is SIO.Count;
+   -- subtype FPositive is SIO.Positive_Count;
+   -- FIXME check-out difference; this also possible:
+   -- type FPositive is new SIO.Count
+   --
    -- 2. deriving from FITS-Standard:
    type    FInteger  is new Long_Long_Integer;
    subtype FNatural  is FInteger range 0 .. FInteger'Last;
    subtype FPositive is FNatural range 1 .. FNatural'Last;
 
-   NAXIS_Max : constant Positive := 999;
+   NAXIS_Max : constant Positive := 999; -- [FITS, Sect 4.4.1]
    type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
-   type NAXIS_Type  is array (Positive range <>) of FPositive;
+   type NAXIS_Arr  is array (Positive range <>) of FPositive;
 
-private
+   type Data_Type is
+       (UInt8,   Int16,
+        Int32,   Int64,
+        Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
 
-   procedure dummy;
+   -- [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED
+   -- all others are SIGNED (see  Table 8)
+   -- If unsigned needed for Int16..Int64 BZERO keyword is used
+   -- to shift the value range (see Table 11)
+
+   type Unsigned_8 is new Interfaces.Unsigned_8;
+   type Integer_16 is new Interfaces.Integer_16;
+   type Integer_32 is new Interfaces.Integer_32;
+   type Integer_64 is new Interfaces.Integer_64;
+   type Float_32   is new Interfaces.IEEE_Float_32;
+   type Float_64   is new Interfaces.IEEE_Float_64;
+
+   -- [FITS] defines BigEndian for all numeric types in file
+   -- revert byte order when reading/writing from/to FITS file
+
+   procedure Float32_Read_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : out Float_32 );
+
+   procedure Float32_Write_BigEndian
+    		(S    : access Ada.Streams.Root_Stream_Type'Class;
+             	 Data : in Float_32 );
+
+   for Float_32'Read  use Float32_Read_BigEndian;
+   for Float_32'Write use Float32_Write_BigEndian;
 
 end FITS;
 

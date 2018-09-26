@@ -5,17 +5,7 @@
 
 package FITS.Size is
 
-   -- FITS numeric types are prefixed with F...
-   --
-   -- 1. deriving from file-system representation (Stream_IO):
-   -- subtype FNatural  is SIO.Count;
-   -- subtype FPositive is SIO.Positive_Count;
-   -- FIXME check-out difference; this also possible:
-   -- type FPositive is new SIO.Count
-   --
-
-   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
-   subtype NAXIS_Type is Natural range 0 .. MaxAxes;
+   subtype NAXIS_Type is Natural range 0 .. NAXIS_Max;
    -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
    -- that no data follow the header in the HDU."
 
@@ -65,12 +55,6 @@ package FITS.Size is
    -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
    -- establish HDU type
 
-
-   --
-   -- calc number of free cards to fill up HeaderBlock
-   --
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
-   --  always 0..35 < 36(=Cards per Block)
 
    --
    -- calc number of free data array slots to fill up DataBlock

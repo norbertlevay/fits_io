@@ -40,14 +40,12 @@
 --
 
 
-with Ada.Streams.Stream_IO;
-use  Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
+with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
-with FITS.Header;
-use  FITS.Header;
-
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
-with Ada.Strings.Bounded; use Ada.Strings.Bounded;
+with FITS.Header; use FITS.Header;
+with FITS.Size;   use FITS.Size;
 
 package body FITS.File is
 
@@ -472,6 +470,47 @@ package body FITS.File is
       end loop;
     return HDUInfo;
    end Get;
+
+   -- Misc utils
+
+   -- calc number of free cards to fill up HeaderBlock
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   is
+    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    -- explicit conversion ok: mod < CardsCntInBlock = 36;
+   begin
+    if FreeSlotCnt /= 0 then
+      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+    end if;
+    return FreeSlotCnt;
+   end Free_Card_Slots;
+   pragma Inline (Free_Card_Slots);
+
+
+   --
+   -- convert BITPIX keyword from Header to internal Data_Type
+   --
+   function  To_DataType (BITPIX : in Integer) return Data_Type
+   is
+    bp : Data_Type;
+   begin
+    case BITPIX is
+    when   8 => bp := UInt8;
+    when  16 => bp := Int16;
+    when  32 => bp := Int32;
+    when  64 => bp := Int64;
+    when -32 => bp := Float32;
+    when -64 => bp := Float64;
+    when others =>
+     null;
+     -- FIXME raise exception "out of range"
+     -- BITPIX is read from file, can be "whatever"
+    end case;
+    return bp;
+   end To_DataType;
+   -- we need to separate BITPIX and FitsData_Type definition because
+   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
+
 
 end FITS.File;
 

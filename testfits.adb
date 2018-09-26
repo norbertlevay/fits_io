@@ -61,17 +61,17 @@ procedure testfits is
    loop
     case Data.FitsType is
     when UInt8 =>
-     Ada.Text_IO.Put( FITS.Data.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
     when Int16 =>
-     Ada.Text_IO.Put( FITS.Data.Integer_16'Image(Data.Int16Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_16'Image(Data.Int16Arr(I)) & " ");
     when Int32 =>
-     Ada.Text_IO.Put( FITS.Data.Integer_32'Image(Data.Int32Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_32'Image(Data.Int32Arr(I)) & " ");
     when Int64 =>
-     Ada.Text_IO.Put( FITS.Data.Integer_64'Image(Data.Int64Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Integer_64'Image(Data.Int64Arr(I)) & " ");
     when Float32 =>
-     Ada.Text_IO.Put( FITS.Data.Float_32'Image(Data.Float32Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Float_32'Image(Data.Float32Arr(I)) & " ");
     when Float64 =>
-     Ada.Text_IO.Put( FITS.Data.Float_64'Image(Data.Float64Arr(I)) & " ");
+     Ada.Text_IO.Put( FITS.Float_64'Image(Data.Float64Arr(I)) & " ");
     when others =>
       null; -- FIXME exception or ?
     end case;
@@ -142,7 +142,7 @@ begin
  New_Line(2);
  Put_Line(">> Print Limits:");
 
- Put_Line("Max NAXIS         : " & Positive'Image(MaxAxes));
+ Put_Line("Max NAXIS         : " & Positive'Image(NAXIS_Max));
  Put_Line("Max NAXISn        : " & FPositive'Image(FPositive'Last));
  Put_Line("Max File size     : " & SIO.Count'Image(SIO.Positive_Count'Last));
  Put_Line("Max DataUnit size = Max File size - 1 block (header) " );

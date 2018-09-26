@@ -74,13 +74,6 @@
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
-with FITS.Data;  use FITS.Data;-- DU Types
-with FITS.Size;  use FITS.Size;
---with FITS.Header; use FITS.Header;
-
-   -- FIXME replace HDU_Size_Type with HDU_Info_Type in this ads:
-   -- (allows to remove with FITS.Size from the interface)
-
 package FITS.File is
 
 -- BEGIN new IF
@@ -99,8 +92,8 @@ package FITS.File is
    type HDU_Info_Type(NAXIS : Positive) is record
       XTENSION : String(1..10);   -- XTENSION string or empty
       CardsCnt : FPositive;       -- number of cards in this Header
-      BITPIX   : Integer;              -- data type
-      NAXISn   : NAXIS_Type(1..NAXIS); -- data dimensions
+      BITPIX   : Integer;             -- data type
+      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
    end record;
 
    function  Get (FitsFile : in  SIO.File_Type)
@@ -211,6 +204,16 @@ package FITS.File is
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
+
+   -- Misc utils
+
+   --
+   -- calc number of free cards to fill up HeaderBlock
+   --
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
+   --  always 0..35 < 36(=Cards per Block)
+
+   function  To_DataType (BITPIX : in Integer) return Data_Type;
 
 end FITS.File;
 

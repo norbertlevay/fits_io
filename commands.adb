@@ -1,23 +1,15 @@
 
-with Ada.Text_IO,
-     Ada.Strings.Fixed,
-     Ada.Streams.Stream_IO,
-     Ada.Characters.Latin_1,
-     FITS,
-     FITS.Header,
-     FITS.Size,
-     FITS.File,
-     FITS.Data,
-     System,
-     System.Storage_Elements;
+with Ada.Text_IO;
+with Ada.Strings.Fixed;
+with Ada.Streams.Stream_IO;  use Ada.Streams.Stream_IO;
+with Ada.Characters.Latin_1;
+with System;
+with System.Storage_Elements;
 
-use
-     Ada.Streams.Stream_IO,
-     FITS,
-     FITS.Header,
-     FITS.Size,
-     FITS.File,
-     FITS.Data;
+with FITS;        use FITS;
+with FITS.File;   use FITS.File;
+with FITS.Header; use FITS.Header; -- FIXME eliminate this ?
+
 
 
 package body Commands is
@@ -31,7 +23,7 @@ package body Commands is
   procedure Print_Headline is
     Tab : Character := Ada.Characters.Latin_1.HT;
   begin
-   Ada.Text_IO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
+   TIO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
   end Print_Headline;
 
   procedure Print_HDU_Info (Index   : in Positive;
@@ -39,10 +31,9 @@ package body Commands is
   is
       FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
-      CardsPerBlock_FPos : FPositive := FPositive(CardsCntInBlock);
   begin
 
-       Ada.Text_IO.Put( Ada.Strings.Fixed.Tail(Integer'Image(Index),2,' ') &
+       TIO.Put( Ada.Strings.Fixed.Tail(Integer'Image(Index),2,' ') &
                         Tab &
                         -- Integer'Image(HDUInfo.XTENSION'Length) &
                         HDUInfo.XTENSION &
@@ -53,14 +44,14 @@ package body Commands is
                         ")" );
 
        if HDUInfo.NAXISn'Length > 0 then
-        Ada.Text_IO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.BITPIX)),8,' ') );
-        Ada.Text_IO.Put(" ( ");
+        TIO.Put( Tab & Ada.Strings.Fixed.Head( Data_Type'Image(To_DataType(HDUInfo.BITPIX)),8,' ') );
+        TIO.Put(" ( ");
         for J in 1 .. (HDUInfo.NAXISn'Last - 1)
          loop
-          Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(J)) & " x " );
+          TIO.Put(FPositive'Image(HDUInfo.NAXISn(J)) & " x " );
         end loop;
-        Ada.Text_IO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXISn'Last)));
-        Ada.Text_IO.Put_Line(" ) ");
+        TIO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXISn'Last)));
+        TIO.Put_Line(" ) ");
        end if;
   end Print_HDU_Info;
 
@@ -92,22 +83,22 @@ package body Commands is
  is
   Tab : Character := Ada.Characters.Latin_1.HT;
  begin
-  Ada.Text_IO.Put_Line("Limits imposed by implementation and/or the system:");
-  Ada.Text_IO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(MaxAxes));
-  Ada.Text_IO.Put_Line("Max NAXISn :" & Tab & FPositive'Image(FPositive'Last));
-  Ada.Text_IO.Put_Line("Max File size :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
-  Ada.Text_IO.Put_Line("Max DataUnit size :" & Tab & "???" );
-  Ada.Text_IO.New_Line;
-  Ada.Text_IO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
-  Ada.Text_IO.Put_Line("System Name  " & Tab & System.Name'Image(System.System_Name));
-  Ada.Text_IO.Put_Line("Storage Element (Byte)" & Tab & System.Storage_Elements.Storage_Element'Image(System.Storage_Elements.Storage_Element'Size) & " [bits]");
-  Ada.Text_IO.Put_Line("Storage Unit " & Tab & Integer'Image(System.Storage_Unit) & " [bits]");
-  Ada.Text_IO.Put_Line("Word Size (size of pointer/address)    " & Tab & Integer'Image(System.Word_Size) & " [bits]");
-  Ada.Text_IO.Put_Line("Address Size " & Tab & Integer'Image(Standard'Address_Size) & " [bits]");
---  Ada.Text_IO.Put_Line("Memory Size  " & Tab & Long_Long_Integer'Image(System.Memory_Size));
+  TIO.Put_Line("Limits imposed by implementation and/or the system:");
+  TIO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(NAXIS_Max));
+  TIO.Put_Line("Max NAXISn :" & Tab & FPositive'Image(FPositive'Last));
+  TIO.Put_Line("Max File size :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
+  TIO.Put_Line("Max DataUnit size :" & Tab & "???" );
+  TIO.New_Line;
+  TIO.Put_Line("Supported only machines of wordsize not bigger then min(BITPIX)=8 and divisible." );
+  TIO.Put_Line("System Name  " & Tab & System.Name'Image(System.System_Name));
+  TIO.Put_Line("Storage Element (Byte)" & Tab & System.Storage_Elements.Storage_Element'Image(System.Storage_Elements.Storage_Element'Size) & " [bits]");
+  TIO.Put_Line("Storage Unit " & Tab & Integer'Image(System.Storage_Unit) & " [bits]");
+  TIO.Put_Line("Word Size (size of pointer/address)    " & Tab & Integer'Image(System.Word_Size) & " [bits]");
+  TIO.Put_Line("Address Size " & Tab & Integer'Image(Standard'Address_Size) & " [bits]");
+--  TIO.Put_Line("Memory Size  " & Tab & Long_Long_Integer'Image(System.Memory_Size));
    -- Memory_Size : not very useful [Ada]
-  Ada.Text_IO.Put_Line("Default Bit Order" & Tab & System.Bit_Order'Image(System.Default_Bit_Order));
-  Ada.Text_IO.Put_Line("Endianness (Bit Order)" & Tab & System.Bit_Order'Image(DataArray_Type'Bit_Order) & " (High_Order_First = BigEndian)");
+  TIO.Put_Line("Default Bit Order" & Tab & System.Bit_Order'Image(System.Default_Bit_Order));
+  TIO.Put_Line("Endianness (Bit Order)" & Tab & System.Bit_Order'Image(DataArray_Type'Bit_Order) & " (High_Order_First = BigEndian)");
  end Limits;
 
  --
@@ -126,7 +117,7 @@ package body Commands is
 
    loop
     DataArray_Type'Read(SIO.Stream(FitsFile) , Data);
-    Ada.Text_IO.Put_Line(Data.CardArr(1));
+    TIO.Put_Line(Data.CardArr(1));
     exit when (Data.CardArr(1) = ENDCard);
    end loop;
 
