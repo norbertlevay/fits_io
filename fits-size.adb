@@ -118,7 +118,6 @@ package body FITS.Size is
 
    end Parse_Card;
 
-   -- not used FIXME
    procedure Parse_Card (Card         : in Card_Type;
                          XtensionType : out String)
    is
