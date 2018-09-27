@@ -44,7 +44,7 @@ is
  RowsCnt : constant FPositive := 400;
  ColsCnt : constant FPositive := 600;
 
- MaxCoords : constant Coord_Arr := (RowsCnt,ColsCnt);
+ MaxCoords : constant NAXIS_Arr := (RowsCnt,ColsCnt);
 
  -- Prepare the Header
 
@@ -58,7 +58,7 @@ is
 
  -- Define the Data
 
- function Squares (Coord : in Coord_Arr) return Unsigned_8
+ function Squares (Coord : in NAXIS_Arr) return Unsigned_8
  is
  begin
   return Unsigned_8(Coord(1)*Coord(2) mod 256);

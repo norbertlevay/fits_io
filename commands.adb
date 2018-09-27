@@ -8,6 +8,7 @@ with System.Storage_Elements;
 
 with FITS;        use FITS;
 with FITS.File;   use FITS.File;
+with FITS.Header; use FITS.Header;
 
 
 package body Commands is

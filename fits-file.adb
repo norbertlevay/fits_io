@@ -121,58 +121,13 @@ package body FITS.File is
    pragma Inline (Size_blocks);
 
 
-   -- BEGIN newIF : some dummy funcs
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max20.Bounded_String;
-                     Comment : in Max48.Bounded_String)
-                     return Card_Type
-   is
-    Card : Card_Type := EmptyCard;
-   begin
-    -- FIXME how to guarantee Key and Comment are right justified
-    --       Value (often) left justified
-    Card(1 .. 8) := Max_8.To_String(Key);
-    Card(9 ..10) := "= ";
-    Card(11..30) := Max20.To_String(Value);
-    Card(31..32) := " /"; -- [FITS 4.1.2.3: "Space strongly recommended" ]
-    Card(33..80) := Max48.To_String(Comment);
-    return Card;
-   end To_Card;
-
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Comment : in Max70.Bounded_String)
-                     return Card_Type
-   is
-    Card : Card_Type := EmptyCard;
-   begin
-    -- FIXME implement!
-    return Card;
-   end To_Card;
-
-   -- should use generic
-   function Element(Data  : in UInt8_Arr;
-                    Coord : in Coord_Arr) return Unsigned_8
-   is
-    Elem : Unsigned_8 := 0;
-   begin
-    return Elem;
-   end Element;
-
-   function Element(Data  : in Float32_Arr;
-                    Coord : in Coord_Arr) return Float_32
-   is
-    Elem : Float_32 := 0.0;
-   begin
-    return Elem;
-   end Element;
-
  procedure To_Coords (Offset    : in  FPositive;
-                      MaxCoords : in  Coord_Arr;
-                      Coords    : out Coord_Arr)
+                      MaxCoords : in  NAXIS_Arr;
+                      Coords    : out NAXIS_Arr)
  is
-    Sizes : Coord_Arr := MaxCoords;
-    Divs :  Coord_Arr := MaxCoords;
-    Rems :  Coord_Arr := MaxCoords;
+    Sizes : NAXIS_Arr := MaxCoords;
+    Divs :  NAXIS_Arr := MaxCoords;
+    Rems :  NAXIS_Arr := MaxCoords;
     -- FIXME these inits are needed only to eliminate Ada error
     -- find other solution
  begin
@@ -212,7 +167,7 @@ package body FITS.File is
   Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
  end To_Coords;
 
-   function  multiply (MaxCoords : in  Coord_Arr) return FPositive
+   function  multiply (MaxCoords : in  NAXIS_Arr) return FPositive
    is
     Accu  : FPositive := 1;
    begin
@@ -230,12 +185,12 @@ package body FITS.File is
    -- The data format shall be identical to that of a primary data array
    -- as described in Sect. 3.3.2.
    procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  Coord_Arr)
+                         MaxCoords : in  NAXIS_Arr)
    is
     IArrLen : FPositive := multiply(MaxCoords);
     IArr    : Item_Arr(1..IArrLen);
 --    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
-    Coord   : Coord_Arr := MaxCoords;
+    Coord   : NAXIS_Arr := MaxCoords;
 
     DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
     ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
@@ -483,10 +438,10 @@ package body FITS.File is
 
    end Set_Index_HDU;
 
-   procedure Set_Index(FitsFile    : in SIO.File_Type;
-                       HDUNum      : in Positive;
-                       Coord       : in Coord_Arr := (1,1);
-                       ElementType : in Element_Type := Char)
+   procedure Set_Index(FitsFile : in SIO.File_Type;
+                       HDUNum   : in Positive;
+                       Coord    : in NAXIS_Arr := (1,1);
+                       BITPIX   : in Positive  := 8)
    is
    begin
      Set_Index_HDU(FitsFIle,HDUNum);
@@ -617,43 +572,6 @@ package body FITS.File is
 
    -- Misc utils
 
-   -- calc number of free cards to fill up HeaderBlock
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
-   is
-    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
-    -- explicit conversion ok: mod < CardsCntInBlock = 36;
-   begin
-    if FreeSlotCnt /= 0 then
-      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
-    end if;
-    return FreeSlotCnt;
-   end Free_Card_Slots;
-   pragma Inline (Free_Card_Slots);
-
-
-   --
-   -- convert BITPIX keyword from Header to internal Data_Type
-   --
-   function  To_DataType (BITPIX : in Integer) return Data_Type
-   is
-    bp : Data_Type;
-   begin
-    case BITPIX is
-    when   8 => bp := UInt8;
-    when  16 => bp := Int16;
-    when  32 => bp := Int32;
-    when  64 => bp := Int64;
-    when -32 => bp := Float32;
-    when -64 => bp := Float64;
-    when others =>
-     null;
-     -- FIXME raise exception "out of range"
-     -- BITPIX is read from file, can be "whatever"
-    end case;
-    return bp;
-   end To_DataType;
-   -- we need to separate BITPIX and FitsData_Type definition because
-   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
 
 
 end FITS.File;

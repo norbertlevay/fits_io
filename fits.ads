@@ -93,6 +93,8 @@ package FITS is
         Float32, Float64);
    -- [FITS, Sect 4.4.1.1 Table 8]
 
+   function  To_DataType (BITPIX : in Integer) return Data_Type;
+
    -- [FITS Sect 5.2 .. 5.3] says that 8bit is UNSIGNED
    -- all others are SIGNED (see  Table 8)
    -- If unsigned needed for Int16..Int64 BZERO keyword is used
@@ -118,6 +120,15 @@ package FITS is
 
    for Float_32'Read  use Float32_Read_BigEndian;
    for Float_32'Write use Float32_Write_BigEndian;
+
+
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+   -- FITS.Data has BigEndian conversion for Float32 & 64
 
 end FITS;
 

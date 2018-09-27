@@ -72,6 +72,29 @@ package body FITS is
    end Float32_Write_BigEndian;
 
 
+   --
+   -- convert BITPIX keyword from Header to internal Data_Type
+   --
+   function  To_DataType (BITPIX : in Integer) return Data_Type
+   is
+    bp : Data_Type;
+   begin
+    case BITPIX is
+    when   8 => bp := UInt8;
+    when  16 => bp := Int16;
+    when  32 => bp := Int32;
+    when  64 => bp := Int64;
+    when -32 => bp := Float32;
+    when -64 => bp := Float64;
+    when others =>
+     null;
+     -- FIXME raise exception "out of range"
+     -- BITPIX is read from file, can be "whatever"
+    end case;
+    return bp;
+   end To_DataType;
+   -- we need to separate BITPIX and FitsData_Type definition because
+   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
 
 end FITS;
 

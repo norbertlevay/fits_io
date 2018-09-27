@@ -11,4 +11,10 @@ package FITS.Data is
                Max    : out Float_32);
    -- find minimum and maximum value of the Float32 data array
 
+   function Element(Data  : in UInt8_Arr;
+                    Coord : in NAXIS_Arr) return Unsigned_8;
+
+   function Element(Data  : in Float32_Arr;
+                    Coord : in NAXIS_Arr) return Float_32;
+
 end FITS.Data;

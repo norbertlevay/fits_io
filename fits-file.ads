@@ -90,20 +90,15 @@
 
 
 with Ada.Streams.Stream_IO;
-with Ada.Strings.Bounded;
 
 package FITS.File is
 
--- BEGIN new IF
    package SIO renames Ada.Streams.Stream_IO;
 
-   type Coord_Arr    is array (FPositive range <>) of FPositive;
-   type Element_Type is (Char, UInt8, Int16, Int32, Int64, Float32, Float64);
-   -- FIXME duplicate see FITS.ads Data_Type
-   procedure Set_Index(FitsFile    : in SIO.File_Type;
-                       HDUNum      : in Positive;
-                       Coord       : in Coord_Arr := (1,1);
-                       ElementType : in Element_Type := Char);
+   procedure Set_Index(FitsFile : in SIO.File_Type;
+                       HDUNum   : in Positive;
+                       Coord    : in NAXIS_Arr := (1,1);
+                       BITPIX   : in Positive  := 8);
 
    -- FITS-file content info
 
@@ -127,54 +122,17 @@ package FITS.File is
 
    -- Read Data Unit
 
-   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
-   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
-   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
-   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
-   type Float32_Arr is array ( FPositive range <> ) of Float_32;
-   type Float64_Arr is array ( FPositive range <> ) of Float_64;
-   -- FITS.Data has BigEndian conversion for Float32 & 64
-
-   function Element(Data  : in UInt8_Arr;
-                    Coord : in Coord_Arr) return Unsigned_8;
-
-   function Element(Data  : in Float32_Arr;
-                    Coord : in Coord_Arr) return Float_32;
-
-
    procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Size     : in  Coord_Arr;
+                        Size     : in  NAXIS_Arr;
                         Data     : out UInt8_Arr) is null;
 
    -- ... for all types ...
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Size     : in  Coord_Arr;
+                        Size     : in  NAXIS_Arr;
                         Data     : out Float32_Arr) is null;
 
-   -- Write
-
-   package Max_8 is
-       new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
-   package Max20 is
-       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
-   package Max48 is
-       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
-   package Max70 is
-       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 70);
-
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max20.Bounded_String;
-                     Comment : in Max48.Bounded_String)
-                     return Card_Type;
-    -- for cards with value
-
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Comment : in Max70.Bounded_String)
-                     return Card_Type;
-    -- for cards with text (like HISTORY or COMMENT, see FITS 4.1.2.2)
-
-    -- FIXME add one more: for cards with Key and long Value (see FITS 4.1.2.3)
+   -- Write Header Cards
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
                           Card     : in Card_Type) is null;
@@ -189,23 +147,25 @@ package FITS.File is
    -- must be called right after Write_Cards when END Card was written
    -- File Index must not change between the two calls
 
+   -- Write Data Unit
+
    generic
     type Item is private;
     type Item_Arr is array (FPositive range <>) of Item;
-    with function Element (Coord : in Coord_Arr) return Item;
+    with function Element (Coord : in NAXIS_Arr) return Item;
    procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  Coord_Arr);
-
+                         MaxCoords : in  NAXIS_Arr);
    -- Notes:
    -- Write_Data writes the complete DataUnit
-   -- ?? Write_Data first moves to begining of next Block (writes Header padding)
    -- Write_Data adds DataUnit padding after last Item written
 
--- END new IF
 
+   -- Misc:
 
+   --
+   -- calc DataUnit size in blocks
+   --
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
-    -- calls Parse_HeaderBlocks & FITS.File.Size_blocks
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
@@ -223,15 +183,4 @@ package FITS.File is
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
 
-   -- Misc utils
-
-   --
-   -- calc number of free cards to fill up HeaderBlock
-   --
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
-   --  always 0..35 < 36(=Cards per Block)
-
-   function  To_DataType (BITPIX : in Integer) return Data_Type;
-
 end FITS.File;
-

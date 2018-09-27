@@ -30,6 +30,23 @@ package body FITS.Data is
    end Find_MinMax_Float32;
 
 
+   -- should use generic
+   function Element(Data  : in UInt8_Arr;
+                    Coord : in NAXIS_Arr) return Unsigned_8
+   is
+    Elem : Unsigned_8 := 0;
+   begin
+    return Elem;
+   end Element;
+
+   function Element(Data  : in Float32_Arr;
+                    Coord : in NAXIS_Arr) return Float_32
+   is
+    Elem : Float_32 := 0.0;
+   begin
+    return Elem;
+   end Element;
+
 
 end FITS.Data;
 

@@ -10,6 +10,48 @@ use  Ada.Strings.Fixed;
 
 package body FITS.Header is
 
+   -- calc number of free cards to fill up HeaderBlock
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   is
+    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    -- explicit conversion ok: mod < CardsCntInBlock = 36;
+   begin
+    if FreeSlotCnt /= 0 then
+      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+    end if;
+    return FreeSlotCnt;
+   end Free_Card_Slots;
+   pragma Inline (Free_Card_Slots);
+
+
+   -- BEGIN newIF : some dummy funcs
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Value   : in Max20.Bounded_String;
+                     Comment : in Max48.Bounded_String)
+                     return Card_Type
+   is
+    Card : Card_Type := EmptyCard;
+   begin
+    -- FIXME how to guarantee Key and Comment are right justified
+    --       Value (often) left justified
+    Card(1 .. 8) := Max_8.To_String(Key);
+    Card(9 ..10) := "= ";
+    Card(11..30) := Max20.To_String(Value);
+    Card(31..32) := " /"; -- [FITS 4.1.2.3: "Space strongly recommended" ]
+    Card(33..80) := Max48.To_String(Comment);
+    return Card;
+   end To_Card;
+
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Comment : in Max70.Bounded_String)
+                     return Card_Type
+   is
+    Card : Card_Type := EmptyCard;
+   begin
+    -- FIXME implement!
+    return Card;
+   end To_Card;
+
 
      -- [FITS 4.1.2 Components]:
      -- pos 9..10 is '= '
