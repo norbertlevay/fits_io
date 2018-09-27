@@ -580,9 +580,39 @@ package body FITS.File is
     return HDUInfo;
    end Get;
 
-   -- Misc utils
+   function Read_Card  (FitsFile  : in  SIO.File_Type)
+     return Card_Type
+   is
+     Card : Card_Type;
+   begin
+     Card_Type'Read(Stream(FitsFile),Card);
+     return Card;
+   end Read_Card;
 
+   function Read_Cards (FitsFile  : in  SIO.File_Type)
+     return Card_Block
+   is
+     CardBlock : Card_Block;
+   begin
+     Card_Block'Read(Stream(FitsFile),CardBlock);
+     return CardBlock;
+   end Read_Cards;
 
+   procedure Write_Card  (FitsFile : in SIO.File_Type;
+                          Card     : in Card_Type)
+   is
+   begin
+     Card_Type'Write(Stream(FitsFile),Card);
+   end Write_Card;
+   pragma Inline (Write_Card);
+
+   procedure Write_Cards (FitsFile : in SIO.File_Type;
+                          Cards    : in Card_Arr)
+   is
+   begin
+     Card_Arr'Write(Stream(FitsFile),Cards);
+   end Write_Cards;
+   pragma Inline (Write_Cards);
 
 end FITS.File;
 

@@ -110,15 +110,15 @@ package FITS.File is
    end record;
 
    function  Get (FitsFile : in  SIO.File_Type)
-     return HDU_Info_Type;
+      return HDU_Info_Type;
 
    -- Read Header Cards
 
-   procedure Read_Card  (FitsFile  : in  SIO.File_Type;
-                         Card      : out Card_Type ) is null;
+   function Read_Card  (FitsFile  : in  SIO.File_Type)
+     return Card_Type;
 
-   procedure Read_Cards (FitsFile  : in  SIO.File_Type;
-                         Cards     : out Card_Block ) is null;
+   function Read_Cards (FitsFile  : in  SIO.File_Type)
+     return Card_Block;
 
    -- Read Data Unit
 
@@ -135,10 +135,10 @@ package FITS.File is
    -- Write Header Cards
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
-                          Card     : in Card_Type) is null;
+                          Card     : in Card_Type);
 
    procedure Write_Cards (FitsFile : in SIO.File_Type;
-                          Cards    : in Card_Arr) is null;
+                          Cards    : in Card_Arr);
 
    -- FIXME which is preferred from the 2 below:
    -- (Write_ENDCard will also do padding)
