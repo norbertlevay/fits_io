@@ -1,6 +1,11 @@
 
 -- FITS file's Data Unit
 
+-- Notes on extendability:
+-- there are currently define 3 types of extensions/DataUnits:
+-- IMAGE TABLE_BIN TABLE_ASCII
+-- this one should be actually image.ads (?)
+
 with FITS.File; use FITS.File;
 
 package FITS.Data is
