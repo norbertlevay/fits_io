@@ -12,6 +12,7 @@ package FITS.Header is
    -- Parse Header --
    ------------------
 
+   -- FIXME replace with BoundedString variant (in FITS.FIle)
    function To_Card(KeyName  : in String;
                     KeyValue : in String;
                     Comment  : in String) return Card_Type;
@@ -26,6 +27,6 @@ package FITS.Header is
 
    function  Write_Cards_For_Size
               (BITPIX : Integer;
-               Dim    : AxesLengths_Arr ) return Card_Arr;
+               Dim    : NAXIS_Arr ) return Card_Arr;
 
 end FITS.Header;

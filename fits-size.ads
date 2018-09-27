@@ -5,17 +5,6 @@
 
 package FITS.Size is
 
-   subtype NAXIS_Type is Natural range 0 .. NAXIS_Max;
-   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
-   -- that no data follow the header in the HDU."
-
-
-   type AxesLengths_Arr is array (Positive range <>) of FPositive;
---   type Dims_Type is array (1..MaxAxes) of FPositive;
-   -- [FITS 4.2.3 Integer number]:
-   -- FITS poses no limit on max value of Integer / NAXISn.
-   -- So max value NAXISn will be implementation limited:
-   -- 0 .. FPositive'Last
 
    type DU_Size_Type is record
       -- Primary HDU:

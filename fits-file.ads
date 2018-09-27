@@ -99,7 +99,7 @@ package FITS.File is
 
    type Coord_Arr    is array (FPositive range <>) of FPositive;
    type Element_Type is (Char, UInt8, Int16, Int32, Int64, Float32, Float64);
-
+   -- FIXME duplicate see FITS.ads Data_Type
    procedure Set_Index(FitsFile    : in SIO.File_Type;
                        HDUNum      : in Positive;
                        Coord       : in Coord_Arr := (1,1);

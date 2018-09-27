@@ -128,7 +128,7 @@ package body FITS.Size is
 
    function  Write_Cards_For_Size
               (BITPIX : Integer;
-               Dim    : AxesLengths_Arr ) return Card_Arr
+               Dim    : NAXIS_Arr ) return Card_Arr
    is
     Cards : Card_Arr(1 .. (3 + Dim'Length));
    begin

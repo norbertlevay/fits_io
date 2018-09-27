@@ -75,8 +75,17 @@ package FITS is
    subtype FPositive is FNatural range 1 .. FNatural'Last;
 
    NAXIS_Max : constant Positive := 999; -- [FITS, Sect 4.4.1]
+   subtype NAXIS_Type is Natural range 0 .. NAXIS_Max;
+   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+   -- that no data follow the header in the HDU."
    type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
-   type NAXIS_Arr  is array (Positive range <>) of FPositive;
+   type NAXIS_Arr   is array (NAXIS_Type range <>) of FPositive;
+   -- FIXME duplicate: get rid of NAXISn_Type, use NAXIS_Arr instead
+
+   -- [FITS 4.2.3 Integer number]:
+   -- FITS poses no limit on max value of Integer / NAXISn.
+   -- So max value NAXISn will be implementation limited:
+   -- 0 .. FPositive'Last
 
    type Data_Type is
        (UInt8,   Int16,
