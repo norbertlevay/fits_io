@@ -13,7 +13,9 @@ PNG_DIR=./png/png_4_6
 
 SRC=main.adb
 
-all: fits tests
+TARGETS=fits examplecreatefitsfile testfits
+
+all: $(TARGETS)
 #testfits exampleCreateFitsFile
 
 
@@ -25,8 +27,11 @@ build_date.ads :
 fits : build_date.ads
 	gnatmake -g -gnat05 -we $(SRC) -o fits -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
-tests:
-	gnatmake -g -gnat05 -we testfits.adb examplecreatefitsfile.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+testfits:
+	gnatmake -g -gnat05 -we testfits.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+
+examplecreatefitsfile:
+	gnatmake -g -gnat05 -we examplecreatefitsfile.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
 # before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E -> for addr2line --exe=./fits 0x...  at excpetion: -E is passed to binder (-bargs)
@@ -57,7 +62,7 @@ test:
 	./fits png --plane 15 ngc6503.fits
 
 clean:
-	rm -f *.ali build_date.*
+	rm -f  $(TARGETS) *.o *.ali build_date.*
 #	rm -f fits testfits exampleCreateFitsFile *.o *.ali build_date.* b~*.ad? b~*.ad?
 
 distclean: clean
