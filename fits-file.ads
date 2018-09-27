@@ -205,7 +205,7 @@ package FITS.File is
 
 
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
-    -- calls Parse_HeaderBlocks & FITS.Size.Size_blocks
+    -- calls Parse_HeaderBlocks & FITS.File.Size_blocks
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks

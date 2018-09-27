@@ -1,11 +1,8 @@
 
 with FITS.Data;
-with FITS.Size;
-use  FITS.Size;
 
 with ncube;
-with Ada.Text_IO;
-use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 -- generic
 --  type Item is (<>);

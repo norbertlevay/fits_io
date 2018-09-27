@@ -1,5 +1,4 @@
 
-with FITS.Size; -- NAXISn Coordinate type needed
 with FITS.Data; -- Data_Arr needed
 
 with Ada.Text_IO;

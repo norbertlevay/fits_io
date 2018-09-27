@@ -1,6 +1,4 @@
 
-with FITS.Size; -- NAXISn Coordinate type needed
-use  FITS.Size; -- NAXISn Coordinate type needed
 with FITS.Data; -- Data_Arr needed
 
 package ncube is
@@ -12,16 +10,11 @@ package ncube is
  -- implements [FITS Sect ??] ordering N-dimensional data by columns
  -- into an 1-dimensional array
 
- -- type Coord_Type is new FITS.Size.Dims_Type;
  type Coord_Type is array (FPositive range <> ) of FPositive;
 
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;
                       Coords    : out Coord_Type);
--- FITS.Size.ads :
---   MaxAxes : constant Positive := 999; -- [FITS, Sect 4.4.1]
---   type Dims_Type is array (1..MaxAxes) of FPositive;
-
  generic
   -- type Item is (<>); -- this allows only discete types like Integer
   type Item is private; -- this allows also Float

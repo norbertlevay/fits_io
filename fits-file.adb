@@ -45,9 +45,11 @@ with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with FITS.Header; use FITS.Header;
-with FITS.Size;   use FITS.Size;
 
 package body FITS.File is
+
+   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
+   -- [FITS 3.1 Overall file structure]
 
    type DU_Size_Type is record
       -- Primary HDU:
@@ -66,6 +68,17 @@ package body FITS.File is
       CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
+
+   --
+   -- calculate Header size in FITS Blocks
+   --
+   function  Size_blocks (CardsCnt    : in FPositive       ) return FPositive
+   is
+   begin
+    return ( 1 + (CardsCnt - 1)/FPositive(CardsCntInBlock) );
+   end Size_blocks;
+   pragma Inline (Size_blocks);
+
 
    --
    -- calculate DataUnit size in FITS Blocks
@@ -327,7 +340,6 @@ package body FITS.File is
 
    end Parse_Card;
 
-   -- not used FIXME
    procedure Parse_Card (Card         : in Card_Type;
                          XtensionType : out String)
    is
