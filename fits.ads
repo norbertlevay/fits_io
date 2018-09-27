@@ -56,7 +56,7 @@ package FITS is
    type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
    type Card_Arr   is array (Positive range <>)                 of Card_Type;
 --   for Card_Arr'Size use Card_Arr'Length*(CardSize);
--- how to guarantee these Arrs are packed OR do we need to guarantee ?
+-- FIXME how to guarantee these Arrs are packed OR do we need to guarantee ?
    pragma Pack (Card_Block); -- not guaranteed ??
    pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
                               
@@ -74,13 +74,9 @@ package FITS is
    subtype FNatural  is FInteger range 0 .. FInteger'Last;
    subtype FPositive is FNatural range 1 .. FNatural'Last;
 
-   NAXIS_Max : constant Positive := 999; -- [FITS, Sect 4.4.1]
-   subtype NAXIS_Type is Natural range 0 .. NAXIS_Max;
-   -- [FITS 4.4.1.1 Primary Header] "A value of zero signifies
-   -- that no data follow the header in the HDU."
-   type NAXISn_Type is array (1 .. NAXIS_Max) of FPositive;
-   type NAXIS_Arr   is array (NAXIS_Type range <>) of FPositive;
-   -- FIXME duplicate: get rid of NAXISn_Type, use NAXIS_Arr instead
+   subtype NAXIS_Type is Positive range 1 .. 999;
+   -- [FITS, Sect 4.4.1]
+   type NAXIS_Arr is array (NAXIS_Type range <>) of FPositive;
 
    -- [FITS 4.2.3 Integer number]:
    -- FITS poses no limit on max value of Integer / NAXISn.
@@ -128,7 +124,6 @@ package FITS is
    type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
    type Float32_Arr is array ( FPositive range <> ) of Float_32;
    type Float64_Arr is array ( FPositive range <> ) of Float_64;
-   -- FITS.Data has BigEndian conversion for Float32 & 64
 
 end FITS;
 

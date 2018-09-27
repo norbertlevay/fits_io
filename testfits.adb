@@ -142,7 +142,7 @@ begin
  New_Line(2);
  Put_Line(">> Print Limits:");
 
- Put_Line("Max NAXIS         : " & Positive'Image(NAXIS_Max));
+ Put_Line("Max NAXIS         : " & Positive'Image(NAXIS_Type'Last));
  Put_Line("Max NAXISn        : " & FPositive'Image(FPositive'Last));
  Put_Line("Max File size     : " & SIO.Count'Image(SIO.Positive_Count'Last));
  Put_Line("Max DataUnit size = Max File size - 1 block (header) " );
