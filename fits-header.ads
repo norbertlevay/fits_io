@@ -21,10 +21,13 @@ package FITS.Header is
    -- Parsing DU_Size_Type --
    --------------------------
 
-   procedure Parse_Card_For_Size
-              (Card          : in  Card_Type;
-               DUSizeKeyVals : out DU_Size_Type);
+   -- FIXME IF-> this should be private:
+   -- it is called in cycle for all Cards in Header
+--   procedure Parse_Card_For_Size
+--              (Card          : in  Card_Type;
+--               DUSizeKeyVals : out DU_Size_Type);
 
+   -- FIXME rename Carda_For_Size & and make it a function
    function  Write_Cards_For_Size
               (BITPIX : Integer;
                Dim    : NAXIS_Arr ) return Card_Arr;
