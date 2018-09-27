@@ -71,6 +71,24 @@
 -- function Card(key: in String,value: in String,comment=null: in String) return Card_Type
 --
 
+-- Extensibility:
+-- new groups of keywords in Header (like WCS coords related is now standardized)
+-- new Extension HDU types (now: IMAGE, TABLEBIN/ASCII)
+-- new Data Unit data-type? (now: UInt8, Int16/32/63, Float32/64)
+
+-- Note: using Read/Write_Card instead of 'Read 'Write attribs
+-- does not forcs use of Stream_IO in client sw (one could imoplement
+-- Read_Card also on Direct_IO Text_IO or or other)
+-- However we have SIO.File_Type we should do FITS.File_Type and
+-- package FITS renames Ada.Streams.Stream_IO; this allows with
+-- one line change to do:
+-- package FITS renames Ada.Dierect_IO; and new body with Direct_IO
+-- implementation of Read/Write_Card and others...
+-- OR even better (rename only File_Type not all Package):
+-- type File_Type is new SIO.File_Type;
+-- then we'd have: FITS.File.File_Type
+
+
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 

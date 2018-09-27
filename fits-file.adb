@@ -245,27 +245,26 @@ package body FITS.File is
               CardsCnt : out FNatural;
               Xtension : out String)
    is
-    HBlk         : DataArray_Type(HBlock,1);
+    HBlk         : Card_Block;
     Card         : Card_Type;
     ENDCardFound : Boolean := false;
---    CardsCnt     : FNatural := 0;
    begin
 
     -- FIXME how to make sure that each value of Parsed_Type
     -- was set during parsing process ?
-    -- Parsed_Card implementation mus keep track of which
+    -- Parsed_Card implementation must keep track of which
     -- record fields were set
 
     CardsCnt := 0;
 
     loop
 
-      DataArray_Type'Read( SIO.Stream(FitsFile), HBlk );
+      Card_Block'Read( SIO.Stream(FitsFile), HBlk );
       -- [FITS] every valid FITS File must have at least one block
 
-      for I in HBlk.HBlockArr(1)'Range
+      for I in HBlk'Range
       loop
-        Card         := HBlk.HBlockArr(1)(I);
+        Card         := HBlk(I);
         Parse_Card(Card, Xtension);
         Parse_Card(Card, Data); -- generic
         CardsCnt     := CardsCnt + 1;
@@ -393,21 +392,22 @@ package body FITS.File is
    is
     NChunks   : FNatural := NBlocks  /  FPositive(ChunkSize_blocks);
     NRest     : FNatural := NBlocks rem FPositive(ChunkSize_blocks);
-    BigBuf    : DataArray_Type(HBlock,ChunkSize_blocks); -- big buffer
-    SmallBuf  : DataArray_Type(HBlock,1);                -- small buffer
+    type CardBlock_Arr is array (1 .. ChunkSize_blocks) of Card_Block;
+    BigBuf    : CardBlock_Arr; -- big buffer
+    SmallBuf  : Card_Block;    -- small buffer
    begin
 
      while NChunks > 0
      loop
-      DataArray_Type'Read (SIO.Stream( InFits),BigBuf);
-      DataArray_Type'Write(SIO.Stream(OutFits),BigBuf);
+      CardBlock_Arr'Read (SIO.Stream( InFits),BigBuf);
+      CardBlock_Arr'Write(SIO.Stream(OutFits),BigBuf);
       NChunks := NChunks - 1;
      end loop;
 
      while NRest   > 0
      loop
-      DataArray_Type'Read (SIO.Stream( InFits),SmallBuf);
-      DataArray_Type'Write(SIO.Stream(OutFits),SmallBuf);
+      Card_Block'Read (SIO.Stream( InFits),SmallBuf);
+      Card_Block'Write(SIO.Stream(OutFits),SmallBuf);
       NRest := NRest - 1;
      end loop;
 

@@ -1,10 +1,6 @@
 
 -- FITS file's Data Unit
 
-with Ada.Streams.Stream_IO;
-
-with FITS.Size; use FITS.Size;
-
 package FITS.Data is
 
 

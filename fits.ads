@@ -52,10 +52,14 @@ package FITS is
    ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
    EmptyCard : constant Card_Type := (others => ' ');
 
-   type Card_Arr   is array (Positive range <>)    of Card_Type;
-   type Card_Block is array (Positive range 1..32) of Card_Type;
+   CardsCntInBlock : constant Positive := 36;
+   type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
+   type Card_Arr   is array (Positive range <>)                 of Card_Type;
 --   for Card_Arr'Size use Card_Arr'Length*(CardSize);
 -- how to guarantee these Arrs are packed OR do we need to guarantee ?
+   pragma Pack (Card_Block); -- not guaranteed ??
+   pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
+                              
 
    -- FITS numeric types are prefixed with F...
    --

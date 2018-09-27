@@ -49,7 +49,8 @@ procedure testfits is
  Inx2 : SIO.Count;
 
  Cnt  : Positive := 5;
- Data : DataArray_Type(Card,Cnt);
+-- Data : DataArray_Type(Card,Cnt);
+ Data : Card_Arr(1..Cnt);
 
  Card : Card_Type;
  BITPIXVal : Integer;
@@ -93,14 +94,14 @@ begin
  Set_Index(FitsFile,HDUNum);
 
  inx1 := SIO.Index(FitsFile);
- DataArray_Type'Read (SIO.Stream(FitsFile), Data);
+ Card_Arr'Read (SIO.Stream(FitsFile), Data);
  inx2 := SIO.Index(FitsFile);
 
  -- print by 80 columns
  -- and also pick BITPIX value for DU-print later
- for I in Positive range 1..Data.Length
+ for I in Data'Range
  loop
-   Card := Data.CardArr(I);
+   Card := Data(I);
    Ada.Text_IO.Put_Line(Card);
    if    (Card(1..9) = "BITPIX  =") then
      BITPIXVal := Integer'Value(Card(10..30));
