@@ -187,7 +187,8 @@ use  Interfaces;
  -- All other FITS-integer types are signed. If those need unsigned range,
  -- an offset (BZERO key?) needs to be applied on them.
  procedure Convert_FITS_UInt8_To_PNG_8bit
-           (Data : in     UInt8Arr_Type;      -- FITS data
+--           (Data : in     UInt8Arr_Type;      -- FITS data
+           (Data : in     UInt8_Arr;      -- FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
@@ -217,7 +218,8 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_8bit
-           (Data : in     Float32Arr_Type;    -- FITS data
+--           (Data : in     Float32Arr_Type;    -- FITS data
+           (Data : in     Float32_Arr;    -- FITS data
             Min, Max :    Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
@@ -250,7 +252,8 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_16bit
-           (Data : in     Float32Arr_Type;     -- FITS data
+--           (Data : in     Float32Arr_Type;     -- FITS data
+           (Data : in     Float32_Arr;     -- FITS data
             Min, Max : Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)             -- Image/Data width
@@ -283,7 +286,8 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_24rgb
-           (Data : in     Float32Arr_Type;    -- FITS data
+--           (Data : in     Float32Arr_Type;    -- FITS data
+           (Data : in     Float32_Arr;    -- FITS data
             Min, Max : Float_32; -- Min Max vals in FITS data
 -- FIXME img should be IN or OUT or IN OUT ? It is a pointer type
             Img  : in out RGBImage_24bit_Ptr; -- PNG pixels (the image)
@@ -349,8 +353,8 @@ use  Interfaces;
      -- and we rely on virtual memory to have
      -- enough space in case of big files
 
-     type Data_Arr_Ptr is access Data_Arr( DataType, FPositive(W*H) );
-     Data : Data_Arr_Ptr  := new Data_Arr( DataType, FPositive(W*H) ) ;
+--     type Data_Arr_Ptr is access Data_Arr( DataType, FPositive(W*H) );
+--     Data : Data_Arr_Ptr  := new Data_Arr( DataType, FPositive(W*H) ) ;
 --     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
 --     Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
      -- holds data from FITS-file
@@ -377,42 +381,65 @@ use  Interfaces;
      -- skip planes up to PlaneNum
      Ada.Streams.Stream_IO.Set_Index(FitsFile,IdxPlaneNum);
 
---     DataArray_Type'Read (SIO.Stream(FitsFile), Data.all);
-     Data_Arr'Read (SIO.Stream(FitsFile), Data.all);
-
-
      if DataType = Float32 then
 
-        Find_MinMax_Float32(Data.all.Float32Arr, Min, Max);
+        declare
+         -- allocate Data on Heap
+         type Float32_Arr_Ptr is access Float32_Arr( 1 .. FPositive(W*H) );
+         Data : Float32_Arr_Ptr := new Float32_Arr( 1 .. FPositive(W*H) );
+        begin
+
+--        Data_Arr'Read (SIO.Stream(FitsFile), Data.all);
+        Float32_Arr'Read (SIO.Stream(FitsFile), Data.all);
+
+--        Find_MinMax_Float32(Data.all.Float32Arr, Min, Max);
+        Find_MinMax_Float32(Data.all, Min, Max);
         Ada.Text_IO.Put_Line("Min " & Float_32'Image(Min));
         Ada.Text_IO.Put_Line("Max " & Float_32'Image(Max));
 
         -- Write  8bit Greyscale Image
         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_8bit(Data.Float32Arr, Min, Max, Img, W);
+--        Convert_FITS_Float32_To_PNG_8bit(Data.Float32Arr, Min, Max, Img, W);
+        Convert_FITS_Float32_To_PNG_8bit(Data.all, Min, Max, Img, W);
         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_8bit(Img);
 
         -- Write 16bit Greyscale Image
         Img16 := new GreyImage_16bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_16bit(Data.Float32Arr, Min, Max, Img16, W);
+--        Convert_FITS_Float32_To_PNG_16bit(Data.Float32Arr, Min, Max, Img16, W);
+        Convert_FITS_Float32_To_PNG_16bit(Data.all, Min, Max, Img16, W);
         Write_GreyImage_16bit(PngFileName&"_G16.png", Img16, H, W, Sixteen); --, D, I, L); Last 3 params have defaults
         Free_GreyImage_16bit(Img16);
 
         -- Write Truecolor Image
         RGBImg := new RGBImage_24bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_Float32_To_PNG_24rgb(Data.Float32Arr, Min, Max, RGBImg, W);
+--        Convert_FITS_Float32_To_PNG_24rgb(Data.Float32Arr, Min, Max, RGBImg, W);
+        Convert_FITS_Float32_To_PNG_24rgb(Data.all, Min, Max, RGBImg, W);
         Write_RGBImage_24bit(PngFileName&".png", RGBImg, H, W);
                              -- Eight, False, Null_Chunk_List, Best_Compression);
                              -- No_Compression Best_Speed Best_Compression Default_Compression
         Free_RGBImage_24bit(RGBImg);
 
+        end;
+
      elsif DataType = UInt8 then
 
-        Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
-        Convert_FITS_UInt8_To_PNG_8bit(Data.UInt8Arr, Img, W);
-        Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
-        Free_GreyImage_8bit(Img);
+        declare
+         -- allocate Data on Heap
+         type UInt8_Arr_Ptr is access UInt8_Arr( 1 .. FPositive(W*H) );
+         Data   : UInt8_Arr_Ptr   := new UInt8_Arr( 1 .. FPositive(W*H) );
+        begin
+
+--         Data_Arr'Read (SIO.Stream(FitsFile), Data.all);
+         UInt8_Arr'Read (SIO.Stream(FitsFile), Data.all);
+
+         Img := new GreyImage_8bit_Type(0..(W-1), 0..(H-1));
+--         Convert_FITS_UInt8_To_PNG_8bit(Data.UInt8Arr, Img, W);
+         Convert_FITS_UInt8_To_PNG_8bit(Data.all, Img, W);
+         Write_GreyImage_8bit(PngFileName, Img, H, W); --, D, I, L); Last 3 params have defaults
+         Free_GreyImage_8bit(Img);
+
+        end;
 
      else
 

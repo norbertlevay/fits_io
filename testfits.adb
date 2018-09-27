@@ -55,30 +55,30 @@ procedure testfits is
  Card : Card_Type;
  BITPIXVal : Integer;
 
-  procedure PutFITSData (Data : in Data_Arr)
-  is
-  begin
-   for I in FPositive range 1 .. Data.Length
-   loop
-    case Data.FitsType is
-    when UInt8 =>
-     Ada.Text_IO.Put( FITS.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
-    when Int16 =>
-     Ada.Text_IO.Put( FITS.Integer_16'Image(Data.Int16Arr(I)) & " ");
-    when Int32 =>
-     Ada.Text_IO.Put( FITS.Integer_32'Image(Data.Int32Arr(I)) & " ");
-    when Int64 =>
-     Ada.Text_IO.Put( FITS.Integer_64'Image(Data.Int64Arr(I)) & " ");
-    when Float32 =>
-     Ada.Text_IO.Put( FITS.Float_32'Image(Data.Float32Arr(I)) & " ");
-    when Float64 =>
-     Ada.Text_IO.Put( FITS.Float_64'Image(Data.Float64Arr(I)) & " ");
-    when others =>
-      null; -- FIXME exception or ?
-    end case;
-   end loop;
-   Ada.Text_IO.New_Line;
-  end PutFITSData;
+--  procedure PutFITSData (Data : in Data_Arr)
+--  is
+--  begin
+--   for I in FPositive range 1 .. Data.Length
+--   loop
+--    case Data.FitsType is
+--    when UInt8 =>
+--     Ada.Text_IO.Put( FITS.Unsigned_8'Image(Data.UInt8Arr(I)) & " ");
+--    when Int16 =>
+--     Ada.Text_IO.Put( FITS.Integer_16'Image(Data.Int16Arr(I)) & " ");
+--    when Int32 =>
+--     Ada.Text_IO.Put( FITS.Integer_32'Image(Data.Int32Arr(I)) & " ");
+--    when Int64 =>
+--     Ada.Text_IO.Put( FITS.Integer_64'Image(Data.Int64Arr(I)) & " ");
+--    when Float32 =>
+--     Ada.Text_IO.Put( FITS.Float_32'Image(Data.Float32Arr(I)) & " ");
+--    when Float64 =>
+--     Ada.Text_IO.Put( FITS.Float_64'Image(Data.Float64Arr(I)) & " ");
+--    when others =>
+--      null; -- FIXME exception or ?
+--    end case;
+--   end loop;
+--   Ada.Text_IO.New_Line;
+--  end PutFITSData;
 
 begin
 
@@ -121,14 +121,14 @@ begin
  declare
    HDUInfo : HDU_Info_Type := Get(FitsFile);
    dt    : Data_Type := To_DataType(HDUInfo.BITPIX);
-   DataD : Data_Arr(dt,4);
+--   DataD : Data_Arr(dt,4);
  begin
    Put_Line("> and read DataUnit of type: " & Data_Type'Image(dt));
 --   Set_Index(FitsFile,HDUNum,DataD.FitsType,10*4);
 --   FIXME now that above call does not support Offset, how to move in DataUnit ?
-   Data_Arr'Read (SIO.Stream(FitsFile), DataD);
-   PutFITSData(DataD);
-   New_Line;
+--   Data_Arr'Read (SIO.Stream(FitsFile), DataD);
+--   PutFITSData(DataD);
+--   New_Line;
 --   DataArray_Type'Read (SIO.Stream(FitsFile), DataD);
 --   PutFITSData(DataD);
    New_Line;
