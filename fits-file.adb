@@ -492,8 +492,10 @@ package body FITS.File is
                        MaxCoord : in NAXIS_Arr := (1,1);
                        BITPIX   : in Positive  := 8)
    is
-     SIO_Offset : SIO.Positive_Count;
-     Offset     : FPositive;
+     SIO_Offset   : SIO.Positive_Count;
+     Offset       : FPositive;
+     SE_Size_bits : Positive := Ada.Streams.Stream_Element'Size;
+                                -- 'Size is in bits
    begin
 
      Set_Index_HDU(FitsFIle,HDUNum);
@@ -503,7 +505,7 @@ package body FITS.File is
      Offset := To_Offset(Coord,MaxCoord);
      if Offset > 0
      then
-       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/8)
+       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/SE_Size_bits)
                    * SIO.Positive_Count(Offset);
        -- FIXME explicit conversions - verify!
        Move_Index(FitsFile, SIO_Offset);
