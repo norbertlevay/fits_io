@@ -1,5 +1,5 @@
 
-with FITS.Data;
+with FITS; use FITS;
 
 with ncube;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -15,15 +15,15 @@ procedure ncubetest
 is
  -- type Float32 is new FITS.Data.Float_32;
   -- FIXME Float32 instatiation fails with: Excpected discrete type.
---  type Int32 is new FITS.Data.Integer_32;
-  type Int32 is new FITS.Data.Float_32;
+  type Int32 is new FITS.Integer_32;
+--  type Int32 is new FITS.Float_32;
 
   type MyData is array (FPositive range <>) of Int32;
 
   function Int32Value ( Coord : in NCube.Coord_Type ) return Int32
   is 
   begin 
-   return 2.0;
+   return 2;
   end;
 
   procedure Fill_In_Int32 is new

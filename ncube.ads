@@ -1,5 +1,7 @@
 
-with FITS.Data; -- Data_Arr needed
+--with FITS.Data; -- Data_Arr needed
+with FITS; use FITS;
+
 
 package ncube is
 

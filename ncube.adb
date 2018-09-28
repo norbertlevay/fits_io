@@ -6,6 +6,46 @@ use  Ada.Text_IO;
 
 package body ncube is
 
+ function To_Offset (Coords    : in  Coord_Type;
+                     MaxCoords : in  Coord_Type)
+   return FPositive
+ is
+  Offset : FPositive;
+  Sizes  : Coord_Type := MaxCoords;
+ begin
+  if Coords'Length /= MaxCoords'Length
+  then
+   null;
+   -- raise exception <-- needed this if ?
+   -- no, check only high level inputs, this is not direct API call
+   -- assume if code corrct, it is corrct here
+  end if;
+
+  --
+  -- generate size of each plane
+  --
+  declare
+    Accu  : FPositive := 1;
+  begin
+    for I in MaxCoords'First .. (MaxCoords'Last - 1)
+    loop
+     Accu := Accu * MaxCoords(I);
+     Sizes(I) := Accu;
+     -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+    end loop;
+  end;
+
+  Offset := Coords(1);
+  for I in (Coords'First + 1) .. Coords'Last
+  loop
+   Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
+  end loop;
+
+  return Offset;
+ end To_Offset;
+
+
+
 
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;
