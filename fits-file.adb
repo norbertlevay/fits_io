@@ -448,15 +448,66 @@ package body FITS.File is
 
    end Set_Index_HDU;
 
+   function To_Offset (Coords    : in  NAXIS_Arr;
+                       MaxCoords : in  NAXIS_Arr)
+     return FNatural
+   is
+    Offset : FNatural;
+    Sizes  : NAXIS_Arr := MaxCoords;
+   begin
+    if Coords'Length /= MaxCoords'Length
+    then
+     null;
+     -- raise exception <-- needed this if ?
+     -- no, check only high level inputs, this is not direct API call
+     -- assume if code corrct, it is corrct here
+    end if;
+
+    --
+    -- generate size of each plane
+    --
+    declare
+      Accu  : FPositive := 1;
+    begin
+      for I in MaxCoords'First .. (MaxCoords'Last - 1)
+      loop
+       Accu := Accu * MaxCoords(I);
+       Sizes(I) := Accu;
+       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+      end loop;
+    end;
+
+    Offset := Coords(1) - 1;
+    for I in (Coords'First + 1) .. Coords'Last
+    loop
+     Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
+    end loop;
+
+    return Offset;
+   end To_Offset;
+
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;
                        Coord    : in NAXIS_Arr := (1,1);
+                       MaxCoord : in NAXIS_Arr := (1,1);
                        BITPIX   : in Positive  := 8)
    is
+     SIO_Offset : SIO.Positive_Count;
+     Offset     : FPositive;
    begin
-     Set_Index_HDU(FitsFIle,HDUNum);
 
-     -- FIXME add code to move FileIndex forward by Coord x ElementType
+     Set_Index_HDU(FitsFIle,HDUNum);
+     -- movef to beginig of HDU
+
+     -- next add offset up to Coord in array of BITPIX-type
+     Offset := To_Offset(Coord,MaxCoord);
+     if Offset > 0
+     then
+       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/8)
+                   * SIO.Positive_Count(Offset);
+       -- FIXME explicit conversions - verify!
+       Move_Index(FitsFile, SIO_Offset);
+     end if;
 
    end Set_Index;
 

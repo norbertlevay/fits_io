@@ -98,6 +98,7 @@ package FITS.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;
                        Coord    : in NAXIS_Arr := (1,1);
+                       MaxCoord : in NAXIS_Arr := (1,1);
                        BITPIX   : in Positive  := 8);
 
    -- FITS-file content info
