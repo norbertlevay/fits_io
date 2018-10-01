@@ -1,7 +1,7 @@
 
 with FITS; use FITS;
 
-with ncube;
+with ncube;  use ncube;
 with Ada.Text_IO; use Ada.Text_IO;
 
 -- generic
@@ -32,7 +32,33 @@ is
   MaxCoords  : NCube.Coord_Type := (3,4,5);
   DInt32_Acc : access MyData;
 
+  --
+  -- Coordinate calc for cutout:
+  --
+  procedure Print_Coord(Coord : in Coord_Type)
+  is
+  begin
+   for I in Coord'Range
+   loop
+    Put(FInteger'Image(Coord(I)));
+   end loop;
+   New_Line;
+  end Print_Coord;
+
+  Offset : Coord_Type := (3,2);--,1,1);
+  Coord  : Coord_Type := Offset;--(1,1);--,1,1);
+  Vol    : Coord_Type := (3,4);--,3,3);
+
 begin
+
+  Print_Coord(Coord);
+  for K in 1 .. 6
+  loop
+    Coord := Next_Coord(Coord,Offset,Vol);
+    Print_Coord(Coord);
+  end loop;
+
+  return ;
 
   -- FIXME 60 = 3*4*5
   DInt32_Acc := new MyData(1..60);

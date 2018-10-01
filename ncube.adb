@@ -123,6 +123,42 @@ package body ncube is
 
  end Fill_In;
 
+
+ -- for cutout
+ function Next_Coord(Coord  : in out Coord_Type;
+                     Offset : in Coord_Type;
+                     Vol    : in Coord_Type)
+   return Coord_Type
+   is
+    flag : array (FPositive range 1..Coord'Length) of Boolean
+         := (1=>True, others => False);
+    -- carry over flag
+   begin
+
+    -- assert Coord'Range = Offest'Range = Vol'Range = 1 .. Coord'Last
+    -- assert Offset + Vol < DataUnit in every coordinate
+
+    for I in 2 .. Coord'Last
+    loop
+
+      if (flag (I-1)) then
+
+        Coord(I) := Coord(I) + 1;
+        if( Coord(I) > (Offset(I) + Vol(I) - 1) ) -- coordinate overflow
+        then
+          -- reset coordinate and carry-over
+          Coord(I) := Offset(I);
+          flag(I)  := True;
+        end if;
+
+      end if;
+
+    end loop;
+
+    return Coord;
+   end Next_Coord;
+
+
 end ncube;
 
 

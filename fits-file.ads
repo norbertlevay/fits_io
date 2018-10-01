@@ -44,6 +44,7 @@
 -- -- read behind data unit end (Set_Offset + (N1*N2*...) < DUEnd).
 --
 -- FIXME we should hide DataArr[] implementation ??
+--       furure yes: introduce class NCube which will unite Coord and DataArr[]
 --
 -- 6x function Element(DataArr[<>],(I1,I2,...)) returns Element_Type
 --

@@ -1,7 +1,7 @@
 
 --with FITS.Data; -- Data_Arr needed
 with FITS; use FITS;
-
+with Ada.Streams.Stream_IO;
 
 package ncube is
 
@@ -13,6 +13,7 @@ package ncube is
  -- into an 1-dimensional array
 
  type Coord_Type is array (FPositive range <> ) of FPositive;
+ type Int_Arr is array (FPositive range <> ) of Integer;
 
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;
@@ -27,6 +28,23 @@ package ncube is
  -- Rename Value() to:               Set(coord,Item)
  --   and Fill_In() to is Set array: Set_All(array,...)
  -- Add generic get func:            Get(array, coord) return Item
+
+ -- cutout: generate next coord from previous
+ -- for "cutout": copying V-sized portion of NCube starting from Offset
+ function Next_Coord(Coord  : in out Coord_Type;
+                     Offset : in Coord_Type;
+                     Vol    : in Coord_Type)
+   return Coord_Type;
+
+ -- using Next_Coord, read from file subcube of volume V
+ -- assume Set_Index has positioned file-pointer to correct Offset
+ -- Offset is measured from begining of DataUnit.
+ -- Data is stored in 1-dim array Arr: use funcs FITS.Data.ELement()
+ -- to reach data element by N-dimensional coordinate
+ procedure Read_Volume(File : in Ada.Streams.Stream_IO.File_Type;
+                       Vol  : in Coord_Type;
+                       Arr  : out Int_Arr) is null;
+
 
 
  -- Solution 2:
