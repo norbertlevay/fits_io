@@ -417,8 +417,8 @@ package body FITS.File is
    --
    -- Set file index to position given by params
    --
-   procedure Set_Index_HDU (FitsFile  : in SIO.File_Type;
-                            HDUNum    : in Positive)
+   procedure Set_Index(FitsFile : in SIO.File_Type;
+                       HDUNum   : in Positive)
    is
     CurDUSize_blocks : FPositive;
     CurDUSize_bytes  : FPositive;
@@ -446,7 +446,7 @@ package body FITS.File is
      CurHDUNum := CurHDUNum + 1;
     end loop;
 
-   end Set_Index_HDU;
+   end Set_Index;
 
    function To_Offset (Coords    : in  NAXIS_Arr;
                        MaxCoords : in  NAXIS_Arr)
@@ -486,7 +486,8 @@ package body FITS.File is
     return Offset;
    end To_Offset;
 
-   procedure Set_Index(FitsFile : in SIO.File_Type;
+   -- not in use
+   procedure Set_Index_with_Offset(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive;
                        Coord    : in NAXIS_Arr := (1,1);
                        MaxCoord : in NAXIS_Arr := (1,1);
@@ -498,7 +499,7 @@ package body FITS.File is
                                 -- 'Size is in bits
    begin
 
-     Set_Index_HDU(FitsFIle,HDUNum);
+     Set_Index(FitsFIle,HDUNum);
      -- movef to beginig of HDU
 
      -- next add offset up to Coord in array of BITPIX-type
@@ -511,7 +512,7 @@ package body FITS.File is
        Move_Index(FitsFile, SIO_Offset);
      end if;
 
-   end Set_Index;
+   end Set_Index_with_Offset;
 
    procedure Write_Padding(FitsFile : in SIO.File_Type)
    is
@@ -666,6 +667,39 @@ package body FITS.File is
      Card_Arr'Write(Stream(FitsFile),Cards);
    end Write_Cards;
    pragma Inline (Write_Cards);
+
+
+   -- Read Data
+
+   generic
+     type Data_Arr is private;
+   procedure genRead_Data (FitsFile : in  SIO.File_Type;
+                        Data     : in out Data_Arr);
+
+   procedure genRead_Data (FitsFile : in  SIO.File_Type;
+                        Data     : in out Data_Arr)
+   is
+   begin
+     Data_Arr'Read(Stream(FitsFile),Data);
+   end genRead_Data;
+--   procedure Read_Data is new genRead_Data(Int16_Arr);
+
+   procedure Read_Data (FitsFile : in  SIO.File_Type;
+                        Data     : in out UInt8_Arr)
+   is
+   begin
+     UInt8_Arr'Read(Stream(FitsFile),Data);
+   end Read_Data;
+   pragma Inline (Read_Data);
+
+   procedure Read_Data (FitsFile : in  SIO.File_Type;
+                        Data     : in out Float32_Arr)
+   is
+   begin
+     Float32_Arr'Read(Stream(FitsFile),Data);
+   end Read_Data;
+   pragma Inline (Read_Data);
+
 
 end FITS.File;
 

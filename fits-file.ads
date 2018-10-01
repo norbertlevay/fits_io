@@ -89,6 +89,12 @@
 -- type File_Type is new SIO.File_Type;
 -- then we'd have: FITS.File.File_Type
 
+-- Note on Read_Data() API usage:
+-- This access enables data modification of each data element separately.
+-- If modified data element depends on more (maybe neighbpuring) data,
+-- this simple interface is cumbersome. Better to use NCube, where access
+-- is governed by coordinates.
+
 
 with Ada.Streams.Stream_IO;
 
@@ -97,10 +103,7 @@ package FITS.File is
    package SIO renames Ada.Streams.Stream_IO;
 
    procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive;
-                       Coord    : in NAXIS_Arr := (1,1);
-                       MaxCoord : in NAXIS_Arr := (1,1);
-                       BITPIX   : in Positive  := 8);
+                       HDUNum   : in Positive);
 
    -- FITS-file content info
 
@@ -114,7 +117,10 @@ package FITS.File is
    function  Get (FitsFile : in  SIO.File_Type)
       return HDU_Info_Type;
 
-   -- Read Header Cards
+   -- Read Header Cards (up to ENDCard)
+   -- Read cards A, on card at a time B, by blocks of 6 cards.
+   -- ** FITS standard guarantees that a healthy FITS file has that
+   -- ** many cards (until ENDCard found).
 
    function Read_Card  (FitsFile  : in  SIO.File_Type)
      return Card_Type;
@@ -122,17 +128,18 @@ package FITS.File is
    function Read_Cards (FitsFile  : in  SIO.File_Type)
      return Card_Block;
 
-   -- Read Data Unit
+   -- Read Data (up to length = NAXS1 x NAXIS2 x.. )
+   -- by free-sized data-chunks into 1-dim array
+   -- max size is known from header Get(HDU_Info): NAXIS1 x NAXIS2 x ...
+   -- ** FITS standard guarantees that healthy FITS File has that many data.
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Size     : in  NAXIS_Arr;
-                        Data     : out UInt8_Arr) is null;
+                        Data     : in out UInt8_Arr);
 
    -- ... for all types ...
 
    procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Size     : in  NAXIS_Arr;
-                        Data     : out Float32_Arr) is null;
+                        Data     : in out Float32_Arr);
 
    -- Write Header Cards
 
@@ -160,6 +167,9 @@ package FITS.File is
    -- Notes:
    -- Write_Data writes the complete DataUnit
    -- Write_Data adds DataUnit padding after last Item written
+
+   -- FIXME why not to offer also Write_Data(S, Data_Arr) API - analogues
+   --       to Read_Data(S,DataChunk). 6x for all data arrary types.
 
 
    -- Misc:
