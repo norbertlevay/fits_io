@@ -3,6 +3,7 @@
 with FITS; use FITS;
 with Ada.Streams.Stream_IO;
 
+
 package ncube is
 
 -- -------------------------------------------------
@@ -13,7 +14,7 @@ package ncube is
  -- into an 1-dimensional array
 
  type Coord_Type is array (FPositive range <> ) of FPositive;
- type Int_Arr is array (FPositive range <> ) of Integer;
+-- type Int_Arr is array (FPositive range <> ) of Integer;
 
  procedure To_Coords (Offset    : in  FPositive;
                       MaxCoords : in  Coord_Type;
@@ -37,13 +38,15 @@ package ncube is
    return Coord_Type;
 
  -- using Next_Coord, read from file subcube of volume V
- -- assume Set_Index has positioned file-pointer to correct Offset
+ -- assume Set_Index has positioned file-pointer to DU start
  -- Offset is measured from begining of DataUnit.
  -- Data is stored in 1-dim array Arr: use funcs FITS.Data.ELement()
  -- to reach data element by N-dimensional coordinate
- procedure Read_Volume(File : in Ada.Streams.Stream_IO.File_Type;
-                       Vol  : in Coord_Type;
-                       Arr  : out Int_Arr) is null;
+ procedure Read_Volume(File     : in Ada.Streams.Stream_IO.File_Type;
+                       Offset   : in Coord_Type;
+                       MaxCoord : in Coord_Type;
+                       Vol      : in Coord_Type;
+                       Arr      : out UInt8_Arr);
 
 
 

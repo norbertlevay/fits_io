@@ -1,10 +1,15 @@
 
 with FITS.Data; -- Data_Arr needed
 
-with Ada.Text_IO;
-use  Ada.Text_IO;
+with Ada.Text_IO; use  Ada.Text_IO;
+
+with Ada.Streams; use Ada.Streams;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 package body ncube is
+
+ package SIO renames Ada.Streams.Stream_IO;
+
 
  function To_Offset (Coords    : in  Coord_Type;
                      MaxCoords : in  Coord_Type)
@@ -124,7 +129,10 @@ package body ncube is
  end Fill_In;
 
 
- -- for cutout
+ --
+ -- for cutout: read sub-cube from Offset into DU, of Vol-size from
+ --             FITS-Cube of MaxCoords-size
+
  function Next_Coord(Coord  : in out Coord_Type;
                      Offset : in Coord_Type;
                      Vol    : in Coord_Type)
@@ -157,6 +165,53 @@ package body ncube is
 
     return Coord;
    end Next_Coord;
+
+
+   function Multiply (Vect : in Coord_Type) return FPositive
+   is
+    Acc : FPositive := 1;
+   begin
+    for I in Vect'Range
+    loop
+     Acc := Acc * Vect(I);
+    end loop;
+    return Acc;
+   end Multiply;
+
+ -- Arr is meant to be a butffer for many reads in cycle - filter type of operation
+ -- As such a buffer should be dimensioned "small" enough comapred to available memory
+ -- Implement: to fill Arr ov Vol-size repeat reads by "scanline",
+ -- which for FITS is one column
+ -- Assumes File Index points to beging of the DataUnit
+ procedure Read_Volume(File     : in SIO.File_Type;
+                       Offset   : in Coord_Type; -- from DUStart
+                       MaxCoord : in Coord_Type; -- NAXIS1,NAXIS2,...
+                       Vol      : in Coord_Type; -- volume to cutout
+                       Arr      : out UInt8_Arr) -- store Vol here
+ is
+  ScanlineLen : FPositive := Vol(1);
+  ScanLine    : UInt8_Arr(1 .. ScanlineLen);
+  ScanLinesCnt : FPositive  := Multiply(Vol((Vol'First+1) .. Vol'Last));
+  LinOffset    : FPositive  := 1;
+  Coord        : Coord_Type := Offset;
+  DUStart      : SIO.Count  := SIO.Index(File);
+  factor       : constant SIO.Count := SIO.Count(Unsigned_8'Size / Stream_Element'Size);
+  FileOffset   : SIO.Count  := factor * SIO.Count(To_Offset(Offset,MaxCoord));
+ begin
+   for I in 1 .. ScanLinesCnt
+   loop
+
+     SIO.Set_Index(File,DUStart + FileOffset);
+
+     UInt8_Arr'Read(SIO.Stream(File),ScanLine);
+     Arr(LinOffset .. (LinOffset + ScanlineLen - 1)) := ScanLine;
+
+     LinOffset  := LinOffset + ScanlineLen;
+     Coord      := Next_Coord(Coord,Offset,Vol);
+     FileOffset := factor * SIO.Count(To_Offset(Coord,MaxCoord));
+
+   end loop;
+ end Read_Volume;
 
 
 end ncube;
