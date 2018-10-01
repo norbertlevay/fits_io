@@ -115,7 +115,7 @@ package body Commands is
    Set_Index(FitsFile,HDUNum);
 
    loop
-    Card_Type'Read(SIO.Stream(FitsFile) , Data);
+    Data := Read_Card(FitsFile);
     TIO.Put_Line(Data);
     exit when (Data = ENDCard);
    end loop;
@@ -139,11 +139,11 @@ package body Commands is
  begin
 
    loop
-     Card_Type'Read (SIO.Stream(InFits), Card);
+     Card := Read_Card(InFits);
      exit when (Card = ENDCard);
 
      if Card(InKey'Range) /= InKey then
-       Card_Type'Write(SIO.Stream(OutFits),Card);
+       Write_Card(OutFits,Card);
      end if;
 
    end loop;
@@ -170,7 +170,7 @@ package body Commands is
  begin
 
    loop
-     Card_Type'Read (SIO.Stream(InFits), Card);
+     Card := Read_Card(InFits);
      KeyCardFound := (Card(InKey'Range) = InKey);
      ENDCardFound := (Card = ENDCard);
      exit when (KeyCardFound or ENDCardFound);
@@ -205,17 +205,18 @@ package body Commands is
 
   Card := Find_Card(InFits,"SIMPLE");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  Card_Type'Write (SIO.Stream(OutFits), Card);
+  Write_Card(OutFits,Card);
 
   SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"BITPIX");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  Card_Type'Write (SIO.Stream(OutFits), Card);
+  Write_Card(OutFits,Card);
 
   SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"NAXIS");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
-  Card_Type'Write (SIO.Stream(OutFits), Card);
+  Write_Card(OutFits,Card);
+
   Naxis := Positive'Value(Card(10..30));
 
   for I in 1 .. Naxis
@@ -225,7 +226,8 @@ package body Commands is
     begin
       SIO.Set_Index(InFits,InIdx);
       Card := Find_Card(InFits,NAXISnKey);
-      Card_Type'Write (SIO.Stream(OutFits), Card);
+      Write_Card(OutFits,Card);
+
 --      TIO.Put_Line("DBG >>" & Card & "<<");
     end;
   end loop;
@@ -235,7 +237,8 @@ package body Commands is
   SIO.Set_Index(InFits,InIdx);
 
   loop
-    Card_Type'Read (SIO.Stream(InFits), Card);
+    Card := Read_Card(InFits);
+
     exit when (Card = ENDCard);
 
     if Card(1..6) /= "SIMPLE" and
@@ -247,7 +250,7 @@ package body Commands is
        -- conversion will raise exception if not a number
        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
        -- AxisValue := Positive'Value(Card(6..8));
-       Card_Type'Write (SIO.Stream(OutFits), Card);
+       Write_Card(OutFits,Card);
     end if;
 
   end loop;
@@ -322,7 +325,7 @@ package body Commands is
  --
  -- Writes fill-in data from curent file-index until next Block limit
  -- FIXME consider to implement for Header and also DataUnit padding
- procedure Write_Fillin (OutFits : in SIO.File_Type)
+ procedure NOT_USED_Write_Fillin (OutFits : in SIO.File_Type)
  is
   OutIndex : SIO.Positive_Count;
   FillCnt  : SIO.Positive_Count;
@@ -341,7 +344,7 @@ package body Commands is
 --        TIO.Put_Line("DBG FillCnt >>" & SIO.Count'Image(FillCnt) & "<<");
     end loop;
    end if;
- end Write_Fillin;
+ end NOT_USED_Write_Fillin;
 
 
 
