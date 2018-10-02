@@ -31,7 +31,7 @@ with FITS.Data;   use FITS.Data;
 with FITS.File;   use FITS.File;
 
 
-procedure exampleCreateFitsFile
+procedure create
 is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -112,5 +112,5 @@ begin
       -- Do the same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end exampleCreateFitsFile;
+end create;
 
