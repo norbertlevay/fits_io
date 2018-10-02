@@ -10,6 +10,7 @@ TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 ZLIB_DIR=./png/libz-1.2.8.2015.12.26
 ZLIBADA_DIR=./png/zlib-ada
 PNG_DIR=./png/png_4_6
+FITS_IO_DIR=./lib
 
 SRC=main.adb
 
@@ -25,13 +26,13 @@ build_date.ads :
 	@echo "end Build_Date;" >> build_date.ads
 
 fits : build_date.ads
-	gnatmake -g -gnat05 -we $(SRC) -o fits -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+	gnatmake -g -gnat05 -we $(SRC) -o fits -I$(FITS_IO_DIR) -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
 testfits:
-	gnatmake -g -gnat05 -we testfits.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+	gnatmake -g -gnat05 -we testfits.adb -I$(FITS_IO_DIR) -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
 examplecreatefitsfile:
-	gnatmake -g -gnat05 -we examplecreatefitsfile.adb -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
+	gnatmake -g -gnat05 -we examplecreatefitsfile.adb -I$(FITS_IO_DIR) -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -L$(ZLIB_DIR) -lz -bargs -E
 
 # before compiled with -gnat05 but to iterate over Data.Float32Arr in for cycles -gnat12 needed (see FITS to PNG)
 # -bargs -E -> for addr2line --exe=./fits 0x...  at excpetion: -E is passed to binder (-bargs)
