@@ -10,7 +10,7 @@ TESTFILE=COHRS_11p00_0p00_CUBE_REBIN_R1.fit
 ZLIB_DIR=./png/libz-1.2.8.2015.12.26
 ZLIBADA_DIR=./png/zlib-ada
 PNG_DIR=./png/png_4_6
-FITS_IO_DIR=./lib
+FITS_IO_DIR=./lib/src
 
 SRC=main.adb
 
