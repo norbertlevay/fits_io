@@ -63,7 +63,7 @@ test:
 	./fits png --plane 15 ngc6503.fits
 
 clean:
-	rm -f  $(TARGETS) *.o *.ali build_date.*
+	rm -f  $(TARGETS) *.o *.ali b~*.ad? build_date.*
 #	rm -f fits testfits exampleCreateFitsFile *.o *.ali build_date.* b~*.ad? b~*.ad?
 
 distclean: clean

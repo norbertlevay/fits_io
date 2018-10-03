@@ -1,29 +1,19 @@
-with
-    Options,
-    Build_Date,
-    Commands,
---    Commands.PNG,
---    Commands.PNGf,
-    Ada.Exceptions,
-    Ada.Text_IO,
-    Ada.Direct_IO,
-    Ada.Text_IO.Bounded_IO,
-    Ada.Command_Line,
-    Ada.Strings.Unbounded,
-    Ada.Strings.Bounded,
-    GNAT.Traceback,
-    GNAT.Traceback.Symbolic;
 
+with Build_Date;
 
-use
-    Options,
-    Commands,
-    Ada.Exceptions,
-    Ada.Text_IO,
-    Ada.Strings.Unbounded,
-    Ada.Command_Line,
-    GNAT.Traceback,
-    GNAT.Traceback.Symbolic;
+with Options; 		use Options;
+with Commands; 		use Commands;
+with Ada.Exceptions;    use Ada.Exceptions;
+
+with Ada.Text_IO;       use Ada.Text_IO;
+with Ada.Command_Line;      use Ada.Command_Line;
+
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Bounded;
+
+-- for debug:
+--with GNAT.Traceback;          use GNAT.Traceback;
+--with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 
 
 procedure main is
