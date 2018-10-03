@@ -3,7 +3,8 @@ INCDIR=../lib/src
 LIBDIR=../lib
 LIB=fits_io
 
-create:
+
+all:
 	gnatmake -g -gnat05 -we create.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 
 

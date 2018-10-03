@@ -1,33 +1,18 @@
 --
 -- Example create & write small FITS file
 --
--- if data small enough to handle in memory (heap),
--- otherwise
--- writing by blocks:
--- DBlk : Data_Arr(UInt8,2880);-- := (
---   FitsType => UInt8,
---   Length   => 2880,
---   UInt8Arr => (others   => FITS.Data.Unsigned_8(128)));
---
+-- "small" meaning data (and header) fit into memory (heap).
 
-with
-    Ada.Exceptions,
-    Ada.Text_IO,
-    Ada.Command_Line,
-    Ada.Streams.Stream_IO,
-    System,
-    Interfaces,
-    GNAT.Traceback.Symbolic;
+with Ada.Text_IO;      use Ada.Text_IO;
+with Ada.Command_Line; use Ada.Command_Line;
 
-use
-    Ada.Exceptions,
-    Ada.Text_IO,
-    Ada.Command_Line;
+with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 
+with Ada.Streams.Stream_IO;
 
 with FITS;        use FITS;
 with FITS.Header; use FITS.Header;
-with FITS.Data;   use FITS.Data;
 with FITS.File;   use FITS.File;
 
 
@@ -36,13 +21,13 @@ is
 
  package SIO renames Ada.Streams.Stream_IO;
 
- Name : constant String := Command_Name & ".fits";
- File : SIO.File_Type;
+ FileName : constant String := Command_Name & ".fits";
+ File     : SIO.File_Type;
 
  -- Describe the Data
 
- RowsCnt : constant FPositive := 400;
- ColsCnt : constant FPositive := 600;
+ RowsCnt : constant FPositive := 600;-- = ColumnLength
+ ColsCnt : constant FPositive := 400;-- = Row   Length
 
  MaxCoords : constant NAXIS_Arr := (RowsCnt,ColsCnt);
 
@@ -52,8 +37,8 @@ is
    To_Card ("SIMPLE",   "T", "Standard FITS file"),
    To_Card ("BITPIX",   "8", "Unsigned 8-bit integer data"),
    To_Card ("NAXIS",    "2", "2-dimensional image"),
-   To_Card ("NAXIS1", "400", "columns"),
-   To_Card ("NAXIS2", "600", "rows")
+   To_Card ("NAXIS1", "600", "rows"),
+   To_Card ("NAXIS2", "400", "columns")
    );
 
  -- Define the Data
@@ -70,28 +55,23 @@ is
 begin
 
  Put_Line("Usage  " & Command_Name );
+ Put("Writing " & FileName & " ... ");
 
- -- create and write the FITS file
-
- Put("Output " & Name & " ...");
-
- SIO.Create (File, SIO.Out_File, Name);
+ SIO.Create (File, SIO.Out_File, FileName);
  -- FIXME check behaviour AdaRM: overwrites if file already exists ?
  -- FIXME if AdaRM says SIO.Create guarantees File Index
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
-
  -- write Header
- Card_Arr'Write(SIO.Stream(File),Cards);
+ Write_Cards(File, Cards);
  Write_ENDCard(File);
 
-
  -- write Data
- Write_Data_UInt8(File,MaxCoords);
+ Write_Data_UInt8(File, MaxCoords);
 
  SIO.Close(File);
 
- Put_Line(" writen.");
+ Put_Line("done.");
 
 
  exception
@@ -101,7 +81,6 @@ begin
       Error : Ada.Text_IO.File_Type := Standard_Error;
      begin
       New_Line(Error);
-      Put_Line(Error, "Program error, send bug-report.");
       Put_Line(Error, "Exception_Information: ");
       Put_Line(Error, Exception_Information( Except_ID ) );
       New_Line(Error);
