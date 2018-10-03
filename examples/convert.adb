@@ -19,7 +19,7 @@ with FITS.Header; use FITS.Header;
 with FITS.File;   use FITS.File;
 
 
-procedure float64
+procedure convert
 is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -101,5 +101,5 @@ begin
       -- Do the same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end float64;
+end convert;
 

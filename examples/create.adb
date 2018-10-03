@@ -33,6 +33,7 @@ is
 
  -- Prepare the Header
 
+ -- FIXME uses String varinat of To_Card, not bounded strings Max_8.* etc...
  Cards : Card_Arr :=  (
    To_Card ("SIMPLE",   "T", "Standard FITS file"),
    To_Card ("BITPIX",   "8", "Unsigned 8-bit integer data"),
