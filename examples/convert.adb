@@ -37,12 +37,27 @@ is
 
  -- Prepare the Header
 
+ -- Card => Key Value Comment
  Cards : Card_Arr :=  (
-   To_Card ("SIMPLE",   "T", "Standard FITS file"),
-   To_Card ("BITPIX",   "8", "Unsigned 8-bit integer data"),
-   To_Card ("NAXIS",    "2", "2-dimensional image"),
-   To_Card ("NAXIS1", "600", "rows"),
-   To_Card ("NAXIS2", "400", "columns")
+   To_Card (Max_8.To_Bounded_String("SIMPLE"),
+            Max20.To_Bounded_String("T"),
+            Max48.To_Bounded_String("Standard FITS file")),
+
+   To_Card (Max_8.To_Bounded_String("BITPIX"),
+            Max20.To_Bounded_String("8"),
+            Max48.To_Bounded_String("Unsigned 8-bit integer data")),
+
+   To_Card (Max_8.To_Bounded_String("NAXIS"),
+            Max20.To_Bounded_String("2"),
+            Max48.To_Bounded_String("2-dimensional image")),
+
+   To_Card (Max_8.To_Bounded_String("NAXIS1"),
+            Max20.To_Bounded_String("600"),
+            Max48.To_Bounded_String("rows")),
+
+   To_Card (Max_8.To_Bounded_String("NAXIS2"),
+            Max20.To_Bounded_String("400"),
+            Max48.To_Bounded_String("columns"))
    );
 
  -- Define the Data

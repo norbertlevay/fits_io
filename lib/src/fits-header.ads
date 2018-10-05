@@ -19,11 +19,6 @@ package FITS.Header is
    -- Parse Header --
    ------------------
 
-   -- FIXME replace with BoundedString variant (in FITS.FIle)
-   function To_Card(KeyName  : in String;
-                    KeyValue : in String;
-                    Comment  : in String) return Card_Type;
-
    package Max_8 is
        new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
    package Max20 is
