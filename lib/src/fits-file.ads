@@ -158,12 +158,20 @@ package FITS.File is
 
    -- Write Data Unit
 
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in UInt8_Arr);
+
+   -- ... for all types ...
+
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in Float32_Arr);
+
    generic
     type Item is private;
     type Item_Arr is array (FPositive range <>) of Item;
     with function Element (Coord : in NAXIS_Arr) return Item;
-   procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  NAXIS_Arr);
+   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
+                             MaxCoords : in  NAXIS_Arr);
    -- Notes:
    -- Write_Data writes the complete DataUnit
    -- Write_Data adds DataUnit padding after last Item written

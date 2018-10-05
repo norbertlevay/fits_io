@@ -186,8 +186,8 @@ package body FITS.File is
    -- And for conforming Data Extensions [FITS 7.1.3]:
    -- The data format shall be identical to that of a primary data array
    -- as described in Sect. 3.3.2.
-   procedure Write_Data (FitsFile  : in  SIO.File_Type;
-                         MaxCoords : in  NAXIS_Arr)
+   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
+                             MaxCoords : in  NAXIS_Arr)
    is
     IArrLen : FPositive := multiply(MaxCoords);
     IArr    : Item_Arr(1..IArrLen);
@@ -212,7 +212,7 @@ package body FITS.File is
 
     -- FIXME write by Blocks
 
-   end Write_Data;
+   end Write_DataUnit;
 
    -- END newIF
 
@@ -699,6 +699,24 @@ package body FITS.File is
      Float32_Arr'Read(Stream(FitsFile),Data);
    end Read_Data;
    pragma Inline (Read_Data);
+
+
+
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in UInt8_Arr)
+   is
+   begin
+     UInt8_Arr'Write(Stream(FitsFile),Data);
+   end Write_Data;
+
+   -- ... for all types ...
+
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in Float32_Arr)
+   is
+   begin
+     Float32_Arr'Write(Stream(FitsFile),Data);
+   end Write_Data;
 
 
 end FITS.File;
