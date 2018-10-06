@@ -34,11 +34,29 @@ package body FITS.Header is
    begin
     -- FIXME how to guarantee Key and Comment are right justified
     --       Value (often) left justified
-    Card(1 .. 8) := Max_8.To_String(Key);
+
+--    Card(1 .. 8) := Max_8.To_String(Key);
+    Ada.Strings.Fixed.Move (Source  => Max_8.To_String(Key),
+                        Target  => Card(1 .. 8),
+                        Justify => Ada.Strings.Left, 
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
+
+
     Card(9 ..10) := "= ";
-    Card(11..30) := Max20.To_String(Value);
+    -- Card(11..30) := Max20.To_String(Value);
+    Ada.Strings.Fixed.Move (Source  => Max20.To_String(Value),
+                        Target  => Card(11 .. 30),
+                        Justify => Ada.Strings.Right,
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
     Card(31..32) := " /"; -- [FITS 4.1.2.3: "Space strongly recommended" ]
-    Card(33..80) := Max48.To_String(Comment);
+--    Card(33..80) := Max48.To_String(Comment);
+    Ada.Strings.Fixed.Move (Source  => Max48.To_String(Comment),
+                        Target  => Card(33 .. 80),
+                        Justify => Ada.Strings.Left,
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
     return Card;
    end To_Card;
 

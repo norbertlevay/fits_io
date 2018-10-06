@@ -65,7 +65,7 @@ is
  end Squares;
 
  procedure Write_Data_UInt8 is
-       new Write_Data(Unsigned_8,UInt8_Arr,Squares);
+       new Write_DataUnit(Unsigned_8,UInt8_Arr,Squares);
 
 begin
 
