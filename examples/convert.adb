@@ -1,6 +1,7 @@
 --
 -- Example convert data to Float_64 type
 --
+-- FIXME: assume Primary HDU. What if othe HDU is IMAGE type too?
 -- FIXME: Float_64 no Endianness fix, use Float_32 now
 --
 -- demonstrate usage if data unit is "big":
@@ -84,6 +85,9 @@ begin
  Write_Padding(OutFile);
 
  -- write Data
+
+ -- FIXME this below should be done 6x for every possible
+ --       data (BITPIX) in InFile -> use generic?!!
 
  Nb   := DUSize / BufferSize;
  Nrem := DUSize rem BufferSize;
