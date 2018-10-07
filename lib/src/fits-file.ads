@@ -117,6 +117,10 @@ package FITS.File is
    function  Get (FitsFile : in  SIO.File_Type)
       return HDU_Info_Type;
 
+   function DU_Size (NAXISArr : in NAXIS_Arr)
+     return FPositive;
+
+
    -- Read Header Cards (up to ENDCard)
    -- Read cards A, on card at a time B, by blocks of 6 cards.
    -- ** FITS standard guarantees that a healthy FITS file has that
@@ -165,6 +169,9 @@ package FITS.File is
 
    procedure Write_Data (FitsFile : in SIO.File_Type;
                          Data     : in Float32_Arr);
+
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in Float64_Arr);
 
    generic
     type Item is private;

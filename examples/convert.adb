@@ -1,6 +1,8 @@
 --
 -- Example convert data to Float_64 type
 --
+-- FIXME: Float_64 no Endianness fix, use Float_32 now
+--
 -- demonstrate usage if data unit is "big":
 -- all data will not fit into memory, needs to be processed
 -- in chunks.
@@ -31,7 +33,21 @@ is
  InFileName  : String := Argument(1);
  -- FIXME might raise excpetion before Usage written
 
- Card :  Card_Type;
+ Card   : Card_Type;
+ BITPIX : Integer;
+ DUSize : FPositive;
+
+ BufferSize : constant FPositive := 4*1024;
+ InBuffer   : UInt8_Arr  (1 .. BufferSize);
+ OutBuffer  : Float32_Arr(1 .. BufferSize);
+
+ BITPIXFloat64Card : Card_Type :=
+   To_Card (Max_8.To_Bounded_String("BITPIX"),
+            Max20.To_Bounded_String("-32"),
+            Max48.To_Bounded_String("Float 32 Data Type"));
+
+ Nb   : FPositive;
+ Nrem : FNatural;
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -43,18 +59,56 @@ begin
  -- FIXME if AdaRM says SIO.Create guarantees File Index
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- -- FIXME TODO here Read data chunk, convert, write
+ -- FIXME now only Primary HDU, later consider other HDUs
+
+ -- interpret header: DataUnit length and type needed
+ declare
+  HDUInfo : HDU_Info_Type := Get(InFile);
+ begin
+  BITPIX := HDUInfo.BITPIX;
+  DUSize := DU_Size (HDUInfo.NAXISn);
+ end;
 
  -- write Header
+
+ Set_Index(InFile, 1);
  loop
   Card := Read_Card(InFile);
-  Write_Card(OutFile, Card);
+  if(Card(1..6) = "BITPIX") then
+    Write_Card(OutFile, BITPIXFloat64Card);
+  else
+    Write_Card(OutFile, Card);
+  end if;
   exit when Card = ENDCard;
  end loop;
  Write_Padding(OutFile);
 
  -- write Data
 
+ Nb   := DUSize / BufferSize;
+ Nrem := DUSize rem BufferSize;
+
+ for I in 1 .. Nb
+ loop
+  Read_Data(InFile,InBuffer);
+  -- convert
+  for I in InBuffer'Range
+  loop
+   OutBuffer(I) := Float_32(InBuffer(I));
+  end loop;
+  Write_Data(OutFile,OutBuffer);
+ end loop;
+
+ Read_Data(InFile,InBuffer(1..Nrem));
+ -- convert
+ for I in 1..Nrem
+ loop
+  OutBuffer(I) := Float_32(InBuffer(I));
+ end loop;
+ Write_Data(OutFile,OutBuffer(1..Nrem));
+
+ Write_Padding(OutFile);
+ -- FIXME this writes header padding, is that ok?? fitsverify complaining
 
  SIO.Close(OutFile);
  SIO.Close(InFile);

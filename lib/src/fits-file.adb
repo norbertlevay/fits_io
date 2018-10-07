@@ -81,6 +81,16 @@ package body FITS.File is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
+   function DU_Size (NAXISArr : in NAXIS_Arr) return FPositive
+   is
+    DUSize : FPositive := 1;
+   begin
+     for I in NAXISArr'Range
+     loop
+      DUSize := DUSize * NAXISArr(I);
+     end loop;
+     return DUSize;
+   end DU_Size;
 
    --
    -- calculate DataUnit size in FITS Blocks
@@ -716,6 +726,13 @@ package body FITS.File is
    is
    begin
      Float32_Arr'Write(Stream(FitsFile),Data);
+   end Write_Data;
+
+   procedure Write_Data (FitsFile : in SIO.File_Type;
+                         Data     : in Float64_Arr)
+   is
+   begin
+     Float64_Arr'Write(Stream(FitsFile),Data);
    end Write_Data;
 
 
