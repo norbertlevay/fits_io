@@ -82,7 +82,7 @@ begin
   end if;
   exit when Card = ENDCard;
  end loop;
- Write_Padding(OutFile);
+ Write_Padding(OutFile,SIO.Index(OutFile),HeaderPadValue);
 
  -- write Data
 
@@ -110,9 +110,7 @@ begin
   OutBuffer(I) := Float_32(InBuffer(I));
  end loop;
  Write_Data(OutFile,OutBuffer(1..Nrem));
-
- Write_Padding(OutFile);
- -- FIXME this writes header padding, is that ok?? fitsverify complaining
+ Write_Padding(OutFile,SIO.Index(OutFile),DataPadValue);
 
  SIO.Close(OutFile);
  SIO.Close(InFile);

@@ -153,12 +153,15 @@ package FITS.File is
    procedure Write_Cards (FitsFile : in SIO.File_Type;
                           Cards    : in Card_Arr);
 
-   -- FIXME which is preferred from the 2 below:
-   -- (Write_ENDCard will also do padding)
-   procedure Write_ENDCard(FitsFile : in SIO.File_Type);
-   procedure Write_Padding(FitsFile : in SIO.File_Type);
-   -- must be called right after Write_Cards when END Card was written
-   -- File Index must not change between the two calls
+   HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
+   DataPadValue   : constant Unsigned_8 :=  0;
+   procedure Write_Padding(FitsFile   : in SIO.File_Type;
+                           FileOffset : in SIO.Positive_Count;
+                           PadValue   : in Unsigned_8);
+   -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
+   -- If last Header- or Data-block is not filled up,
+   -- Write_Padding puts PadValue from FileOffset until end of the block.
+   -- If Block is filled up, Write_padding does nothing.
 
    -- Write Data Unit
 

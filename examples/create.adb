@@ -79,7 +79,7 @@ begin
 
  -- write Header
  Write_Cards(File, Cards);
- Write_ENDCard(File);
+ Write_Padding(File,SIO.Index(File),HeaderPadValue);
 
  -- write Data
  Write_Data_UInt8(File, MaxCoords);
