@@ -155,9 +155,9 @@ package FITS.File is
 
    HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
    DataPadValue   : constant Unsigned_8 :=  0;
-   procedure Write_Padding(FitsFile   : in SIO.File_Type;
-                           FileOffset : in SIO.Positive_Count;
-                           PadValue   : in Unsigned_8);
+   procedure Write_Padding(FitsFile : in SIO.File_Type;
+                           From     : in SIO.Positive_Count;
+                           PadValue : in Unsigned_8);
    -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
    -- If last Header- or Data-block is not filled up,
    -- Write_Padding puts PadValue from FileOffset until end of the block.

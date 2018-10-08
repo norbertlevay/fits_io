@@ -527,20 +527,20 @@ package body FITS.File is
    --
    -- Padding
    --
-   procedure Write_Padding(FitsFile   : in SIO.File_Type;
-                           FileOffset : in SIO.Positive_Count;
-                           PadValue   : in Unsigned_8)
+   procedure Write_Padding(FitsFile : in SIO.File_Type;
+                           From     : in SIO.Positive_Count;
+                           PadValue : in Unsigned_8)
    is
 
     FillCnt   : constant Natural :=
-       Natural( FileOffset rem SIO.Positive_Count(BlockSize_bytes) );
+       Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
     PadLength : constant Natural :=
        Natural(BlockSize_bytes) - FillCnt + 1;
 
     PadArr    : constant UInt8_Arr(1 .. FInteger(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!
    begin
-    SIO.Set_Index(FitsFile,FileOffset);
+    SIO.Set_Index(FitsFile,From);
     UInt8_Arr'Write(SIO.Stream(FitsFile),PadArr);
    end Write_Padding;
 

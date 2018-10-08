@@ -49,6 +49,8 @@ is
 
  Nb   : FPositive;
  Nrem : FNatural;
+
+ LastWrittenIdx : SIO.Positive_Count;
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -82,7 +84,10 @@ begin
   end if;
   exit when Card = ENDCard;
  end loop;
- Write_Padding(OutFile,SIO.Index(OutFile),HeaderPadValue);
+ LastWrittenIdx := SIO.Index(OutFile);
+ -- Index to StreamElement (after) the last written one
+
+ Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
 
  -- write Data
 
@@ -110,7 +115,10 @@ begin
   OutBuffer(I) := Float_32(InBuffer(I));
  end loop;
  Write_Data(OutFile,OutBuffer(1..Nrem));
- Write_Padding(OutFile,SIO.Index(OutFile),DataPadValue);
+ LastWrittenIdx := SIO.Index(OutFile);
+ -- Index to StreamElement (after) the last written one
+
+ Write_Padding(OutFile, LastWrittenIdx, DataPadValue);
 
  SIO.Close(OutFile);
  SIO.Close(InFile);
