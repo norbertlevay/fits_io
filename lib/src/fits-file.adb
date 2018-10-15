@@ -71,6 +71,82 @@ package body FITS.File is
       DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
    end record;
 
+   ---------------
+   -- FITS.File :
+
+   StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
+    -- FIXME [GNAT somwhere says it is 8bits]
+    -- [GNAT]:
+    --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
+    -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
+    -- note:
+    --  type Count is new Stream_Element_Offset
+    --                range 0 .. Stream_Element_Offset'Last;
+    --  type Stream_Element_Offset is range
+    --               -(2 ** (Standard'Address_Size - 1)) ..
+    --               +(2 ** (Standard'Address_Size - 1)) - 1;
+    -- Address_Size is 32 or 64bit nowadays
+
+   BlockSize_bytes : FPositive := BlockSize_bits / StreamElemSize_bits;
+   -- FIXME division : needs to be multiple of another otherwise
+   --                  fraction lost
+   -- in units of Stream_Element size (usually octet-byte)
+   -- which is unit for positioning in Stream_IO by Set_Index()
+
+   --
+   -- Padding
+   --
+   procedure Write_Padding(FitsFile : in SIO.File_Type;
+                           From     : in SIO.Positive_Count;
+                           PadValue : in Unsigned_8)
+   is
+
+    FillCnt   : constant Natural :=
+       Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
+    PadLength : constant Natural :=
+       Natural(BlockSize_bytes) - FillCnt + 1;
+
+    PadArr    : constant UInt8_Arr(1 .. FInteger(PadLength)) := (others => PadValue);
+    -- FIXME full of explicit casts!! review!!
+   begin
+    SIO.Set_Index(FitsFile,From);
+    UInt8_Arr'Write(SIO.Stream(FitsFile),PadArr);
+   end Write_Padding;
+
+   --
+   -- low-level copy in bigger chunks then one block for speed
+   -- [FITS ???] suggests copying in chunks of 10 Blocks
+   -- with today's machines 10 is probably outdated, but use 10 as default
+   -- for every HW the optimal value will be different anyway
+   --
+   procedure Copy_Blocks (InFits  : in SIO.File_Type;
+                          OutFits : in SIO.File_Type;
+                          NBlocks : in FPositive;
+                          ChunkSize_blocks : in Positive := 10)
+   is
+    NChunks   : FNatural := NBlocks  /  FPositive(ChunkSize_blocks);
+    NRest     : FNatural := NBlocks rem FPositive(ChunkSize_blocks);
+    type CardBlock_Arr is array (1 .. ChunkSize_blocks) of Card_Block;
+    BigBuf    : CardBlock_Arr; -- big buffer
+    SmallBuf  : Card_Block;    -- small buffer
+   begin
+
+     while NChunks > 0
+     loop
+      CardBlock_Arr'Read (SIO.Stream( InFits),BigBuf);
+      CardBlock_Arr'Write(SIO.Stream(OutFits),BigBuf);
+      NChunks := NChunks - 1;
+     end loop;
+
+     while NRest   > 0
+     loop
+      Card_Block'Read (SIO.Stream( InFits),SmallBuf);
+      Card_Block'Write(SIO.Stream(OutFits),SmallBuf);
+      NRest := NRest - 1;
+     end loop;
+
+   end Copy_Blocks;
+
    --
    -- calculate Header size in FITS Blocks
    --
@@ -81,7 +157,7 @@ package body FITS.File is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
-   function DU_Size (NAXISArr : in NAXIS_Arr) return FPositive
+   function  DU_Size (NAXISArr : in NAXIS_Arr) return FPositive
    is
     DUSize : FPositive := 1;
    begin
@@ -236,27 +312,6 @@ package body FITS.File is
    pragma Inline (Move_Index);
    -- util: consider this part of Stream_IO
 
-   ---------------
-   -- FITS.File :
-
-   StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
-    -- FIXME [GNAT somwhere says it is 8bits]
-    -- [GNAT]:
-    --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
-    -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
-    -- note:
-    --  type Count is new Stream_Element_Offset
-    --                range 0 .. Stream_Element_Offset'Last;
-    --  type Stream_Element_Offset is range
-    --               -(2 ** (Standard'Address_Size - 1)) ..
-    --               +(2 ** (Standard'Address_Size - 1)) - 1;
-    -- Address_Size is 32 or 64bit nowadays
-
-   BlockSize_bytes : FPositive := BlockSize_bits / StreamElemSize_bits;
-   -- FIXME division : needs to be multiple of another otherwise
-   --                  fraction lost
-   -- in units of Stream_Element size (usually octet-byte)
-   -- which is unit for positioning in Stream_IO by Set_Index()
 
 
    -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
@@ -396,273 +451,11 @@ package body FITS.File is
 
    end Read_Header_Blocks;
 
-   -- instantiate generic for Size parsing (see File.Size)
-
-   procedure Parse_HeaderBlocks (FitsFile : in  SIO.File_Type;
-                                 HDUSize  : out HDU_Size_Type)
-   is
-    procedure ParseSizes is
-      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
-                              Parse_Card  => Parse_Card_For_Size);
-   begin
-     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
-                HDUSize.CardsCnt, HDUSize.Xtension);
-   end Parse_HeaderBlocks;
-
-   -- the same as procedure above but as HDUSize struct generating function
-   function Parse_HeaderBlocks (FitsFile : in  SIO.File_Type)
-    return HDU_Size_Type
-   is
-    procedure ParseSizes is
-      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
-                              Parse_Card  => Parse_Card_For_Size);
-    HDUSize : HDU_Size_Type;
-   begin
-     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
-                          HDUSize.CardsCnt,HDUSize.Xtension);
-     return HDUSize;
-   end Parse_HeaderBlocks;
-
-
-   --
-   -- Set file index to position given by params
-   --
-   procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive)
-   is
-    CurDUSize_blocks : FPositive;
-    CurDUSize_bytes  : FPositive;
-    CurHDUNum : Positive := 1;
-    HDUSize   : HDU_Size_Type;
-   begin
-
-    SIO.Set_Index(FitsFile, 1);
-    -- move to begining of the Primary HDU
-
-    while CurHDUNum < HDUNum
-    loop
-     -- move past current Header
-     Parse_HeaderBlocks(FitsFile, HDUSize);
-
-     -- skip DataUnit if exists
-     if HDUSize.DUSizeKeyVals.NAXIS /= 0
-     then
-       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeKeyVals);
-       CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
-       Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
-     end if;
-
-     -- next HDU
-     CurHDUNum := CurHDUNum + 1;
-    end loop;
-
-   end Set_Index;
-
-   function To_Offset (Coords    : in  NAXIS_Arr;
-                       MaxCoords : in  NAXIS_Arr)
-     return FNatural
-   is
-    Offset : FNatural;
-    Sizes  : NAXIS_Arr := MaxCoords;
-   begin
-    if Coords'Length /= MaxCoords'Length
-    then
-     null;
-     -- raise exception <-- needed this if ?
-     -- no, check only high level inputs, this is not direct API call
-     -- assume if code corrct, it is corrct here
-    end if;
-
-    --
-    -- generate size of each plane
-    --
-    declare
-      Accu  : FPositive := 1;
-    begin
-      for I in MaxCoords'First .. (MaxCoords'Last - 1)
-      loop
-       Accu := Accu * MaxCoords(I);
-       Sizes(I) := Accu;
-       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
-      end loop;
-    end;
-
-    Offset := Coords(1) - 1;
-    for I in (Coords'First + 1) .. Coords'Last
-    loop
-     Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
-    end loop;
-
-    return Offset;
-   end To_Offset;
-
-   -- not in use
-   procedure Set_Index_with_Offset(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive;
-                       Coord    : in NAXIS_Arr := (1,1);
-                       MaxCoord : in NAXIS_Arr := (1,1);
-                       BITPIX   : in Positive  := 8)
-   is
-     SIO_Offset   : SIO.Positive_Count;
-     Offset       : FPositive;
-     SE_Size_bits : Positive := Ada.Streams.Stream_Element'Size;
-                                -- 'Size is in bits
-   begin
-
-     Set_Index(FitsFIle,HDUNum);
-     -- movef to beginig of HDU
-
-     -- next add offset up to Coord in array of BITPIX-type
-     Offset := To_Offset(Coord,MaxCoord);
-     if Offset > 0
-     then
-       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/SE_Size_bits)
-                   * SIO.Positive_Count(Offset);
-       -- FIXME explicit conversions - verify!
-       Move_Index(FitsFile, SIO_Offset);
-     end if;
-
-   end Set_Index_with_Offset;
-
-   --
-   -- Padding
-   --
-   procedure Write_Padding(FitsFile : in SIO.File_Type;
-                           From     : in SIO.Positive_Count;
-                           PadValue : in Unsigned_8)
-   is
-
-    FillCnt   : constant Natural :=
-       Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
-    PadLength : constant Natural :=
-       Natural(BlockSize_bytes) - FillCnt + 1;
-
-    PadArr    : constant UInt8_Arr(1 .. FInteger(PadLength)) := (others => PadValue);
-    -- FIXME full of explicit casts!! review!!
-   begin
-    SIO.Set_Index(FitsFile,From);
-    UInt8_Arr'Write(SIO.Stream(FitsFile),PadArr);
-   end Write_Padding;
-
-   procedure Write_Padding(FitsFile : in SIO.File_Type)
-   is
-    Pos      : constant SIO.Positive_Count := Index(FitsFile);
-    -- FIXME make sure CardSize and Pos are counted in
-    --       equal units (Stream ElemSize aka Bytes):
-    CardsCnt : constant SIO.Positive_Count :=
-               SIO.Positive_Count((Pos-1)/SIO.Positive_Count(CardSize));
-               -- distance from start of file in Card size
-    HPadCnt  : constant Positive := CardsCntInBlock -
-               Positive((CardsCnt) mod SIO.Positive_Count(CardsCntInBlock));
-    HPadArr  : constant Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
-   begin
-     if HPadCnt /= CardsCntInBlock then
-        Card_Arr'Write(SIO.Stream(FitsFile),HPadArr);
-     end if;
-   end Write_Padding;
-
-   procedure Write_ENDCard(FitsFile : in SIO.File_Type)
-   is
-   begin
-     Card_Type'Write(Stream(FitsFile),ENDCard);
-     Write_Padding(FitsFile);
-   end Write_ENDCard;
 
    -----------
    -- Utils --
    -----------
 
-   --
-   -- low-level copy in bigger chunks then one block for speed
-   -- [FITS ???] suggests copying in chunks of 10 Blocks
-   -- with today's machines 10 is probably outdated, but use 10 as default
-   -- for every HW the optimal value will be different anyway
-   --
-   procedure Copy_Blocks (InFits  : in SIO.File_Type;
-                          OutFits : in SIO.File_Type;
-                          NBlocks : in FPositive;
-                          ChunkSize_blocks : in Positive := 10)
-   is
-    NChunks   : FNatural := NBlocks  /  FPositive(ChunkSize_blocks);
-    NRest     : FNatural := NBlocks rem FPositive(ChunkSize_blocks);
-    type CardBlock_Arr is array (1 .. ChunkSize_blocks) of Card_Block;
-    BigBuf    : CardBlock_Arr; -- big buffer
-    SmallBuf  : Card_Block;    -- small buffer
-   begin
-
-     while NChunks > 0
-     loop
-      CardBlock_Arr'Read (SIO.Stream( InFits),BigBuf);
-      CardBlock_Arr'Write(SIO.Stream(OutFits),BigBuf);
-      NChunks := NChunks - 1;
-     end loop;
-
-     while NRest   > 0
-     loop
-      Card_Block'Read (SIO.Stream( InFits),SmallBuf);
-      Card_Block'Write(SIO.Stream(OutFits),SmallBuf);
-      NRest := NRest - 1;
-     end loop;
-
-   end Copy_Blocks;
-
-   -- return size of the DU where InFits points to
-   function  DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
-   is
-    HDUSizeRec : HDU_Size_Type;
-   begin
-    Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.DUSizeKeyVals);
-   end DU_Size_blocks;
-
-   -- return size of the HDU where InFits points to
-   function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
-   is
-    HDUSizeRec : HDU_Size_Type;
-   begin
-    Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeKeyVals);
-   end HDU_Size_blocks;
--- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
--- by func-name Parse_Header should be enough to calc sizes.
-
-
-   --
-   -- Copy all HDU
-   --
-   procedure Copy_HDU (InFits  : in SIO.File_Type;
-                       OutFits : in SIO.File_Type;
-                       HDUNum  : in Positive;
-                       ChunkSize_blocks : in Positive := 10)
-   is
-     NBlocks : FPositive;
-     HDUStartIdx : SIO.Positive_Count;
-   begin
-     HDUStartIdx := SIO.Index(InFits);
-     -- calc size of HDU
-     NBlocks := HDU_Size_blocks(InFits);
-     -- go back to HDU-start & start copying...
-     SIO.Set_Index(InFits, HDUStartIdx);
-     Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);
-   end Copy_HDU;
-
-
-   -- New IF
-
-   function Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
-   is
-    HDUSize : HDU_Size_Type := Parse_HeaderBlocks(FitsFile);
-    HDUInfo : HDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
-   begin
-    HDUInfo.XTENSION := HDUSize.XTENSION;
-    HDUInfo.CardsCnt := HDUSize.CardsCnt;
-    HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
-    for I in HDUInfo.NAXISn'Range
-      loop
-        HDUInfo.NAXISn(I) := HDUSize.DUSizeKeyVals.NAXISn(I);
-      end loop;
-    return HDUInfo;
-   end Get;
 
    function Read_Card  (FitsFile  : in  SIO.File_Type)
      return Card_Type
@@ -755,6 +548,216 @@ package body FITS.File is
      Float64_Arr'Write(Stream(FitsFile),Data);
    end Write_Data;
 
+   -- REFACTOR for final
+
+   -- the same as procedure above but as HDUSize struct generating function
+   function Parse_HeaderBlocks (FitsFile : in  SIO.File_Type)
+    return HDU_Size_Type
+   is
+    procedure ParseSizes is
+      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
+                              Parse_Card  => Parse_Card_For_Size);
+    HDUSize : HDU_Size_Type;
+   begin
+     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
+                          HDUSize.CardsCnt,HDUSize.Xtension);
+     return HDUSize;
+   end Parse_HeaderBlocks;
+
+
+   function Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
+   is
+    HDUSize : HDU_Size_Type := Parse_HeaderBlocks(FitsFile);
+    HDUInfo : HDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
+   begin
+    HDUInfo.XTENSION := HDUSize.XTENSION;
+    HDUInfo.CardsCnt := HDUSize.CardsCnt;
+    HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
+    for I in HDUInfo.NAXISn'Range
+      loop
+        HDUInfo.NAXISn(I) := HDUSize.DUSizeKeyVals.NAXISn(I);
+      end loop;
+    return HDUInfo;
+   end Get;
+
+
+   -- instantiate generic for Size parsing (see File.Size)
+
+   procedure Parse_HeaderBlocks (FitsFile : in  SIO.File_Type;
+                                 HDUSize  : out HDU_Size_Type)
+   is
+    procedure ParseSizes is
+      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
+                              Parse_Card  => Parse_Card_For_Size);
+   begin
+     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
+                HDUSize.CardsCnt, HDUSize.Xtension);
+   end Parse_HeaderBlocks;
+
+   --
+   -- Set file index to position given by params
+   --
+   procedure Set_Index(FitsFile : in SIO.File_Type;
+                       HDUNum   : in Positive)
+   is
+    CurDUSize_blocks : FPositive;
+    CurDUSize_bytes  : FPositive;
+    CurHDUNum : Positive := 1;
+    HDUSize   : HDU_Size_Type;
+   begin
+
+    SIO.Set_Index(FitsFile, 1);
+    -- move to begining of the Primary HDU
+
+    while CurHDUNum < HDUNum
+    loop
+     -- move past current Header
+     Parse_HeaderBlocks(FitsFile, HDUSize);
+
+     -- skip DataUnit if exists
+     if HDUSize.DUSizeKeyVals.NAXIS /= 0
+     then
+       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeKeyVals);
+       CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
+       Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
+     end if;
+
+     -- next HDU
+     CurHDUNum := CurHDUNum + 1;
+    end loop;
+
+   end Set_Index;
+
+   -- return size of the DU where InFits points to
+   function  DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   is
+    HDUSizeRec : HDU_Size_Type;
+   begin
+    Parse_HeaderBlocks(InFits,HDUSizeRec);
+    return Size_blocks(HDUSizeRec.DUSizeKeyVals);
+   end DU_Size_blocks;
+
+   -- return size of the HDU where InFits points to
+   function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
+   is
+    HDUSizeRec : HDU_Size_Type;
+   begin
+    Parse_HeaderBlocks(InFits,HDUSizeRec);
+    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeKeyVals);
+   end HDU_Size_blocks;
+-- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
+-- by func-name Parse_Header should be enough to calc sizes.
+
+   --
+   -- Copy all HDU
+   --
+   procedure Copy_HDU (InFits  : in SIO.File_Type;
+                       OutFits : in SIO.File_Type;
+                       HDUNum  : in Positive;
+                       ChunkSize_blocks : in Positive := 10)
+   is
+     NBlocks : FPositive;
+     HDUStartIdx : SIO.Positive_Count;
+   begin
+     HDUStartIdx := SIO.Index(InFits);
+     -- calc size of HDU
+     NBlocks := HDU_Size_blocks(InFits);
+     -- go back to HDU-start & start copying...
+     SIO.Set_Index(InFits, HDUStartIdx);
+     Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);
+   end Copy_HDU;
+
 
 end FITS.File;
 
+--   function To_Offset (Coords    : in  NAXIS_Arr;
+--                       MaxCoords : in  NAXIS_Arr)
+--     return FNatural
+--   is
+--    Offset : FNatural;
+--    Sizes  : NAXIS_Arr := MaxCoords;
+--   begin
+--    if Coords'Length /= MaxCoords'Length
+--    then
+--     null;
+--     -- raise exception <-- needed this if ?
+--     -- no, check only high level inputs, this is not direct API call
+--     -- assume if code corrct, it is corrct here
+--    end if;
+--
+--    --
+--    -- generate size of each plane
+--    --
+--    declare
+--      Accu  : FPositive := 1;
+--    begin
+--      for I in MaxCoords'First .. (MaxCoords'Last - 1)
+--      loop
+--       Accu := Accu * MaxCoords(I);
+--       Sizes(I) := Accu;
+--       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+--      end loop;
+--      end;
+--
+--    Offset := Coords(1) - 1;
+--    for I in (Coords'First + 1) .. Coords'Last
+--    loop
+--     Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
+--    end loop;
+--
+--    return Offset;
+--   end To_Offset;
+
+   -- not in use
+--   procedure Set_Index_with_Offset(FitsFile : in SIO.File_Type;
+--                       HDUNum   : in Positive;
+--                       Coord    : in NAXIS_Arr := (1,1);
+--                       MaxCoord : in NAXIS_Arr := (1,1);
+--                       BITPIX   : in Positive  := 8)
+--   is
+--     SIO_Offset   : SIO.Positive_Count;
+--     Offset       : FPositive;
+--     SE_Size_bits : Positive := Ada.Streams.Stream_Element'Size;
+--                                -- 'Size is in bits
+--   begin
+--
+--     Set_Index(FitsFIle,HDUNum);
+--     -- movef to beginig of HDU
+--
+--     -- next add offset up to Coord in array of BITPIX-type
+--     Offset := To_Offset(Coord,MaxCoord);
+--     if Offset > 0
+--     then
+--       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/SE_Size_bits)
+--                   * SIO.Positive_Count(Offset);
+--       -- FIXME explicit conversions - verify!
+--       Move_Index(FitsFile, SIO_Offset);
+--     end if;
+--
+--   end Set_Index_with_Offset;
+
+--   procedure Write_ENDCard(FitsFile : in SIO.File_Type)
+--   is
+--   begin
+--     Card_Type'Write(Stream(FitsFile),ENDCard);
+--     Write_Padding(FitsFile);
+--   end Write_ENDCard;
+
+--   procedure Write_Padding(FitsFile : in SIO.File_Type)
+--   is
+--    Pos      : constant SIO.Positive_Count := Index(FitsFile);
+--    -- FIXME make sure CardSize and Pos are counted in
+--    --       equal units (Stream ElemSize aka Bytes):
+--    CardsCnt : constant SIO.Positive_Count :=
+--               SIO.Positive_Count((Pos-1)/SIO.Positive_Count(CardSize));
+--               -- distance from start of file in Card size
+--    HPadCnt  : constant Positive := CardsCntInBlock -
+--               Positive((CardsCnt) mod SIO.Positive_Count(CardsCntInBlock));
+--    HPadArr  : constant Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
+--   begin
+--     if HPadCnt /= CardsCntInBlock then
+--        Card_Arr'Write(SIO.Stream(FitsFile),HPadArr);
+--     end if;
+--   end Write_Padding;
+--
+--
