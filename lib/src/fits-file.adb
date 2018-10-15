@@ -215,248 +215,6 @@ package body FITS.File is
    pragma Inline (Size_blocks);
 
 
-   procedure To_Coords (Offset    : in  FPositive;
-                        MaxCoords : in  NAXIS_Arr;
-                        Coords    : out NAXIS_Arr)
-   is
-      Sizes : NAXIS_Arr := MaxCoords;
-      Divs :  NAXIS_Arr := MaxCoords;
-      Rems :  NAXIS_Arr := MaxCoords;
-      -- FIXME these inits are needed only to eliminate Ada error
-      -- find other solution
-   begin
-
-    --
-    -- generate size of each plane
-    --
-    declare
-      Accu  : FPositive := 1;
-    begin
-      for I in MaxCoords'Range
-      loop
-       Accu := Accu * MaxCoords(I);
-       Sizes(I) := Accu;
-       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
-      end loop;
-    end;
-
-    --
-    -- calc divisions and fractions
-    --
-    declare
-      PrevRem : FNatural := Offset - 1;
-    begin
-      for I in reverse MaxCoords'First .. MaxCoords'Last
-      loop
-        Divs(I) := 1 + PrevRem  /  Sizes(I);
-        Rems(I) := 1 + PrevRem rem Sizes(I);
-          -- FIXME rem gives 0 for multiples
-        PrevRem := Rems(I) - 1;
-      end loop;
-    end;
-
-    --
-    -- pick the coordinates from Divs & Rems
-    --
-    Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
-   end To_Coords;
-
-   function  multiply (MaxCoords : in  NAXIS_Arr) return FPositive
-   is
-    Accu  : FPositive := 1;
-   begin
-    for I in MaxCoords'Range
-    loop
-     Accu := Accu * MaxCoords(I);
-    end loop;
-    return Accu;
-   end multiply;
-
-   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  NAXIS_Arr)
-   is
-    IArrLen : FPositive := multiply(MaxCoords);
-    IArr    : Item_Arr(1..IArrLen);
---    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
-    Coord   : NAXIS_Arr := MaxCoords;
-
-    DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
-    ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
-    PadUInt8 : constant UInt8_Arr(1 .. FPositive(DPadCnt*ItemSize)) := (others => 0);
---    for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
--- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
-   begin
-
-    for I in IArr'Range
-    loop
-     To_Coords (I, MaxCoords, Coord);
-     IArr(I) := Element (Coord);
-    end loop;
-
-    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,IArr);
-    UInt8_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,PadUInt8);
-
-    -- FIXME write by Blocks
-
-   end Write_DataUnit;
-
-   -- END newIF
-
-
-   procedure Move_Index
-             (FitsFile : in SIO.File_Type;
-              ByCount  : in SIO.Positive_Count) is
-   begin
-     SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
-   end Move_Index;
-   pragma Inline (Move_Index);
-   -- util: consider this part of Stream_IO
-
-
-
-   -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
-   -- and store parse value to DUSizeKeyVals
-   -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
-   -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
-   -- Size calc is valid also for IMAGE-extension, but not for TABLE extensions
-   -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
-   procedure Parse_Card (Card          : in Card_Type;
-                         DUSizeKeyVals : out DU_Size_Type)
-   is
-    dim : Positive;
-   begin
-     -- FIXME what if parsed string is '' or '     ' etc...
-
-     -- [FITS 4.1.2 Components]:
-     -- pos 9..10 is '= '
-     -- pos 31 is comment ' /'
-     -- then : pos 10..20 is value
-
-     if    (Card(1..9) = "BITPIX  =") then
-       DUSizeKeyVals.BITPIX := Integer'Value(Card(10..30));
-
-     elsif (Card(1..5) = "NAXIS") then
-
-       if (Card(1..9) = "NAXIS   =") then
-           if 0 = Natural'Value(Card(10..30))
-           then
-             -- no data unit in this HDU
-             -- FIXME [FITS 4.4.1.1 Primary Header] "A value of zero signifies
-             -- that no data follow the header in the HDU."
-             null;
-           else
-             DUSizeKeyVals.NAXIS := Positive'Value(Card(10..30));
-           end if;
-       else
-           dim := Positive'Value(Card(6..8));
-           DUSizeKeyVals.NAXISn(dim) := FPositive'Value(Card(10..30));
-           -- [FITS Sect 4.4.1.1] NAXISn is non-negative integer
-           -- [FITS fixed integer]:
-           -- Fixed integer is defined as 19 decimal digits
-   	   -- (Header Card Integer value occupying columns 11..20)
-   	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
-   	   -- fixed integer can reach 9.9 x 10**19)
-           -- Conclude: range of NAXISn will be implementation
-           -- limited as suggested in [FITS 4.2.3 Integer number]:
-       end if;
-
-     elsif (Card(1..5) = "PCOUNT") then
-       DUSizeKeyVals.PCOUNT := FNatural'Value(Card(10..30));
-
-     elsif (Card(1..5) = "GCOUNT") then
-       DUSizeKeyVals.GCOUNT := FPositive'Value(Card(10..30));
-
-     end if;
-
-   end Parse_Card;
-
-   procedure Parse_Card (Card         : in Card_Type;
-                         XtensionType : out String)
-   is
-   begin
-     if    (Card(1..9) = "XTENSION=") then
-       XtensionType := Card(11..20);
-     end if;
-   end Parse_Card;
-
-   procedure Parse_Card_For_Size
-              (Card          : in  Card_Type;
-               DUSizeKeyVals : out DU_Size_Type)
-   is
-   begin
-    Parse_Card(Card, DUSizeKeyVals);
-    DUSizeKeyVals.PCOUNT := 0;
-    DUSizeKeyVals.GCOUNT := 1;
-     -- init these for HDU's which do not use them
-     -- BINTABLE and RandomGroup extensions, if present,
-     -- will overwrite these values
-   end Parse_Card_For_Size;
-
-
-
-   --
-   -- Read File until ENDCard found,
-   -- cal Parse_Card for each card and
-   -- return count of Cards
-   --
-   generic
-     type Parsed_Type is limited private;
-     with procedure Parse_Card
-                    (Card : in Card_Type;
-                     Data : out Parsed_Type);
-   procedure Read_Header_Blocks
-             (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type;
-              CardsCnt : out FNatural;
-              Xtension : out String);
-
-   --
-   -- Read File until ENDCard found
-   --
-   procedure Read_Header_Blocks
-             (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type;
-              CardsCnt : out FNatural;
-              Xtension : out String)
-   is
-    HBlk         : Card_Block;
-    Card         : Card_Type;
-    ENDCardFound : Boolean := false;
-   begin
-
-    -- FIXME how to make sure that each value of Parsed_Type
-    -- was set during parsing process ?
-    -- Parsed_Card implementation must keep track of which
-    -- record fields were set
-
-    CardsCnt := 0;
-
-    loop
-
-      Card_Block'Read( SIO.Stream(FitsFile), HBlk );
-      -- [FITS] every valid FITS File must have at least one block
-
-      for I in HBlk'Range
-      loop
-        Card         := HBlk(I);
-        Parse_Card(Card, Xtension);
-        Parse_Card(Card, Data); -- generic
-        CardsCnt     := CardsCnt + 1;
-        ENDCardFound := (Card = ENDCard);
-        exit when ENDCardFound;
-      end loop;
-
-      exit when ENDCardFound;
-    end loop;
-
-   end Read_Header_Blocks;
-
-
-   -----------
-   -- Utils --
-   -----------
-
-
    function  Read_Card  (FitsFile  : in  SIO.File_Type)
      return Card_Type
    is
@@ -550,6 +308,230 @@ package body FITS.File is
 
    -- REFACTOR for final
 
+   procedure To_Coords (Offset    : in  FPositive;
+                        MaxCoords : in  NAXIS_Arr;
+                        Coords    : out NAXIS_Arr)
+   is
+      Sizes : NAXIS_Arr := MaxCoords;
+      Divs :  NAXIS_Arr := MaxCoords;
+      Rems :  NAXIS_Arr := MaxCoords;
+      -- FIXME these inits are needed only to eliminate Ada error
+      -- find other solution
+   begin
+
+    --
+    -- generate size of each plane
+    --
+    declare
+      Accu  : FPositive := 1;
+    begin
+      for I in MaxCoords'Range
+      loop
+       Accu := Accu * MaxCoords(I);
+       Sizes(I) := Accu;
+       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+      end loop;
+    end;
+
+    --
+    -- calc divisions and fractions
+    --
+    declare
+      PrevRem : FNatural := Offset - 1;
+    begin
+      for I in reverse MaxCoords'First .. MaxCoords'Last
+      loop
+        Divs(I) := 1 + PrevRem  /  Sizes(I);
+        Rems(I) := 1 + PrevRem rem Sizes(I);
+          -- FIXME rem gives 0 for multiples
+        PrevRem := Rems(I) - 1;
+      end loop;
+    end;
+
+    --
+    -- pick the coordinates from Divs & Rems
+    --
+    Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
+   end To_Coords;
+
+
+   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
+                             MaxCoords : in  NAXIS_Arr)
+   is
+
+     function  multiply (MaxCoords : in  NAXIS_Arr) return FPositive
+     is
+      Accu  : FPositive := 1;
+     begin
+      for I in MaxCoords'Range
+      loop
+       Accu := Accu * MaxCoords(I);
+      end loop;
+      return Accu;
+     end multiply;
+
+    IArrLen : FPositive := multiply(MaxCoords);
+    IArr    : Item_Arr(1..IArrLen);
+--    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
+    Coord   : NAXIS_Arr := MaxCoords;
+
+    DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
+    ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
+    PadUInt8 : constant UInt8_Arr(1 .. FPositive(DPadCnt*ItemSize)) := (others => 0);
+--    for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
+-- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
+   begin
+
+    for I in IArr'Range
+    loop
+     To_Coords (I, MaxCoords, Coord);
+     IArr(I) := Element (Coord);
+    end loop;
+
+    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,IArr);
+    UInt8_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,PadUInt8);
+
+    -- FIXME write by Blocks
+
+   end Write_DataUnit;
+
+
+
+   -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
+   -- and store parse value to DUSizeKeyVals
+   -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
+   -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
+   -- Size calc is valid also for IMAGE-extension, but not for TABLE extensions
+   -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
+   procedure Parse_Card (Card          : in Card_Type;
+                         DUSizeKeyVals : out DU_Size_Type)
+   is
+    dim : Positive;
+   begin
+     -- FIXME what if parsed string is '' or '     ' etc...
+
+     -- [FITS 4.1.2 Components]:
+     -- pos 9..10 is '= '
+     -- pos 31 is comment ' /'
+     -- then : pos 10..20 is value
+
+     if    (Card(1..9) = "BITPIX  =") then
+       DUSizeKeyVals.BITPIX := Integer'Value(Card(10..30));
+
+     elsif (Card(1..5) = "NAXIS") then
+
+       if (Card(1..9) = "NAXIS   =") then
+           if 0 = Natural'Value(Card(10..30))
+           then
+             -- no data unit in this HDU
+             -- FIXME [FITS 4.4.1.1 Primary Header] "A value of zero signifies
+             -- that no data follow the header in the HDU."
+             null;
+           else
+             DUSizeKeyVals.NAXIS := Positive'Value(Card(10..30));
+           end if;
+       else
+           dim := Positive'Value(Card(6..8));
+           DUSizeKeyVals.NAXISn(dim) := FPositive'Value(Card(10..30));
+           -- [FITS Sect 4.4.1.1] NAXISn is non-negative integer
+           -- [FITS fixed integer]:
+           -- Fixed integer is defined as 19 decimal digits
+   	   -- (Header Card Integer value occupying columns 11..20)
+   	   -- Lon_Long_Integer in GNAT is 64bit: 9.2 x 10**19 whereas
+   	   -- fixed integer can reach 9.9 x 10**19)
+           -- Conclude: range of NAXISn will be implementation
+           -- limited as suggested in [FITS 4.2.3 Integer number]:
+       end if;
+
+     elsif (Card(1..5) = "PCOUNT") then
+       DUSizeKeyVals.PCOUNT := FNatural'Value(Card(10..30));
+
+     elsif (Card(1..5) = "GCOUNT") then
+       DUSizeKeyVals.GCOUNT := FPositive'Value(Card(10..30));
+
+     end if;
+
+   end Parse_Card;
+
+   procedure Parse_Card (Card         : in Card_Type;
+                         XtensionType : out String)
+   is
+   begin
+     if    (Card(1..9) = "XTENSION=") then
+       XtensionType := Card(11..20);
+     end if;
+   end Parse_Card;
+
+   procedure Parse_Card_For_Size
+              (Card          : in  Card_Type;
+               DUSizeKeyVals : out DU_Size_Type)
+   is
+   begin
+    Parse_Card(Card, DUSizeKeyVals);
+    DUSizeKeyVals.PCOUNT := 0;
+    DUSizeKeyVals.GCOUNT := 1;
+     -- init these for HDU's which do not use them
+     -- BINTABLE and RandomGroup extensions, if present,
+     -- will overwrite these values
+   end Parse_Card_For_Size;
+
+   --
+   -- Read File until ENDCard found,
+   -- cal Parse_Card for each card and
+   -- return count of Cards
+   --
+   generic
+     type Parsed_Type is limited private;
+     with procedure Parse_Card
+                    (Card : in Card_Type;
+                     Data : out Parsed_Type);
+   procedure Read_Header_Blocks
+             (FitsFile : in SIO.File_Type;
+              Data     : out Parsed_Type;
+              CardsCnt : out FNatural;
+              Xtension : out String);
+
+   --
+   -- Read File until ENDCard found
+   --
+   procedure Read_Header_Blocks
+             (FitsFile : in SIO.File_Type;
+              Data     : out Parsed_Type;
+              CardsCnt : out FNatural;
+              Xtension : out String)
+   is
+    HBlk         : Card_Block;
+    Card         : Card_Type;
+    ENDCardFound : Boolean := false;
+   begin
+
+    -- FIXME how to make sure that each value of Parsed_Type
+    -- was set during parsing process ?
+    -- Parsed_Card implementation must keep track of which
+    -- record fields were set
+
+    CardsCnt := 0;
+
+    loop
+
+      Card_Block'Read( SIO.Stream(FitsFile), HBlk );
+      -- [FITS] every valid FITS File must have at least one block
+
+      for I in HBlk'Range
+      loop
+        Card         := HBlk(I);
+        Parse_Card(Card, Xtension);
+        Parse_Card(Card, Data); -- generic
+        CardsCnt     := CardsCnt + 1;
+        ENDCardFound := (Card = ENDCard);
+        exit when ENDCardFound;
+      end loop;
+
+      exit when ENDCardFound;
+    end loop;
+
+   end Read_Header_Blocks;
+
    -- the same as procedure above but as HDUSize struct generating function
    function Parse_HeaderBlocks (FitsFile : in  SIO.File_Type)
     return HDU_Size_Type
@@ -604,6 +586,16 @@ package body FITS.File is
     CurDUSize_bytes  : FPositive;
     CurHDUNum : Positive := 1;
     HDUSize   : HDU_Size_Type;
+
+     procedure Move_Index
+               (FitsFile : in SIO.File_Type;
+                ByCount  : in SIO.Positive_Count) is
+     begin
+       SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
+     end Move_Index;
+     pragma Inline (Move_Index);
+     -- util: consider this part of Stream_IO
+
    begin
 
     SIO.Set_Index(FitsFile, 1);
