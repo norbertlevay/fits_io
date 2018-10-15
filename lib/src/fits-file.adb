@@ -96,6 +96,12 @@ package body FITS.File is
    --
    -- Padding
    --
+   -- Padding Data Unit: [FITS 3.3.2 Primary Data Array]
+   -- If the data array does not fill the final data block, the remain-
+   -- der of the data block shall be filled by setting all bits to zero.
+   -- And for conforming Data Extensions [FITS 7.1.3]:
+   -- The data format shall be identical to that of a primary data array
+   -- as described in Sect. 3.3.2.
    procedure Write_Padding(FitsFile : in SIO.File_Type;
                            From     : in SIO.Positive_Count;
                            PadValue : in Unsigned_8)
@@ -209,51 +215,51 @@ package body FITS.File is
    pragma Inline (Size_blocks);
 
 
- procedure To_Coords (Offset    : in  FPositive;
-                      MaxCoords : in  NAXIS_Arr;
-                      Coords    : out NAXIS_Arr)
- is
-    Sizes : NAXIS_Arr := MaxCoords;
-    Divs :  NAXIS_Arr := MaxCoords;
-    Rems :  NAXIS_Arr := MaxCoords;
-    -- FIXME these inits are needed only to eliminate Ada error
-    -- find other solution
- begin
+   procedure To_Coords (Offset    : in  FPositive;
+                        MaxCoords : in  NAXIS_Arr;
+                        Coords    : out NAXIS_Arr)
+   is
+      Sizes : NAXIS_Arr := MaxCoords;
+      Divs :  NAXIS_Arr := MaxCoords;
+      Rems :  NAXIS_Arr := MaxCoords;
+      -- FIXME these inits are needed only to eliminate Ada error
+      -- find other solution
+   begin
 
-  --
-  -- generate size of each plane
-  --
-  declare
-    Accu  : FPositive := 1;
-  begin
-    for I in MaxCoords'Range
-    loop
-     Accu := Accu * MaxCoords(I);
-     Sizes(I) := Accu;
-     -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
-    end loop;
-  end;
+    --
+    -- generate size of each plane
+    --
+    declare
+      Accu  : FPositive := 1;
+    begin
+      for I in MaxCoords'Range
+      loop
+       Accu := Accu * MaxCoords(I);
+       Sizes(I) := Accu;
+       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+      end loop;
+    end;
 
-  --
-  -- calc divisions and fractions
-  --
-  declare
-    PrevRem : FNatural := Offset - 1;
-  begin
-    for I in reverse MaxCoords'First .. MaxCoords'Last
-    loop
-      Divs(I) := 1 + PrevRem  /  Sizes(I);
-      Rems(I) := 1 + PrevRem rem Sizes(I);
-      -- FIXME rem gives 0 for multiples
-      PrevRem := Rems(I) - 1;
-    end loop;
-  end;
+    --
+    -- calc divisions and fractions
+    --
+    declare
+      PrevRem : FNatural := Offset - 1;
+    begin
+      for I in reverse MaxCoords'First .. MaxCoords'Last
+      loop
+        Divs(I) := 1 + PrevRem  /  Sizes(I);
+        Rems(I) := 1 + PrevRem rem Sizes(I);
+          -- FIXME rem gives 0 for multiples
+        PrevRem := Rems(I) - 1;
+      end loop;
+    end;
 
-  --
-  -- pick the coordinates from Divs & Rems
-  --
-  Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
- end To_Coords;
+    --
+    -- pick the coordinates from Divs & Rems
+    --
+    Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
+   end To_Coords;
 
    function  multiply (MaxCoords : in  NAXIS_Arr) return FPositive
    is
@@ -266,12 +272,6 @@ package body FITS.File is
     return Accu;
    end multiply;
 
-   -- Padding Data Unit: [FITS 3.3.2 Primary Data Array]
-   -- If the data array does not fill the final data block, the remain-
-   -- der of the data block shall be filled by setting all bits to zero.
-   -- And for conforming Data Extensions [FITS 7.1.3]:
-   -- The data format shall be identical to that of a primary data array
-   -- as described in Sect. 3.3.2.
    procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
                              MaxCoords : in  NAXIS_Arr)
    is
@@ -404,7 +404,7 @@ package body FITS.File is
      with procedure Parse_Card
                     (Card : in Card_Type;
                      Data : out Parsed_Type);
-   procedure  Read_Header_Blocks
+   procedure Read_Header_Blocks
              (FitsFile : in SIO.File_Type;
               Data     : out Parsed_Type;
               CardsCnt : out FNatural;
@@ -413,7 +413,7 @@ package body FITS.File is
    --
    -- Read File until ENDCard found
    --
-   procedure  Read_Header_Blocks
+   procedure Read_Header_Blocks
              (FitsFile : in SIO.File_Type;
               Data     : out Parsed_Type;
               CardsCnt : out FNatural;
@@ -457,7 +457,7 @@ package body FITS.File is
    -----------
 
 
-   function Read_Card  (FitsFile  : in  SIO.File_Type)
+   function  Read_Card  (FitsFile  : in  SIO.File_Type)
      return Card_Type
    is
      Card : Card_Type;
@@ -466,7 +466,7 @@ package body FITS.File is
      return Card;
    end Read_Card;
 
-   function Read_Cards (FitsFile  : in  SIO.File_Type)
+   function  Read_Cards (FitsFile  : in  SIO.File_Type)
      return Card_Block
    is
      CardBlock : Card_Block;
@@ -565,7 +565,7 @@ package body FITS.File is
    end Parse_HeaderBlocks;
 
 
-   function Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
+   function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
    is
     HDUSize : HDU_Size_Type := Parse_HeaderBlocks(FitsFile);
     HDUInfo : HDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
