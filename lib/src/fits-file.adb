@@ -379,9 +379,10 @@ package body FITS.File is
       return Accu;
      end multiply;
 
+    type Item_Arr is array (FPositive range <>) of Item;
+
     IArrLen : FPositive := multiply(MaxCoords);
     IArr    : Item_Arr(1..IArrLen);
---    for IArr'Size use IArrLen*(FITS.Data.Unsigned_8'Size);
     Coord   : NAXIS_Arr := MaxCoords;
 
     DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));

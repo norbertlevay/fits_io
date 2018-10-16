@@ -1,16 +1,20 @@
 
 -- Interface func description:
 --
--- this library supports RANDOM access in reading and SEQUENTIAL writing
--- of FITS files
+-- this library supports RANDOM access (Set_Offset) in reading and
+-- SEQUENTIAL writing of FITS files
+--
+-- FIXME?? random access (Set_Offset) not implemented --> should it be here?
+--         or only in NCube ?
 --
 -- Note:
--- high level user IF for Read has 2 variants:
--- 1 can read/write one object of Header_Type -> such
---   func (Header'Read/'Write attrib) should handle padding
+-- Reading Header has 2 variants:
+-- 1 if Header is considered "small" -> can read/write one object of
+--   Header_Type -> such func (Header'Read/'Write attrib) should
+--   handle padding
 -- 2 if Header considered "big" -> user has to read/write it in cycle by
 --   CardBlocks (Card_Arr'Write/'Read which is defined by language).
---   CardBlock has 32 cards, so it covers the padding.
+--   CardBlock has 36 cards, so it covers the padding.
 --
 -- Set_Index(in Stream, in HDUNum)
 -- position file pointer to begining of Header of the given HDU
@@ -31,10 +35,7 @@
 -- Set_Offset(Stream, ElementIndexVector[N], ElementType)<- move in Stream to Element given by ElementIndex
 --
 -- Read_Card (in Stream, out Card)
--- Read_Card (in Stream, out CardArr[M])
--- -- reads only upto ENDCard
--- -- if ENDCard read, Read_Card() will skip the padding and move
--- -- file index to begining of the Data Unit
+-- Read_Cards (in Stream, out CardBlock)
 --
 -- 6x Read_Data (in Stream, in (N1,N2,...), out DataArr[<>])
 -- -- DataArr is 1-dimensional and has 6 variants: UInt8 Int16/32/64, Float32/64 and is of size N1*N2*...
@@ -44,7 +45,7 @@
 -- -- read behind data unit end (Set_Offset + (N1*N2*...) < DUEnd).
 --
 -- FIXME we should hide DataArr[] implementation ??
---       furure yes: introduce class NCube which will unite Coord and DataArr[]
+--  future yes: introduce class NCube which will couple Coord and DataArr[]
 --
 -- 6x function Element(DataArr[<>],(I1,I2,...)) returns Element_Type
 --
@@ -53,10 +54,14 @@
 --        but does not know where to write it)
 --
 -- Writing is alway SEQUENTIAL. So below function need to be called in a loop
--- until all data is written.
+-- until all data is written. Useful in scenarios where each data element
+-- does not depend on data item in other coordinates, e.g. coordinates are
+-- irrelevant: New_Data_Item = func(Old_Data_Item), like scaling,
+-- data type change (Int32->Float32), new = log(old), etc...
 --
 -- Write_Cards(in Stream, in  CardArr[N])
--- Write_Padding(in Stream)
+--
+-- Write_Padding(in Stream, offset, PadValue)
 
 -- generic
 --  ElementType : UInt8 INT16/32/64 Float32/64
@@ -66,6 +71,8 @@
 -- -- user has to supply the implementation of the Element() function
 -- -- Element() function return one data element in coordinats given
 -- -- in vector Vector[Dims]
+--
+--
 --
 -- Misc
 --
@@ -78,7 +85,7 @@
 -- new Data Unit data-type? (now: UInt8, Int16/32/63, Float32/64)
 
 -- Note: using Read/Write_Card instead of 'Read 'Write attribs
--- does not forcs use of Stream_IO in client sw (one could imoplement
+-- does not force use of Stream_IO in client sw (one could implement
 -- Read_Card also on Direct_IO Text_IO or or other)
 -- However we have SIO.File_Type we should do FITS.File_Type and
 -- package FITS renames Ada.Streams.Stream_IO; this allows with
@@ -107,7 +114,7 @@ package FITS.File is
 
 
    -----------------------
-   -- FITS-file content --
+   -- FITS file content --
    -----------------------
 
    type HDU_Info_Type(NAXIS : Positive) is record
@@ -124,11 +131,11 @@ package FITS.File is
      return FPositive;
 
 
-   --------------------------------
-   -- Read Header Cards and Data --
-   --------------------------------
+   -----------------------------
+   -- Read/Write Header Cards --
+   -----------------------------
 
-   -- Read cards one card at a time or by blocks of 36 cards.
+   -- Read cards one-by-one or by blocks of 36 cards.
    -- ** FITS standard guarantees that a healthy FITS file has at least
    -- ** 36 cards from start.
 
@@ -138,21 +145,10 @@ package FITS.File is
    function Read_Cards (FitsFile  : in  SIO.File_Type)
      return Card_Block;
 
-
-   -- Read data by free-sized data-chunks into 1-dim array
-   -- max size is known from header Get(HDU_Info): NAXIS1 x NAXIS2 x ...
-   -- ** FITS standard guarantees that healthy FITS File has that many data.
-
-   generic
-     type Data_Arr(<>) is private;
-   procedure gen_Read_Data (FitsFile : in  SIO.File_Type;
-                            Data     : in out Data_Arr);
-   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
-
-
-   -----------------------------------------------
-   -- Write Header Cards and Data (and Padding) --
-   -----------------------------------------------
+   -- Write cards one-by-one or in block of any number of
+   -- cards as suitable to generate them.
+   -- ** FITS standard mandates: Header must be
+   -- ** closed be END-card and padded (Write_Padding).
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
                           Card     : in Card_Type);
@@ -160,25 +156,10 @@ package FITS.File is
    procedure Write_Cards (FitsFile : in SIO.File_Type;
                           Cards    : in Card_Arr);
 
-   generic
-     type Data_Arr(<>) is private;
-   procedure gen_Write_Data (FitsFile : in SIO.File_Type;
-                             Data     : in Data_Arr);
-   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
 
-   generic
-    type Item is private;
-    type Item_Arr is array (FPositive range <>) of Item;
-    with function Element (Coord : in NAXIS_Arr) return Item;
-   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  NAXIS_Arr);
-   -- Notes:
-   -- Write_Data writes the complete DataUnit
-   -- Write_Data adds DataUnit padding after last Item written
-
-   -- FIXME why not to offer also Write_Data(S, Data_Arr) API - analogues
-   --       to Read_Data(S,DataChunk). 6x for all data arrary types.
-
+   -------------------------------
+   -- Write Header/Data Padding --
+   -------------------------------
 
    HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
    DataPadValue   : constant Unsigned_8 :=  0;
@@ -192,7 +173,49 @@ package FITS.File is
    -- If Block is filled up, Write_Padding does nothing.
 
 
-   -- Misc:
+   ---------------------
+   -- Read/Write Data --
+   ---------------------
+
+   -- Read data by free-sized data-chunks into 1-dim array
+   -- max size is known from header Get(HDU_Info): NAXIS1 x NAXIS2 x ...
+   -- ** FITS standard guarantees that healthy FITS File has that many data.
+
+   generic
+     type Data_Arr(<>) is private;
+   procedure gen_Read_Data (FitsFile : in  SIO.File_Type;
+                            Data     : in out Data_Arr);
+   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
+
+   generic
+     type Data_Arr(<>) is private;
+   procedure gen_Write_Data (FitsFile : in SIO.File_Type;
+                             Data     : in Data_Arr);
+   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
+
+   -- FIXME should also above generic's be based on Item (Item_Arr) as below ?
+   --       e.g. no need to define arrays as in FITS.ads
+   --       instantation can be done really by types rather then array types
+   --       Q: How to guarantee then that the Item_Arr array would be packed?
+   --       A: At instation the supplied array must be packed.
+   --          No represantation clauses allowed in generic
+   --
+
+   generic
+    type Item is private;
+--    type Item_Arr is array (FPositive range <>) of Item;
+    with function Element (Coord : in NAXIS_Arr) return Item;
+   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
+                             MaxCoords : in  NAXIS_Arr);
+   -- Item is any of FITS.UInt8 ... FITS.Float64
+   -- Notes:
+   -- Write_Data writes the complete DataUnit
+   -- Write_Data adds DataUnit padding after last Item written
+
+
+   -----------
+   -- Misc: --
+   -----------
 
    --
    -- calc DataUnit size in blocks

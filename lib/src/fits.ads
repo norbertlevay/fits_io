@@ -106,7 +106,7 @@ package FITS is
    -- [FITS] defines BigEndian for all numeric types in file
    -- revert byte order when reading/writing from/to FITS file
 
-   -- FIXME BZERO use not implemented/not parsed
+   -- FIXME BZERO use not implemented/not parsed??
 
    procedure Float32_Read_BigEndian
     		(S    : access Ada.Streams.Root_Stream_Type'Class;
@@ -118,6 +118,11 @@ package FITS is
 
    for Float_32'Read  use Float32_Read_BigEndian;
    for Float_32'Write use Float32_Write_BigEndian;
+   -- FIXME Optimization: Endianess: do efficient IO reading/writing
+   --       all array at once (as tech-note on adacore: ada-streams-write-all-array-at-one-call.pdf),
+   --       and handle endianness on all array in memory, rather then each
+   --       data element separately
+
 
 
    type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
