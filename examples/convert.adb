@@ -42,6 +42,9 @@ is
  InBuffer   : UInt8_Arr  (1 .. BufferSize);
  OutBuffer  : Float32_Arr(1 .. BufferSize);
 
+ procedure Read_Data  is new gen_Read_Data (Data_Arr => UInt8_Arr);
+ procedure Write_Data is new gen_Write_Data(Data_Arr => Float32_Arr);
+
  BITPIXFloat64Card : Card_Type :=
    To_Card (Max_8.To_Bounded_String("BITPIX"),
             Max20.To_Bounded_String("-32"),

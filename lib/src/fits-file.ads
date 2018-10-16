@@ -105,7 +105,7 @@ package FITS.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive);
 
-   -- FITS-file content info
+   -- FITS-file content
 
    type HDU_Info_Type(NAXIS : Positive) is record
       XTENSION : String(1..10);   -- XTENSION string or empty
@@ -121,10 +121,11 @@ package FITS.File is
      return FPositive;
 
 
-   -- Read Header Cards (up to ENDCard)
-   -- Read cards A, on card at a time B, by blocks of 6 cards.
-   -- ** FITS standard guarantees that a healthy FITS file has that
-   -- ** many cards (until ENDCard found).
+   -- Read Header Cards and Data
+
+   -- Read cards one card at a time or by blocks of 36 cards.
+   -- ** FITS standard guarantees that a healthy FITS file has at least
+   -- ** 36 cards from start.
 
    function Read_Card  (FitsFile  : in  SIO.File_Type)
      return Card_Type;
@@ -132,20 +133,18 @@ package FITS.File is
    function Read_Cards (FitsFile  : in  SIO.File_Type)
      return Card_Block;
 
-   -- Read Data (up to length = NAXS1 x NAXIS2 x.. )
-   -- by free-sized data-chunks into 1-dim array
+   -- Read data by free-sized data-chunks into 1-dim array
    -- max size is known from header Get(HDU_Info): NAXIS1 x NAXIS2 x ...
    -- ** FITS standard guarantees that healthy FITS File has that many data.
 
-   procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out UInt8_Arr);
+   generic
+     type Data_Arr(<>) is private;
+   procedure gen_Read_Data (FitsFile : in  SIO.File_Type;
+                            Data     : in out Data_Arr);
+   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
 
-   -- ... for all types ...
 
-   procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out Float32_Arr);
-
-   -- Write Header Cards
+   -- Write Header Cards and Data (and Padding)
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
                           Card     : in Card_Type);
@@ -153,28 +152,11 @@ package FITS.File is
    procedure Write_Cards (FitsFile : in SIO.File_Type;
                           Cards    : in Card_Arr);
 
-   HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
-   DataPadValue   : constant Unsigned_8 :=  0;
-   procedure Write_Padding(FitsFile : in SIO.File_Type;
-                           From     : in SIO.Positive_Count;
-                           PadValue : in Unsigned_8);
-   -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
-   -- If last Header- or Data-block is not filled up,
-   -- Write_Padding puts PadValue from FileOffset until end of the block.
-   -- If Block is filled up, Write_padding does nothing.
-
-   -- Write Data Unit
-
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in UInt8_Arr);
-
-   -- ... for all types ...
-
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in Float32_Arr);
-
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in Float64_Arr);
+   generic
+     type Data_Arr(<>) is private;
+   procedure gen_Write_Data (FitsFile : in SIO.File_Type;
+                             Data     : in Data_Arr);
+   -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
 
    generic
     type Item is private;
@@ -188,6 +170,17 @@ package FITS.File is
 
    -- FIXME why not to offer also Write_Data(S, Data_Arr) API - analogues
    --       to Read_Data(S,DataChunk). 6x for all data arrary types.
+
+
+   HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
+   DataPadValue   : constant Unsigned_8 :=  0;
+   procedure Write_Padding(FitsFile : in SIO.File_Type;
+                           From     : in SIO.Positive_Count;
+                           PadValue : in Unsigned_8);
+   -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
+   -- If last Header- or Data-block is not filled up,
+   -- Write_Padding puts PadValue from FileOffset until end of the block.
+   -- If Block is filled up, Write_padding does nothing.
 
 
    -- Misc:

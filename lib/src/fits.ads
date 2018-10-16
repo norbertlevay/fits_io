@@ -106,6 +106,8 @@ package FITS is
    -- [FITS] defines BigEndian for all numeric types in file
    -- revert byte order when reading/writing from/to FITS file
 
+   -- FIXME BZERO use not implemented/not parsed
+
    procedure Float32_Read_BigEndian
     		(S    : access Ada.Streams.Root_Stream_Type'Class;
              	 Data : out Float_32 );

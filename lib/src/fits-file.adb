@@ -251,60 +251,69 @@ package body FITS.File is
 
 
    -- Read Data
-
-   generic
-     type Data_Arr is private;
-   procedure genRead_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out Data_Arr);
-
-   procedure genRead_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out Data_Arr)
+   procedure gen_Read_Data (FitsFile : in  SIO.File_Type;
+                            Data     : in out Data_Arr)
    is
    begin
      Data_Arr'Read(Stream(FitsFile),Data);
-   end genRead_Data;
+   end gen_Read_Data;
+   pragma Inline (gen_Read_Data);
+
+--   procedure Read_Data is new genRead_Data(UInt8_Arr);
 --   procedure Read_Data is new genRead_Data(Int16_Arr);
+--   procedure Read_Data is new genRead_Data(Int32_Arr);
+--   procedure Read_Data is new genRead_Data(Int64_Arr);
+--   procedure Read_Data is new genRead_Data(Float32_Arr);
+--   procedure Read_Data is new genRead_Data(Float64_Arr);
+--
 
-   procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out UInt8_Arr)
+--   procedure Read_Data (FitsFile : in  SIO.File_Type;
+--                        Data     : in out UInt8_Arr)
+--   is
+--   begin
+--     UInt8_Arr'Read(Stream(FitsFile),Data);
+--   end Read_Data;
+--   pragma Inline (Read_Data);
+
+--   procedure Read_Data (FitsFile : in  SIO.File_Type;
+--                        Data     : in out Float32_Arr)
+--   is
+--   begin
+--     Float32_Arr'Read(Stream(FitsFile),Data);
+--   end Read_Data;
+--   pragma Inline (Read_Data);
+
+   procedure gen_Write_Data (FitsFile : in SIO.File_Type;
+                             Data     : in Data_Arr)
    is
    begin
-     UInt8_Arr'Read(Stream(FitsFile),Data);
-   end Read_Data;
-   pragma Inline (Read_Data);
-
-   procedure Read_Data (FitsFile : in  SIO.File_Type;
-                        Data     : in out Float32_Arr)
-   is
-   begin
-     Float32_Arr'Read(Stream(FitsFile),Data);
-   end Read_Data;
-   pragma Inline (Read_Data);
+     Data_Arr'Write(Stream(FitsFile),Data);
+   end gen_Write_Data;
+   pragma Inline (gen_Write_Data);
 
 
-
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in UInt8_Arr)
-   is
-   begin
-     UInt8_Arr'Write(Stream(FitsFile),Data);
-   end Write_Data;
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in UInt8_Arr)
+--   is
+--   begin
+--     UInt8_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
 
    -- ... for all types ...
 
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in Float32_Arr)
-   is
-   begin
-     Float32_Arr'Write(Stream(FitsFile),Data);
-   end Write_Data;
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in Float32_Arr)
+--   is
+--   begin
+--     Float32_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
 
-   procedure Write_Data (FitsFile : in SIO.File_Type;
-                         Data     : in Float64_Arr)
-   is
-   begin
-     Float64_Arr'Write(Stream(FitsFile),Data);
-   end Write_Data;
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in Float64_Arr)
+--   is
+--   begin
+--     Float64_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
 
    -- REFACTOR for final
 

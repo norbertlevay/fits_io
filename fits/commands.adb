@@ -135,7 +135,8 @@ package body Commands is
                                InKey   : String;-- FIXME bounded string Max_8
                                OutFits : SIO.File_Type)
  is
-   Card            : Card_Type;
+   Card : Card_Type;
+   PosAfterLastWrite : SIO.Positive_Count;
  begin
 
    loop
@@ -148,7 +149,11 @@ package body Commands is
 
    end loop;
 
-   Write_ENDCard(OutFits);
+   Write_Card(OutFits,ENDCard);
+   PosAfterLastWrite := SIO.Index(OutFits);
+   Write_Padding(OutFits,
+                 PosAfterLastWrite,
+                 HeaderPadValue);
 
  end Remove_Cards_By_Key;
 
@@ -201,6 +206,7 @@ package body Commands is
   Card   : Card_Type;
   Naxis  : Natural;
   NAXISKey : String := "NAXIS";
+  PosAfterLastWrite : SIO.Positive_Count;
  begin
 
   Card := Find_Card(InFits,"SIMPLE");
@@ -255,7 +261,11 @@ package body Commands is
 
   end loop;
 
-  Write_ENDCard(OutFits);
+  Write_Card(OutFits,ENDCard);
+  PosAfterLastWrite := SIO.Index(OutFits);
+  Write_Padding(OutFits,
+                PosAfterLastWrite,
+                HeaderPadValue);
 
  end Clean_PrimaryHeader_Start;
 

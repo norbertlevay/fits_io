@@ -53,7 +53,8 @@ is
 
    To_Card (Max_8.To_Bounded_String("NAXIS2"),
             Max20.To_Bounded_String("400"),
-            Max48.To_Bounded_String("columns"))
+            Max48.To_Bounded_String("columns")),
+   ENDCard
    );
 
  -- Define the Data
