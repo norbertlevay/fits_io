@@ -105,7 +105,10 @@ package FITS.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive);
 
-   -- FITS-file content
+
+   -----------------------
+   -- FITS-file content --
+   -----------------------
 
    type HDU_Info_Type(NAXIS : Positive) is record
       XTENSION : String(1..10);   -- XTENSION string or empty
@@ -121,7 +124,9 @@ package FITS.File is
      return FPositive;
 
 
-   -- Read Header Cards and Data
+   --------------------------------
+   -- Read Header Cards and Data --
+   --------------------------------
 
    -- Read cards one card at a time or by blocks of 36 cards.
    -- ** FITS standard guarantees that a healthy FITS file has at least
@@ -132,6 +137,7 @@ package FITS.File is
 
    function Read_Cards (FitsFile  : in  SIO.File_Type)
      return Card_Block;
+
 
    -- Read data by free-sized data-chunks into 1-dim array
    -- max size is known from header Get(HDU_Info): NAXIS1 x NAXIS2 x ...
@@ -144,7 +150,9 @@ package FITS.File is
    -- Data_Arr is any of FITS.UInt8_Arr ... FITS.Float64_Arr
 
 
-   -- Write Header Cards and Data (and Padding)
+   -----------------------------------------------
+   -- Write Header Cards and Data (and Padding) --
+   -----------------------------------------------
 
    procedure Write_Card  (FitsFile : in SIO.File_Type;
                           Card     : in Card_Type);
@@ -174,13 +182,14 @@ package FITS.File is
 
    HeaderPadValue : constant Unsigned_8 := 32; -- Space ASCII value
    DataPadValue   : constant Unsigned_8 :=  0;
+
    procedure Write_Padding(FitsFile : in SIO.File_Type;
                            From     : in SIO.Positive_Count;
                            PadValue : in Unsigned_8);
    -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
    -- If last Header- or Data-block is not filled up,
    -- Write_Padding puts PadValue from FileOffset until end of the block.
-   -- If Block is filled up, Write_padding does nothing.
+   -- If Block is filled up, Write_Padding does nothing.
 
 
    -- Misc:
@@ -189,6 +198,7 @@ package FITS.File is
    -- calc DataUnit size in blocks
    --
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
+   -- FIXME is this needed ?? see commands.adb: Couldn't be used Get() & Size_blocks() ??
 
    --
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
@@ -197,6 +207,8 @@ package FITS.File is
                           OutFits : in SIO.File_Type;
                           NBlocks : in FPositive;
                           ChunkSize_blocks : in Positive := 10);
+   -- FIXME is this needed ? maybe should be internal only
+   --       Ext API: Copy_HDU ok.
 
    --
    -- copy HDU from InFile to OutFile: both file-pointers must be correctly positioned
@@ -205,5 +217,6 @@ package FITS.File is
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
+   -- FIXME IF: move to some new FITS.Utils or similar
 
 end FITS.File;
