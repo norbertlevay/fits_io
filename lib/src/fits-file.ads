@@ -130,6 +130,19 @@ package FITS.File is
    function DU_Size (NAXISArr : in NAXIS_Arr)
      return FPositive;
 
+   --
+   -- create Header parsers
+   --
+   -- will read all Header up to END-card
+   -- before calling, make sure File-pointer is at Header start
+   -- e.g. call Set_Index(F,HDUNum)
+   generic
+     type Parsed_Type is private;
+     with procedure Parse_Card
+                    (Card : in  Card_Type;
+                     Data : out Parsed_Type);
+   function gen_Read_Header (FitsFile : in SIO.File_Type)
+     return Parsed_Type;
 
    -----------------------------
    -- Read/Write Header Cards --

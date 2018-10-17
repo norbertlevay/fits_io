@@ -65,6 +65,7 @@ package body FITS.File is
    end record;
    -- collects keyword values which define DataUnit size
 
+
    type HDU_Size_Type is record
       XTENSION      : String(1..10) := (others => '_'); -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
       CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
@@ -490,6 +491,48 @@ package body FITS.File is
    -- cal Parse_Card for each card and
    -- return count of Cards
    --
+
+   --
+   -- Read File until ENDCard found
+   --
+
+    -- FIXME how to make sure that each value of Parsed_Type
+    -- was set during parsing process ?
+    -- Parsed_Card implementation must keep track of which
+    -- record fields were set
+
+   function gen_Read_Header (FitsFile : in SIO.File_Type)
+    return Parsed_Type
+   is
+    HBlk         : Card_Block;
+    Card         : Card_Type;
+    ENDCardFound : Boolean := false;
+    Data         : Parsed_Type;
+   begin
+    loop
+      HBlk := Read_Cards(FitsFile);
+      -- [FITS] every valid FITS File must have at least one block
+      for I in HBlk'Range
+      loop
+        Card         := HBlk(I);
+        Parse_Card(Card, Data); -- generic
+        ENDCardFound := (Card = ENDCard);
+        exit when ENDCardFound;
+      end loop;
+      exit when ENDCardFound;
+    end loop;
+    return Data;
+   end gen_Read_Header;
+
+   function Read_Header is
+        new gen_Read_Header (Parsed_Type => DU_Size_Type,
+                             Parse_Card  => Parse_Card_For_Size);
+
+   --
+   -- Read File until ENDCard found,
+   -- cal Parse_Card for each card and
+   -- return count of Cards
+   --
    generic
      type Parsed_Type is limited private;
      with procedure Parse_Card
@@ -524,7 +567,7 @@ package body FITS.File is
 
     loop
 
-      Card_Block'Read( SIO.Stream(FitsFile), HBlk );
+      HBlk := Read_Cards(FitsFile);
       -- [FITS] every valid FITS File must have at least one block
 
       for I in HBlk'Range
