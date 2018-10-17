@@ -139,7 +139,8 @@ package FITS.File is
    generic
      type Parsed_Type is private;
      with procedure Parse_Card
-                    (Card : in  Card_Type;
+                    (CardIndex : in FPositive;
+                     Card : in  Card_Type;
                      Data : out Parsed_Type);
    function gen_Read_Header (FitsFile : in SIO.File_Type)
      return Parsed_Type;

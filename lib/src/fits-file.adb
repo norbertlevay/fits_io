@@ -51,27 +51,6 @@ package body FITS.File is
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
-   type NAXIS999_Type is array (1 .. NAXIS_Type'Last) of FPositive;
-
-   type DU_Size_Type is record
-      -- Primary HDU:
-      BITPIX : Integer;       -- BITPIX from header (data size in bits)
-      NAXIS  : NAXIS_Type;    -- NAXIS  from header, 0 means no DataUnit
-      NAXISn : NAXIS999_Type; -- NAXISn from header, 0 means dimension not in use
-      -- Conforming extensions:
-      PCOUNT : FNatural;    -- BINTABLE: size of heap OR Random Groups: param count preceding each group
-      GCOUNT : FPositive;   -- Number of Random Groups present
-      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
-   end record;
-   -- collects keyword values which define DataUnit size
-
-
-   type HDU_Size_Type is record
-      XTENSION      : String(1..10) := (others => '_'); -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
-      CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
-      DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
-   end record;
-
    ---------------
    -- FITS.File :
 
@@ -175,45 +154,6 @@ package body FITS.File is
      return DUSize;
    end DU_Size;
 
-   --
-   -- calculate DataUnit size in FITS Blocks
-   --
-   -- implements Eq(1), (2) and (4) from [FITS]
-   -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
-   -- establish HDU type - FIXME what strategy to take here ?
-   function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive
-   is
-    DataInBlock    : FPositive;
-    DUSizeInBlocks : FPositive;
-    DUSize         : FPositive := 1;
-    From : Positive := 1;
-   begin
-
-     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
-     -- calculations [FITS Sect 6, Eq.(4)]
-     if DUSizeKeyVals.NAXISn(1) = 0 then
-      From := 2;
-     end if;
-
-     for I in From..DUSizeKeyVals.NAXIS
-     loop
-      DUSize := DUSize * DUSizeKeyVals.NAXISn(I);
-     end loop;
-      -- DUSize cannot be 0: Naxis(I) is FPositive
-      -- cannot be 0 (parsing would throw exception)
-
-     -- Conforming extensions (or 0 and 1 for Primary Header):
-     DUSize := DUSize + DUSizeKeyVals.PCOUNT;
-     DUSize := DUSize * DUSizeKeyVals.GCOUNT;
-
-     DataInBlock := BlockSize_bits /  FNatural( abs DUSizeKeyVals.BITPIX );
-     -- per FITS standard, these values are integer multiples (no remainder)
-
-     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
-
-    return DUSizeInBlocks;
-   end Size_blocks;
-   pragma Inline (Size_blocks);
 
 
    function  Read_Card  (FitsFile  : in  SIO.File_Type)
@@ -408,13 +348,74 @@ package body FITS.File is
 
 
 
+
+
+   --
+   -- Read File until ENDCard found,
+   -- cal Parse_Card for each card and
+   -- return count of Cards
+   --
+
+   --
+   -- Read File until ENDCard found
+   --
+
+    -- FIXME how to make sure that each value of Parsed_Type
+    -- was set during parsing process ?
+    -- Parsed_Card implementation must keep track of which
+    -- record fields were set
+
+   function gen_Read_Header (FitsFile : in SIO.File_Type)
+    return Parsed_Type
+   is
+    HBlk         : Card_Block;
+    Card         : Card_Type;
+    ENDCardFound : Boolean := false;
+    Data         : Parsed_Type;
+    CardIdx      : FNatural := 0;
+   begin
+    loop
+      HBlk := Read_Cards(FitsFile);
+      -- [FITS] every valid FITS File must have at least one block
+      for I in HBlk'Range
+      loop
+        Card         := HBlk(I);
+        CardIdx      := CardIdx + 1;
+        Parse_Card(CardIdx,Card, Data); -- generic
+        ENDCardFound := (Card = ENDCard);
+        exit when ENDCardFound;
+      end loop;
+      exit when ENDCardFound;
+    end loop;
+    return Data;
+   end gen_Read_Header;
+
+
+   -- Parsing DU size
+
+   type NAXIS999_Type is array (1 .. NAXIS_Type'Last) of FPositive;
+
+   type DU_Size_Type is record
+      -- Primary HDU:
+      BITPIX : Integer;       -- BITPIX from header (data size in bits)
+      NAXIS  : NAXIS_Type;    -- NAXIS  from header, 0 means no DataUnit
+      NAXISn : NAXIS999_Type; -- NAXISn from header, 0 means dimension not in use
+      -- Conforming extensions:
+      PCOUNT : FNatural;    -- BINTABLE: size of heap OR Random Groups: param count preceding each group
+      GCOUNT : FPositive;   -- Number of Random Groups present
+      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
+      CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
+   end record;
+   -- collects keyword values which define DataUnit size
+
    -- parse from Card value if it is one of DU_Size_Type, do nothing otherwise
    -- and store parse value to DUSizeKeyVals
    -- TODO what to do if NAXIS and NAXISnn do not match in a broken FITS-file
    -- [FITS,Sect 4.4.1.1]: NAXISn keys _must_ match NAXIS keyword.
    -- Size calc is valid also for IMAGE-extension, but not for TABLE extensions
    -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
-   procedure Parse_Card (Card          : in Card_Type;
+   procedure Parse_Card (Index         : in FPositive;
+                         Card          : in Card_Type;
                          DUSizeKeyVals : out DU_Size_Type)
    is
     dim : Positive;
@@ -464,7 +465,121 @@ package body FITS.File is
 
    end Parse_Card;
 
-   procedure Parse_Card (Card         : in Card_Type;
+   procedure Parse_Card_For_Size
+              (Index         : in  FPositive;
+               Card          : in  Card_Type;
+               DUSizeKeyVals : out DU_Size_Type)
+   is
+   begin
+    DUSizeKeyVals.CardsCnt := Index;
+    Parse_Card(Index, Card, DUSizeKeyVals);
+    DUSizeKeyVals.PCOUNT := 0;
+    DUSizeKeyVals.GCOUNT := 1;
+     -- init these for HDU's which do not use them
+     -- BINTABLE and RandomGroup extensions, if present,
+     -- will overwrite these values
+   end Parse_Card_For_Size;
+
+   function Read_Header is
+        new gen_Read_Header (Parsed_Type => DU_Size_Type,
+                             Parse_Card  => Parse_Card_For_Size);
+
+
+   -- Parsing HDU/XTENSION type
+
+   type HDU_Type is record
+      SIMPLE   : String(1..10);
+      XTENSION : String(1..10) := (others => ' ');
+   end record;
+   -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
+
+   procedure Parse_HDU_Type(Index: in  FPositive;
+   			    Card : in  Card_Type;
+                            Data : out HDU_Type)
+   is
+   begin
+     if    (Card(1..9) = "SIMPLE  =") then
+       Data.SIMPLE    := Card(11..20);
+     elsif (Card(1..9) = "XTENSION=") then
+       Data.XTENSION  := Card(11..20);
+     end if;
+   end Parse_HDU_Type;
+
+   function Read_Header is
+        new gen_Read_Header (Parsed_Type => HDU_Type,
+                             Parse_Card  => Parse_HDU_Type);
+
+
+   -- position to Header start before call with Set_Index(F,HDUNum)
+   function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
+   is
+    HeaderStart : SIO.Positive_Count := Index(FitsFile);
+    DUSize  : DU_Size_Type := Read_Header(FitsFile);
+    HDUInfo : HDU_Info_Type(DUSize.NAXIS);
+    HDUType : HDU_Type;
+   begin
+    Set_Index(FitsFile,HeaderStart);
+    HDUType := Read_Header(FitsFile);
+    -- fill in returned struct
+    HDUInfo.XTENSION := HDUType.XTENSION;
+    HDUInfo.CardsCnt := DUSize.CardsCnt;
+    HDUInfo.BITPIX   := DUSize.BITPIX;
+    for I in HDUInfo.NAXISn'Range
+      loop
+        HDUInfo.NAXISn(I) := DUSize.NAXISn(I);
+      end loop;
+    return HDUInfo;
+   end Get;
+
+   -- Old parsing
+   --
+   -- calculate DataUnit size in FITS Blocks
+   --
+   -- implements Eq(1), (2) and (4) from [FITS]
+   -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
+   -- establish HDU type - FIXME what strategy to take here ?
+   function  Size_blocks (DUSizeKeyVals : in DU_Size_Type) return FPositive
+   is
+    DataInBlock    : FPositive;
+    DUSizeInBlocks : FPositive;
+    DUSize         : FPositive := 1;
+    From : Positive := 1;
+   begin
+
+     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
+     -- calculations [FITS Sect 6, Eq.(4)]
+     if DUSizeKeyVals.NAXISn(1) = 0 then
+      From := 2;
+     end if;
+
+     for I in From..DUSizeKeyVals.NAXIS
+     loop
+      DUSize := DUSize * DUSizeKeyVals.NAXISn(I);
+     end loop;
+      -- DUSize cannot be 0: Naxis(I) is FPositive
+      -- cannot be 0 (parsing would throw exception)
+
+     -- Conforming extensions (or 0 and 1 for Primary Header):
+     DUSize := DUSize + DUSizeKeyVals.PCOUNT;
+     DUSize := DUSize * DUSizeKeyVals.GCOUNT;
+
+     DataInBlock := BlockSize_bits /  FNatural( abs DUSizeKeyVals.BITPIX );
+     -- per FITS standard, these values are integer multiples (no remainder)
+
+     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
+
+    return DUSizeInBlocks;
+   end Size_blocks;
+   pragma Inline (Size_blocks);
+
+   type HDU_Size_Type is record
+      XTENSION      : String(1..10) := (others => '_'); -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
+      CardsCnt      : FPositive;     -- number of cards in this Header (gives Header-size)
+      DUSizeKeyVals : DU_Size_Type;  -- keyword values to calc DataUnit-size
+   end record;
+
+   procedure Parse_Card (Index        : in FPositive;
+                         Card         : in Card_Type;
                          XtensionType : out String)
    is
    begin
@@ -473,161 +588,7 @@ package body FITS.File is
      end if;
    end Parse_Card;
 
-   procedure Parse_Card_For_Size
-              (Card          : in  Card_Type;
-               DUSizeKeyVals : out DU_Size_Type)
-   is
-   begin
-    Parse_Card(Card, DUSizeKeyVals);
-    DUSizeKeyVals.PCOUNT := 0;
-    DUSizeKeyVals.GCOUNT := 1;
-     -- init these for HDU's which do not use them
-     -- BINTABLE and RandomGroup extensions, if present,
-     -- will overwrite these values
-   end Parse_Card_For_Size;
 
-   --
-   -- Read File until ENDCard found,
-   -- cal Parse_Card for each card and
-   -- return count of Cards
-   --
-
-   --
-   -- Read File until ENDCard found
-   --
-
-    -- FIXME how to make sure that each value of Parsed_Type
-    -- was set during parsing process ?
-    -- Parsed_Card implementation must keep track of which
-    -- record fields were set
-
-   function gen_Read_Header (FitsFile : in SIO.File_Type)
-    return Parsed_Type
-   is
-    HBlk         : Card_Block;
-    Card         : Card_Type;
-    ENDCardFound : Boolean := false;
-    Data         : Parsed_Type;
-   begin
-    loop
-      HBlk := Read_Cards(FitsFile);
-      -- [FITS] every valid FITS File must have at least one block
-      for I in HBlk'Range
-      loop
-        Card         := HBlk(I);
-        Parse_Card(Card, Data); -- generic
-        ENDCardFound := (Card = ENDCard);
-        exit when ENDCardFound;
-      end loop;
-      exit when ENDCardFound;
-    end loop;
-    return Data;
-   end gen_Read_Header;
-
-   function Read_Header is
-        new gen_Read_Header (Parsed_Type => DU_Size_Type,
-                             Parse_Card  => Parse_Card_For_Size);
-
-   --
-   -- Read File until ENDCard found,
-   -- cal Parse_Card for each card and
-   -- return count of Cards
-   --
-   generic
-     type Parsed_Type is limited private;
-     with procedure Parse_Card
-                    (Card : in Card_Type;
-                     Data : out Parsed_Type);
-   procedure Read_Header_Blocks
-             (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type;
-              CardsCnt : out FNatural;
-              Xtension : out String);
-
-   --
-   -- Read File until ENDCard found
-   --
-   procedure Read_Header_Blocks
-             (FitsFile : in SIO.File_Type;
-              Data     : out Parsed_Type;
-              CardsCnt : out FNatural;
-              Xtension : out String)
-   is
-    HBlk         : Card_Block;
-    Card         : Card_Type;
-    ENDCardFound : Boolean := false;
-   begin
-
-    -- FIXME how to make sure that each value of Parsed_Type
-    -- was set during parsing process ?
-    -- Parsed_Card implementation must keep track of which
-    -- record fields were set
-
-    CardsCnt := 0;
-
-    loop
-
-      HBlk := Read_Cards(FitsFile);
-      -- [FITS] every valid FITS File must have at least one block
-
-      for I in HBlk'Range
-      loop
-        Card         := HBlk(I);
-        Parse_Card(Card, Xtension);
-        Parse_Card(Card, Data); -- generic
-        CardsCnt     := CardsCnt + 1;
-        ENDCardFound := (Card = ENDCard);
-        exit when ENDCardFound;
-      end loop;
-
-      exit when ENDCardFound;
-    end loop;
-
-   end Read_Header_Blocks;
-
-   -- the same as procedure above but as HDUSize struct generating function
-   function Parse_HeaderBlocks (FitsFile : in  SIO.File_Type)
-    return HDU_Size_Type
-   is
-    procedure ParseSizes is
-      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
-                              Parse_Card  => Parse_Card_For_Size);
-    HDUSize : HDU_Size_Type;
-   begin
-     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
-                          HDUSize.CardsCnt,HDUSize.Xtension);
-     return HDUSize;
-   end Parse_HeaderBlocks;
-
-
-   function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
-   is
-    HDUSize : HDU_Size_Type := Parse_HeaderBlocks(FitsFile);
-    HDUInfo : HDU_Info_Type(HDUSize.DUSizeKeyVals.NAXIS);
-   begin
-    HDUInfo.XTENSION := HDUSize.XTENSION;
-    HDUInfo.CardsCnt := HDUSize.CardsCnt;
-    HDUInfo.BITPIX   := HDUSize.DUSizeKeyVals.BITPIX;
-    for I in HDUInfo.NAXISn'Range
-      loop
-        HDUInfo.NAXISn(I) := HDUSize.DUSizeKeyVals.NAXISn(I);
-      end loop;
-    return HDUInfo;
-   end Get;
-
-
-   -- instantiate generic for Size parsing (see File.Size)
-
-   procedure Parse_HeaderBlocks (FitsFile : in  SIO.File_Type;
-                                 HDUSize  : out HDU_Size_Type)
-   is
-    procedure ParseSizes is
-      new Read_Header_Blocks (Parsed_Type => DU_Size_Type,
-                              Parse_Card  => Parse_Card_For_Size);
-   begin
-     ParseSizes(FitsFile, HDUSize.DUSizeKeyVals,
-                HDUSize.CardsCnt, HDUSize.Xtension);
-   end Parse_HeaderBlocks;
 
    --
    -- Set file index to position given by params
@@ -638,7 +599,7 @@ package body FITS.File is
     CurDUSize_blocks : FPositive;
     CurDUSize_bytes  : FPositive;
     CurHDUNum : Positive := 1;
-    HDUSize   : HDU_Size_Type;
+    DUSize    : DU_Size_Type;
 
      procedure Move_Index
                (FitsFile : in SIO.File_Type;
@@ -657,12 +618,12 @@ package body FITS.File is
     while CurHDUNum < HDUNum
     loop
      -- move past current Header
-     Parse_HeaderBlocks(FitsFile, HDUSize);
+     DUSize := Read_Header(FitsFile);
 
      -- skip DataUnit if exists
-     if HDUSize.DUSizeKeyVals.NAXIS /= 0
+     if DUSize.NAXIS /= 0
      then
-       CurDUSize_blocks := Size_blocks (HDUSize.DUSizeKeyVals);
+       CurDUSize_blocks := Size_blocks (DUSize);
        CurDUSize_bytes  := CurDUSize_blocks * BlockSize_bytes;
        Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;
@@ -676,19 +637,17 @@ package body FITS.File is
    -- return size of the DU where InFits points to
    function  DU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSizeRec : HDU_Size_Type;
+    DUSize : DU_Size_Type := Read_Header(InFits);
    begin
-    Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.DUSizeKeyVals);
+    return Size_blocks(DUSize);
    end DU_Size_blocks;
 
    -- return size of the HDU where InFits points to
    function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSizeRec : HDU_Size_Type;
+    DUSize : DU_Size_Type := Read_Header(InFits);
    begin
-    Parse_HeaderBlocks(InFits,HDUSizeRec);
-    return Size_blocks(HDUSizeRec.CardsCnt) + Size_blocks(HDUSizeRec.DUSizeKeyVals);
+    return Size_blocks(DUSize.CardsCnt) + Size_blocks(DUSize);
    end HDU_Size_blocks;
 -- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
 -- by func-name Parse_Header should be enough to calc sizes.
