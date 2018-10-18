@@ -140,8 +140,8 @@ package FITS.File is
      type Parsed_Type is private;
      with procedure Parse_Card
                     (CardIndex : in FPositive;
-                     Card : in  Card_Type;
-                     Data : out Parsed_Type);
+                     Card      : in  Card_Type;
+                     Data      : in out Parsed_Type);
    function gen_Read_Header (FitsFile : in SIO.File_Type)
      return Parsed_Type;
 
