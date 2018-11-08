@@ -359,6 +359,55 @@ package body FITS.File is
         new  gen_Read_Header (Parsed_Type => HDU_Size_Type,
                               Parse_Card  => Parse_HDU_Size_Type);
 
+   -----------------------------------------------------------------
+   -- 2nd variant : UserArea on Heap and is static from perspective
+   --               of the Parse_Card calls
+   function gen_Read_Header22 (FitsFile : in SIO.File_Type)
+     return Parsed_Type
+   is
+    HBlk         : Card_Block;
+    Card         : Card_Type;
+    ENDCardFound : Boolean := false;
+
+    type User_Ptr is access all User_Type;
+    UData_Acc : User_Ptr;
+    procedure Free_UserArea is
+          new Ada.Unchecked_Deallocation(User_Type,User_Ptr);
+
+    Data : Parsed_Type;-- must be definite !!! no good... NO WAY
+    -- we need to know sizes of all arrays before defining
+    -- Parsed_Type variable  -> needs double parse? ->
+    -- 1st pass establish array sizes, 2nd pass define vars (on heap or stack)
+    -- OR require Cards ordered as standard: NAXIS NAXIS1 NAXIS2...
+    -- after parsing NAXIS array can be defined, similarly for TFIELDS
+    -- NAXIS TFIELDS are the only 2 arrays among mandatory words
+   begin
+    UData_Acc := new User_Type;
+    UData_Acc.all:= UserInit; -- initialize to User supplied values
+    loop
+      HBlk := Read_Cards(FitsFile);
+      -- [FITS] every valid FITS File must have at least one block
+      for I in HBlk'Range
+      loop
+        Card         := HBlk(I);
+        Parse_Card(Card, Data, UData_Acc.all); -- generic
+        ENDCardFound := (Card = ENDCard);
+        exit when ENDCardFound;
+      end loop;
+      exit when ENDCardFound;
+    end loop;
+    -- FIXME this should be main and the double cycle a (local) func:
+    -- begin
+    -- UData.all := Parse_IntoUData(FitsFile);
+    Data := To_Parsed_Type(UData_Acc.all);-- generate Data with correctly
+                                          -- sized arrays as read from Header
+    Free_UserArea(UData_Acc);
+    return Data;
+   end gen_Read_Header22;
+
+   --
+   --------------------------------------------------------------
+
 
    -- position to Header start before call with Set_Index(F,HDUNum)
    function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type

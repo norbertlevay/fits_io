@@ -80,6 +80,17 @@ package FITS.Header is
                                   Card    : in Card_Type;
                                   HDUSize : in out HDU_Size_Type);
 
+   type HDU_Size_UserArea_Type is record
+      CardsCnt      : FPositive; -- number of cards in this Header (gives Header-size)
+   end record;
+
+   procedure Parse_HDU_Size_Type22
+                    (Card      : in  Card_Type;
+                     Data      : in out HDU_Size_Type;
+                     UData     : in out HDU_Size_UserArea_Type);
+
+
+
    -----------
    -- Utils --
    -----------

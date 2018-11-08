@@ -212,6 +212,17 @@ package body FITS.Header is
 
    end Parse_HDU_Size_Type;
 
-
+   procedure Parse_HDU_Size_Type22
+                    (Card      : in  Card_Type;
+                     Data      : in out HDU_Size_Type;
+                     UData     : in out HDU_Size_UserArea_Type)
+   is
+    dim : Positive;
+   begin
+    -- UData is on Heap - can have the big arrays
+    -- when END card parsed, set up arrays the correct arrays in HDU_Size_Type
+    -- possible only if HDU_Size_Type returned from function
+    null;
+   end Parse_HDU_Size_Type22;
 
 end FITS.Header;
