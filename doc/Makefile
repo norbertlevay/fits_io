@@ -8,11 +8,16 @@
 
 # build 3 times to resolve cross references
 
-TARGETS=ada-extfile-access.pdf
+TARGETS=ada-extfile-access.pdf FITSlib.pdf
 
 #all: $(TARGETS)
 #	pdflatex --shell-escape ada-extfile-access.tex
 
+
+FITSlib.pdf : FITSlib.tex
+	pdflatex --shell-escape FITSlib.tex
+	pdflatex --shell-escape FITSlib.tex
+	pdflatex --shell-escape FITSlib.tex
 
 ada-extfile-access.pdf : ada-extfile-access.tex
 	pdflatex --shell-escape ada-extfile-access.tex

@@ -1,0 +1,65 @@
+\documentclass[a4paper,10pt]{article}
+%\documentclass{ia2-template}
+%\docnumber{XXX-YYY}
+%\docrevision{0.1w}
+%% note: date must be a number nnnn-nn-nn
+%\docdate{2017-02-23}
+%\doctitle{Access to files which are external to Ada}
+%\authors{Norbert Levay}
+%\approvedby{-}
+              
+\usepackage[top=5.2cm, left=2cm, right=2cm, bottom=2cm, headheight=2.6cm]{geometry}%showframe
+\usepackage{minted}
+\usepackage{graphicx}
+%\usepackage{listings}
+
+% for testing use this code instea i2-template
+%\newcommand{\code}[1]{ \texttt{ \detokenize{#1} } }
+\newcommand{\fixme}[1]{\textbf{\textcolor{red}{FIXME #1}}}
+
+%\newcommand{\adacode}[1]{\begin{minted}{ada}{#1}\end{minted}}
+
+\begin{document}
+
+%\printsummary
+\tableofcontents
+
+\section{FITS library}
+
+It is based on Stream\_IO.
+
+\section{Source insert example}
+
+\subsection{Specification FITS}
+\inputminted{ada}{../lib/src/fits.ads}
+
+\subsection{Specification File}
+\inputminted{ada}{../lib/src/fits-file.ads}
+
+\subsection{Specification Header}
+\inputminted{ada}{../lib/src/fits-header.ads}
+
+\subsection{Specification Data}
+\inputminted{ada}{../lib/src/fits-data.ads}
+
+\subsection{Parser specs}
+\inputminted{ada}{../lib/src/fits-parser.ads}
+
+
+%\subsection{commands}
+
+%Specification commands.ads
+%\inputminted{ada}{../commands.ads}
+
+%Body commands.adb
+%\inputminted{ada}{../commands.adb}
+
+%\subsection{main}
+
+%Body main.adb
+%\inputminted{ada}{../main.adb}
+
+\end{document}
+
+
+
