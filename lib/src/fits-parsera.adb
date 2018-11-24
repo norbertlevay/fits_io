@@ -10,6 +10,11 @@ package body FITS.ParserA is
    is
     KeyRecs : Key_Record_Arr(1..2) ;
    begin
+     -- Cards := Next; -- get next Card_Block from media (file, network, mem...)
+     -- cycle throu all Cards in Card_Block,
+     -- and compare them to Keys
+     -- if match, fill in KeyRecs
+     -- FIXME signal end if ENDCard found, How ?
      return KeyRecs;
    end Parse;
 
