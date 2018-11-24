@@ -2,7 +2,7 @@
 with FITS.Header; use FITS.Header;
 with FITS.File;   use FITS.File; -- SIO. only
 
-package FITS.Parser is
+package FITS.ParserC is
 
   -- BEGIN
   File : SIO.File_Type;
@@ -131,4 +131,4 @@ package FITS.Parser is
   procedure Parse (KRC : in out Root_Keys'Class);
   -- Parse calls Next()
 
-end FITS.Parser;
+end FITS.ParserC;

@@ -1,7 +1,7 @@
 
 with FITS.File; use FITS.File;
 
-package body FITS.Parser is
+package body FITS.ParserC is
 
   -- Card access
 
@@ -69,5 +69,5 @@ package body FITS.Parser is
     end loop;
   end Parse;
 
-end FITS.Parser;
+end FITS.ParserC;
 
