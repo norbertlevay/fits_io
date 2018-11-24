@@ -52,6 +52,28 @@ package FITS.Parser is
 -- random groups records are present.
 -- [FITS Table 12] all mandatory keys for random groups
 
+-- Keyword types:
+-- [FITS Tables C1 C.2 C.3] Keyword groups:
+-- Mandatory, Reserved, General Reserved, and
+-- WCS keywords [FITS Section 8 WCS]
+
+-- [FITS Appendix A: Syntax of keyword records] 2 forms:
+-- Commentary and Valued keyword record (=card)
+
+-- [FITS 2.1] Indexed keyword. A keyword name that is of the form of a
+-- fixed root with an appended positive integer index number.
+
+-- [FITS 8.2] Note: PCi_j CDi_j see eq (9) and (10) where i,j is NxN matrix
+--                  of max world coordinates
+-- [FITS 8.2] Note: PVi_m PSi_m where i coordinate index and m = 0..99
+
+-- [FITS 8.2.1 Table 22 suffix 'a']
+--  Alterantive WCS axis description : append 'A'...'Z' to keyword name
+-- All implied keywords with this encoding
+-- are reserved keywords, and must only be used in FITS HDUs
+-- as specified in this Standard. The axis numbers must lie in the
+-- range 1 through 99, and the coordinate parameter m must lie in
+-- the range 0 through 99, both with no leading zeros.
 
   -- root of class hiararchy
   -- when run, only reads Header up to END card,
