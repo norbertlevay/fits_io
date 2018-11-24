@@ -14,5 +14,12 @@ package body FITS.ParserA is
    end Parse;
 
 
+   function Parse_Mandatory return HDU_Size_Type
+   is
+    HDUSizeRec :  HDU_Size_Type ;
+   begin
+     return HDUSizeRec;
+   end Parse_Mandatory;
+
 
 end FITS.ParserA;
