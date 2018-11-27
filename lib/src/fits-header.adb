@@ -4,8 +4,8 @@
 -- FIXME make sure Ada Character type [Ada?][GNAT?]
 -- is of same size as FITS Standard [FITS?] header-character
 
-with Ada.Strings.Fixed;
-use  Ada.Strings.Fixed;
+with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
+with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
 
 
 package body FITS.Header is
@@ -212,17 +212,80 @@ package body FITS.Header is
 
    end Parse_HDU_Size_Type;
 
+   ------------------------------
+   -- KeyWord Parsing routines --
+   ------------------------------
+
+   subtype Key_Type is String(1..8);
+
+   -- all non-space characters must exactly match
+   function Is_Key(ReadKey   : in Key_Type;
+                   ParsedKey : in Max_8.Bounded_String)
+                   return Boolean
+   is
+   begin
+     -- trim spaces in prefixed and postfixed,
+     -- remainig string must be exact match
+     -- Note: standard requires keywords to start from 1st character
+     -- in card (left justified). We ease this restriction for parsing
+     -- allowing the keyword be anywhere within first 8 chars.
+     -- This supports 'broken' headers to be fixed and still
+     -- guarantees uniqueness/corectness.
+     return (Trim(ReadKey,Ada.Strings.Both) = Max_8.To_String(ParsedKey));
+   end Is_Key;
+
+
+   -- parse keys of form KEYROOTnnn
+   function Is_IndexedKey(ReadKey : in  Key_Type;
+                          KeyRoot : in  Max_8.Bounded_String;
+                          Index   : out Positive)
+                   return Boolean
+   is
+     RKey      : String   := Trim(ReadKey,Ada.Strings.Both);
+     RootLen   : Positive := Max_8.To_String(KeyRoot)'Length;
+     RootMatch : Boolean  := RKey(1..RootLen) = Max_8.To_String(KeyRoot);
+   begin
+      if(RootMatch) then
+       -- parse out the index value
+       Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
+       return True;
+      else
+       return False;
+      end if;
+   end Is_IndexedKey;
+
+
+
    procedure Parse_HDU_Size_Type22
                     (Card      : in  Card_Type;
                      Data      : in out HDU_Size_Type;
                      UData     : in out HDU_Size_UserArea_Type)
    is
-    dim : Positive;
+    -- key read from file
+    Key : String(1..8) := Card(1..8);
+    -- list keys to parse
+    BITPIX : constant Max_8.Bounded_String := Max_8.To_Bounded_String("BITPIX");
+    NAXIS  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
+    NAXIS_Arr  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
+    Index : Positive;
    begin
     -- UData is on Heap - can have the big arrays
     -- when END card parsed, set up arrays the correct arrays in HDU_Size_Type
     -- possible only if HDU_Size_Type returned from function
-    null;
+     if (Is_Key(Key, BITPIX)) then
+       Data.BITPIX := Integer'Value(Card(10..30));
+
+     elsif (Is_Key(Key, NAXIS)) then
+       -- store arr length
+       Data.NAXIS := Natural'Value(Card(10..30));
+
+     elsif (Is_IndexedKey(Key, NAXIS_Arr, Index)) then
+       -- collect all indexed key elements to NAXIS_List
+       -- when parsing ready, convert list to array NAXIS_Arr(1..NAXIS)
+       null;
+
+     end if;
+
    end Parse_HDU_Size_Type22;
 
 end FITS.Header;
