@@ -405,6 +405,14 @@ package body FITS.File is
     return Data;
    end gen_Read_Header22;
 
+
+   function  Read_Header22 is
+        new  gen_Read_Header22 (Parsed_Type => HDU_Size_Type,
+                                User_Type   => HDU_Size_UserArea_Type,
+                                UserInit    => HDUSizeInit,
+                                To_Parsed_Type => To_HDUSize_Type,
+                                Parse_Card  => Parse_HDU_Size_Type22);
+
    --
    --------------------------------------------------------------
 

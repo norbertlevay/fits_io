@@ -259,6 +259,14 @@ package body FITS.Header is
     Value : FPositive; -- whatever type as def'd by keystring
    end record;
 
+   function To_HDUSize_Type (UData : in HDU_Size_UserArea_Type)
+     return HDU_Size_Type
+   is
+    dummy : HDU_Size_Type;
+   begin
+    return dummy;
+   end To_HDUSize_Type;
+
    procedure Parse_HDU_Size_Type22
                     (Card      : in  Card_Type;
                      Data      : in out HDU_Size_Type;
@@ -269,9 +277,8 @@ package body FITS.Header is
     -- list keys to parse
     BITPIX : constant Max_8.Bounded_String := Max_8.To_Bounded_String("BITPIX");
     NAXIS  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
-    NAXIS_Arr  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
     Index : Positive;
-    temp : Key_Arr_FPos;
+    temp  : Key_Arr_FPos;
    begin
     -- UData is on Heap - can have the big arrays
     -- when END card parsed, set up arrays the correct arrays in HDU_Size_Type
@@ -283,7 +290,9 @@ package body FITS.Header is
        -- store arr length
        Data.NAXIS := Natural'Value(Card(10..30));
 
-     elsif (Is_IndexedKey(Key, NAXIS_Arr, Index)) then
+     -- KeyRoot of NAXISnnn array is NAXIS, is the same as
+     -- length NAXIS. Use the same string.
+     elsif (Is_IndexedKey(Key, NAXIS, Index)) then
        -- collect all indexed key elements to NAXIS_List
        -- when parsing ready, convert list to array NAXIS_Arr(1..NAXIS)
        temp.Index := Index;
