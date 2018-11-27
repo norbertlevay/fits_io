@@ -254,7 +254,10 @@ package body FITS.Header is
       end if;
    end Is_IndexedKey;
 
-
+   type Key_Arr_FPos is record
+    Index : Positive;
+    Value : FPositive; -- whatever type as def'd by keystring
+   end record;
 
    procedure Parse_HDU_Size_Type22
                     (Card      : in  Card_Type;
@@ -268,6 +271,7 @@ package body FITS.Header is
     NAXIS  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
     NAXIS_Arr  : constant Max_8.Bounded_String := Max_8.To_Bounded_String("NAXIS");
     Index : Positive;
+    temp : Key_Arr_FPos;
    begin
     -- UData is on Heap - can have the big arrays
     -- when END card parsed, set up arrays the correct arrays in HDU_Size_Type
@@ -282,8 +286,10 @@ package body FITS.Header is
      elsif (Is_IndexedKey(Key, NAXIS_Arr, Index)) then
        -- collect all indexed key elements to NAXIS_List
        -- when parsing ready, convert list to array NAXIS_Arr(1..NAXIS)
-       null;
-
+       temp.Index := Index;
+       temp.Value := FPositive'Value(Card(10..30));
+       -- chain these temp's on a list
+       -- when ENDCArd reached convert List to array, destroy list and return
      end if;
 
    end Parse_HDU_Size_Type22;
