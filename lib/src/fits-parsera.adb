@@ -40,6 +40,9 @@ package body FITS.ParserA is
       if(RootMatch) then
        -- parse out the index value
        Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
+       -- FIXME return True only if:
+       --    converts without error (handle exception here to avoid its propagation) and
+       --    index is within range
        return True;
       else
        return False;
