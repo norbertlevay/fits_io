@@ -451,7 +451,6 @@ package body FITS.File is
    function Read_Header33 (FitsFile : in SIO.File_Type)
      return HDUSize_Ptr
    is
-
     -- put both, Data and UserData on Heap
 
     HDUSize_Acc : HDUSize_Ptr;
