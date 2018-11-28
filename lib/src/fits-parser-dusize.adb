@@ -1,4 +1,6 @@
 
+with Ada.Strings.Bounded; use Ada.Strings.Bounded;
+with Ada.Strings.Fixed;
 with FITS.Header; use FITS.Header;
 
 package body FITS.Parser.DUSize is
@@ -33,25 +35,34 @@ package body FITS.Parser.DUSize is
                      UData     : in out UType)
                      return Boolean
    is
-    CardKey : Max_8.Bounded_String := Max_8.To_Bounded_String(Card(1..8));
+    -- remove spaces
+    CardKey : String := Ada.Strings.Fixed.Trim(Card(1..8),Ada.Strings.Both);
     CurKey  : Key;
    begin
 
     for I in DU_Size_Keys'Range
     loop
       CurKey := DU_Size_Keys(I);
-      if (CurKey.Indexed) then
-        if(Max_8.To_String(CurKey.Name) = Max_8.To_String(CardKey)) then
-           -- convert Key Index and Card value and store
-           -- them into PData dynamic array (List or Container.Vector)
-           null;
-        end if;
-      else -- pure Key
-        if(Max_8.To_String(CurKey.Name) = Max_8.To_String(CardKey)) then
-           -- convert Card value to PData value
-           null;
-        end if;
-      end if;
+      declare
+       CurKey_Name : String := Max_8.To_String(CurKey.Name);
+      begin
+
+       -- parse out values, indexes into PData
+       if (CurKey.Indexed) then
+         if(CurKey_Name = CardKey) then
+            -- convert Key Index and Card value and store
+            -- them into PData dynamic array (List or Container.Vector)
+            CurKey.Found := True;
+            -- FIXME should be true only if all array found
+         end if;
+       else -- pure Key
+         if(CurKey_Name = CardKey) then
+            CurKey.Found := True;
+            -- convert Card value to PData value
+         end if;
+       end if;
+
+      end;
     end loop;
 
     return False;
