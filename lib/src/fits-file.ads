@@ -174,10 +174,11 @@ package FITS.File is
                      UData     : in out User_Type)
                      return Boolean;
    function gen_Read_Header33 (FitsFile : in SIO.File_Type;
+   			       Data     : in out Parsed_Type;
                                UserData : in out User_Type)
-     return Parsed_Type;
+     return Boolean; -- last card was ENDCard or not
 
-   -- all 3 gen_Read_Data have problem: Parsed_Type can be big if it
+   -- first 2 gen_Read_Data have problem: Parsed_Type can be big if it
    -- conrains arrays (NAXIS may be 999 long - 4x1000=40KB memory) and
    -- it is on stack because it needs to be returned.
    -- OR return it on heap and it is callers reponsability to free the memory

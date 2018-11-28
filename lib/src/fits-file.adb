@@ -417,23 +417,14 @@ package body FITS.File is
    --              inside each Parse_Card() call
 
    function gen_Read_Header33 (FitsFile : in SIO.File_Type;
+   			       Data     : in out Parsed_Type;
                                UserData : in out User_Type)
-     return Parsed_Type
+     return Boolean -- last card was ENDCard or not
    is
     HBlk          : Card_Block;
     Card          : Card_Type;
     ENDCardFound  : Boolean := false;
     AllDataParsed : Boolean := false;
-
-    Data : Parsed_Type;-- must be definite !!! no good... NO WAY
-    -- we need to know sizes of all arrays before defining
-    -- Parsed_Type variable  -> needs double parse? ->
-    -- 1st pass establish array sizes, 2nd pass define vars (on heap or stack)
-    -- OR require Cards ordered as standard: NAXIS NAXIS1 NAXIS2...
-    -- after parsing NAXIS array can be defined, similarly for TFIELDS
-    -- NAXIS TFIELDS are the only 2 arrays among mandatory words
-    -- OR build List in UserData area and store array elements there
-    -- once parsing finished convert List into definite array
    begin
     loop
       HBlk := Read_Cards(FitsFile);
@@ -447,38 +438,50 @@ package body FITS.File is
       end loop;
       exit when ENDCardFound OR AllDataParsed;
     end loop;
-    return Data;
+    return ENDCardFound;
    end gen_Read_Header33;
 
 
+
+   type HDUSize_Ptr is access all HDU_Size_Type;
+   procedure Free_HDUSize is
+          new Ada.Unchecked_Deallocation(HDU_Size_Type,HDUSize_Ptr);
+
+   -- it is callers reponsability to free memory of HDUSize after use
    function Read_Header33 (FitsFile : in SIO.File_Type)
-     return HDU_Size_Type
+     return HDUSize_Ptr
    is
-     UserData : HDU_Size_UserArea_Type;
-     HDUSize  : HDU_Size_Type;  -- FIXME should be definite so already here,
-      				-- before parsing,
-                                -- we must know array length
+
+    -- put both, Data and UserData on Heap
+
+    HDUSize_Acc : HDUSize_Ptr;
 
     type User_Ptr is access all HDU_Size_UserArea_Type;
     UData_Acc : User_Ptr;
     procedure Free_UserArea is
           new Ada.Unchecked_Deallocation(HDU_Size_UserArea_Type,User_Ptr);
 
+
     function  Read_Header33 is
          new  gen_Read_Header33 (Parsed_Type => HDU_Size_Type,
                                  User_Type   => HDU_Size_UserArea_Type,
                                  Parse_Card  => Parse_HDU_Size_Type22);
+
+    ReadUntilHeaderEnd : Boolean := False;
    begin
-     UData_Acc := new HDU_Size_UserArea_Type;
+     HDUSize_Acc := new HDU_Size_Type;
+     UData_Acc   := new HDU_Size_UserArea_Type;
      -- initialize User Area
 
-     HDUSize := Read_Header33 (FitsFile,UserData);
+     ReadUntilHeaderEnd := Read_Header33 (FitsFile,
+                                          HDUSize_Acc.all,
+                                          UData_Acc.all);
 
      -- convert List to array in HDUSize
 
      Free_UserArea(UData_Acc);
 
-     return HDUSize;
+     return HDUSize_Acc;
    end Read_Header33;
    --
    --------------------------------------------------------------
