@@ -94,6 +94,12 @@ package FITS.Header is
                      Data      : in out HDU_Size_Type;
                      UData     : in out HDU_Size_UserArea_Type);
 
+   function Parse_HDU_Size_Type22
+                    (Card      : in  Card_Type;
+                     Data      : in out HDU_Size_Type;
+                     UData     : in out HDU_Size_UserArea_Type)
+                     return Boolean;
+
 
 
    -----------

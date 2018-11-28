@@ -303,4 +303,16 @@ package body FITS.Header is
 
    end Parse_HDU_Size_Type22;
 
+   function Parse_HDU_Size_Type22
+                    (Card      : in  Card_Type;
+                     Data      : in out HDU_Size_Type;
+                     UData     : in out HDU_Size_UserArea_Type)
+                     return Boolean
+   is
+   begin
+      Parse_HDU_Size_Type22(Card, Data, UData);
+       -- add sensing when all needed data read
+      return False;
+   end Parse_HDU_Size_Type22;
+
 end FITS.Header;

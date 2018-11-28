@@ -163,6 +163,20 @@ package FITS.File is
      -- unknown until END card parsed. Parse_Card after sensing END card,
      -- will finalize arrays of Parsed_Type from User_Type
 
+   -- 3rd variant: provides user-defined data area which is static
+   --              inside each Parse_Card() call
+   generic
+     type Parsed_Type is private;
+     type User_Type   is private;-- static user data for Parse_Card() calls
+     with function Parse_Card
+                    (Card      : in     Card_Type;
+                     Data      : in out Parsed_Type;
+                     UData     : in out User_Type)
+                     return Boolean;
+   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
+                               UserData : in out User_Type)
+     return Parsed_Type;
+
    -----------------------------
    -- Read/Write Header Cards --
    -----------------------------
