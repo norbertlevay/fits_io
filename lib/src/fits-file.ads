@@ -177,6 +177,11 @@ package FITS.File is
                                UserData : in out User_Type)
      return Parsed_Type;
 
+   -- all 3 gen_Read_Data have problem: Parsed_Type can be big if it
+   -- conrains arrays (NAXIS may be 999 long - 4x1000=40KB memory) and
+   -- it is on stack because it needs to be returned.
+   -- OR return it on heap and it is callers reponsability to free the memory
+
    -----------------------------
    -- Read/Write Header Cards --
    -----------------------------
