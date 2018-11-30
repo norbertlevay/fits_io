@@ -52,43 +52,35 @@ package body FITS.ParserA is
 
 
    procedure Parse(Card          : in Card_Type;
-                   Keys_To_Parse : in Parse_Key_Arr;
+                   Keys_To_Parse : in out In_Key_List.List;
                    Found_Keys    : in out Key_List.List)
    is
-    Key : Parse_Key_Type;
-    Idx : Positive;
     FoundKey : Key_Record_Type;
+    Cursor   : In_Key_List.Cursor;
+    Key      : Keyword_Ptr;
    begin
-    for I in Keys_To_Parse'Range
+
+    while In_Key_List.Has_Element(Cursor)
     loop
 
-       Key := Keys_To_Parse(I);
+        Key := In_Key_List.Element(Cursor);
 
-       if(Is_Key(Card(1..8),Key.Name))
-       then
-        -- pure Key match
-        FoundKey.Name    := Max_8.To_Bounded_String(Trim(Card(1 .. 8),Ada.Strings.Both));
-        FoundKey.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
-        FoundKey.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
-        Found_Keys.Append(FoundKey);
-       elsif(Is_IndexedKey(Card(1..8),Key.Name,Idx))
-       then
-        -- Indexed key match maybe
-        FoundKey.Name    := Max_8.To_Bounded_String(Trim(Card(1 .. 8),Ada.Strings.Both));
-        FoundKey.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
-        FoundKey.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
-        -- here use also the returned index Idx
-        Found_Keys.Append(FoundKey);
-       end if;
+        if(Match(Key.all,Card))
+        then
 
-       -- FIXME how to extend Key types: Key, IndexedKey, WCSKey,...?
-       --
-       -- use OOP instead if .. else if
-       -- use Key'Class : Key.Match(NextCard,Key'Class) return Boolean
-       -- if Match true -> Append Card to List
-       -- E.g. Parsed_Key_Type should be tagged record
+         FoundKey.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
+         FoundKey.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
+         FoundKey.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+
+         Found_Keys.Append(FoundKey);
+         In_Key_List.Delete(Keys_To_Parse,Cursor);
+
+        else
+         In_Key_List.Next(Cursor);
+        end if;
 
     end loop;
+
    end Parse;
 
 

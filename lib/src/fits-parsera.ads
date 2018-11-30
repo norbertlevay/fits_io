@@ -6,6 +6,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 
 
 with FITS.Header; use FITS.Header;
+with FITS.Keyword; use FITS.Keyword;
 
 package FITS.ParserA is
 
@@ -45,10 +46,15 @@ package FITS.ParserA is
     -- FIXME use variable record for Key and IndexedKey
    type Parse_Key_Arr is array (Positive range <>) of Parse_Key_Type;
 
+   type Keyword_Ptr is access Keyword_Type'Class;
+
+   package In_Key_List is
+       new Ada.Containers.Doubly_Linked_Lists(Keyword_Ptr);
+
    -- do Parse
 
    procedure Parse(Card          : in Card_Type;
-                   Keys_To_Parse : in Parse_Key_Arr;
+                   Keys_To_Parse : in out In_Key_List.List;
                    Found_Keys    : in out Key_List.List);
 
    function Parse(Keys : in Parse_Key_Arr) return Key_Record_Arr;

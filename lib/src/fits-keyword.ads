@@ -18,6 +18,7 @@ package FITS.Keyword is
     record
         Index_First : Natural;
         Index_Last  : Positive;
+        Index       : Natural;
     end record;
 
    function Parse_Index(Key : in Indexed_Keyword_Type) return Natural;
