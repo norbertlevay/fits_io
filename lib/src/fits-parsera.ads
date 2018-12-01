@@ -30,6 +30,7 @@ package FITS.ParserA is
 
    package Key_List is
        new Ada.Containers.Doubly_Linked_Lists(Key_Record_Type);
+   use Key_List;
 
    type Key_Record_Arr is array (Positive range <>) of Key_Record_Type;
 
@@ -46,10 +47,11 @@ package FITS.ParserA is
     -- FIXME use variable record for Key and IndexedKey
    type Parse_Key_Arr is array (Positive range <>) of Parse_Key_Type;
 
-   type Keyword_Ptr is access Keyword_Type'Class;
+   type Keyword_Ptr is access all Keyword_Type'Class;
 
    package In_Key_List is
        new Ada.Containers.Doubly_Linked_Lists(Keyword_Ptr);
+   use In_Key_List;
 
    -- do Parse
 
@@ -59,6 +61,22 @@ package FITS.ParserA is
 
    function Parse(Keys : in Parse_Key_Arr) return Key_Record_Arr;
 
+
+   -- BEGIN DU_Size child package (OR Mandatory child package ??)
+   type NAXIS_Arr is array (Natural range <>) of Positive;
+
+   type DU_Size_Type(NAXIS : Positive) is record
+      BITPIX   : Integer;
+      NAXISArr : NAXIS_Arr(1..NAXIS);
+   end record;
+
+   -- return number of axis
+   function Naxis(ParsedKeys : in Key_List.List)
+     return Positive;
+
+   function To_DU_Size_Type(ParsedKeys : in Key_List.List)
+     return DU_Size_Type;
+   -- END DU_Size child package
 
    -- misc
 

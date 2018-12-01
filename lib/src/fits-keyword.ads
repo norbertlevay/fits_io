@@ -21,8 +21,6 @@ package FITS.Keyword is
         Index       : Natural;
     end record;
 
-   function Parse_Index(Key : in Indexed_Keyword_Type) return Natural;
-
    function Match(Key  : in Indexed_Keyword_Type;
                   Card : in Card_Type) return Boolean;
 

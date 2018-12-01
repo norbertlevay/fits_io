@@ -1,10 +1,16 @@
 
+with Ada.Text_IO;
+with Ada.Tags; use Ada.Tags;
+
 with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
 with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
 
 with FITS.Header; use FITS.Header;
+
+
+with Ada.Containers.Doubly_Linked_Lists;
 
 package body FITS.ParserA is
 
@@ -58,12 +64,24 @@ package body FITS.ParserA is
     FoundKey : Key_Record_Type;
     Cursor   : In_Key_List.Cursor;
     Key      : Keyword_Ptr;
+    OutLen  : Ada.Containers.Count_Type;
+    InLen   : Ada.Containers.Count_Type;
    begin
 
+--   Ada.Text_IO.Put_Line("NewCard: " & Card(1..8));
+
+    Cursor := In_Key_List.First(Keys_To_Parse);
     while In_Key_List.Has_Element(Cursor)
     loop
 
+       InLen  := In_Key_List.Length(Keys_To_Parse);
+       OutLen := Key_List.Length(Found_Keys);
+
+
         Key := In_Key_List.Element(Cursor);
+
+        Ada.Text_IO.Put_Line(Ada.Containers.Count_Type'Image(InLen) & " " & Ada.Containers.Count_Type'Image(OutLen));
+--        Ada.Text_IO.Put_Line(Key'Tag);
 
         if(Match(Key.all,Card))
         then
@@ -72,12 +90,17 @@ package body FITS.ParserA is
          FoundKey.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
          FoundKey.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
 
-         Found_Keys.Append(FoundKey);
-         In_Key_List.Delete(Keys_To_Parse,Cursor);
+         Ada.Text_IO.Put_Line(Max_8.To_String(FoundKey.Name));
 
-        else
-         In_Key_List.Next(Cursor);
+         Found_Keys.Append(FoundKey);
+
+         if (Key'Tag = Keyword_Type'Tag) then
+          In_Key_List.Delete(Keys_To_Parse,Cursor);
+         end if;
+
         end if;
+
+       In_Key_List.Next(Cursor);
 
     end loop;
 
@@ -105,6 +128,61 @@ package body FITS.ParserA is
    begin
      return HDUSizeRec;
    end Parse_Mandatory;
+
+
+   -- BEGIN DU_Size child package
+
+   function Naxis(ParsedKeys : in Key_List.List) return Positive
+   is
+    KeyRec   : Key_Record_Type;
+    CurPos   : Key_List.Cursor;
+   begin
+    CurPos := Key_List.First(ParsedKeys);
+    while Key_List.Has_Element(CurPos)
+    loop
+        KeyRec := Key_List.Element(CurPos);
+        exit when Max_8.To_String(KeyRec.Name) = "NAXIS";
+        Key_List.Next(CurPos);
+    end loop;
+    return Positive'Value(Max20.To_String(KeyRec.Value));
+   end Naxis;
+
+
+   function To_DU_Size_Type(ParsedKeys : in Key_List.List)
+     return DU_Size_Type
+   is
+     DUSize : DU_Size_Type(Naxis(ParsedKeys));
+     KeyRec : Key_Record_Type;
+     CurPos : Key_List.Cursor;
+     Idx : Natural;
+   begin
+    CurPos := Key_List.First(ParsedKeys);
+    while Key_List.Has_Element(CurPos)
+    loop
+
+        KeyRec := Key_List.Element(CurPos);
+
+        declare
+         Name : String := Max_8.To_String(KeyRec.Name);
+        begin
+         if(Name = "BITPIX") then
+           DUSize.BITPIX := Integer'Value(Max20.To_String(KeyRec.Value));
+         elsif ( Name(1..5) = "NAXIS" ) then
+
+          if( Name'Length > 5 ) then
+             Idx := Natural'Value( Name(6..Name'Last) );
+             DUSize.NAXISArr(Idx) := Natural'Value(Max20.To_String(KeyRec.Value));
+           end if;
+
+         end if;
+        end;
+
+        Key_List.Next(CurPos);
+    end loop;
+     return DUSize;
+   end To_DU_Size_Type;
+
+   -- END DU_Size child package
 
 
 end FITS.ParserA;
