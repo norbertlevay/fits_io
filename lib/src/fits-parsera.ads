@@ -1,6 +1,5 @@
 
 with Ada.Strings.Bounded;
-with Ada.Streams.Stream_IO;
 
 with Ada.Containers.Doubly_Linked_Lists;
 
@@ -10,10 +9,13 @@ with FITS.Keyword; use FITS.Keyword;
 
 package FITS.ParserA is
 
-   package SIO renames Ada.Streams.Stream_IO;
-   -- FIXME how to solve the "function Next return Card_Block" ?
-   -- must not show SIO.File_Type  but is called
-   -- inside Parse/Read_Header at each cycle until ENDCard found
+   -- input: list of constant/literal Keywords of different type
+
+   type Keyword_Ptr is access all Keyword_Type'Class;
+
+   package In_Key_List is
+       new Ada.Containers.Doubly_Linked_Lists(Keyword_Ptr);
+   use In_Key_List;
 
 
    -- output: list of found Keys
@@ -28,39 +30,26 @@ package FITS.ParserA is
     -- ValuedKeyRecord like above and
     -- CommentKeyRecords: has no value
 
-   package Key_List is
+   package Out_Key_List is
        new Ada.Containers.Doubly_Linked_Lists(Key_Record_Type);
-   use Key_List;
+   use Out_Key_List;
 
    type Key_Record_Arr is array (Positive range <>) of Key_Record_Type;
 
 
-   -- input: fixed table (constant array) of Keywords
 
-   type Parse_Key_Type is
-    record
-	Name    : Max_8.Bounded_String;
-        -- if indexed key, provide index range KEYmin .. KEYmax
-        Min     : Natural;
-        Max     : Positive;
-    end record;
-    -- FIXME use variable record for Key and IndexedKey
-   type Parse_Key_Arr is array (Positive range <>) of Parse_Key_Type;
-
-   type Keyword_Ptr is access all Keyword_Type'Class;
-
-   package In_Key_List is
-       new Ada.Containers.Doubly_Linked_Lists(Keyword_Ptr);
-   use In_Key_List;
-
-   -- do Parse
+   -- Parse one card
 
    procedure Parse(Card          : in Card_Type;
                    Keys_To_Parse : in out In_Key_List.List;
-                   Found_Keys    : in out Key_List.List);
+                   Found_Keys    : in out Out_Key_List.List);
 
-   function Parse(Keys : in Parse_Key_Arr) return Key_Record_Arr;
-
+   generic
+    type Source_Type is private;
+    with function Next(Source : in Source_Type) return Card_Block;
+   procedure Parse_Header(Source        : in Source_Type;
+                          Keys_To_Parse : in out In_Key_List.List;
+                          Found_Keys    : in out Out_Key_List.List);
 
    -- BEGIN DU_Size child package (OR Mandatory child package ??)
    type NAXIS_Arr is array (Natural range <>) of Positive;
@@ -71,11 +60,18 @@ package FITS.ParserA is
    end record;
 
    -- return number of axis
-   function Naxis(ParsedKeys : in Key_List.List)
+   function Naxis(ParsedKeys : in Out_Key_List.List)
      return Positive;
 
-   function To_DU_Size_Type(ParsedKeys : in Key_List.List)
+   function To_DU_Size_Type(ParsedKeys : in Out_Key_List.List)
      return DU_Size_Type;
+
+   generic
+    type Source_Type is private;
+    with function Next(Source : in Source_Type) return Card_Block;
+   function Parse_Header_For_DUSize(Source : in Source_Type)
+     return DU_Size_Type;
+
    -- END DU_Size child package
 
    -- misc

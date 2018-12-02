@@ -29,7 +29,7 @@ procedure testparsera is
   );
 
   PKeys : In_Key_List.List;
-  FKeys : Key_List.List;
+  FKeys : Out_Key_List.List;
 
 --  simple : Keyword_Type := (Name => Max_8.To_Bounded_String("SIMPLE"));
   simple_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("SIMPLE"));
@@ -40,9 +40,9 @@ procedure testparsera is
                                                            Index_Last  =>999,
                                                            Index       =>0);
 
-   procedure PrintKey(Position : Key_List.Cursor)
+   procedure PrintKey(Position : Out_Key_List.Cursor)
    is
-    CurKey : Key_Record_Type := Key_List.Element(Position);
+    CurKey : Key_Record_Type := Out_Key_List.Element(Position);
    begin
       Put_Line(Max_8.To_String(CurKey.Name) &
       " " &
@@ -62,7 +62,7 @@ procedure testparsera is
 begin
 --   procedure Parse(Card          : in Card_Type;
 --                   Keys_To_Parse : in out In_Key_List.List;
---                   Found_Keys    : in out Key_List.List);
+--                   Found_Keys    : in out Out_Key_List.List);
 
 
 

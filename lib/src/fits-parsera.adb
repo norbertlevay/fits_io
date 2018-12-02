@@ -59,7 +59,7 @@ package body FITS.ParserA is
 
    procedure Parse(Card          : in Card_Type;
                    Keys_To_Parse : in out In_Key_List.List;
-                   Found_Keys    : in out Key_List.List)
+                   Found_Keys    : in out Out_Key_List.List)
    is
     FoundKey : Key_Record_Type;
     Cursor   : In_Key_List.Cursor;
@@ -75,7 +75,7 @@ package body FITS.ParserA is
     loop
 
        InLen  := In_Key_List.Length(Keys_To_Parse);
-       OutLen := Key_List.Length(Found_Keys);
+       OutLen := Out_Key_List.Length(Found_Keys);
 
 
         Key := In_Key_List.Element(Cursor);
@@ -109,18 +109,6 @@ package body FITS.ParserA is
 
 
 
-   function Parse(Keys : in Parse_Key_Arr) return Key_Record_Arr
-   is
-    KeyRecs : Key_Record_Arr(1..2) ;
-   begin
-     -- Cards := Next; -- get next Card_Block from media (file, network, mem...)
-     -- cycle throu all Cards in Card_Block,
-     -- and compare them to Keys
-     -- if match, fill in KeyRecs
-     -- FIXME signal end if ENDCard found, How ?
-     return KeyRecs;
-   end Parse;
-
 
    function Parse_Mandatory return HDU_Size_Type
    is
@@ -132,35 +120,35 @@ package body FITS.ParserA is
 
    -- BEGIN DU_Size child package
 
-   function Naxis(ParsedKeys : in Key_List.List) return Positive
+   function Naxis(ParsedKeys : in Out_Key_List.List) return Positive
    is
     KeyRec   : Key_Record_Type;
-    CurPos   : Key_List.Cursor;
+    CurPos   : Out_Key_List.Cursor;
    begin
-    CurPos := Key_List.First(ParsedKeys);
-    while Key_List.Has_Element(CurPos)
+    CurPos := Out_Key_List.First(ParsedKeys);
+    while Out_Key_List.Has_Element(CurPos)
     loop
-        KeyRec := Key_List.Element(CurPos);
+        KeyRec := Out_Key_List.Element(CurPos);
         exit when Max_8.To_String(KeyRec.Name) = "NAXIS";
-        Key_List.Next(CurPos);
+        Out_Key_List.Next(CurPos);
     end loop;
     return Positive'Value(Max20.To_String(KeyRec.Value));
    end Naxis;
 
 
-   function To_DU_Size_Type(ParsedKeys : in Key_List.List)
+   function To_DU_Size_Type(ParsedKeys : in Out_Key_List.List)
      return DU_Size_Type
    is
      DUSize : DU_Size_Type(Naxis(ParsedKeys));
      KeyRec : Key_Record_Type;
-     CurPos : Key_List.Cursor;
+     CurPos : Out_Key_List.Cursor;
      Idx : Natural;
    begin
-    CurPos := Key_List.First(ParsedKeys);
-    while Key_List.Has_Element(CurPos)
+    CurPos := Out_Key_List.First(ParsedKeys);
+    while Out_Key_List.Has_Element(CurPos)
     loop
 
-        KeyRec := Key_List.Element(CurPos);
+        KeyRec := Out_Key_List.Element(CurPos);
 
         declare
          Name : String := Max_8.To_String(KeyRec.Name);
@@ -177,12 +165,59 @@ package body FITS.ParserA is
          end if;
         end;
 
-        Key_List.Next(CurPos);
+        Out_Key_List.Next(CurPos);
     end loop;
      return DUSize;
    end To_DU_Size_Type;
 
    -- END DU_Size child package
 
+
+--   generic
+--    type Source_Type is private;
+--    with function Next(Source : in Source_Type) return Card_Block;
+   procedure Parse_Header(Source        : in Source_Type;
+                          Keys_To_Parse : in out In_Key_List.List;
+                          Found_Keys    : in out Out_Key_List.List)
+   is
+    HBlk          : Card_Block;
+    Card          : Card_Type;
+    ENDCardFound  : Boolean := False;
+    AllDataParsed : Boolean := False;-- FIXME file-index not pointing to DU
+                                     -- if we leave before END card
+                                     -- must continue reading until END card
+                                     -- or
+                                     -- reset file-index to begining of the Header
+                                     -- Let user deal with this....?
+   begin
+    loop
+      -- [FITS] every valid FITS File must have at least one block
+      HBlk := Next(Source);
+      for I in HBlk'Range
+      loop
+        Card := HBlk(I);
+        AllDataParsed := False;--Parse_Card(Card, ParsedData, UserData); -- generic
+	Parse(Card,Keys_To_Parse,Found_Keys);
+        ENDCardFound  := (Card = ENDCard);
+        exit when ENDCardFound OR AllDataParsed;
+      end loop;
+      exit when ENDCardFound OR AllDataParsed;
+    end loop;
+   end Parse_Header;
+
+
+--   generic
+--    type Source_Type is private;
+--    with function Next(Source : in Source_Type) return Card_Block;
+   function Parse_Header_For_DUSize(Source : in Source_Type)
+     return DU_Size_Type
+   is
+    PKeys : In_Key_List.List;
+    FKeys : Out_Key_List.List;
+
+    DUSize : DU_Size_Type(1);
+   begin
+    return DUSize;
+   end Parse_Header_For_DUSize;
 
 end FITS.ParserA;
