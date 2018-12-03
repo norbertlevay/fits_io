@@ -44,6 +44,8 @@ package FITS.ParserA is
                    Keys_To_Parse : in out In_Key_List.List;
                    Found_Keys    : in out Out_Key_List.List);
 
+   -- Parse all needed cards
+
    generic
     type Source_Type is private;
     with function Next(Source : in Source_Type) return Card_Block;
@@ -51,28 +53,6 @@ package FITS.ParserA is
                           Keys_To_Parse : in out In_Key_List.List;
                           Found_Keys    : in out Out_Key_List.List);
 
-   -- BEGIN DU_Size child package (OR Mandatory child package ??)
-   type NAXIS_Arr is array (Natural range <>) of Positive;
-
-   type DU_Size_Type(NAXIS : Positive) is record
-      BITPIX   : Integer;
-      NAXISArr : NAXIS_Arr(1..NAXIS);
-   end record;
-
-   -- return number of axis
-   function Naxis(ParsedKeys : in Out_Key_List.List)
-     return Positive;
-
-   function To_DU_Size_Type(ParsedKeys : in Out_Key_List.List)
-     return DU_Size_Type;
-
-   generic
-    type Source_Type is private;
-    with function Next(Source : in Source_Type) return Card_Block;
-   function Parse_Header_For_DUSize(Source : in Source_Type)
-     return DU_Size_Type;
-
-   -- END DU_Size child package
 
    -- misc
 
