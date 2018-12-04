@@ -123,10 +123,14 @@ package body FITS.ParserA is
 --   generic
 --    type Source_Type is private;
 --    with function Next(Source : in Source_Type) return Card_Block;
-   procedure Parse_Header(Source        : in Source_Type;
-                          Keys_To_Parse : in out In_Key_List.List;
-                          Found_Keys    : in out Out_Key_List.List)
+--   procedure Parse_Header(Source        : in Source_Type;
+--                          Keys_To_Parse : in out In_Key_List.List;
+--                          Found_Keys    : in out Out_Key_List.List)
+   function Parse_Header(Source        : in Source_Type;
+                         Keys_To_Parse : in out In_Key_List.List)
+     return Out_Key_List.List
    is
+    Found_Keys : Out_Key_List.List;
     HBlk          : Card_Block;
     Card          : Card_Type;
     ENDCardFound  : Boolean := False;
@@ -150,6 +154,7 @@ package body FITS.ParserA is
       end loop;
       exit when ENDCardFound OR AllDataParsed;
     end loop;
+    return Found_Keys;
    end Parse_Header;
 
 

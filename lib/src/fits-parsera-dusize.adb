@@ -15,8 +15,6 @@ with Ada.Containers.Doubly_Linked_Lists;
 package body FITS.ParserA.DUSize is
 
 
-   -- BEGIN DU_Size child package
-
    function Naxis(ParsedKeys : in Out_Key_List.List) return Positive
    is
     KeyRec   : Key_Record_Type;
@@ -67,8 +65,13 @@ package body FITS.ParserA.DUSize is
      return DUSize;
    end To_DU_Size_Type;
 
-   -- END DU_Size child package
 
+   function Init_List return In_Key_List.List
+   is
+    InKeys :  In_Key_List.List;
+   begin
+    return InKeys;
+   end Init_List;
 
 
 --   generic
@@ -77,10 +80,11 @@ package body FITS.ParserA.DUSize is
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type
    is
-    PKeys : In_Key_List.List;
-    FKeys : Out_Key_List.List;
-
-    DUSize : DU_Size_Type(1);
+    function PH is new Parse_Header(Source_Type => Source_Type,
+                                    Next        => Next);
+    PKeys : In_Key_List.List  := Init_List;
+    FKeys : Out_Key_List.List := PH(Source,PKeys);
+    DUSize : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
     return DUSize;
    end Parse_Header_For_DUSize;

@@ -49,9 +49,9 @@ package FITS.ParserA is
    generic
     type Source_Type is private;
     with function Next(Source : in Source_Type) return Card_Block;
-   procedure Parse_Header(Source        : in Source_Type;
-                          Keys_To_Parse : in out In_Key_List.List;
-                          Found_Keys    : in out Out_Key_List.List);
+   function Parse_Header(Source        : in Source_Type;
+                         Keys_To_Parse : in out In_Key_List.List)
+     return Out_Key_List.List;
 
 
    -- misc
