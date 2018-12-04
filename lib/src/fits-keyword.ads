@@ -10,8 +10,8 @@ package FITS.Keyword is
 	Name    : Max_8.Bounded_String;
     end record;
 
-    function Match(Key  : in Keyword_Type;
-                   Card : in Card_Type) return Boolean;
+   function Match(Key  : in Keyword_Type;
+                  Card : in Card_Type) return Boolean;
 
 
    type Indexed_Keyword_Type is new Keyword_Type with

@@ -104,24 +104,6 @@ package body FITS.Parser is
 
 
 
-
-
-   function Parse_Mandatory return HDU_Size_Type
-   is
-    HDUSizeRec :  HDU_Size_Type ;
-   begin
-     return HDUSizeRec;
-   end Parse_Mandatory;
-
-
-
-
---   generic
---    type Source_Type is private;
---    with function Next(Source : in Source_Type) return Card_Block;
---   procedure Parse_Header(Source        : in Source_Type;
---                          Keys_To_Parse : in out In_Key_List.List;
---                          Found_Keys    : in out Out_Key_List.List)
    function Parse_Header(Source        : in Source_Type;
                          Keys_To_Parse : in In_Key_List.List)
      return Out_Key_List.List

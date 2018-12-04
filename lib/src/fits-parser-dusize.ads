@@ -13,12 +13,15 @@ package FITS.Parser.DUSize is
       NAXISArr : NAXIS_Arr(1..NAXIS);
    end record;
 
-   -- return number of axis
+
+
    function Naxis(ParsedKeys : in Out_Key_List.List)
      return Positive;
+   -- return number of axis
 
    function To_DU_Size_Type(ParsedKeys : in Out_Key_List.List)
      return DU_Size_Type;
+
 
    generic
     type Source_Type is limited private;

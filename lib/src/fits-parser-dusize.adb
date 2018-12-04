@@ -66,26 +66,22 @@ package body FITS.Parser.DUSize is
    function Init_List return In_Key_List.List
    is
     InKeys :  In_Key_List.List;
-  simple_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("SIMPLE"));
-  bitpix_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("BITPIX"));
-  naxis_ptr  : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"));
-  naxisarr_ptr  : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"),
+    simple_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("SIMPLE"));
+    bitpix_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("BITPIX"));
+    naxis_ptr  : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"));
+    naxisarr_ptr  : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"),
                                                            Index_First =>  1,
                                                            Index_Last  =>999,
                                                            Index       =>0);
    begin
- InKeys.Append(simple_ptr);
- InKeys.Append(bitpix_ptr);
- InKeys.Append(naxis_ptr);
- InKeys.Append(naxisarr_ptr);
-
+    InKeys.Append(simple_ptr);
+    InKeys.Append(bitpix_ptr);
+    InKeys.Append(naxis_ptr);
+    InKeys.Append(naxisarr_ptr);
     return InKeys;
    end Init_List;
 
 
---   generic
---    type Source_Type is private;
---    with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type
    is
@@ -95,12 +91,6 @@ package body FITS.Parser.DUSize is
     FKeys : Out_Key_List.List := PH(Source,PKeys);
     DUSize : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
---    Ada.Text_IO.Put_Line("Parser Parse_Header_For_DUSize...");
---    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.BITPIX));
---    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXIS));
---    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXISArr(1)));
---    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXISArr(2)));
---    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXISArr(3)));
     return DUSize;
    end Parse_Header_For_DUSize;
 

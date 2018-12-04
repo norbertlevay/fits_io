@@ -236,23 +236,23 @@ package body FITS.Header is
 
 
    -- parse keys of form KEYROOTnnn
---   function Is_IndexedKey(ReadKey : in  Key_Type;
---                          KeyRoot : in  Max_8.Bounded_String;
---                          Index   : out Positive)
---                   return Boolean
---   is
---     RKey      : String   := Trim(ReadKey,Ada.Strings.Both);
---     RootLen   : Positive := Max_8.To_String(KeyRoot)'Length;
---     RootMatch : Boolean  := RKey(1..RootLen) = Max_8.To_String(KeyRoot);
---   begin
---      if(RootMatch) then
-       -- parse out the index value
---       Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
---       return True;
---      else
---       return False;
---      end if;
---   end Is_IndexedKey;
+   function Is_IndexedKey(ReadKey : in  Key_Type;
+                          KeyRoot : in  Max_8.Bounded_String;
+                          Index   : out Positive)
+                   return Boolean
+   is
+     RKey      : String   := Trim(ReadKey,Ada.Strings.Both);
+     RootLen   : Positive := Max_8.To_String(KeyRoot)'Length;
+     RootMatch : Boolean  := RKey(1..RootLen) = Max_8.To_String(KeyRoot);
+   begin
+      if(RootMatch) then
+     -- parse out the index value
+       Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
+       return True;
+      else
+       return False;
+      end if;
+   end Is_IndexedKey;
 
    type Key_Arr_FPos is record
     Index : Positive;
@@ -292,7 +292,7 @@ package body FITS.Header is
 
      -- KeyRoot of NAXISnnn array is NAXIS, is the same as
      -- length NAXIS. Use the same string.
-  --   elsif (Is_IndexedKey(Key, NAXIS, Index)) then
+     elsif (Is_IndexedKey(Key, NAXIS, Index)) then
        -- collect all indexed key elements to NAXIS_List
        -- when parsing ready, convert list to array NAXIS_Arr(1..NAXIS)
        temp.Index := Index;
