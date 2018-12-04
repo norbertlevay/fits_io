@@ -34,26 +34,26 @@ package body FITS.ParserA is
 
 
    -- parse keys of form KEYROOTnnn
-   function Is_IndexedKey(ReadKey : in  Key_Type;
-                          KeyRoot : in  Max_8.Bounded_String;
-                          Index   : out Positive)
-                   return Boolean
-   is
-     RKey      : String   := Trim(ReadKey,Ada.Strings.Both);
-     RootLen   : Positive := Max_8.To_String(KeyRoot)'Length;
-     RootMatch : Boolean  := RKey(1..RootLen) = Max_8.To_String(KeyRoot);
-   begin
-      if(RootMatch) then
+--   function Is_IndexedKey(ReadKey : in  Key_Type;
+--                          KeyRoot : in  Max_8.Bounded_String;
+--                          Index   : out Positive)
+--                   return Boolean
+--   is
+--     RKey      : String   := Trim(ReadKey,Ada.Strings.Both);
+--     RootLen   : Positive := Max_8.To_String(KeyRoot)'Length;
+--     RootMatch : Boolean  := RKey(1..RootLen) = Max_8.To_String(KeyRoot);
+--   begin
+--      if(RootMatch) then
        -- parse out the index value
-       Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
+--       Index := Positive'Value(RKey(RootLen+1 .. RKey'Length));
        -- FIXME return True only if:
        --    converts without error (handle exception here to avoid its propagation) and
        --    index is within range
-       return True;
-      else
-       return False;
-      end if;
-   end Is_IndexedKey;
+--       return True;
+--      else
+--       return False;
+--      end if;
+--   end Is_IndexedKey;
 
 
 
@@ -80,7 +80,7 @@ package body FITS.ParserA is
 
         Key := In_Key_List.Element(Cursor);
 
-        Ada.Text_IO.Put_Line(Ada.Containers.Count_Type'Image(InLen) & " " & Ada.Containers.Count_Type'Image(OutLen));
+--        Ada.Text_IO.Put_Line(Ada.Containers.Count_Type'Image(InLen) & " " & Ada.Containers.Count_Type'Image(OutLen));
 --        Ada.Text_IO.Put_Line(Key'Tag);
 
         if(Match(Key.all,Card))
@@ -90,7 +90,7 @@ package body FITS.ParserA is
          FoundKey.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
          FoundKey.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
 
-         Ada.Text_IO.Put_Line(Max_8.To_String(FoundKey.Name));
+--         Ada.Text_IO.Put_Line(Max_8.To_String(FoundKey.Name));
 
          Found_Keys.Append(FoundKey);
 
@@ -127,10 +127,11 @@ package body FITS.ParserA is
 --                          Keys_To_Parse : in out In_Key_List.List;
 --                          Found_Keys    : in out Out_Key_List.List)
    function Parse_Header(Source        : in Source_Type;
-                         Keys_To_Parse : in out In_Key_List.List)
+                         Keys_To_Parse : in In_Key_List.List)
      return Out_Key_List.List
    is
     Found_Keys : Out_Key_List.List;
+    PKeys : In_Key_List.List := Keys_To_Parse;
     HBlk          : Card_Block;
     Card          : Card_Type;
     ENDCardFound  : Boolean := False;
@@ -148,7 +149,8 @@ package body FITS.ParserA is
       loop
         Card := HBlk(I);
         AllDataParsed := False;--Parse_Card(Card, ParsedData, UserData); -- generic
-	Parse(Card,Keys_To_Parse,Found_Keys);
+--	Parse(Card,Keys_To_Parse,Found_Keys);
+	Parse(Card,PKeys,Found_Keys);
         ENDCardFound  := (Card = ENDCard);
         exit when ENDCardFound OR AllDataParsed;
       end loop;

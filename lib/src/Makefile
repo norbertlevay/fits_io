@@ -5,7 +5,7 @@ OBJ:=${SRC:.adb=.o}
 all: libfits_io.a
 
 %.o: %.adb
-	gnatmake $< -bargs static
+	gnatmake -g $< -bargs E static
 
 libfits_io.a : $(OBJ)
 	ar r libfits_io.a  $(OBJ)

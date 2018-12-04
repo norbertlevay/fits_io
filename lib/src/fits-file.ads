@@ -165,18 +165,18 @@ package FITS.File is
 
    -- 3rd variant: provides user-defined data area which is static
    --              inside each Parse_Card() call
-   generic
-     type Parsed_Type is private;
-     type User_Type   is private;-- static user data for Parse_Card() calls
-     with function Parse_Card
-                    (Card      : in     Card_Type;
-                     Data      : in out Parsed_Type;
-                     UData     : in out User_Type)
-                     return Boolean;
-   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
-   			       Data     : in out Parsed_Type;
-                               UserData : in out User_Type)
-     return Boolean; -- last card was ENDCard or not
+--   generic
+--     type Parsed_Type is private;
+--     type User_Type   is private;-- static user data for Parse_Card() calls
+--     with function Parse_Card
+--                    (Card      : in     Card_Type;
+--                     Data      : in out Parsed_Type;
+--                     UData     : in out User_Type)
+--                     return Boolean;
+--   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
+--   			       Data     : in out Parsed_Type;
+--                               UserData : in out User_Type)
+--     return Boolean; -- last card was ENDCard or not
 
    -- first 2 gen_Read_Data have problem: Parsed_Type can be big if it
    -- conrains arrays (NAXIS may be 999 long - 4x1000=40KB memory) and

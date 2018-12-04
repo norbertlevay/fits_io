@@ -20,7 +20,7 @@ build_date.ads :
 	@echo "end Build_Date;" >> build_date.ads
 
 fits : build_date.ads
-	gnatmake -g -gnat05 -we main.adb -o fits -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -I$(FITS_IO_DIR) -I$(ZLIBADA_DIR) -I$(PNG_DIR) -static -largs -lfits_io -L$(ZLIB_DIR) -lz -bargs -E
+	gnatmake -g -gnat12 -we main.adb -o fits -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -I$(FITS_IO_DIR) -I$(ZLIBADA_DIR) -I$(PNG_DIR) -bargs -E -static -largs -lfits_io -L$(ZLIB_DIR) -lz
 
 clean:
 	rm -f build_date.ads fits b~main.ad?  *.ali *.o *~

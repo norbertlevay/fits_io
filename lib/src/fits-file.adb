@@ -39,6 +39,8 @@
 --   ... n-times
 --
 
+with Ada.Text_IO;
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
@@ -48,6 +50,9 @@ with Ada.Unchecked_Deallocation;
 
 with FITS.Header; use FITS.Header;
 -- Header has also the varous Parsers
+
+-- BEGIN new parser
+with FITS.ParserA.DUSize; use FITS.ParserA.DUSize;
 
 package body FITS.File is
 
@@ -416,30 +421,30 @@ package body FITS.File is
    -- 3rd variant: provides user-defined data area which is static
    --              inside each Parse_Card() call
 
-   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
-   			       Data     : in out Parsed_Type;
-                               UserData : in out User_Type)
-     return Boolean -- last card was ENDCard or not
-   is
-    HBlk          : Card_Block;
-    Card          : Card_Type;
-    ENDCardFound  : Boolean := false;
-    AllDataParsed : Boolean := false;
-   begin
-    loop
-      HBlk := Read_Cards(FitsFile);
+--   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
+--   			       Data     : in out Parsed_Type;
+--                               UserData : in out User_Type)
+--     return Boolean -- last card was ENDCard or not
+--   is
+--    HBlk          : Card_Block;
+--    Card          : Card_Type;
+--    ENDCardFound  : Boolean := false;
+--    AllDataParsed : Boolean := false;
+--   begin
+--    loop
+--      HBlk := Read_Cards(FitsFile);
       -- [FITS] every valid FITS File must have at least one block
-      for I in HBlk'Range
-      loop
-        Card := HBlk(I);
-        AllDataParsed := Parse_Card(Card, Data, UserData); -- generic
-        ENDCardFound  := (Card = ENDCard);
-        exit when ENDCardFound OR AllDataParsed;
-      end loop;
-      exit when ENDCardFound OR AllDataParsed;
-    end loop;
-    return ENDCardFound;
-   end gen_Read_Header33;
+--      for I in HBlk'Range
+--      loop
+--        Card := HBlk(I);
+--        AllDataParsed := Parse_Card(Card, Data, UserData); -- generic
+--        ENDCardFound  := (Card = ENDCard);
+--        exit when ENDCardFound OR AllDataParsed;
+--      end loop;
+--      exit when ENDCardFound OR AllDataParsed;
+--    end loop;
+--    return ENDCardFound;
+--   end gen_Read_Header33;
 
 
 
@@ -461,10 +466,10 @@ package body FITS.File is
           new Ada.Unchecked_Deallocation(HDU_Size_UserArea_Type,User_Ptr);
 
 
-    function  Read_Header33 is
-         new  gen_Read_Header33 (Parsed_Type => HDU_Size_Type,
-                                 User_Type   => HDU_Size_UserArea_Type,
-                                 Parse_Card  => Parse_HDU_Size_Type22);
+--    function  Read_Header33 is
+--         new  gen_Read_Header33 (Parsed_Type => HDU_Size_Type,
+--                                 User_Type   => HDU_Size_UserArea_Type,
+--                                 Parse_Card  => Parse_HDU_Size_Type22);
 
     ReadUntilHeaderEnd : Boolean := False;
    begin
@@ -472,9 +477,9 @@ package body FITS.File is
      UData_Acc   := new HDU_Size_UserArea_Type;
      -- initialize User Area
 
-     ReadUntilHeaderEnd := Read_Header33 (FitsFile,
-                                          HDUSize_Acc.all,
-                                          UData_Acc.all);
+--     ReadUntilHeaderEnd := Read_Header33 (FitsFile,
+--                                          HDUSize_Acc.all,
+--                                          UData_Acc.all);
 
      -- convert List to array in HDUSize
 
@@ -568,6 +573,27 @@ package body FITS.File is
      pragma Inline (Move_Index);
      -- util: consider this part of Stream_IO
 
+     -- BEGIN new parsing
+     function Next_From_File(Source : in SIO.File_Type)
+       return Card_Block
+     is
+     begin
+--      Ada.Text_IO.Put_Line("Next_From_File...");
+      return Read_Cards(Source);
+     end Next_From_File;
+
+     function Parse_HeadDUSize is
+          new FITS.ParserA.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+                                      Next        => Next_From_File);
+
+--   generic
+--    type Source_Type is private;
+--    with function Next(Source : in Source_Type) return Card_Block;
+--   function Parse_Header_For_DUSize(Source : in Source_Type)
+--     return DU_Size_Type;
+
+     -- END   new parsing
+
    begin
 
     SIO.Set_Index(FitsFile, 1);
@@ -576,7 +602,22 @@ package body FITS.File is
     while CurHDUNum < HDUNum
     loop
      -- move past current Header
-     HDUSize := Read_Header(FitsFile);
+--     HDUSize := Read_Header(FitsFile);
+--     Ada.Text_IO.Put_Line("Set_Index...");
+     declare
+      DUSize : DU_Size_Type := Parse_HeadDUSize(FitsFile);
+     begin
+      HDUSize.BITPIX := DUSize.BITPIX;
+      HDUSize.NAXIS  := DUSize.NAXISArr'Length;
+      for I in DUSize.NAXISArr'Range
+      loop
+       HDUSize.NAXISn(I) := FInteger(DUSize.NAXISArr(I));
+        -- FIXME explicit conversion Integer -> FInteger
+      end loop;
+     end;
+
+     HDUSize.PCOUNT := 0;
+     HDUSize.GCOUNT := 1;
 
      -- skip DataUnit if exists
      if HDUSize.NAXIS /= 0

@@ -24,7 +24,7 @@ package FITS.ParserA.DUSize is
      return DU_Size_Type;
 
    generic
-    type Source_Type is private;
+    type Source_Type is limited private;
     with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type;
