@@ -44,8 +44,8 @@ package FITS.Parser is
    -- Parse all needed cards
 
    generic
-    type Source_Type is limited private;
-    with function Next(Source : in Source_Type) return Card_Block;
+     type Source_Type is limited private;
+     with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header(Source        : in Source_Type;
                          Keys_To_Parse : in In_Key_List.List)
      return Out_Key_List.List;

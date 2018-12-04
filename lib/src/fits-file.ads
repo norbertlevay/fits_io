@@ -145,6 +145,7 @@ package FITS.File is
    function gen_Read_Header (FitsFile : in SIO.File_Type)
      return Parsed_Type;
 
+
    -- 2nd variant: provides user-defined data area which is static
    --              inside each Parse_Card() call
    generic
