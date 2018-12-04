@@ -1,13 +1,10 @@
 
-with Ada.Strings.Bounded;
+--with Ada.Containers.Doubly_Linked_Lists;
+--with FITS.Header; use FITS.Header;
+--with FITS.Keyword; use FITS.Keyword;
+-- Child  can see all includs of Parent?
 
-with Ada.Containers.Doubly_Linked_Lists;
-
-
-with FITS.Header; use FITS.Header;
-with FITS.Keyword; use FITS.Keyword;
-
-package FITS.ParserA.DUSize is
+package FITS.Parser.DUSize is
 
    type NAXIS_Arr is array (Natural range <>) of Positive;
 
@@ -29,4 +26,4 @@ package FITS.ParserA.DUSize is
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type;
 
-end FITS.ParserA.DUSize;
+end FITS.Parser.DUSize;

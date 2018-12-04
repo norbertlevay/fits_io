@@ -1,18 +1,15 @@
 
-with Ada.Text_IO;
-with Ada.Tags; use Ada.Tags;
-
-with Ada.Streams.Stream_IO;
-
-with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
-with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
-
-with FITS.Header; use FITS.Header;
-
+--with Ada.Text_IO;
+--with Ada.Tags; use Ada.Tags;
+--with Ada.Streams.Stream_IO;
+--with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
+--with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
+--with FITS.Header; use FITS.Header;
+--child can see all includes of Parent??
 
 with Ada.Containers.Doubly_Linked_Lists;
 
-package body FITS.ParserA.DUSize is
+package body FITS.Parser.DUSize is
 
 
    function Naxis(ParsedKeys : in Out_Key_List.List) return Positive
@@ -98,7 +95,7 @@ package body FITS.ParserA.DUSize is
     FKeys : Out_Key_List.List := PH(Source,PKeys);
     DUSize : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
---    Ada.Text_IO.Put_Line("ParserA Parse_Header_For_DUSize...");
+--    Ada.Text_IO.Put_Line("Parser Parse_Header_For_DUSize...");
 --    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.BITPIX));
 --    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXIS));
 --    Ada.Text_IO.Put_Line("DUSize " & Integer'Image(DUSize.NAXISArr(1)));
@@ -107,4 +104,4 @@ package body FITS.ParserA.DUSize is
     return DUSize;
    end Parse_Header_For_DUSize;
 
-end FITS.ParserA.DUSize;
+end FITS.Parser.DUSize;

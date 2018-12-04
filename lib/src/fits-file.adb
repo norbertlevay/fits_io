@@ -52,7 +52,7 @@ with FITS.Header; use FITS.Header;
 -- Header has also the varous Parsers
 
 -- BEGIN new parser
-with FITS.ParserA.DUSize; use FITS.ParserA.DUSize;
+with FITS.Parser.DUSize; use FITS.Parser.DUSize;
 
 package body FITS.File is
 
@@ -583,7 +583,7 @@ package body FITS.File is
      end Next_From_File;
 
      function Parse_HeadDUSize is
-          new FITS.ParserA.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
                                       Next        => Next_From_File);
 
 --   generic

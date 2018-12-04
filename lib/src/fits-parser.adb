@@ -1,18 +1,14 @@
 
-with Ada.Text_IO;
+--with Ada.Text_IO;
 with Ada.Tags; use Ada.Tags;
+with Ada.Strings.Fixed;   use  Ada.Strings.Fixed;
 
-with Ada.Streams.Stream_IO;
-
-with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
-with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
-
-with FITS.Header; use FITS.Header;
+with FITS.Header; use FITS.Header;-- Max_8
 
 
 with Ada.Containers.Doubly_Linked_Lists;
 
-package body FITS.ParserA is
+package body FITS.Parser is
 
    subtype Key_Type is String(1..8);
 
@@ -161,4 +157,4 @@ package body FITS.ParserA is
 
 
 
-end FITS.ParserA;
+end FITS.Parser;

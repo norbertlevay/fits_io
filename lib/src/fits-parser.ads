@@ -1,13 +1,10 @@
 
-with Ada.Strings.Bounded;
-
 with Ada.Containers.Doubly_Linked_Lists;
 
-
-with FITS.Header; use FITS.Header;
+with FITS.Header;  use FITS.Header; -- Max_8 Max20 Max48
 with FITS.Keyword; use FITS.Keyword;
 
-package FITS.ParserA is
+package FITS.Parser is
 
    -- input: list of constant/literal Keywords of different type
 
@@ -53,15 +50,4 @@ package FITS.ParserA is
                          Keys_To_Parse : in In_Key_List.List)
      return Out_Key_List.List;
 
-
-   -- misc
-
-   -- Consider below into FITS.ParserA.Mandatory
-   function Parse_Mandatory return HDU_Size_Type;
-   -- and similarly FITS.ParserA.ScaleData  FITS.ParserA.WCS etc...
-   -- so extendibility solved by child-packages
-   -- example: assume BINTABLE does not exist and is to be added
-   -- so ParserA.Mandatory has only IMAGE and ASCIITABLE
-   -- e.g. create FITS.ParserA.[?Mandatory.?]BINTABLE
-
-end FITS.ParserA;
+end FITS.Parser;
