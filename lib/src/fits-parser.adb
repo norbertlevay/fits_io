@@ -59,7 +59,6 @@ package body FITS.Parser is
                          Found_Keys    : in out Out_Key_List.List)
      return Positive
    is
-    --Found_Keys : Out_Key_List.List;
     PKeys : In_Key_List.List := Keys_To_Parse;
     HBlk          : Card_Block;
     Card          : Card_Type;
@@ -80,7 +79,7 @@ package body FITS.Parser is
       loop
         Card := HBlk(I);
         CardsCnt := CardsCnt + 1;
-        AllDataParsed := False;
+        AllDataParsed := False; -- FIXME not in use: affects CardsCnt and FileIndex
 	Parse(Card,PKeys,Found_Keys);
         ENDCardFound  := (Card = ENDCard);
         exit when ENDCardFound OR AllDataParsed;

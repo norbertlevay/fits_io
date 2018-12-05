@@ -93,12 +93,10 @@ package body FITS.Parser.DUSize is
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type
    is
-    function PH is new Parse_Header(Source_Type => Source_Type,
-                                    Next        => Next);
     PKeys : In_Key_List.List  := Init_List;
     FKeys : Out_Key_List.List;
-    CardsCnt : Positive := PH(Source,PKeys,FKeys);
-    DUSize : DU_Size_Type := To_DU_Size_Type(FKeys);
+    CardsCnt : Positive     := Parse_Header(Source,PKeys,FKeys);
+    DUSize   : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
     DUSize.CardsCnt := CardsCnt;
     return DUSize;

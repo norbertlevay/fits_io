@@ -1,16 +1,13 @@
 
---with Ada.Containers.Doubly_Linked_Lists;
---with FITS.Header; use FITS.Header;
---with FITS.Keyword; use FITS.Keyword;
--- Child  can see all includs of Parent?
 
+generic
 package FITS.Parser.DUSize is
 
    type NAXIS_Arr is array (Natural range <>) of Positive;
 
    type DU_Size_Type(NAXIS : Positive) is record
-      CardsCnt : Positive;
-      XTENSION : Max20.Bounded_String;
+      CardsCnt : Positive;            -- FIXME these two do not
+      XTENSION : Max20.Bounded_String;-- FIXME really belong here
       BITPIX   : Integer;
       NAXISArr : NAXIS_Arr(1..NAXIS);
    end record;
@@ -25,9 +22,6 @@ package FITS.Parser.DUSize is
      return DU_Size_Type;
 
 
-   generic
-    type Source_Type is limited private;
-    with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type;
 

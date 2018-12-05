@@ -49,12 +49,30 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 with Ada.Unchecked_Deallocation;
 
 with FITS.Header; use FITS.Header;
--- Header has also the varous Parsers
 
--- BEGIN new parser
-with FITS.Parser.DUSize; use FITS.Parser.DUSize;
+with FITS.Parser;
+with FITS.Parser.DUSize;
 
 package body FITS.File is
+
+   -- Instantiate Parsers for File
+
+   function Next_From_File(Source : in SIO.File_Type)
+     return Card_Block
+   is
+   begin
+    return Read_Cards(Source);
+   end Next_From_File;
+
+   package FP is new FITS.Parser(Source_Type => SIO.File_Type,
+                                 Next   => Next_From_File);
+   use FP;
+
+   package FPDUSize is new FP.DUSize;
+   use FPDUSize;
+
+
+   -- Start FITS.File body
 
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
@@ -324,18 +342,20 @@ package body FITS.File is
    function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
      return HDU_Size_Type
    is
-     function Next_From_File(Source : in SIO.File_Type)
+     function OFFNext_From_File(Source : in SIO.File_Type)
        return Card_Block
      is
      begin
       return Read_Cards(Source);
-     end Next_From_File;
-     function Parse_HeadDUSize is
-          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
-                                                         Next        => Next_From_File);
-     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     end OFFNext_From_File;
+--     function Parse_HeadDUSize is
+--          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+--                                                         Next        => Next_From_File);
+--     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
      HDUSize : HDU_Size_Type;
    begin
+      HDUSize.CardsCnt := FInteger(DUSize.CardsCnt);-- FIXME explicit conversion
       HDUSize.BITPIX := DUSize.BITPIX;
       HDUSize.NAXIS  := DUSize.NAXISArr'Length;
       for I in DUSize.NAXISArr'Range
@@ -352,16 +372,17 @@ package body FITS.File is
    function Read_Header_And_Parse_Type(FitsFile : SIO.File_Type)
      return HDU_Type
    is
-     function Next_From_File(Source : in SIO.File_Type)
+     function OOONext_From_File(Source : in SIO.File_Type)
        return Card_Block
      is
      begin
       return Read_Cards(Source);
-     end Next_From_File;
-     function Parse_HeadDUSize is
-          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
-                                                         Next        => Next_From_File);
-     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     end OOONext_From_File;
+--     function Parse_HeadDUSize is
+--          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+--                                                         Next        => Next_From_File);
+--     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
      HDUType : HDU_Type;
    begin
      HDUType.XTENSION := DUSize.XTENSION;

@@ -104,7 +104,7 @@
 
 
 with Ada.Streams.Stream_IO;
-with FITS.Header; use FITS.Header;
+with FITS.Header; use FITS.Header;-- Max20
 
 package FITS.File is
 
@@ -112,78 +112,6 @@ package FITS.File is
 
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive);
-
-
-   -----------------------
-   -- FITS file content --
-   -----------------------
-
-   type HDU_Info_Type(NAXIS : Positive) is record
-      XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
-      CardsCnt : FPositive;       -- number of cards in this Header
-      BITPIX   : Integer;             -- data type
-      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
-   end record;
-
-   function  Get (FitsFile : in  SIO.File_Type)
-      return HDU_Info_Type;
-
-   function DU_Size (NAXISArr : in NAXIS_Arr)
-     return FPositive;
-
-   --
-   -- create Header parsers
-   --
-   -- will read all Header up to END-card
-   -- before calling, make sure File-pointer is at Header start
-   -- e.g. call Set_Index(F,HDUNum)
---   generic
---     type Parsed_Type is private;
---     with procedure Parse_Card
---                    (CardIndex : in FPositive;
---                     Card      : in  Card_Type;
---                     Data      : in out Parsed_Type);
---   function gen_Read_Header (FitsFile : in SIO.File_Type)
---     return Parsed_Type;
-
-
-   -- 2nd variant: provides user-defined data area which is static
-   --              inside each Parse_Card() call
---   generic
---     type Parsed_Type is private;
---     type User_Type   is private;-- static user data for Parse_Card() calls
---     UserInit : User_Type;
---     with procedure Parse_Card
---                    (Card      : in     Card_Type;
---                     Data      : in out Parsed_Type;
---                     UData     : in out User_Type);
---     with function To_Parsed_Type(UData : in User_Type)
---             return Parsed_Type;
---   function gen_Read_Header22 (FitsFile : in SIO.File_Type)
---     return Parsed_Type;
-     -- must be function because Parsed_Type can have array and size is
-     -- unknown until END card parsed. Parse_Card after sensing END card,
-     -- will finalize arrays of Parsed_Type from User_Type
-
-   -- 3rd variant: provides user-defined data area which is static
-   --              inside each Parse_Card() call
---   generic
---     type Parsed_Type is private;
---     type User_Type   is private;-- static user data for Parse_Card() calls
---     with function Parse_Card
---                    (Card      : in     Card_Type;
---                     Data      : in out Parsed_Type;
---                     UData     : in out User_Type)
---                     return Boolean;
---   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
---   			       Data     : in out Parsed_Type;
---                               UserData : in out User_Type)
---     return Boolean; -- last card was ENDCard or not
-
-   -- first 2 gen_Read_Data have problem: Parsed_Type can be big if it
-   -- conrains arrays (NAXIS may be 999 long - 4x1000=40KB memory) and
-   -- it is on stack because it needs to be returned.
-   -- OR return it on heap and it is callers reponsability to free the memory
 
    -----------------------------
    -- Read/Write Header Cards --
@@ -265,6 +193,24 @@ package FITS.File is
    -- Notes:
    -- Write_Data writes the complete DataUnit
    -- Write_Data adds DataUnit padding after last Item written
+
+
+   -----------------------
+   -- FITS file content --
+   -----------------------
+
+   type HDU_Info_Type(NAXIS : Positive) is record
+      XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
+      CardsCnt : FPositive;       -- number of cards in this Header
+      BITPIX   : Integer;             -- data type
+      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
+   end record;
+
+   function  Get (FitsFile : in  SIO.File_Type)
+      return HDU_Info_Type;
+
+   function DU_Size (NAXISArr : in NAXIS_Arr)
+     return FPositive;
 
 
    -----------

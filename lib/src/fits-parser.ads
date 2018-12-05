@@ -4,6 +4,9 @@ with Ada.Containers.Doubly_Linked_Lists;
 with FITS.Header;  use FITS.Header; -- Max_8 Max20 Max48
 with FITS.Keyword; use FITS.Keyword;
 
+generic
+   type Source_Type is limited private;
+   with function Next(Source : in Source_Type) return Card_Block;
 package FITS.Parser is
 
    -- input: list of literal Keywords of different type
@@ -32,12 +35,8 @@ package FITS.Parser is
    use Out_Key_List;
 
 
-
    -- Parse all requested cards
 
-   generic
-     type Source_Type is limited private;
-     with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header(Source        : in Source_Type;
                          Keys_To_Parse : in out In_Key_List.List;
                          Found_Keys    : in out Out_Key_List.List)
