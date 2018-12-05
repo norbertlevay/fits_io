@@ -110,9 +110,6 @@ package FITS.File is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   procedure Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive);
-
    -----------------------------
    -- Read/Write Header Cards --
    -----------------------------
@@ -182,7 +179,6 @@ package FITS.File is
    --       A: At instation the supplied array must be packed.
    --          No represantation clauses allowed in generic
    --
-
    generic
     type Item is private;
 --    type Item_Arr is array (FPositive range <>) of Item;
@@ -209,13 +205,19 @@ package FITS.File is
    function  Get (FitsFile : in  SIO.File_Type)
       return HDU_Info_Type;
 
-   function DU_Size (NAXISArr : in NAXIS_Arr)
-     return FPositive;
+   -------------------------
+   -- Positioning in file --
+   -------------------------
 
+   procedure Set_Index(FitsFile : in SIO.File_Type;
+                       HDUNum   : in Positive);
 
    -----------
    -- Misc: --
    -----------
+
+   function DU_Size (NAXISArr : in NAXIS_Arr)
+     return FPositive;
 
    --
    -- calc DataUnit size in blocks
