@@ -63,6 +63,7 @@ package body FITS.Parser is
     PKeys : In_Key_List.List := Keys_To_Parse;
     HBlk          : Card_Block;
     Card          : Card_Type;
+    CardsCnt      : Natural := 0;
     ENDCardFound  : Boolean := False;
     AllDataParsed : Boolean := False;
      -- FIXME file-index not pointing to DU
@@ -78,6 +79,7 @@ package body FITS.Parser is
       for I in HBlk'Range
       loop
         Card := HBlk(I);
+        CardsCnt := CardsCnt + 1;
         AllDataParsed := False;
 	Parse(Card,PKeys,Found_Keys);
         ENDCardFound  := (Card = ENDCard);
@@ -85,8 +87,7 @@ package body FITS.Parser is
       end loop;
       exit when ENDCardFound OR AllDataParsed;
     end loop;
-    --return Found_Keys;
-    return 1;
+    return CardsCnt;
    end Parse_Header;
 
 
