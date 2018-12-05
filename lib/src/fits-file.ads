@@ -137,14 +137,14 @@ package FITS.File is
    -- will read all Header up to END-card
    -- before calling, make sure File-pointer is at Header start
    -- e.g. call Set_Index(F,HDUNum)
-   generic
-     type Parsed_Type is private;
-     with procedure Parse_Card
-                    (CardIndex : in FPositive;
-                     Card      : in  Card_Type;
-                     Data      : in out Parsed_Type);
-   function gen_Read_Header (FitsFile : in SIO.File_Type)
-     return Parsed_Type;
+--   generic
+--     type Parsed_Type is private;
+--     with procedure Parse_Card
+--                    (CardIndex : in FPositive;
+--                     Card      : in  Card_Type;
+--                     Data      : in out Parsed_Type);
+--   function gen_Read_Header (FitsFile : in SIO.File_Type)
+--     return Parsed_Type;
 
 
    -- 2nd variant: provides user-defined data area which is static
