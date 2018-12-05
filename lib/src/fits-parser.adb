@@ -55,10 +55,11 @@ package body FITS.Parser is
 
 
    function Parse_Header(Source        : in Source_Type;
-                         Keys_To_Parse : in In_Key_List.List)
-     return Out_Key_List.List
+                         Keys_To_Parse : in out In_Key_List.List;
+                         Found_Keys    : in out Out_Key_List.List)
+     return Positive
    is
-    Found_Keys : Out_Key_List.List;
+    --Found_Keys : Out_Key_List.List;
     PKeys : In_Key_List.List := Keys_To_Parse;
     HBlk          : Card_Block;
     Card          : Card_Type;
@@ -84,7 +85,8 @@ package body FITS.Parser is
       end loop;
       exit when ENDCardFound OR AllDataParsed;
     end loop;
-    return Found_Keys;
+    --return Found_Keys;
+    return 1;
    end Parse_Header;
 
 

@@ -39,7 +39,8 @@ package FITS.Parser is
      type Source_Type is limited private;
      with function Next(Source : in Source_Type) return Card_Block;
    function Parse_Header(Source        : in Source_Type;
-                         Keys_To_Parse : in In_Key_List.List)
-     return Out_Key_List.List;
+                         Keys_To_Parse : in out In_Key_List.List;
+                         Found_Keys    : in out Out_Key_List.List)
+     return Positive;
 
 end FITS.Parser;

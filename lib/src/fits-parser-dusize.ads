@@ -9,6 +9,7 @@ package FITS.Parser.DUSize is
    type NAXIS_Arr is array (Natural range <>) of Positive;
 
    type DU_Size_Type(NAXIS : Positive) is record
+      CardsCnt : Positive;
       XTENSION : Max20.Bounded_String;
       BITPIX   : Integer;
       NAXISArr : NAXIS_Arr(1..NAXIS);
