@@ -6,7 +6,7 @@ with FITS.Keyword; use FITS.Keyword;
 
 package FITS.Parser is
 
-   -- input: list of constant/literal Keywords of different type
+   -- input: list of literal Keywords of different type
 
    type Keyword_Ptr is access all Keyword_Type'Class;
 
@@ -31,17 +31,9 @@ package FITS.Parser is
        new Ada.Containers.Doubly_Linked_Lists(Key_Record_Type);
    use Out_Key_List;
 
-   type Key_Record_Arr is array (Positive range <>) of Key_Record_Type;
 
 
-
-   -- Parse one card
-
-   procedure Parse(Card          : in Card_Type;
-                   Keys_To_Parse : in out In_Key_List.List;
-                   Found_Keys    : in out Out_Key_List.List);
-
-   -- Parse all needed cards
+   -- Parse all requested cards
 
    generic
      type Source_Type is limited private;

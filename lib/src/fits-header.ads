@@ -80,27 +80,6 @@ package FITS.Header is
                                   Card    : in Card_Type;
                                   HDUSize : in out HDU_Size_Type);
 
-   type HDU_Size_UserArea_Type is record
-      CardsCnt      : FPositive; -- number of cards in this Header (gives Header-size)
-   end record;
-
-   HDUSizeInit : HDU_Size_UserArea_Type := (CardsCnt => 1);
-
-   function To_HDUSize_Type (UData : in HDU_Size_UserArea_Type)
-     return HDU_Size_Type;
-
-   procedure Parse_HDU_Size_Type22
-                    (Card      : in  Card_Type;
-                     Data      : in out HDU_Size_Type;
-                     UData     : in out HDU_Size_UserArea_Type);
-
---   function Parse_HDU_Size_Type22
---                    (Card      : in  Card_Type;
---                     Data      : in out HDU_Size_Type;
---                     UData     : in out HDU_Size_UserArea_Type)
---                     return Boolean;
-
-
 
    -----------
    -- Utils --

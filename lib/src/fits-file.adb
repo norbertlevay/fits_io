@@ -364,132 +364,6 @@ package body FITS.File is
         new  gen_Read_Header (Parsed_Type => HDU_Size_Type,
                               Parse_Card  => Parse_HDU_Size_Type);
 
-   -----------------------------------------------------------------
-   -- 2nd variant : UserArea on Heap and is static from perspective
-   --               of the Parse_Card calls
-   function gen_Read_Header22 (FitsFile : in SIO.File_Type)
-     return Parsed_Type
-   is
-    HBlk         : Card_Block;
-    Card         : Card_Type;
-    ENDCardFound : Boolean := false;
-
-    type User_Ptr is access all User_Type;
-    UData_Acc : User_Ptr;
-    procedure Free_UserArea is
-          new Ada.Unchecked_Deallocation(User_Type,User_Ptr);
-
-    Data : Parsed_Type;-- must be definite !!! no good... NO WAY
-    -- we need to know sizes of all arrays before defining
-    -- Parsed_Type variable  -> needs double parse? ->
-    -- 1st pass establish array sizes, 2nd pass define vars (on heap or stack)
-    -- OR require Cards ordered as standard: NAXIS NAXIS1 NAXIS2...
-    -- after parsing NAXIS array can be defined, similarly for TFIELDS
-    -- NAXIS TFIELDS are the only 2 arrays among mandatory words
-   begin
-    UData_Acc := new User_Type;
-    UData_Acc.all:= UserInit; -- initialize to User supplied values
-    loop
-      HBlk := Read_Cards(FitsFile);
-      -- [FITS] every valid FITS File must have at least one block
-      for I in HBlk'Range
-      loop
-        Card         := HBlk(I);
-        Parse_Card(Card, Data, UData_Acc.all); -- generic
-        ENDCardFound := (Card = ENDCard);
-        exit when ENDCardFound;
-      end loop;
-      exit when ENDCardFound;
-    end loop;
-    -- FIXME this should be main and the double cycle a (local) func:
-    -- begin
-    -- UData.all := Parse_IntoUData(FitsFile);
-    Data := To_Parsed_Type(UData_Acc.all);-- generate Data with correctly
-                                          -- sized arrays as read from Header
-    Free_UserArea(UData_Acc);
-    return Data;
-   end gen_Read_Header22;
-
-
-   function  Read_Header22 is
-        new  gen_Read_Header22 (Parsed_Type => HDU_Size_Type,
-                                User_Type   => HDU_Size_UserArea_Type,
-                                UserInit    => HDUSizeInit,
-                                To_Parsed_Type => To_HDUSize_Type,
-                                Parse_Card  => Parse_HDU_Size_Type22);
-
-   -- 3rd variant: provides user-defined data area which is static
-   --              inside each Parse_Card() call
-
---   function gen_Read_Header33 (FitsFile : in SIO.File_Type;
---   			       Data     : in out Parsed_Type;
---                               UserData : in out User_Type)
---     return Boolean -- last card was ENDCard or not
---   is
---    HBlk          : Card_Block;
---    Card          : Card_Type;
---    ENDCardFound  : Boolean := false;
---    AllDataParsed : Boolean := false;
---   begin
---    loop
---      HBlk := Read_Cards(FitsFile);
-      -- [FITS] every valid FITS File must have at least one block
---      for I in HBlk'Range
---      loop
---        Card := HBlk(I);
---        AllDataParsed := Parse_Card(Card, Data, UserData); -- generic
---        ENDCardFound  := (Card = ENDCard);
---        exit when ENDCardFound OR AllDataParsed;
---      end loop;
---      exit when ENDCardFound OR AllDataParsed;
---    end loop;
---    return ENDCardFound;
---   end gen_Read_Header33;
-
-
-
-   type HDUSize_Ptr is access all HDU_Size_Type;
-   procedure Free_HDUSize is
-          new Ada.Unchecked_Deallocation(HDU_Size_Type,HDUSize_Ptr);
-
-   -- it is callers reponsability to free memory of HDUSize after use
-   function Read_Header33 (FitsFile : in SIO.File_Type)
-     return HDUSize_Ptr
-   is
-    -- put both, Data and UserData on Heap
-
-    HDUSize_Acc : HDUSize_Ptr;
-
-    type User_Ptr is access all HDU_Size_UserArea_Type;
-    UData_Acc : User_Ptr;
-    procedure Free_UserArea is
-          new Ada.Unchecked_Deallocation(HDU_Size_UserArea_Type,User_Ptr);
-
-
---    function  Read_Header33 is
---         new  gen_Read_Header33 (Parsed_Type => HDU_Size_Type,
---                                 User_Type   => HDU_Size_UserArea_Type,
---                                 Parse_Card  => Parse_HDU_Size_Type22);
-
-    ReadUntilHeaderEnd : Boolean := False;
-   begin
-     HDUSize_Acc := new HDU_Size_Type;
-     UData_Acc   := new HDU_Size_UserArea_Type;
-     -- initialize User Area
-
---     ReadUntilHeaderEnd := Read_Header33 (FitsFile,
---                                          HDUSize_Acc.all,
---                                          UData_Acc.all);
-
-     -- convert List to array in HDUSize
-
-     Free_UserArea(UData_Acc);
-
-     return HDUSize_Acc;
-   end Read_Header33;
-   --
-   --------------------------------------------------------------
-
 
    -- position to Header start before call with Set_Index(F,HDUNum)
    function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
@@ -573,6 +447,7 @@ package body FITS.File is
      pragma Inline (Move_Index);
      -- util: consider this part of Stream_IO
 
+
      -- BEGIN new parsing
      function Next_From_File(Source : in SIO.File_Type)
        return Card_Block
@@ -585,13 +460,6 @@ package body FITS.File is
      function Parse_HeadDUSize is
           new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
                                       Next        => Next_From_File);
-
---   generic
---    type Source_Type is private;
---    with function Next(Source : in Source_Type) return Card_Block;
---   function Parse_Header_For_DUSize(Source : in Source_Type)
---     return DU_Size_Type;
-
      -- END   new parsing
 
    begin

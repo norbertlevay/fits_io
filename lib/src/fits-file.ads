@@ -148,18 +148,18 @@ package FITS.File is
 
    -- 2nd variant: provides user-defined data area which is static
    --              inside each Parse_Card() call
-   generic
-     type Parsed_Type is private;
-     type User_Type   is private;-- static user data for Parse_Card() calls
-     UserInit : User_Type;
-     with procedure Parse_Card
-                    (Card      : in     Card_Type;
-                     Data      : in out Parsed_Type;
-                     UData     : in out User_Type);
-     with function To_Parsed_Type(UData : in User_Type)
-             return Parsed_Type;
-   function gen_Read_Header22 (FitsFile : in SIO.File_Type)
-     return Parsed_Type;
+--   generic
+--     type Parsed_Type is private;
+--     type User_Type   is private;-- static user data for Parse_Card() calls
+--     UserInit : User_Type;
+--     with procedure Parse_Card
+--                    (Card      : in     Card_Type;
+--                     Data      : in out Parsed_Type;
+--                     UData     : in out User_Type);
+--     with function To_Parsed_Type(UData : in User_Type)
+--             return Parsed_Type;
+--   function gen_Read_Header22 (FitsFile : in SIO.File_Type)
+--     return Parsed_Type;
      -- must be function because Parsed_Type can have array and size is
      -- unknown until END card parsed. Parse_Card after sensing END card,
      -- will finalize arrays of Parsed_Type from User_Type
