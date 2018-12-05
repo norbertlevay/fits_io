@@ -1,12 +1,4 @@
 
---with Ada.Text_IO;
---with Ada.Tags; use Ada.Tags;
---with Ada.Streams.Stream_IO;
---with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
---with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
---with FITS.Header; use FITS.Header;
---child can see all includes of Parent??
-
 with Ada.Containers.Doubly_Linked_Lists;
 
 package body FITS.Parser.DUSize is

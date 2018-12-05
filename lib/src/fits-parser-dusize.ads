@@ -13,15 +13,6 @@ package FITS.Parser.DUSize is
    end record;
 
 
-
-   function Naxis(ParsedKeys : in Out_Key_List.List)
-     return Positive;
-   -- return number of axis
-
-   function To_DU_Size_Type(ParsedKeys : in Out_Key_List.List)
-     return DU_Size_Type;
-
-
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type;
 
