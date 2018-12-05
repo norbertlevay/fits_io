@@ -104,6 +104,7 @@
 
 
 with Ada.Streams.Stream_IO;
+with FITS.Header; use FITS.Header;
 
 package FITS.File is
 
@@ -118,7 +119,7 @@ package FITS.File is
    -----------------------
 
    type HDU_Info_Type(NAXIS : Positive) is record
-      XTENSION : String(1..10);   -- XTENSION string or empty
+      XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
       CardsCnt : FPositive;       -- number of cards in this Header
       BITPIX   : Integer;             -- data type
       NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions

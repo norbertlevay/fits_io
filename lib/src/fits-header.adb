@@ -133,7 +133,7 @@ package body FITS.Header is
      if    (Card(1..9) = "SIMPLE  =") then
        Data.SIMPLE    := Card(11..20);
      elsif (Card(1..9) = "XTENSION=") then
-       Data.XTENSION  := Card(11..20);
+       Data.XTENSION  := Max20.To_Bounded_String(Card(11..20));
      end if;
    end Parse_HDU_Type;
 

@@ -355,26 +355,82 @@ package body FITS.File is
    end gen_Read_Header;
 
    -- returns Keys which allow to decide HDU type
-   function  Read_Header is
+   function  TURNOFF_Read_Header is
         new  gen_Read_Header (Parsed_Type => HDU_Type,
                               Parse_Card  => Parse_HDU_Type);
 
    -- returns Keys which allow to calc Header- and DU-size
-   function  Read_Header is
+   function  TURNOFF_Read_Header is
         new  gen_Read_Header (Parsed_Type => HDU_Size_Type,
                               Parse_Card  => Parse_HDU_Size_Type);
 
+   -- temporary converters from new parsing to old FITS-File code:
+
+   -- convert DU_Size_Type -> HDU_Size_Type
+   function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
+     return HDU_Size_Type
+   is
+     function Next_From_File(Source : in SIO.File_Type)
+       return Card_Block
+     is
+     begin
+      return Read_Cards(Source);
+     end Next_From_File;
+     function Parse_HeadDUSize is
+          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+                                                         Next        => Next_From_File);
+     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     HDUSize : HDU_Size_Type;
+   begin
+      HDUSize.BITPIX := DUSize.BITPIX;
+      HDUSize.NAXIS  := DUSize.NAXISArr'Length;
+      for I in DUSize.NAXISArr'Range
+      loop
+       HDUSize.NAXISn(I) := FInteger(DUSize.NAXISArr(I));
+        -- FIXME explicit conversion Integer -> FInteger
+      end loop;
+     HDUSize.PCOUNT := 0;
+     HDUSize.GCOUNT := 1;
+     return HDUSize;
+   end Read_Header_And_Parse_Size;
+
+   -- convert DU_Size_Type -> HDU_Type
+   function Read_Header_And_Parse_Type(FitsFile : SIO.File_Type)
+     return HDU_Type
+   is
+     function Next_From_File(Source : in SIO.File_Type)
+       return Card_Block
+     is
+     begin
+      return Read_Cards(Source);
+     end Next_From_File;
+     function Parse_HeadDUSize is
+          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
+                                                         Next        => Next_From_File);
+     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
+     HDUType : HDU_Type;
+   begin
+     HDUType.XTENSION := DUSize.XTENSION;
+--     HDUType.XTENSION(1..DUSize.XTENSION'Length) := Max20.To_String(DUSize.XTENSION);
+--     for I in DUSize.XTENSION'Range
+--     loop
+--       HDUType.XTENSION(I) := DUSize.XTENSION(I);
+--     end loop;
+     return HDUType;
+   end Read_Header_And_Parse_Type;
 
    -- position to Header start before call with Set_Index(F,HDUNum)
    function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
    is
     HeaderStart : SIO.Positive_Count := Index(FitsFile);
-    HDUSize : HDU_Size_Type := Read_Header(FitsFile);
+--    HDUSize : HDU_Size_Type := Read_Header(FitsFile);
+    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(FitsFile);
     HDUInfo : HDU_Info_Type(HDUSize.NAXIS);
     HDUType : HDU_Type;
    begin
     Set_Index(FitsFile,HeaderStart);
-    HDUType := Read_Header(FitsFile);
+--    HDUType := Read_Header(FitsFile);
+    HDUType := Read_Header_And_Parse_Type(FitsFile);
     -- fill in returned struct
     HDUInfo.XTENSION := HDUType.XTENSION;
     HDUInfo.CardsCnt := HDUSize.CardsCnt;
@@ -427,6 +483,7 @@ package body FITS.File is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
+
    --
    -- Set file index to position given by params
    --
@@ -446,22 +503,6 @@ package body FITS.File is
      end Move_Index;
      pragma Inline (Move_Index);
      -- util: consider this part of Stream_IO
-
-
-     -- BEGIN new parsing
-     function Next_From_File(Source : in SIO.File_Type)
-       return Card_Block
-     is
-     begin
---      Ada.Text_IO.Put_Line("Next_From_File...");
-      return Read_Cards(Source);
-     end Next_From_File;
-
-     function Parse_HeadDUSize is
-          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
-                                      Next        => Next_From_File);
-     -- END   new parsing
-
    begin
 
     SIO.Set_Index(FitsFile, 1);
@@ -469,24 +510,10 @@ package body FITS.File is
 
     while CurHDUNum < HDUNum
     loop
+
      -- move past current Header
 --     HDUSize := Read_Header(FitsFile);
---     Ada.Text_IO.Put_Line("Set_Index...");
-     declare
-      DUSize : DU_Size_Type := Parse_HeadDUSize(FitsFile);
-     begin
-      HDUSize.BITPIX := DUSize.BITPIX;
-      HDUSize.NAXIS  := DUSize.NAXISArr'Length;
-      for I in DUSize.NAXISArr'Range
-      loop
-       HDUSize.NAXISn(I) := FInteger(DUSize.NAXISArr(I));
-        -- FIXME explicit conversion Integer -> FInteger
-      end loop;
-     end;
-
-     HDUSize.PCOUNT := 0;
-     HDUSize.GCOUNT := 1;
-
+     HDUSize := Read_Header_And_Parse_Size(FitsFile);
      -- skip DataUnit if exists
      if HDUSize.NAXIS /= 0
      then
@@ -525,7 +552,8 @@ package body FITS.File is
    -- return size of the DU where InFits points to
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSize : HDU_Size_Type := Read_Header(InFits);
+--    HDUSize : HDU_Size_Type := Read_Header(InFits);
+    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
    begin
     return Size_blocks(HDUSize);
    end DU_Size_blocks;
@@ -533,7 +561,8 @@ package body FITS.File is
    -- return size of the HDU where InFits points to
    function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSize : HDU_Size_Type := Read_Header(InFits);
+--    HDUSize : HDU_Size_Type := Read_Header(InFits);
+    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
    begin
     return Size_blocks(HDUSize.CardsCnt) + Size_blocks(HDUSize);
    end HDU_Size_blocks;

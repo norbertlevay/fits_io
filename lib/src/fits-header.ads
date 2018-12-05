@@ -51,7 +51,7 @@ package FITS.Header is
 
    type HDU_Type is record                          -- set by:
       SIMPLE   : String(1..10) := (others => ' ');  -- Primary HDU
-      XTENSION : String(1..10) := (others => ' ');  -- Extension HDU
+      XTENSION : Max20.Bounded_String;-- := (others => ' ');  -- Extension HDU
    end record;
    -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
 

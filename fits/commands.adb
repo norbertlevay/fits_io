@@ -35,7 +35,7 @@ package body Commands is
        TIO.Put( Ada.Strings.Fixed.Tail(Integer'Image(Index),2,' ') &
                         Tab &
                         -- Integer'Image(HDUInfo.XTENSION'Length) &
-                        HDUInfo.XTENSION &
+                        Max20.To_String(HDUInfo.XTENSION) &
                         Tab &
                         Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
                         " (" &
