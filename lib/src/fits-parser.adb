@@ -93,44 +93,106 @@ package body FITS.Parser is
    -- NEW : recognize HDU type: Primary, IMAGE-ext, ASCIITABLE-ext...
    -- and none of previous (e.g. experimental HDU)
 
-   procedure InitList(Card          : Card_Type;
+   procedure Init_List_Primary(InKeys : in out In_Key_List.List)
+   is
+    bitpix_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("BITPIX"));
+    naxis_ptr    : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"));
+    naxisarr_ptr : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"),
+                                                           Index_First =>  1,
+                                                           Index_Last  =>999,
+                                                           Index       =>0);
+   begin
+    InKeys.Append(bitpix_ptr);
+    InKeys.Append(naxis_ptr);
+    InKeys.Append(naxisarr_ptr);
+   end Init_List_Primary;
+
+   procedure Init_List_Add_RandomGroups(InKeys : in out In_Key_List.List)
+   is
+    groups_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("GROUPS"));
+   begin
+    InKeys.Append(groups_ptr);
+   end Init_List_Add_RandomGroups;
+
+
+   procedure Init_List_Add_Extension(InKeys : in out In_Key_List.List)
+   is
+    pcount_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("PCOUNT"));
+    gcount_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("GCOUNT"));
+   begin
+    InKeys.Append(pcount_ptr);
+    InKeys.Append(gcount_ptr);
+   end Init_List_Add_Extension;
+
+
+   procedure Init_List_Add_BinTable(InKeys : in out In_Key_List.List)
+   is
+    tfields_ptr  : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("TFIELDS"));
+    tformarr_ptr : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("TFORM"),
+                                                           Index_First =>  1,
+                                                           Index_Last  =>999,
+                                                           Index       =>0);
+   begin
+    InKeys.Append(tfields_ptr);
+    InKeys.Append(tformarr_ptr);
+   end Init_List_Add_BinTable;
+
+   procedure Init_List_Add_AsciiTable(InKeys : in out In_Key_List.List)
+   is
+    tbcolarr_ptr : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("TBCOL"),
+                                                           Index_First =>  1,
+                                                           Index_Last  =>999,
+                                                           Index       =>0);
+   begin
+    InKeys.Append(tbcolarr_ptr);
+   end Init_List_Add_AsciiTable;
+
+   procedure InitList(Card          : in Card_Type;
                       Keys_To_Parse : in out In_Key_List.List)
    is
    begin
       if (Card(1..5) = "SIMPLE") then
-       --  primary (or RandomGroup)
-       null;
+         --  primary (or RandomGroup)
 
-       if(Card(11..11) = "T") then
-         -- Primary Header, conforming with standard
-         null;
-       elsif(Card(11..11) = "F") then
-         -- Primary Header, might not be conforming with standard
-         -- FIXME WHat to do ?
-         null;
-       else
-         -- raise exception
-         null;
-       end if;
+         if(Card(11..11) = "T") then
+           -- Primary Header, conforming with standard
+           Init_List_Primary(Keys_To_Parse);
 
-       -- RandomGroup ??
+         elsif(Card(11..11) = "F") then
+           -- Primary Header, might not be conforming with standard
+           -- FIXME WHat to do ?
+           null;
+
+         else
+           -- raise exception
+           null;
+
+         end if;
+
+         -- RandomGroup ??
 
       elsif (Card(1..8) = "XTENSION") then
+         Init_List_Primary(Keys_To_Parse);
+         Init_List_Add_Extension(Keys_To_Parse);
 
-       if(Card(11..15) = "IMAGE") then
-         null;
-       elsif(Card(11..20) = "ASCIITABLE") then
-         null;
-       elsif(Card(11..18) = "BINTABLE") then
-         null;
-       else
-         -- undefed conforming extension
-         null;
-       end if;
+         if(Card(11..15) = "IMAGE") then
+           null;
+
+         elsif(Card(11..20) = "ASCIITABLE") then
+           Init_List_Add_BinTable(Keys_To_Parse);
+           Init_List_Add_AsciiTable(Keys_To_Parse);
+
+         elsif(Card(11..18) = "BINTABLE") then
+           Init_List_Add_BinTable(Keys_To_Parse);
+
+         else
+           -- undefed conforming extension
+           null;
+         end if;
 
       else
-       -- experimantal
-       null;
+         -- experimantal
+         null;
       end if;
 
 
