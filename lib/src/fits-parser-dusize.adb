@@ -60,27 +60,30 @@ package body FITS.Parser.DUSize is
      return DUSize;
    end To_DU_Size_Type;
 
-
-   function Init_List return In_Key_List.List
-   is
-    InKeys :  In_Key_List.List;
-    simple_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("SIMPLE"));
-    xtension_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("XTENSION"));
-    bitpix_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("BITPIX"));
-    naxis_ptr    : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"));
-    naxisarr_ptr : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"),
-                                                           Index_First =>  1,
-                                                           Index_Last  =>999,
-                                                           Index       =>0);
-   begin
-    Ada.Text_IO.Put_Line("DBG fits-parser-dusize::Init_List");
-    InKeys.Append(simple_ptr);
-    InKeys.Append(xtension_ptr);
-    InKeys.Append(bitpix_ptr);
-    InKeys.Append(naxis_ptr);
-    InKeys.Append(naxisarr_ptr);
-    return InKeys;
-   end Init_List;
+-- In Fits.Parser replaced by Init_List
+-- which depends on Header-Type (1st Crd)
+-- and setsup different list depending on Header-Type
+--
+--   function Init_List return In_Key_List.List
+--   is
+--    InKeys :  In_Key_List.List;
+--    simple_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("SIMPLE"));
+--    xtension_ptr : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("XTENSION"));
+--    bitpix_ptr   : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("BITPIX"));
+--    naxis_ptr    : Keyword_Ptr := new Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"));
+--    naxisarr_ptr : Keyword_Ptr := new Indexed_Keyword_Type'(Name => Max_8.To_Bounded_String("NAXIS"),
+--                                                           Index_First =>  1,
+--                                                           Index_Last  =>999,
+--                                                           Index       =>0);
+--   begin
+--    Ada.Text_IO.Put_Line("DBG fits-parser-dusize::Init_List");
+--    InKeys.Append(simple_ptr);
+--    InKeys.Append(xtension_ptr);
+--    InKeys.Append(bitpix_ptr);
+--    InKeys.Append(naxis_ptr);
+--    InKeys.Append(naxisarr_ptr);
+--    return InKeys;
+--   end Init_List;
 
 
    function Parse_Header_For_DUSize(Source : in Source_Type)
