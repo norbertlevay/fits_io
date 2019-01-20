@@ -1,4 +1,4 @@
-
+with Ada.Text_IO;
 with Ada.Containers.Doubly_Linked_Lists;
 
 package body FITS.Parser.DUSize is
@@ -73,6 +73,7 @@ package body FITS.Parser.DUSize is
                                                            Index_Last  =>999,
                                                            Index       =>0);
    begin
+    Ada.Text_IO.Put_Line("DBG fits-parser-dusize::Init_List");
     InKeys.Append(simple_ptr);
     InKeys.Append(xtension_ptr);
     InKeys.Append(bitpix_ptr);
@@ -85,11 +86,12 @@ package body FITS.Parser.DUSize is
    function Parse_Header_For_DUSize(Source : in Source_Type)
      return DU_Size_Type
    is
-    PKeys : In_Key_List.List  := Init_List;
+    PKeys : In_Key_List.List;--  := Init_List;
     FKeys : Out_Key_List.List;
     CardsCnt : Positive     := Parse_Header(Source,PKeys,FKeys);
     DUSize   : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
+    Ada.Text_IO.Put_Line("DBG in Parse_Header_For_DUSize");
     DUSize.CardsCnt := CardsCnt;
     return DUSize;
    end Parse_Header_For_DUSize;

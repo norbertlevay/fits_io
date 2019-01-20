@@ -1,7 +1,9 @@
 
---with Ada.Text_IO;
+with Ada.Text_IO;
 with Ada.Tags; use Ada.Tags;
+--with Fits.Header;   use  Fits.Header;
 with Ada.Strings.Fixed;   use  Ada.Strings.Fixed;
+--with Ada.Strings.Bounded.Bounded_String; use Ada.Strings.Bounded.Bounded_String;
 
 with FITS.Header; use FITS.Header;-- Max_8
 
@@ -10,6 +12,16 @@ with Ada.Containers.Doubly_Linked_Lists;
 
 package body FITS.Parser is
 
+   function To_Key_Record_Type (Card : in Card_Type)
+    return Key_Record_Type
+   is
+    KR : Key_Record_Type;
+   begin
+    KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
+    KR.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
+    KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+    return KR;
+   end To_Key_Record_Type;
 
    procedure Parse(Card          : in Card_Type;
                    Keys_To_Parse : in out In_Key_List.List;
@@ -54,7 +66,7 @@ package body FITS.Parser is
 
 
 
-   function Parse_Header(Source        : in Source_Type;
+   function oldParse_Header(Source        : in Source_Type;
                          Keys_To_Parse : in out In_Key_List.List;
                          Found_Keys    : in out Out_Key_List.List)
      return Positive
@@ -87,7 +99,7 @@ package body FITS.Parser is
       exit when ENDCardFound OR AllDataParsed;
     end loop;
     return CardsCnt;
-   end Parse_Header;
+   end oldParse_Header;
 
 
    -- NEW : recognize HDU type: Primary, IMAGE-ext, ASCIITABLE-ext...
@@ -102,6 +114,7 @@ package body FITS.Parser is
                                                            Index_Last  =>999,
                                                            Index       =>0);
    begin
+   Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List_Primary");
     InKeys.Append(bitpix_ptr);
     InKeys.Append(naxis_ptr);
     InKeys.Append(naxisarr_ptr);
@@ -150,39 +163,50 @@ package body FITS.Parser is
    procedure InitList(Card          : in Card_Type;
                       Keys_To_Parse : in out In_Key_List.List)
    is
+    Key : Key_Record_Type := To_Key_Record_Type(Card);
    begin
-      if (Card(1..5) = "SIMPLE") then
-         --  primary (or RandomGroup)
 
-         if(Card(11..11) = "T") then
+      Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List :"&Card);
+
+-- FIXME if should be like this: Ckeck it why errors.
+--      if (Max_8.Key.Name = Max_8.To_Bounded_String("SIMPLE") ) then
+
+      if (Max_8.To_String(Key.Name) = "SIMPLE" ) then
+         --  primary (or RandomGroup)
+	Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::SIMPLE");
+
+         if(Max20.To_String(Key.Value) = "T") then
            -- Primary Header, conforming with standard
            Init_List_Primary(Keys_To_Parse);
 
-         elsif(Card(11..11) = "F") then
+         elsif(Max20.To_String(Key.Value) = "F") then
            -- Primary Header, might not be conforming with standard
            -- FIXME WHat to do ?
            null;
 
          else
            -- raise exception
+	      Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::Raise Except");
+--           Init_List_Primary(Keys_To_Parse);
            null;
 
          end if;
 
          -- RandomGroup ??
 
-      elsif (Card(1..8) = "XTENSION") then
+      elsif (Max_8.To_String(Key.Name) = "XTENSION") then
+         Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::XTENSION");
          Init_List_Primary(Keys_To_Parse);
          Init_List_Add_Extension(Keys_To_Parse);
 
-         if(Card(11..15) = "IMAGE") then
+         if(Max20.To_String(Key.Value) = "IMAGE") then
            null;
 
-         elsif(Card(11..20) = "ASCIITABLE") then
+         elsif(Max20.To_String(Key.Value) = "ASCIITABLE") then
            Init_List_Add_BinTable(Keys_To_Parse);
            Init_List_Add_AsciiTable(Keys_To_Parse);
 
-         elsif(Card(11..18) = "BINTABLE") then
+         elsif(Max20.To_String(Key.Value) = "BINTABLE") then
            Init_List_Add_BinTable(Keys_To_Parse);
 
          else
@@ -192,6 +216,7 @@ package body FITS.Parser is
 
       else
          -- experimantal
+	Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::experimental");
          null;
       end if;
 
@@ -199,7 +224,7 @@ package body FITS.Parser is
    end InitList;
 
    -- working copy: recognize Header type and setup accordingly the InList
-   function wParse_Header(Source        : in Source_Type;
+   function Parse_Header(Source        : in Source_Type;
                          Keys_To_Parse : in out In_Key_List.List;
                          Found_Keys    : in out Out_Key_List.List)
      return Positive
@@ -231,6 +256,8 @@ package body FITS.Parser is
       ENDCardFound  := (Card = ENDCard);
       exit when ENDCardFound;
 
+      Ada.Text_IO.Put_Line("DBG in Parse_Header");
+
       -- do for 2..end
       for I in (HBlk'First + 1) .. HBlk'Last
       loop
@@ -258,7 +285,7 @@ package body FITS.Parser is
       exit when ENDCardFound OR AllDataParsed;
     end loop;
     return CardsCnt;
-   end wParse_Header;
+   end Parse_Header;
 
 
 

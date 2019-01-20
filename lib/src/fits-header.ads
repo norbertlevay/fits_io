@@ -5,6 +5,7 @@
 -- is of same size as FITS Standard [FITS?] header-character
 
 with Ada.Strings.Bounded;
+use Ada.Strings.Bounded;
 
 
 package FITS.Header is

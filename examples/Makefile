@@ -3,10 +3,12 @@ INCDIR=../lib/src
 LIBDIR=../lib
 LIB=fits_io
 
-
+# removed: errored: function can have only in params
+#-gnat05
+#-gnat05
 all:
-	gnatmake -g -gnat05 -we create.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
-	gnatmake -g -gnat05 -we convert.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g  -we create.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g  -we convert.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 
 
 clean:
