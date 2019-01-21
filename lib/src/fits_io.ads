@@ -8,6 +8,9 @@ package FITS_IO is
 
    type    Integer_64     is range -(2**63) .. +(2**63 - 1);
    -- 64bit portable: guaranteed to be 64bit or will not compile
+   -- FIXME check against [FITS]: Why chosen 64bit:
+   -- 64bit is almost as big as pathological case of
+   -- card key-value of 20 charactes
    subtype Count          is Integer_64 range 0 .. Integer_64'Last;
    subtype Positive_Count is Count      range 1 .. Count'Last;
 

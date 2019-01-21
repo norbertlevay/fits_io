@@ -1,6 +1,10 @@
 
 -- see [Barnes p516] Enumeration_IO: prints 'X' includes single quotes
 
+-- FIXME write   FITS-IO.File.List.ads
+-- list all HDUs in FITS file:
+-- List(FistFile) return array of HDU_Info
+
 with Ada.Streams.Stream_IO;
 
 package FITS_IO.File is
@@ -12,14 +16,14 @@ package FITS_IO.File is
    -----------------------
 
    type HDU_Type is
-       (PrimaryImage,
+       (PrimaryHeader,
         RandomGroups,
         Image,
         AsciiTable,
         BinaryTable);
 
-   subtype Primary   is HDU_Type range PrimaryImage .. RandomGroups;
-   subtype Extension is HDU_Type range Image        .. BinaryTable;
+   subtype Primary   is HDU_Type range PrimaryHeader .. RandomGroups;
+   subtype Extension is HDU_Type range Image         .. BinaryTable;
 
    type HDU_Info(NAXIS : NAXIS_Type) is
      record
