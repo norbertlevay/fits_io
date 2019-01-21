@@ -118,7 +118,7 @@ package body FITS.File is
     PadLength : constant Natural :=
        Natural(BlockSize_bytes) - FillCnt + 1;
 
-    PadArr    : constant UInt8_Arr(1 .. FInteger(PadLength)) := (others => PadValue);
+    PadArr    : constant UInt8_Arr(1 .. FPositive(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!
    begin
     SIO.Set_Index(FitsFile,From);
@@ -355,12 +355,12 @@ package body FITS.File is
      DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
      HDUSize : HDU_Size_Type;
    begin
-      HDUSize.CardsCnt := FInteger(DUSize.CardsCnt);-- FIXME explicit conversion
+      HDUSize.CardsCnt := FPositive(DUSize.CardsCnt);-- FIXME explicit conversion
       HDUSize.BITPIX := DUSize.BITPIX;
       HDUSize.NAXIS  := DUSize.NAXISArr'Length;
       for I in DUSize.NAXISArr'Range
       loop
-       HDUSize.NAXISn(I) := FInteger(DUSize.NAXISArr(I));
+       HDUSize.NAXISn(I) := FNatural(DUSize.NAXISArr(I));
         -- FIXME explicit conversion Integer -> FInteger
       end loop;
      HDUSize.PCOUNT := 0;
