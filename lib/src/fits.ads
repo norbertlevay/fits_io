@@ -70,9 +70,15 @@ package FITS is
    -- type FPositive is new SIO.Count
    --
    -- 2. deriving from FITS-Standard:
-   type    FInteger  is new Long_Long_Integer;
+--   type    FInteger  is new Long_Long_Integer;-- non-portable: Long_Long_Integer size is not guaranteed,
+                                                -- can change from machine to machine and compiler will
+                                                -- build the code (which might crash)
+   type    FInteger  is range -(2**63) .. +(2**63 - 1);-- 64bit portable, guaranteed to be 64bit or will not compile
    subtype FNatural  is FInteger range 0 .. FInteger'Last;
    subtype FPositive is FNatural range 1 .. FNatural'Last;
+   -- FIXME only FNatural and FPositive used in code. FInteger serves only as base.
+   -- FIXME rename them to FITS.Count FITS.Positive_Count
+
 
    subtype NAXIS_Type is Positive range 1 .. 999;
    -- [FITS, Sect 4.4.1]
