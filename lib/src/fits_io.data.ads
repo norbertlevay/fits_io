@@ -1,10 +1,14 @@
 
+-- FIXME use the same generic as Parser - to _separate_
+-- this code from FITS_IO.File (no need for Ada.Stream_IO here)
+-- Possible??
+
 --with FITS.Data; -- Data_Arr needed
 with FITS; use FITS;
 with Ada.Streams.Stream_IO;
 
 
-package ncube is
+package FITS_IO.Data is
 
 -- -------------------------------------------------
  -- Solution 1:
@@ -54,7 +58,7 @@ package ncube is
  -- For "big" data: write by group of N-rows
  -- ...
 
-end ncube;
+end FITS_IO.Data;
 
 -- NOTES:
 -- below compiles but see FIXME
