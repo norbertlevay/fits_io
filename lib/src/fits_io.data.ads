@@ -8,6 +8,8 @@ with FITS; use FITS;
 with Ada.Streams.Stream_IO;
 
 
+-- NOTE: this was NCube.ads originally
+
 package FITS_IO.Data is
 
 -- -------------------------------------------------

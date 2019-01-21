@@ -1,6 +1,7 @@
 
+-- see [Barnes p516] Enumeration_IO: prints 'X' includes single quotes
+
 with Ada.Streams.Stream_IO;
-with FITS.Header; use FITS.Header;-- Max20.
 
 package FITS_IO.File is
 
@@ -10,16 +11,27 @@ package FITS_IO.File is
    -- FITS file content --
    -----------------------
 
-   type HDU_Info_Type(NAXIS : Positive) is
-   record
-      XTENSION : Max20.Bounded_String; -- XTENSION value or empty
-      CardsCnt : FPositive;            -- number of cards in this Header
-      BITPIX   : Integer;              -- data type
-      NAXISn   : NAXIS_Arr(1..NAXIS);  -- data dimensions
-   end record;
+   type HDU_Type is
+       (PrimaryImage,
+        RandomGroups,
+        Image,
+        AsciiTable,
+        BinaryTable);
 
-   function  Get (FitsFile : in  SIO.File_Type)
-      return HDU_Info_Type;
+   subtype Primary   is HDU_Type range PrimaryImage .. RandomGroups;
+   subtype Extension is HDU_Type range Image        .. BinaryTable;
+
+   type HDU_Info(NAXIS : NAXIS_Type) is
+     record
+        HDUType        : HDU_Type;
+        CardsCnt       : FITS_IO.Count;        -- number of cards in this Header
+        BITPIX         : Integer;              -- data type
+        NAXISn         : NAXIS_Arr(1..NAXIS);  -- data dimensions
+     end record;
+
+   function Get (FitsFile : in  SIO.File_Type)
+     return HDU_Info;
+   -- File index must be set to start of the header before calling Get().
 
    -------------------------
    -- Positioning in file --
