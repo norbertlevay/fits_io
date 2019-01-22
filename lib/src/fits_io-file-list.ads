@@ -5,20 +5,6 @@ package FITS_IO.File.List is
    -- FITS file content --
    -----------------------
 
-   -- below, Get() and List() should go to
-   -- FITS-IO.File.List sub-package
-   -- here FITS_IO.File only file-management
-
-   type HDU_Type is
-       (PrimaryHeader,
-        RandomGroups,
-        Image,
-        AsciiTable,
-        BinaryTable);
-
-   subtype Primary   is HDU_Type range PrimaryHeader .. RandomGroups;
-   subtype Extension is HDU_Type range Image         .. BinaryTable;
-
    type HDU_Info(NAXIS : NAXIS_Type) is
      record
         HDUType        : HDU_Type;

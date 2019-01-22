@@ -1,9 +1,25 @@
 
-with Ada.Streams.Stream_IO;
-use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
+with FITS_IO.Header;
 
 package body FITS_IO.File is
+
+   function Next(Source : in File_Type)
+     return Card_Block
+   is
+    CBlock : Card_Block;
+   begin
+    -- FIXME
+    return CBlock;
+   end Next;
+
+
+   package FitsFile is
+       new FITS_IO.Header (Source_Type => File_Type,
+                           Next        => FITS_IO.File.Next);
+   use FitsFile;
+
 
    procedure Move_Index
              (FitsFile : in SIO.File_Type;
@@ -12,7 +28,6 @@ package body FITS_IO.File is
      SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
    end Move_Index;
    pragma Inline (Move_Index);
-   -- util: consider this part of Stream_IO
 
 
 
@@ -20,7 +35,7 @@ package body FITS_IO.File is
                        HDUNum   : in Positive)
    is
     --CurHDUSize_blocks : FITS_IO.Count;
-    CurHDUSize_bytes  : FITS_IO.Count;
+    CurDUSize_bytes  : FITS_IO.Count;
     CurHDUNum : Positive := 1;
 
    begin
@@ -31,17 +46,11 @@ package body FITS_IO.File is
     while CurHDUNum < HDUNum
     loop
 
---     HDUSize := Read_Header_And_Parse_Size(FitsFile);
---     CurHDUSize_bytes  := DU_Size_bytes(FitsFile); í<-- should come from
---        FIT_IO.Header containing Parser as Read_Header_And_Parse_Size(HDU_Size_Type) + Size_bytes(HDU_Size_Type)
-     -- move past current Header
+     CurDUSize_bytes  := Read_DUSize_bytes(FitsFile);
 
-     -- skip DataUnit if exists
---     if HDUSize.NAXIS /= 0
--- FIXME do we need this ?     if HDUSize.NAXIS /= 0
-     if CurHDUSize_bytes /= 0
+     if CurDUSize_bytes /= 0
      then
-       Move_Index(FitsFile, SIO.Positive_Count(CurHDUSize_bytes));
+       Move_Index(FitsFile, SIO.Positive_Count(CurDUSize_bytes));
      end if;
 
      CurHDUNum := CurHDUNum + 1;
