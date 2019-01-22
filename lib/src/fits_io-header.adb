@@ -1,6 +1,6 @@
 
+with Ada.Streams;
 with Ada.Strings.Bounded; use Ada.Strings.Bounded;
-
 with Ada.Strings.Fixed;   use  Ada.Strings.Fixed;
 
 with FITS_IO;
@@ -185,7 +185,76 @@ package body FITS_IO.Header is
 
 
 
+   --
+   -- calculate DataUnit size in FITS Blocks
+   --
+   -- implements Eq(1), (2) and (4) from [FITS]
+   -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
+   -- establish HDU type - FIXME what strategy to take here ?
+   function  Size_blocks (HDUSize : in HDU_Size_Type)
+     return FITS_IO.Positive_Count
+   is
+    DataInBlock    : FITS_IO.Positive_Count;
+    DUSizeInBlocks : FITS_IO.Positive_Count;
+    DUSize         : FITS_IO.Positive_Count := 1;
+    From : Positive := 1;
+    BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
+   begin
 
+     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
+     -- calculations [FITS Sect 6, Eq.(4)]
+     if HDUSize.NAXISn(1) = 0 then
+      From := 2;
+     end if;
+
+     for I in From..HDUSize.NAXIS
+     loop
+      DUSize := DUSize * HDUSize.NAXISn(I);
+     end loop;
+      -- DUSize cannot be 0: Naxis(I) is FITS_IO.Positive_Count
+      -- cannot be 0 (parsing would throw exception)
+
+     -- Conforming extensions (or 0 and 1 for Primary Header):
+     DUSize := DUSize + HDUSize.PCOUNT;
+     DUSize := DUSize * HDUSize.GCOUNT;
+
+     DataInBlock := BlockSize_bits /  FITS_IO.Count( abs HDUSize.BITPIX );
+     -- per FITS standard, these values are integer multiples (no remainder)
+
+     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
+
+    return DUSizeInBlocks;
+   end Size_blocks;
+   pragma Inline (Size_blocks);
+
+
+
+   -- Start FITS.File body
+
+   BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
+   -- [FITS 3.1 Overall file structure]
+
+   ---------------
+   -- FITS.File :
+
+   StreamElemSize_bits : FITS_IO.Positive_Count := Ada.Streams.Stream_Element'Size;
+    -- FIXME [GNAT somwhere says it is 8bits]
+    -- [GNAT]:
+    --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
+    -- (Storage_Unit a.k.a 'Byte' : smallest addressable unit)
+    -- note:
+    --  type Count is new Stream_Element_Offset
+    --                range 0 .. Stream_Element_Offset'Last;
+    --  type Stream_Element_Offset is range
+    --               -(2 ** (Standard'Address_Size - 1)) ..
+    --               +(2 ** (Standard'Address_Size - 1)) - 1;
+    -- Address_Size is 32 or 64bit nowadays
+
+   BlockSize_bytes : FITS_IO.Positive_Count := BlockSize_bits / StreamElemSize_bits;
+   -- FIXME division : needs to be multiple of another otherwise
+   --                  fraction lost
+   -- in units of Stream_Element size (usually octet-byte)
+   -- which is unit for positioning in Stream_IO by Set_Index()
 
 
 
@@ -203,6 +272,7 @@ package body FITS_IO.Header is
      -- 2 calc the size
      -- what HDU_Type we read?
      -- depending pn HDU tye call different size-calculators
+     DUSize := BlockSize_bytes * Size_blocks (HDUSize);
 
      return DUSize;
     end Read_DUSize_bytes;
