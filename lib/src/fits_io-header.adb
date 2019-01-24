@@ -17,6 +17,7 @@ package body FITS_IO.Header is
    package Max70 is
        new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 70);
 
+
    type Key_Record is
     record
 	Name    : Max_8.Bounded_String;
@@ -50,6 +51,66 @@ package body FITS_IO.Header is
     KR.Comment := Max70.To_Bounded_String(Trim(Card(10..80),Ada.Strings.Both));
     return KR;
    end To_Comment_Key_Record;
+
+  -- Parse scalar keys
+
+  type Key_Arr is array (Positive_Count range <>) of Key_Record;
+
+  -- FIXME add parsed-all boolean return value for early parsing exit
+  procedure Parse_Keys(CurKey : in Key_Record;
+  		       Keys   : in out Key_Arr)
+  is
+   use Max_8;
+  begin
+   for I in Keys'Range
+   loop
+    if(Keys(I).Name = CurKey.Name) then
+       Keys(I).Value   := CurKey.Value;
+       Keys(I).Comment := CurKey.Comment;
+    end if;
+   end loop;
+  end Parse_Keys;
+
+  function Parse_Header(Source : in Source_Type;
+                        Keys   : in out Key_Arr)
+    return Positive
+  is
+   HBlk          : Card_Block;
+   Card          : Card_Type;
+   CardsCnt      : Natural := 0;
+   ENDCardFound  : Boolean := False;
+   KeyRec        : Key_Record;
+  begin
+   loop
+     -- [FITS] every valid FITS File must have at least one block
+
+     HBlk := Next(Source);
+     for I in HBlk'Range
+     loop
+       Card := HBlk(I);
+       CardsCnt := CardsCnt + 1;
+
+       KeyRec := To_Key_Record(Card);
+
+       Parse_Keys(KeyRec, Keys);
+
+       ENDCardFound  := (Card = ENDCard);
+       exit when ENDCardFound;
+     end loop;
+
+     exit when ENDCardFound;
+   end loop;
+   return CardsCnt;
+  end Parse_Header;
+
+
+  procedure Parse_HDU_Size_Type (Keys : out Key_Arr)
+  is
+  begin
+    -- parsing sequence foir fixed arr of keys needed to calc DUSize
+   null;
+  end Parse_HDU_Size_Type;
+
 
 
    -- Parse HDU size
@@ -191,7 +252,7 @@ package body FITS_IO.Header is
    -- implements Eq(1), (2) and (4) from [FITS]
    -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
    -- establish HDU type - FIXME what strategy to take here ?
-   function  Size_blocks (HDUSize : in HDU_Size_Type)
+   function Size_blocks (HDUSize : in HDU_Size_Type)
      return FITS_IO.Positive_Count
    is
     DataInBlock    : FITS_IO.Positive_Count;
@@ -258,7 +319,7 @@ package body FITS_IO.Header is
 
 
 
-    function Read_DUSize_bytes(Source : Source_Type)
+   function Read_DUSize_bytes(Source : Source_Type)
              return FITS_IO.Count
     is
      DUSize  : FITS_IO.Count := 0;

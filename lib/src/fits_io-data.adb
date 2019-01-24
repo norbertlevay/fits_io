@@ -6,7 +6,9 @@ with Ada.Text_IO; use  Ada.Text_IO;
 with Ada.Streams; use Ada.Streams;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-package body ncube is
+
+-- package body ncube is
+package body FITS_IO.Data is
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -214,6 +216,6 @@ package body ncube is
  end Read_Volume;
 
 
-end ncube;
+end FITS_IO.Data;
 
 
