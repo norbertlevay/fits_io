@@ -8,6 +8,19 @@ with FITS_IO;
 
 package body FITS_IO.Header is
 
+
+  generic  
+   Source : Source_Type is <>;
+   Index : Index_Type is private;
+   with function Next(Source : Source_Type) return Card_Block;
+   with function Index(Source : Source_Type) return Index_Type;
+   with procedure Set_Index(Source : Source_Type; Index : Index_Type);
+  package Parser is
+   Parse_Mandatory_Keys(Keys : out Key_Arr);
+  end Parser;
+  package body Parser is separate;
+
+
    package Max_8 is
        new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
    package Max20 is
@@ -103,13 +116,50 @@ package body FITS_IO.Header is
    return CardsCnt;
   end Parse_Header;
 
-
-  procedure Parse_HDU_Size_Type (Keys : out Key_Arr)
+  function Generate_1D_Keys(Name : in String;
+                            Min  : in Positive_Count;
+                            Max  : in Positive_Count) 
+    return Key_Arr 
   is
+   Keys : Key_Arr(Min .. Max);
+   use Max_8;
+  begin
+   for I in Min .. Max
+   loop
+     Keys(I).Name := Max_8.To_Bounded_String(Name) & Positive_Count'Image(I);
+   end loop;
+   return Keys;
+  end Generate_1D_Keys;
+
+  -- [FITS Table C.3]
+  procedure Parse_Mandatory_Keys (Keys : out Key_Arr)
+  is
+    Source : Source_Type;
+    Keys1 : Key_Arr := ((Max_8.To_Bounded_String("SIMPLE"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+			(Max_8.To_Bounded_String("XTENSION"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
+			(Max_8.To_Bounded_String("BITPIX"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
+			(Max_8.To_Bounded_String("NAXIS"),    Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) 
+			);
+   CardsCnt : Positive;
+   NAXIS : NAXIS_Type;
+   -- FIXME  HeaderStart : Positive_Count := Index(Source);
   begin
     -- parsing sequence foir fixed arr of keys needed to calc DUSize
-   null;
-  end Parse_HDU_Size_Type;
+   
+   CardsCnt := Parse_Header(Source, Keys1);
+   
+   NAXIS := NAXIS_Type'Value(Max20.To_String(Keys1(4).Value));
+
+  declare
+   Keys2 : Key_Arr := Generate_1D_Keys("NAXIS",Positive_Count(1),Positive_Count(NAXIS));
+  begin
+   -- FIXME Set_Index(HeaderStart);
+   CardsCnt := Parse_Header(Source, Keys2);
+   Keys(1 .. Keys1'Last) := Keys1;
+   Keys(Keys1'Last+1 .. Keys1'Last+1 + Positive_Count(NAXIS)) := Keys2;
+  end;
+
+  end Parse_Mandatory_Keys;
 
 
 
