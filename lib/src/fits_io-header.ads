@@ -12,7 +12,10 @@ with Ada.Strings.Bounded; use Ada.Strings.Bounded;
 
 generic
    type Source_Type is limited private;
+   type Index_Type  is limited private;
    with function Next(Source : in Source_Type) return Card_Block;
+   with function Index(Source : Source_Type) return Index_Type;
+   with procedure Set_Index(Source : Source_Type; Index : Index_Type);
 package FITS_IO.Header is
 
    type HDU_Type is

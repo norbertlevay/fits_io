@@ -5,21 +5,27 @@ with FITS_IO.Header;
 
 package body FITS_IO.File is
 
-   function Next(Source : in File_Type)
-     return Card_Block
-   is
-    CBlock : Card_Block;
-   begin
-    -- FIXME
-    return CBlock;
-   end Next;
+
+  -- Instantiate Header for file-media
+
+ function SIO_File_Next(File : Ada.Streams.Stream_IO.File_Type) return Card_Block  
+  is 
+   HBlk : Card_Block; 
+  begin
+   Card_Block'Read(Stream(File), HBlk); 
+   return HBlk; 
+  end SIO_File_Next; 
+  pragma Inline(SIO_File_Next); 
+
+  package SIO_File_Header is new Header(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
+ 	                                Index_Type  =>  Ada.Streams.Stream_IO.Positive_Count, 
+        	                        Next        =>  SIO_File_Next, 
+                	                Index       =>  Ada.Streams.Stream_IO.Index, 
+                        	        Set_Index   =>  Ada.Streams.Stream_IO.Set_Index); 
+  use SIO_File_Header;
 
 
-   package FitsFile is
-       new FITS_IO.Header (Source_Type => File_Type,
-                           Next        => FITS_IO.File.Next);
-   use FitsFile;
-
+  -- File management functions
 
    procedure Move_Index
              (FitsFile : in SIO.File_Type;
@@ -34,7 +40,6 @@ package body FITS_IO.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive)
    is
-    --CurHDUSize_blocks : FITS_IO.Count;
     CurDUSize_bytes  : FITS_IO.Count;
     CurHDUNum : Positive := 1;
 
@@ -46,7 +51,8 @@ package body FITS_IO.File is
     while CurHDUNum < HDUNum
     loop
 
-     CurDUSize_bytes  := Read_DUSize_bytes(FitsFile);
+     -- CurDUSize_bytes  := Read_DUSize_bytes(FitsFile);
+     CurDUSize_bytes  := SIO_File_Header.Read_DUSize_bytes(FitsFile);
 
      if CurDUSize_bytes /= 0
      then
