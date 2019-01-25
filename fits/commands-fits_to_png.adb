@@ -97,7 +97,7 @@ use  Interfaces;
 
  -- RGB (24bit 'Truecolor') image
 
- type RGBPixel_24bit_Type is new Interfaces.Unsigned_24;
+ type RGBPixel_24bit_Type is new Interfaces.Unsigned_32;
 
  type RGBImage_24bit_Type is
    array (Natural range <>, Natural range <>) of RGBPixel_24bit_Type;

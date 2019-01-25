@@ -53,6 +53,8 @@ with FITS.Header; use FITS.Header;
 with FITS.Parser;
 with FITS.Parser.DUSize;
 
+with FITS_IO.File;
+
 package body FITS.File is
 
    -- Instantiate Parsers for File
@@ -479,6 +481,10 @@ package body FITS.File is
      pragma Inline (Move_Index);
      -- util: consider this part of Stream_IO
    begin
+-- test FIXME begin
+   FITS_IO.File.Set_Index(FitsFile,HDUNum);
+   return;
+-- test FIXME end
 
     SIO.Set_Index(FitsFile, 1);
     -- move to begining of the Primary HDU

@@ -1,4 +1,6 @@
 
+with Ada.Text_IO;
+
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded; use Ada.Strings.Bounded;
@@ -41,7 +43,7 @@ package body FITS_IO.Header is
    begin
     KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
     KR.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
-    KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+    -- FIXME KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
     return KR;
    end To_Key_Record;
 
@@ -76,6 +78,7 @@ package body FITS_IO.Header is
    for I in Keys'Range
    loop
     if(Keys(I).Name = CurKey.Name) then
+       Ada.Text_IO.Put_Line("DBG: Parse_Keys: " & Max_8.To_String(CurKey.Name) & " " & Max20.To_String(CurKey.Value) & " " & Max48.To_String(CurKey.Comment));
        Keys(I).Value   := CurKey.Value;
        Keys(I).Comment := CurKey.Comment;
     end if;
@@ -122,7 +125,7 @@ package body FITS_IO.Header is
   begin
    for I in Min .. Max
    loop
-     Keys(I).Name := Max_8.To_Bounded_String(Name) & Positive_Count'Image(I);
+     Keys(I).Name := Max_8.To_Bounded_String(Name) & Trim(Positive_Count'Image(I),Ada.Strings.Both);
    end loop;
    return Keys;
   end Generate_1D_Keys;
@@ -183,6 +186,11 @@ package body FITS_IO.Header is
      HDUSize : HDU_Size_Type(NAXIS);
    begin
      
+     for I in Keys2'Range 
+     loop
+       Ada.Text_IO.Put_Line("Keys2: " & Max_8.To_String(Keys2(I).Name) & " " & Max20.To_String(Keys2(I).Value));
+     end loop;
+
      HDUSize.BITPIX := Integer'Value(Max20.To_String(Keys1(3).Value));
      
      Set_Index(Source, HeaderStart);
@@ -236,8 +244,8 @@ package body FITS_IO.Header is
       -- cannot be 0 (parsing would throw exception)
 
      -- Conforming extensions (or 0 and 1 for Primary Header):
-     DUSize := DUSize + HDUSize.PCOUNT;
-     DUSize := DUSize * HDUSize.GCOUNT;
+     --DUSize := DUSize + HDUSize.PCOUNT;
+     --DUSize := DUSize * HDUSize.GCOUNT;
 
      DataInBlock := BlockSize_bits /  FITS_IO.Count( abs HDUSize.BITPIX );
      -- per FITS standard, these values are integer multiples (no remainder)

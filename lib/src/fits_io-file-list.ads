@@ -7,7 +7,7 @@ package FITS_IO.File.List is
 
    type HDU_Info(NAXIS : NAXIS_Type) is
      record
-        HDUType        : HDU_Type;
+--        HDUType        : HDU_Type;
         CardsCnt       : FITS_IO.Count;        -- number of cards in this Header
         BITPIX         : Integer;              -- data type
         NAXISn         : NAXIS_Arr(1..NAXIS);  -- data dimensions

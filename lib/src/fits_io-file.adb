@@ -1,4 +1,6 @@
 
+with Ada.Text_IO;
+
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with FITS_IO.Header;
@@ -51,8 +53,11 @@ package body FITS_IO.File is
     while CurHDUNum < HDUNum
     loop
 
-     -- CurDUSize_bytes  := Read_DUSize_bytes(FitsFile);
-     CurDUSize_bytes  := SIO_File_Header.Read_DUSize_bytes(FitsFile);
+     CurDUSize_bytes  := Read_DUSize_bytes(FitsFile);
+     -- CurDUSize_bytes  := SIO_File_Header.Read_DUSize_bytes(FitsFile);
+
+     Ada.Text_IO.Put_Line("NEWSet_Index: " & FITS_IO.Count'Image(CurDUSize_bytes));
+
 
      if CurDUSize_bytes /= 0
      then
