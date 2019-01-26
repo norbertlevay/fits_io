@@ -43,7 +43,7 @@ package body FITS_IO.Header is
    begin
     KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
     KR.Value   := Max20.To_Bounded_String(Trim(Card(11..30),Ada.Strings.Both));
-    -- FIXME KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+    KR.Comment := Max48.To_Bounded_String(Trim(Card(33..80),Ada.Strings.Both));
     return KR;
    end To_Key_Record;
 
@@ -141,21 +141,6 @@ package body FITS_IO.Header is
    -- DU size decl
 
    type NAXIS_Arr is array (NAXIS_Type range <>) of FITS_IO.Count;
-
-   type HDU_Size_Type(NAXIS : NAXIS_Type) is 
-   record
-      CardsCnt      : FITS_IO.Positive_Count; 
-      -- HDU type
-      SIMPLE   : Max20.Bounded_String;
-      XTENSION : Max20.Bounded_String;
-      -- Primary HDU:
-      BITPIX : Integer;       
-      NAXISn : NAXIS_Arr(1 .. NAXIS); 
-      -- Conforming extensions:
-      PCOUNT : FITS_IO.Count; 
-      GCOUNT : FITS_IO.Positive_Count;   -- Number of Random Groups present
-      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
-   end record;
    
    type HDU_Type_Size is 
    record
@@ -230,6 +215,10 @@ package body FITS_IO.Header is
 
 
 
+
+
+
+  -- FIXME indexes of Keys2 const array must match -> use enum
   function Parse_Size (Source  : in Source_Type;
                        HDUType : in HDU_Type;
                        NAXIS   : in NAXIS_Type)
@@ -275,7 +264,103 @@ package body FITS_IO.Header is
 
 
 
-  function Parse_Mandatory_Keys (Source : Source_Type)
+   --
+   -- calculate DU-size
+   --
+
+   -- FIXME Where to put these ...
+   BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
+   StreamElemSize_bits : FITS_IO.Positive_Count := Ada.Streams.Stream_Element'Size;
+   BlockSize_bytes : FITS_IO.Positive_Count := BlockSize_bits / StreamElemSize_bits;
+
+
+   -- calculate DataUnit size in FITS Blocks
+   -- implements Eq(1), (2) and (4) from [FITS]
+
+   function Size_blocks (HDUSize : in HDU_Size)
+     return FITS_IO.Positive_Count
+   is
+    DataInBlock    : FITS_IO.Positive_Count;
+    DUSizeInBlocks : FITS_IO.Positive_Count;
+    DUSize         : FITS_IO.Positive_Count := 1;
+    From : Positive := 1;
+    BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
+   begin
+
+     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
+     -- calculations [FITS Sect 6, Eq.(4)]
+     if HDUSize.NAXISn(1) = 0 then
+      From := 2;
+     end if;
+     -- FIXME the above is handled in Parse_Type_Size; use 'Range instead From
+
+     for I in From..HDUSize.NAXIS
+     loop
+      DUSize := DUSize * HDUSize.NAXISn(I);
+     end loop;
+      -- DUSize cannot be 0: Naxis(I) is FITS_IO.Positive_Count
+      -- cannot be 0 (parsing would throw exception)
+
+     -- Conforming extensions (or 0 and 1 for Primary Header):
+     --DUSize := DUSize + HDUSize.PCOUNT;
+     --DUSize := DUSize * HDUSize.GCOUNT;
+
+     DataInBlock := BlockSize_bits /  FITS_IO.Count( abs HDUSize.BITPIX );
+     -- per FITS standard, these values are integer multiples (no remainder)
+
+     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
+
+    return DUSizeInBlocks;
+   end Size_blocks;
+
+
+
+   --
+   -- interface func
+   --
+
+   function Read_DUSize_bytes(Source : Source_Type)
+             return FITS_IO.Count
+    is
+     DUSize  : FITS_IO.Count := 0;
+     HeaderStart : Index_Type := Index(Source);
+     HDUTypeSize : HDU_Type_Size := Parse_HDU_Type(Source);
+    begin
+
+     Set_Index(Source, HeaderStart);
+     
+     declare
+       HDUSize : HDU_Size := Parse_Size(Source,
+                                      HDUTypeSize.HDUType,
+                                      HDUTypeSize.NAXIS);
+     begin
+       DUSize := BlockSize_bytes * Size_blocks (HDUSize);
+     end;
+
+     return DUSize;
+    end Read_DUSize_bytes;
+
+   --------------------------------------------------------------------
+   -- FIXME NOT USED, remove
+
+   -- FIXME this is NOTUSED:
+   type HDU_Size_Type(NAXIS : NAXIS_Type) is 
+   record
+      CardsCnt      : FITS_IO.Positive_Count; 
+      -- HDU type
+      SIMPLE   : Max20.Bounded_String;
+      XTENSION : Max20.Bounded_String;
+      -- Primary HDU:
+      BITPIX : Integer;       
+      NAXISn : NAXIS_Arr(1 .. NAXIS); 
+      -- Conforming extensions:
+      PCOUNT : FITS_IO.Count; 
+      GCOUNT : FITS_IO.Positive_Count;   -- Number of Random Groups present
+      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
+   end record;
+
+
+  function NOTUSED_Parse_Mandatory_Keys (Source : Source_Type)
     return HDU_Size_Type
   is
     Keys1 : Key_Arr := (
@@ -316,96 +401,9 @@ package body FITS_IO.Header is
  
      return HDUSize;
    end;
-  end Parse_Mandatory_Keys;
+  end NOTUSED_Parse_Mandatory_Keys;
 
 
 
-   --
-   -- calculate DU-size
-   --
-
-   -- FIXME Where to put these ...
-   BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
-   StreamElemSize_bits : FITS_IO.Positive_Count := Ada.Streams.Stream_Element'Size;
-   BlockSize_bytes : FITS_IO.Positive_Count := BlockSize_bits / StreamElemSize_bits;
-
-   -- calculate DataUnit size in FITS Blocks
-   
-   -- implements Eq(1), (2) and (4) from [FITS]
-   -- FIXME However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
---   function Size_blocks (HDUSize : in HDU_Size_Type)
-   function Size_blocks (HDUSize : in HDU_Size)
-     return FITS_IO.Positive_Count
-   is
-    DataInBlock    : FITS_IO.Positive_Count;
-    DUSizeInBlocks : FITS_IO.Positive_Count;
-    DUSize         : FITS_IO.Positive_Count := 1;
-    From : Positive := 1;
-    BlockSize_bits : constant FITS_IO.Positive_Count := 2880 * Byte'Size; -- 23040 bits
-   begin
-
-     -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
-     -- calculations [FITS Sect 6, Eq.(4)]
-     if HDUSize.NAXISn(1) = 0 then
-      From := 2;
-     end if;
-
-     for I in From..HDUSize.NAXIS
-     loop
-      DUSize := DUSize * HDUSize.NAXISn(I);
-     end loop;
-      -- DUSize cannot be 0: Naxis(I) is FITS_IO.Positive_Count
-      -- cannot be 0 (parsing would throw exception)
-
-     -- Conforming extensions (or 0 and 1 for Primary Header):
-     --DUSize := DUSize + HDUSize.PCOUNT;
-     --DUSize := DUSize * HDUSize.GCOUNT;
-
-     DataInBlock := BlockSize_bits /  FITS_IO.Count( abs HDUSize.BITPIX );
-     -- per FITS standard, these values are integer multiples (no remainder)
-
-     DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
-
-    return DUSizeInBlocks;
-   end Size_blocks;
-
-
-
-   --
-   -- interface func
-   --
-
-   function Read_DUSize_bytes(Source : Source_Type)
-             return FITS_IO.Count
-    is
-    -- package SIO renames Ada.Streams.Stream_IO;
-
-     DUSize  : FITS_IO.Count := 0;
---     HDUSize : HDU_Size_Type := Parse_Mandatory_Keys(Source);
-     --ccnt : Natural;
-     HeaderStart : Index_Type := Index(Source);
-     HDUTypeSize : HDU_Type_Size := Parse_HDU_Type(Source);
-    begin
-
-     -- 1 parse data for size
---     ccnt := Parse_Header(Source,HDUSize);
-   Set_Index(Source,HeaderStart);
-   
-   declare
-     newHDUSize : HDU_Size := Parse_Size(Source,
-                                      HDUTypeSize.HDUType,
-                                      HDUTypeSize.NAXIS);
-    begin
-     DUSize := BlockSize_bytes * Size_blocks (newHDUSize);
-    end;
-
-
-     -- 2 calc the size
-     -- what HDU_Type we read?
-     -- depending on HDU, call different size-calculators
-     --DUSize := BlockSize_bytes * Size_blocks (newHDUSize);
-
-     return DUSize;
-    end Read_DUSize_bytes;
 
 end FITS_IO.Header;
