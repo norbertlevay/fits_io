@@ -140,28 +140,24 @@ package body FITS_IO.Header is
 
    -- DU size decl
 
---   type NAXIS999_Type is array (1 .. NAXIS_Type'Last) of FITS_IO.Count;
    type NAXIS_Arr is array (NAXIS_Type range <>) of FITS_IO.Count;
 
    type HDU_Size_Type(NAXIS : NAXIS_Type) is 
    record
-      CardsCnt      : FITS_IO.Positive_Count; -- number of cards in this Header (gives Header-size)
+      CardsCnt      : FITS_IO.Positive_Count; 
       -- HDU type
-      SIMPLE   : Character;--String(1..1);
+      SIMPLE   : Max20.Bounded_String;
       XTENSION : Max20.Bounded_String;
       -- Primary HDU:
-      BITPIX : Integer;       -- BITPIX from header (data size in bits)
---      NAXIS  : NAXIS_Type;    -- NAXIS  from header, 0 means no DataUnit
---      NAXISn : NAXIS999_Type; -- NAXISn from header, 0 means dimension not in use
+      BITPIX : Integer;       
       NAXISn : NAXIS_Arr(1 .. NAXIS); 
       -- Conforming extensions:
-      PCOUNT : FITS_IO.Count; -- BINTABLE heap-size OR RandomGroups: param count preceding each group
+      PCOUNT : FITS_IO.Count; 
       GCOUNT : FITS_IO.Positive_Count;   -- Number of Random Groups present
       -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
    end record;
 
 
-  -- FIXME Key_Arr not allowed after "is"
   function Parse_Mandatory_Keys (Source : Source_Type)
     return HDU_Size_Type
   is
