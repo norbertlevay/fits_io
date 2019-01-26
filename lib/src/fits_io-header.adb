@@ -302,8 +302,8 @@ package body FITS_IO.Header is
       -- cannot be 0 (parsing would throw exception)
 
      -- Conforming extensions (or 0 and 1 for Primary Header):
-     --DUSize := DUSize + HDUSize.PCOUNT;
-     --DUSize := DUSize * HDUSize.GCOUNT;
+     DUSize := DUSize + HDUSize.PCOUNT;
+     DUSize := DUSize * HDUSize.GCOUNT;
 
      DataInBlock := BlockSize_bits /  FITS_IO.Count( abs HDUSize.BITPIX );
      -- per FITS standard, these values are integer multiples (no remainder)
