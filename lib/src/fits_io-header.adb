@@ -1,5 +1,5 @@
 
-with Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
@@ -42,7 +42,7 @@ package body FITS_IO.Header is
     KR : Key_Record;
    begin
     KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
-    KR.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
+    KR.Value   := Max20.To_Bounded_String(Trim(Card(11..30),Ada.Strings.Both));
     -- FIXME KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
     return KR;
    end To_Key_Record;
@@ -54,7 +54,7 @@ package body FITS_IO.Header is
     KR : Comment_Key_Record;
    begin
     KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
-    KR.Comment := Max70.To_Bounded_String(Trim(Card(10..80),Ada.Strings.Both));
+    KR.Comment := Max70.To_Bounded_String(Trim(Card(11..80),Ada.Strings.Both));
     return KR;
    end To_Comment_Key_Record;
 
@@ -125,7 +125,7 @@ package body FITS_IO.Header is
   begin
    for I in Min .. Max
    loop
-     Keys(I).Name := Max_8.To_Bounded_String(Name) & Trim(Positive_Count'Image(I),Ada.Strings.Both);
+     Keys(I).Name := Max_8.To_Bounded_String(Name) & Trim(Positive_Count'Image(I),Ada.Strings.Left);
    end loop;
    return Keys;
   end Generate_1D_Keys;
@@ -156,6 +156,123 @@ package body FITS_IO.Header is
       GCOUNT : FITS_IO.Positive_Count;   -- Number of Random Groups present
       -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
    end record;
+   
+   type HDU_Type_Size is 
+   record
+      HDUType  : HDU_Type;
+      NAXIS    : NAXIS_Type;
+   end record;
+
+   type HDU_Size(NAXIS : NAXIS_Type) is 
+   record
+      -- Primary HDU:
+      BITPIX : Integer;       
+      NAXISn : NAXIS_Arr(1 .. NAXIS); 
+      -- Conforming extensions:
+      PCOUNT : FITS_IO.Count; 
+      GCOUNT : FITS_IO.Positive_Count;   -- Number of Random Groups present
+      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
+   end record;
+
+
+  function Parse_HDU_Type (Source  : in Source_Type)
+    return HDU_Type_Size
+  is
+    Keys2 : Key_Arr := (
+    (Max_8.To_Bounded_String("SIMPLE"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("GROUPS"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("NAXIS1"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("XTENSION"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
+    (Max_8.To_Bounded_String("NAXIS"),    Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) );
+
+    HDUType : HDU_Type_Size;
+    DummyCardsCnt : Positive_Count;
+    use Max20;
+  begin
+
+     DummyCardsCnt := Parse_Header(Source, Keys2);
+
+     HDUType.NAXIS := NAXIS_Type'Value(Max20.To_String(Keys2(5).Value));
+     
+     if (Keys2(1).Value = Max20.To_Bounded_String("T")) then 
+
+       -- Primary
+     
+       if ( Keys2(1).Value = Max20.To_Bounded_String("T") AND
+            Keys2(2).Value = Max20.To_Bounded_String("T") AND
+            Keys2(3).Value = Max20.To_Bounded_String("0")
+          ) then
+         HDUType.HDUType := RandomGroups;
+       else 
+         HDUType.HDUType := PrimaryHeader;
+       end if;
+
+     elsif (Keys2(1).Value = Max20.To_Bounded_String("F")) then 
+       -- FIXME what to do?
+       null; 
+
+     else
+     
+       -- Xtension 
+
+       if (Keys2(4).Value = Max20.To_Bounded_String("IMAGE")) then 
+         HDUType.HDUType := Image;
+       elsif (Keys2(4).Value = Max20.To_Bounded_String("TABLE")) then 
+         HDUType.HDUType := AsciiTable;
+       elsif (Keys2(4).Value = Max20.To_Bounded_String("BINTABLE")) then 
+         HDUType.HDUType := BinaryTable;
+       end if;
+     
+     end if;
+
+     return HDUType;
+  end Parse_HDU_Type; 
+
+
+
+  function Parse_Size (Source  : in Source_Type;
+                       HDUType : in HDU_Type;
+                       NAXIS   : in NAXIS_Type)
+    return HDU_Size
+  is
+    Keys2 : Key_Arr := 
+     Key_Arr'(
+      (Max_8.To_Bounded_String("BITPIX"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+      (Max_8.To_Bounded_String("PCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+      (Max_8.To_Bounded_String("GCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) 
+     ) & Generate_1D_Keys("NAXIS", Positive_Count(1), Positive_Count(NAXIS));
+
+    HDUSize : HDU_Size(NAXIS);
+    DummyCardsCnt : Positive_Count;
+  begin
+
+     DummyCardsCnt := Parse_Header(Source, Keys2);
+
+     HDUSize.BITPIX := Integer'Value(Max20.To_String(Keys2(1).Value));
+     if ( HDUType = PrimaryHeader ) then
+       HDUSize.PCOUNT := 0;
+       HDUSize.GCOUNT := 1;
+     else
+       HDUSize.PCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys2(2).Value));
+       HDUSize.GCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys2(3).Value));
+     end if;
+
+     for I in HDUSize.NAXISn'Range 
+     loop
+       Put_Line("DBG " & Max20.To_String(Keys2(FITS_IO.Positive_Count(I+3)).Value) );
+       HDUSize.NAXISn(I) := FITS_IO.Count'Value(Max20.To_String(Keys2(FITS_IO.Positive_Count(I+3)).Value));
+     end loop;
+ 
+     if ( HDUType = RandomGroups ) then
+       HDUSize.NAXISn(1) := 1; -- enables to use the same formula for Nbits
+     end if;
+
+    return HDUSize;
+  end Parse_Size;
+
+
+
+
 
 
   function Parse_Mandatory_Keys (Source : Source_Type)
@@ -216,7 +333,8 @@ package body FITS_IO.Header is
    
    -- implements Eq(1), (2) and (4) from [FITS]
    -- FIXME However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
-   function Size_blocks (HDUSize : in HDU_Size_Type)
+--   function Size_blocks (HDUSize : in HDU_Size_Type)
+   function Size_blocks (HDUSize : in HDU_Size)
      return FITS_IO.Positive_Count
    is
     DataInBlock    : FITS_IO.Positive_Count;
@@ -260,18 +378,32 @@ package body FITS_IO.Header is
    function Read_DUSize_bytes(Source : Source_Type)
              return FITS_IO.Count
     is
+    -- package SIO renames Ada.Streams.Stream_IO;
+
      DUSize  : FITS_IO.Count := 0;
-     HDUSize : HDU_Size_Type := Parse_Mandatory_Keys(Source);
+--     HDUSize : HDU_Size_Type := Parse_Mandatory_Keys(Source);
      --ccnt : Natural;
+     HeaderStart : Index_Type := Index(Source);
+     HDUTypeSize : HDU_Type_Size := Parse_HDU_Type(Source);
     begin
 
      -- 1 parse data for size
 --     ccnt := Parse_Header(Source,HDUSize);
+   Set_Index(Source,HeaderStart);
+   
+   declare
+     newHDUSize : HDU_Size := Parse_Size(Source,
+                                      HDUTypeSize.HDUType,
+                                      HDUTypeSize.NAXIS);
+    begin
+     DUSize := BlockSize_bytes * Size_blocks (newHDUSize);
+    end;
+
 
      -- 2 calc the size
      -- what HDU_Type we read?
      -- depending on HDU, call different size-calculators
-     DUSize := BlockSize_bytes * Size_blocks (HDUSize);
+     --DUSize := BlockSize_bytes * Size_blocks (newHDUSize);
 
      return DUSize;
     end Read_DUSize_bytes;
