@@ -94,7 +94,7 @@ package body FITS.Parser.DUSize is
     CardsCnt : Positive     := Parse_Header(Source,PKeys,FKeys);
     DUSize   : DU_Size_Type := To_DU_Size_Type(FKeys);
    begin
-    Ada.Text_IO.Put_Line("DBG in Parse_Header_For_DUSize");
+    -- Ada.Text_IO.Put_Line("DBG in Parse_Header_For_DUSize");
     DUSize.CardsCnt := CardsCnt;
     return DUSize;
    end Parse_Header_For_DUSize;

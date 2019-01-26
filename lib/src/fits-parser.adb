@@ -114,7 +114,7 @@ package body FITS.Parser is
                                                            Index_Last  =>999,
                                                            Index       =>0);
    begin
-   Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List_Primary");
+--   Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List_Primary");
     InKeys.Append(bitpix_ptr);
     InKeys.Append(naxis_ptr);
     InKeys.Append(naxisarr_ptr);
@@ -166,14 +166,14 @@ package body FITS.Parser is
     Key : Key_Record_Type := To_Key_Record_Type(Card);
    begin
 
-      Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List :"&Card);
+      -- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List :"&Card);
 
 -- FIXME if should be like this: Ckeck it why errors.
 --      if (Max_8.Key.Name = Max_8.To_Bounded_String("SIMPLE") ) then
 
       if (Max_8.To_String(Key.Name) = "SIMPLE" ) then
          --  primary (or RandomGroup)
-	Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::SIMPLE");
+	-- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::SIMPLE");
 
          if(Max20.To_String(Key.Value) = "T") then
            -- Primary Header, conforming with standard
@@ -186,7 +186,7 @@ package body FITS.Parser is
 
          else
            -- raise exception
-	      Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::Raise Except");
+	      -- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::Raise Except");
 --           Init_List_Primary(Keys_To_Parse);
            null;
 
@@ -195,7 +195,7 @@ package body FITS.Parser is
          -- RandomGroup ??
 
       elsif (Max_8.To_String(Key.Name) = "XTENSION") then
-         Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::XTENSION");
+         -- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::XTENSION");
          Init_List_Primary(Keys_To_Parse);
          Init_List_Add_Extension(Keys_To_Parse);
 
@@ -216,7 +216,7 @@ package body FITS.Parser is
 
       else
          -- experimantal
-	Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::experimental");
+	-- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List::experimental");
          null;
       end if;
 
@@ -256,7 +256,7 @@ package body FITS.Parser is
       ENDCardFound  := (Card = ENDCard);
       exit when ENDCardFound;
 
-      Ada.Text_IO.Put_Line("DBG in Parse_Header");
+      -- Ada.Text_IO.Put_Line("DBG in Parse_Header");
 
       -- do for 2..end
       for I in (HBlk'First + 1) .. HBlk'Last

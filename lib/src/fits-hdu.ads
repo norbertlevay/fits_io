@@ -46,15 +46,15 @@ package FITS.HDU is
    function DUSize(Data : in Image_Extension) return FNatural;
 
 
-   type ASCII_Table_Extension(NAXIS : Positive) is
-    new Conforming_Extension with
-    record
-      TFIELDS  : FNatural;
-      TFORMArr : NAXIS_Arr(1..NAXIS); -- FIXME check what array
-      TBCOLArr : NAXIS_Arr(1..NAXIS); -- FIXME check what array
-    end record;
+--   type ASCII_Table_Extension(NAXIS : Positive) is
+--    new Conforming_Extension with
+--    record
+--      TFIELDS  : FNatural;
+--      TFORMArr : NAXIS_Arr(1..NAXIS); -- FIXME check what array
+--      TBCOLArr : NAXIS_Arr(1..NAXIS); -- FIXME check what array
+--    end record;
 
-   function DUSize(Data : in ASCII_Table_Extension) return FNatural;
+--   function DUSize(Data : in ASCII_Table_Extension) return FNatural;
 
 
    -- skip here BinTable for testing extendeability

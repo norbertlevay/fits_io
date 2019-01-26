@@ -482,8 +482,9 @@ package body FITS.File is
      -- util: consider this part of Stream_IO
    begin
 -- test FIXME begin
-   FITS_IO.File.Set_Index(FitsFile,HDUNum);
-   return;
+-- now created examples/list.adb instead of this...
+   -- FITS_IO.File.Set_Index(FitsFile,HDUNum);
+   -- return;
 -- test FIXME end
 
     SIO.Set_Index(FitsFile, 1);
