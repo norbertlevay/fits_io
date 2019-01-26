@@ -7,9 +7,10 @@ LIB=fits_io
 #-gnat05
 #-gnat05
 all:
-	gnatmake -g -gnat12 -we create.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g -gnat12 -we create.adb  -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 	gnatmake -g -gnat12 -we convert.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g -gnat12 -we list.adb    -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 
 
 clean:
-	rm -f convert.fit b~convert.ad? convert create.fits create b~create.ad?  *.ali *.o *~
+	rm -f convert.fit b~convert.ad? convert create.fits create b~create.ad? list b~list.ad?  *.ali *.o *~
