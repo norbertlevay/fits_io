@@ -1,0 +1,82 @@
+
+Notes on extensibility:
+
+extendeable by:
+
+[1] 
+New type besides UInt8 Int16/32/64 Float32/64, for instance Int128
+Solution: do generic package parametrized by type (one of above) - e.g.
+implementation has no mention of concrete type (only BITPIX checked against
+instantiated type) Possible ?? How about Endianness and others?
+Example: separate out the 6 FITS types to FITS.Types.ads as INFORMATIVE package
+Nothing in FITSlib must depend on FITS.Types, it only list the types currently
+in FITS standard. User can always add new type.
+So user can instantiate:
+package FITS_IO_UInt8 is new FITS_IO(DataType => FITS.Types.UInt8);
+
+There are parts which operate on Header which is fully defined (no need for generics)
+Should these be separated ?
+FITS.(File.?)Header -> normal package  : Read_Header_Blocks() (file access) 
+                                         is base for Set_Index() & Get() 
+FITS.(File.?)Data   -> generic package : Read/Write data access file
+how related to FITS.File e.g. the file access
+
+[2] 
+New card-group for parsing, like: 
+* standard conformance [SIMPLE]
+* positioning [BITPIX NAXISn]
+* scaling [BZERO BSCALE]
+* WCS keys (CTYPE CREFn CPIXELn CUNITn...)
+etc...
+
+Extendability of HDU/card-groups means:
+* add new keywords to existing
+* add new parsing code which converts values to structs for 
+each new keyword or keyword-array 
+(1D array like NAXISn, 
+2D arrays/matrices like n WCS keys: CDi_j, PSj_m etc...)
+
+[3] 
+New XTENSION-HDU type besides current (IMAGE, ASCII- and BIN-TABLE)
+Note: Primary-HDU is fixed and defined, not extendable??
+
+Extendeability of new HDU-type means: 
+* define new/additional keywords and 
+* struct for holding parsed values.
+
+[3] depends on [2]: new HDU-type has fixed(?) set of keywords,
+e.g. must be parseable as [2] requires.
+On the other hand, there are keyword groups which are independent
+of HDU-type, or are optional, user-defined, etc add-on to keywords
+like WCS-coord keys
+Sounds like [2] is more general. [3] should build on [2].
+
+[4] What else ?
+
+___________________________
+IMPLEMENTATION constructs:
+A. procedural by keywords and arrays
+B. generics and sub-packages
+C. tagged records/classes
+
+Use above three to implement
+
+ Positive Size_blocks(HDU_Size_Type);
+
+needed in Set_Index(File,HDUNum) and
+HDUInfo Get(File) and others...
+
+All three will result in more scans of Header from the disk/file.
+Parsing certain groups of keys might be needed on different
+phases of an application, might be conditional during run time, etc...
+
+Probably impossible to expect parse everything _needed_ with one scan
+of Header on disk/file.
+
+How about the way around approach: 
+one scan, and parse everythig what is in Header (and known to 
+the lib implementation), whether needed or not ?
+E.g. convert Header on disk -> records in mem. As much records 
+as is implemented in the lib. How about user-extendeabiity then ?
+
+

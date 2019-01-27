@@ -1,0 +1,34 @@
+
+A short example, getting big endian 32-bit unsigned from stream elements
+array:
+
+   pragma Assert (Stream_Element'Size = 8);
+
+   procedure Get
+             (  Data    : in out Stream_Element_Array;
+                Pointer : in out Stream_Element_Offset;
+                Value   : out Unsigned_32
+             )  is
+   begin
+      if (  Pointer < Data'First
+         or else
+            (  Pointer > Data'Last
+            and then
+               Pointer > Data'Last + 1
+         )  )
+      then
+         Raise_Exception
+         (  Layout_Error'Identity,
+            "Pointer is out of bounds"
+         );
+      elsif Pointer + 3 > Data'Last then
+         Raise_Exception (End_Error'Identity, "End of data");
+      end if;
+      Value :=
+         (  Shift_Left (Unsigned_32 (Data (Pointer    )), 24)
+         or Shift_Left (Unsigned_32 (Data (Pointer + 1)), 16)
+         or Shift_Left (Unsigned_32 (Data (Pointer + 2)), 8)
+         or             Unsigned_32 (Data (Pointer + 3))
+         );
+      Pointer := Pointer + 4;
+   end Get;
