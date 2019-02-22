@@ -60,61 +60,6 @@ package body FITS_IO.Header is
 
    type Key_Arr is array (Positive_Count range <>) of Key_Record;
 
-
-
-   --
-   -- Parser for Header-cards
-   --
-
-  ---------------------------
-  -- BEGIN Parser generic part
-
-  -- FIXME add parsed-all boolean return value for early parsing exit
-  procedure Parse_Keys(CurKey : in Key_Record;
-                       Keys   : in out Key_Arr)
-  is
-   use Max_8;
-  begin
-   for I in Keys'Range
-   loop
-    if(Keys(I).Name = CurKey.Name) then
-       Ada.Text_IO.Put_Line("DBG: Parse_Keys: " & Max_8.To_String(CurKey.Name) & " " & Max20.To_String(CurKey.Value) & " " & Max48.To_String(CurKey.Comment));
-       Keys(I).Value   := CurKey.Value;
-       Keys(I).Comment := CurKey.Comment;
-    end if;
-   end loop;
-  end Parse_Keys;
-
-
-
- function Parse_Header(Source : in Source_Type;
-                       Keys   : in out Key_Arr)
-    return FITS_IO.Positive_Count
-  is
-   HBlk          : Card_Block;
-   Card          : Card_Type;
-   CardsCnt      : FITS_IO.Positive_Count := 1;
-   ENDCardFound  : Boolean := False;
-   KeyRec        : Key_Record;
-  begin
-   loop
-     HBlk := Next(Source);
-     for I in HBlk'Range
-     loop
-       Card := HBlk(I);
-       KeyRec := To_Key_Record(Card);
-       Parse_Keys(KeyRec, Keys);
-       ENDCardFound  := (Card = ENDCard);
-       exit when ENDCardFound;
-       CardsCnt := CardsCnt + 1;
-     end loop;
-     exit when ENDCardFound;
-   end loop;
-   return CardsCnt;
-  end Parse_Header;
-
-
-
   function Generate_1D_Keys(Name : in String;
                             Min  : in Positive_Count;
                             Max  : in Positive_Count)
@@ -129,9 +74,6 @@ package body FITS_IO.Header is
    end loop;
    return Keys;
   end Generate_1D_Keys;
-
-  -- END Parser generic part
-  ---------------------------
 
 
 
@@ -160,39 +102,58 @@ package body FITS_IO.Header is
    end record;
 
 
-  function Parse_HDU_Type (Source  : in Source_Type)
-    return HDU_Type_Size
-  is
-    Keys2 : Key_Arr := (
+   --
+   -- def key-arrays for parsing of HDU-type and HDU-size
+   --
+
+    HDUTypeKeys : Key_Arr := (
     (Max_8.To_Bounded_String("SIMPLE"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
     (Max_8.To_Bounded_String("GROUPS"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
     (Max_8.To_Bounded_String("NAXIS1"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
     (Max_8.To_Bounded_String("XTENSION"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
     (Max_8.To_Bounded_String("NAXIS"),    Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) );
 
+
+   function Gen_Size_Keys(NAXIS : in NAXIS_Type)
+     return Key_Arr 
+   is 
+    Keys : Key_Arr := 
+     Key_Arr'(
+      (Max_8.To_Bounded_String("BITPIX"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+      (Max_8.To_Bounded_String("PCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+      (Max_8.To_Bounded_String("GCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) 
+     ) & Generate_1D_Keys("NAXIS", Positive_Count(1), Positive_Count(NAXIS));
+   begin 
+    return Keys;
+   end Gen_Size_Keys; 
+
+
+
+
+  -- FIXME indexes of Keys const array must match -> use enum
+  function To_HDU_Type (Keys : in Key_Arr)
+    return HDU_Type_Size
+  is
     HDUType : HDU_Type_Size;
-    DummyCardsCnt : Positive_Count;
     use Max20;
   begin
 
-     DummyCardsCnt := Parse_Header(Source, Keys2);
-
-     HDUType.NAXIS := NAXIS_Type'Value(Max20.To_String(Keys2(5).Value));
+     HDUType.NAXIS := NAXIS_Type'Value(Max20.To_String(Keys(5).Value));
      
-     if (Keys2(1).Value = Max20.To_Bounded_String("T")) then 
+     if (Keys(1).Value = Max20.To_Bounded_String("T")) then 
 
        -- Primary
      
-       if ( Keys2(1).Value = Max20.To_Bounded_String("T") AND
-            Keys2(2).Value = Max20.To_Bounded_String("T") AND
-            Keys2(3).Value = Max20.To_Bounded_String("0")
+       if ( Keys(1).Value = Max20.To_Bounded_String("T") AND
+            Keys(2).Value = Max20.To_Bounded_String("T") AND
+            Keys(3).Value = Max20.To_Bounded_String("0")
           ) then
          HDUType.HDUType := RandomGroups;
        else 
          HDUType.HDUType := PrimaryHeader;
        end if;
 
-     elsif (Keys2(1).Value = Max20.To_Bounded_String("F")) then 
+     elsif (Keys(1).Value = Max20.To_Bounded_String("F")) then 
        -- FIXME what to do?
        null; 
 
@@ -200,56 +161,42 @@ package body FITS_IO.Header is
      
        -- Xtension 
 
-       if (Keys2(4).Value = Max20.To_Bounded_String("IMAGE")) then 
+       if (Keys(4).Value = Max20.To_Bounded_String("IMAGE")) then 
          HDUType.HDUType := Image;
-       elsif (Keys2(4).Value = Max20.To_Bounded_String("TABLE")) then 
+       elsif (Keys(4).Value = Max20.To_Bounded_String("TABLE")) then 
          HDUType.HDUType := AsciiTable;
-       elsif (Keys2(4).Value = Max20.To_Bounded_String("BINTABLE")) then 
+       elsif (Keys(4).Value = Max20.To_Bounded_String("BINTABLE")) then 
          HDUType.HDUType := BinaryTable;
        end if;
      
      end if;
 
      return HDUType;
-  end Parse_HDU_Type; 
+  end To_HDU_Type; 
 
 
-
-
-
-
-  -- FIXME indexes of Keys2 const array must match -> use enum
-  function Parse_Size (Source  : in Source_Type;
-                       HDUType : in HDU_Type;
-                       NAXIS   : in NAXIS_Type)
+  -- FIXME indexes of Keys const array must match -> use enum
+  function To_HDU_Size (Keys    : in Key_Arr;
+                        HDUType : in HDU_Type;
+                        NAXIS   : in NAXIS_Type)
     return HDU_Size
   is
-    Keys2 : Key_Arr := 
-     Key_Arr'(
-      (Max_8.To_Bounded_String("BITPIX"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
-      (Max_8.To_Bounded_String("PCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
-      (Max_8.To_Bounded_String("GCOUNT"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) 
-     ) & Generate_1D_Keys("NAXIS", Positive_Count(1), Positive_Count(NAXIS));
-
     HDUSize : HDU_Size(NAXIS);
-    DummyCardsCnt : Positive_Count;
   begin
 
-     DummyCardsCnt := Parse_Header(Source, Keys2);
-
-     HDUSize.BITPIX := Integer'Value(Max20.To_String(Keys2(1).Value));
+     HDUSize.BITPIX := Integer'Value(Max20.To_String(Keys(1).Value));
      if ( HDUType = PrimaryHeader ) then
        HDUSize.PCOUNT := 0;
        HDUSize.GCOUNT := 1;
      else
-       HDUSize.PCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys2(2).Value));
-       HDUSize.GCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys2(3).Value));
+       HDUSize.PCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys(2).Value));
+       HDUSize.GCOUNT := FITS_IO.Count'Value(Max20.To_String(Keys(3).Value));
      end if;
 
      for I in HDUSize.NAXISn'Range 
      loop
-       Put_Line("DBG " & Max20.To_String(Keys2(FITS_IO.Positive_Count(I+3)).Value) );
-       HDUSize.NAXISn(I) := FITS_IO.Count'Value(Max20.To_String(Keys2(FITS_IO.Positive_Count(I+3)).Value));
+       Put_Line("DBG " & Max20.To_String(Keys(FITS_IO.Positive_Count(I+3)).Value) );
+       HDUSize.NAXISn(I) := FITS_IO.Count'Value(Max20.To_String(Keys(FITS_IO.Positive_Count(I+3)).Value));
      end loop;
  
      if ( HDUType = RandomGroups ) then
@@ -257,11 +204,7 @@ package body FITS_IO.Header is
      end if;
 
     return HDUSize;
-  end Parse_Size;
-
-
-
-
+  end To_HDU_Size;
 
 
    --
@@ -314,31 +257,122 @@ package body FITS_IO.Header is
    end Size_blocks;
 
 
+  --
+  -- Source functions - media management (File, Network...)
+  --
 
-   --
+  -- we these generic params:
+  -- Source : Source_Type
+  -- Next(Source_Type) return HBlock or Card ??
+  -- Index(Source_Type)      
+  -- Set_Index(Source_Type, Index) 
+  --  note: (Set_)Index are used only to store HeaderStart position
+
+  ---------------------------
+  -- BEGIN Parser generic part
+
+  -- FIXME add parsed-all boolean return value for early parsing exit
+  -- FIXME consider merging this helper-func into Parse_Header
+  procedure Parse_Keys(CurKey : in Key_Record;
+                       Keys   : in out Key_Arr)
+  is
+   use Max_8;
+  begin
+   for I in Keys'Range
+   loop
+    if(Keys(I).Name = CurKey.Name) then
+       Ada.Text_IO.Put_Line("DBG: Parse_Keys: " & Max_8.To_String(CurKey.Name) & " " & Max20.To_String(CurKey.Value) & " " & Max48.To_String(CurKey.Comment));
+       Keys(I).Value   := CurKey.Value;
+       Keys(I).Comment := CurKey.Comment;
+    end if;
+   end loop;
+  end Parse_Keys;
+
+
+
+ function Parse_Header(Source : in Source_Type;
+                       Keys   : in out Key_Arr)
+    return FITS_IO.Positive_Count
+  is
+   HBlk          : Card_Block;
+   Card          : Card_Type;
+   CardsCnt      : FITS_IO.Positive_Count := 1;
+   ENDCardFound  : Boolean := False;
+   KeyRec        : Key_Record;
+  begin
+   loop
+     HBlk := Next(Source);
+     for I in HBlk'Range
+     loop
+       Card := HBlk(I);
+       KeyRec := To_Key_Record(Card);
+       Parse_Keys(KeyRec, Keys);
+       ENDCardFound  := (Card = ENDCard);
+       exit when ENDCardFound;
+       CardsCnt := CardsCnt + 1;
+     end loop;
+     exit when ENDCardFound;
+   end loop;
+   return CardsCnt;
+  end Parse_Header;
+
+  -- END Parser generic part
+  ---------------------------
+
+
+
+  function Parse_HDU_Type (Source  : in Source_Type)
+    return HDU_Type_Size
+  is
+    DummyCardsCnt : Positive_Count := Parse_Header(Source, HDUTypeKeys);
+    HDUType       : HDU_Type_Size  := To_HDU_Type(HDUTypeKeys);
+  begin
+     return HDUType;
+  end Parse_HDU_Type; 
+
+
+
+
+  function Parse_HDU_Size (Source  : in Source_Type;
+                           HDUType : in HDU_Type;
+                           NAXIS   : in NAXIS_Type)
+    return HDU_Size
+  is
+    Keys          : Key_Arr        := Gen_Size_Keys(NAXIS); 
+    DummyCardsCnt : Positive_Count := Parse_Header(Source, Keys);
+    HDUSize       : HDU_Size       := To_HDU_Size(Keys, HDUType, NAXIS);
+  begin
+    return HDUSize;
+  end Parse_HDU_Size;
+
+
+
    -- interface func
-   --
-
    function Read_DUSize_bytes(Source : Source_Type)
-             return FITS_IO.Count
+     return FITS_IO.Count
     is
-     DUSize  : FITS_IO.Count := 0;
-     HeaderStart : Index_Type := Index(Source);
+     DUSize      : FITS_IO.Count := 0;
+     HeaderStart : Index_Type    := Index(Source);
      HDUTypeSize : HDU_Type_Size := Parse_HDU_Type(Source);
     begin
 
      Set_Index(Source, HeaderStart);
      
      declare
-       HDUSize : HDU_Size := Parse_Size(Source,
-                                      HDUTypeSize.HDUType,
-                                      HDUTypeSize.NAXIS);
+       HDUSize : HDU_Size := Parse_HDU_Size(Source,
+                                            HDUTypeSize.HDUType,
+                                            HDUTypeSize.NAXIS);
      begin
        DUSize := BlockSize_bytes * Size_blocks (HDUSize);
      end;
 
      return DUSize;
     end Read_DUSize_bytes;
+
+
+
+
+
 
    --------------------------------------------------------------------
    -- FIXME NOT USED, remove
