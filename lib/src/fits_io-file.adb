@@ -3,7 +3,7 @@ with Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-with FITS_IO.Header;
+with FITS_IO.Media;
 
 package body FITS_IO.File is
 
@@ -19,12 +19,12 @@ package body FITS_IO.File is
   end SIO_File_Next; 
   pragma Inline(SIO_File_Next); 
 
-  package SIO_File_Header is new Header(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
- 	                                Index_Type  =>  Ada.Streams.Stream_IO.Positive_Count, 
-        	                        Next        =>  SIO_File_Next, 
-                	                Index       =>  Ada.Streams.Stream_IO.Index, 
-                        	        Set_Index   =>  Ada.Streams.Stream_IO.Set_Index); 
-  use SIO_File_Header;
+  package SIO_File_Media is new Media(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
+ 	                              Index_Type  =>  Ada.Streams.Stream_IO.Positive_Count, 
+        	                      Next        =>  SIO_File_Next, 
+                	              Index       =>  Ada.Streams.Stream_IO.Index, 
+                        	      Set_Index   =>  Ada.Streams.Stream_IO.Set_Index); 
+  use SIO_File_Media;
 
 
   -- File management functions
