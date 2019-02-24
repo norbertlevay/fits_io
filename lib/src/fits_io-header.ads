@@ -53,11 +53,34 @@ package FITS_IO.Header is
 
    type NAXIS_Arr is array (NAXIS_Type range <>) of FITS_IO.Count;
 
+
+  -- parser elements:
+  -- keys and corresponding record and the conversion func between them
+
+
+  -- parse HDU-type
+
+   HDUTypeKeys : Key_Arr := (
+    (Max_8.To_Bounded_String("SIMPLE"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("GROUPS"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("NAXIS1"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
+    (Max_8.To_Bounded_String("XTENSION"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
+    (Max_8.To_Bounded_String("NAXIS"),    Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) );
+
    type HDU_Type_Size is
     record
       HDUType  : HDU_Type;
       NAXIS    : NAXIS_Type;
     end record;
+
+   function To_HDU_Type (Keys : in Key_Arr)
+     return HDU_Type_Size;
+
+
+   -- parse HDU-size
+
+   function Gen_Size_Keys(NAXIS : in NAXIS_Type)
+     return Key_Arr;
 
    type HDU_Size(NAXIS : NAXIS_Type) is
     record
@@ -70,29 +93,11 @@ package FITS_IO.Header is
       -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
     end record;
 
-
-   -- def key-arrays for parsing of HDU-type and HDU-size
-
-   HDUTypeKeys : Key_Arr := (
-    (Max_8.To_Bounded_String("SIMPLE"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
-    (Max_8.To_Bounded_String("GROUPS"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
-    (Max_8.To_Bounded_String("NAXIS1"),   Max20.To_Bounded_String(""), Max48.To_Bounded_String("")),
-    (Max_8.To_Bounded_String("XTENSION"), Max20.To_Bounded_String(""), Max48.To_Bounded_String("")), 
-    (Max_8.To_Bounded_String("NAXIS"),    Max20.To_Bounded_String(""), Max48.To_Bounded_String("")) );
-
-   function Gen_Size_Keys(NAXIS : in NAXIS_Type)
-     return Key_Arr;
-
-
-   -- conversions
-
-   function To_HDU_Type (Keys : in Key_Arr)
-     return HDU_Type_Size;
-
    function To_HDU_Size (Keys    : in Key_Arr;
                          HDUType : in HDU_Type;
                          NAXIS   : in NAXIS_Type)
      return HDU_Size;
+
 
 
    -- calc size  
