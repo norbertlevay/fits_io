@@ -1,4 +1,42 @@
 
+Also note there 2 branches: master and testbranch, Latest is in testbranch (FITS_IF?).
+________________________________________________________________________________
+Notes on filenames in experimentation:
+
+- FITS*.ad? are vanilla, used in ./examples/* and ./fits/* 
+            --> solved parsing arrays by allocating max array NAXS 1..999 (wastes memory)
+            --> recognizes only IMAGE_HDU for size calculation and data access
+            --> based on Stream_IO, full data access implemented (only IMAGE_HDU)
+
+- FITS_IO is experimental (has some apps in ./examples/ dir)
+            --> parsing rewritten: parse by array of card-keys, and fill-in card-values.
+            For array keys, allocate only as long NAXIS array as was in the file (needed some tricks)
+            --> recognizes all HDU types (for size calculation, not data access)
+            --> based on Stream_IO, only Set_index() implemented
+
+- FITS_IF is attempt to define interface
+            --> independent of Stream_IO: uses generic with abstract Source_Type and NextBlock() func
+
+TODO clenup and merge the three code bases:
+
+* FITS - internal library with FITS-functionality implementation.
+         It is independent of any File_IO (uses Source_Type & NextBlock() generic),
+         contains only cumputations/algorithms as described in FITS-standard.
+         Its interface should support FITS_IO and some form of 
+         NCube-based object-oriented interface (serialization for Ada.Streams).
+
+* FITS_IO - external interface similar to Stream_IO, Direct_IO etc... using FITS-lib.
+
+* FITS_NCube - Ada.Streams based OO-interface (T'Write T'Read)
+         * Creation of an FITS NCube object should construct an object in memory,
+         which -  by buffering - can seamlessly access all NCube inside the FITS-file
+         even if files is "huge".
+         * Alternatively consider only providing generic Get_ScanLine Put_ScanLine 
+	(as T'Write, T'Read) which the caller can plug-in into his own defined NCube.
+         (XY-func use as MyNCube'Write)
+
+
+_________________________________________________________________________________
 Notes on extensibility:
 
 extendeable by:
