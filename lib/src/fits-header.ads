@@ -23,20 +23,6 @@ package FITS.Header is
    package Max70 is
        new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 70);
 
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Value   : in Max20.Bounded_String;
-                     Comment : in Max48.Bounded_String)
-                     return Card_Type;
-    -- for cards with value
-
-   function To_Card (Key     : in Max_8.Bounded_String;
-                     Comment : in Max70.Bounded_String)
-                     return Card_Type;
-    -- for cards with text (like HISTORY or COMMENT, see FITS 4.1.2.2)
-
-    -- FIXME add one more:
-    -- for cards with Key and long Value (see FITS 4.1.2.3)
-
 
    -------------
    -- Parsers --
@@ -50,22 +36,22 @@ package FITS.Header is
 
    -- Parsing HDU/XTENSION type
 
-   type HDU_Type is record                          -- set by:
+   type  XXXHDU_Type is record                          -- set by:
       SIMPLE   : String(1..10) := (others => ' ');  -- Primary HDU
       XTENSION : Max20.Bounded_String;-- := (others => ' ');  -- Extension HDU
    end record;
    -- XTENSION type string or empty [empty: FITS 4.2.1 undefined keyword]
 
-   procedure Parse_HDU_Type(Index: in  FPositive;
+   procedure XXXParse_HDU_Type(Index: in  FPositive;
    			    Card : in  Card_Type;
-                            Data : in out HDU_Type);
+                            Data : in out XXXHDU_Type) is null;
 
 
    -- Parsing HDU size
 
    type NAXIS999_Type is array (1 .. NAXIS_Type'Last) of FPositive;
 
-   type HDU_Size_Type is record
+   type XXXHDU_Size_Type is record
       CardsCnt      : FPositive; -- number of cards in this Header (gives Header-size)
       -- Primary HDU:
       BITPIX : Integer;       -- BITPIX from header (data size in bits)
@@ -77,9 +63,9 @@ package FITS.Header is
       -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
    end record;
 
-   procedure Parse_HDU_Size_Type (Index   : in FPositive;
+   procedure XXXParse_HDU_Size_Type (Index   : in FPositive;
                                   Card    : in Card_Type;
-                                  HDUSize : in out HDU_Size_Type);
+                                  HDUSize : in out XXXHDU_Size_Type) is null;
 
 
    -----------

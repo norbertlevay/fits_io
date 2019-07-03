@@ -48,7 +48,7 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
-with FITS.Header; use FITS.Header;
+--with FITS.Header; use FITS.Header;
 
 with FITS.Parser;
 with FITS.Parser.DUSize;
@@ -56,6 +56,28 @@ with FITS.Parser.DUSize;
 with FITS_IO.File;
 
 package body FITS.File is
+   -- moved in from fits-header.ads because not used elsewhere
+   type HDU_Type is record                          -- set by:
+      SIMPLE   : String(1..10) := (others => ' ');  -- Primary HDU
+      XTENSION : Max20.Bounded_String;-- := (others => ' ');  -- Extension HDU
+   end record;
+
+   type NAXIS999_Type is array (1 .. NAXIS_Type'Last) of FPositive;
+
+   type HDU_Size_Type is record
+      CardsCnt      : FPositive; -- number of cards in this Header (gives Header-size)
+      -- Primary HDU:
+      BITPIX : Integer;       -- BITPIX from header (data size in bits)
+      NAXIS  : NAXIS_Type;    -- NAXIS  from header, 0 means no DataUnit
+      NAXISn : NAXIS999_Type; -- NAXISn from header, 0 means dimension not in use
+      -- Conforming extensions:
+      PCOUNT : FNatural;    -- BINTABLE: size of heap OR Random Groups: param count preceding each group
+      GCOUNT : FPositive;   -- Number of Random Groups present
+      -- FIXME what type to use for P/GCOUNT ? -> implementation limited?
+   end record;
+   -- END moved in....
+
+
 
    -- Instantiate Parsers for File
 

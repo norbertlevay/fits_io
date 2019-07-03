@@ -127,7 +127,7 @@ package body FITS.Header is
 
    procedure Parse_HDU_Type(Index: in  FPositive;
    			    Card : in  Card_Type;
-                            Data : in out HDU_Type)
+                            Data : in out XXXHDU_Type)
    is
    begin
      if    (Card(1..9) = "SIMPLE  =") then
@@ -146,7 +146,7 @@ package body FITS.Header is
    -- FIXME should check if it is IMAGE extension [FITS, Sect 7]
    procedure Parse_HDU_Size_Type (Index   : in FPositive;
                                   Card    : in Card_Type;
-                                  HDUSize : in out HDU_Size_Type)
+                                  HDUSize : in out XXXHDU_Size_Type)
    is
     dim : Positive;
    begin
