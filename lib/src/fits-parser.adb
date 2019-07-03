@@ -5,7 +5,7 @@ with Ada.Tags; use Ada.Tags;
 with Ada.Strings.Fixed;   use  Ada.Strings.Fixed;
 --with Ada.Strings.Bounded.Bounded_String; use Ada.Strings.Bounded.Bounded_String;
 
-with FITS.Header; use FITS.Header;-- Max_8
+with FITS.Keyword; use FITS.Keyword;-- Max_8
 
 
 with Ada.Containers.Doubly_Linked_Lists;

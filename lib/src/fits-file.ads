@@ -104,7 +104,7 @@
 
 
 with Ada.Streams.Stream_IO;
-with FITS.Header; use FITS.Header;-- Max20
+with FITS.Keyword; use FITS.Keyword;-- Max20
 
 package FITS.File is
 

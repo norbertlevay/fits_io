@@ -77,12 +77,5 @@ package FITS.Header is
               (BITPIX : Integer;
                Dim    : NAXIS_Arr ) return Card_Arr;
 
-   --
-   -- calc number of free cards to fill up HeaderBlock
-   --
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural;
-   --  always 0..35 < 36(=Cards per Block)
-
-
 
 end FITS.Header;

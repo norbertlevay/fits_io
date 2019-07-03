@@ -8,12 +8,30 @@ with System.Storage_Elements;
 
 with FITS;        use FITS;
 with FITS.File;   use FITS.File;
-with FITS.Header; use FITS.Header;
+with FITS.Keyword; use FITS.Keyword;
 
 
 package body Commands is
 
    package TIO renames Ada.Text_IO;
+
+
+   -- calc number of free cards to fill up HeaderBlock
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   is
+    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    -- explicit conversion ok: mod < CardsCntInBlock = 36;
+   begin
+    if FreeSlotCnt /= 0 then
+      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+    end if;
+    return FreeSlotCnt;
+   end Free_Card_Slots;
+   pragma Inline (Free_Card_Slots);
+
+
+
+
 
  --
  -- List HDU sizes. For Header: number of cards (and empty slots),

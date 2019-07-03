@@ -1,7 +1,6 @@
 
 with Ada.Containers.Doubly_Linked_Lists;
 
-with FITS.Header;  use FITS.Header; -- Max_8 Max20 Max48
 with FITS.Keyword; use FITS.Keyword;
 
 generic

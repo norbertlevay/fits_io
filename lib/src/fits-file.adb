@@ -48,7 +48,7 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
---with FITS.Header; use FITS.Header;
+with FITS.Keyword; use FITS.Keyword;
 
 with FITS.Parser;
 with FITS.Parser.DUSize;

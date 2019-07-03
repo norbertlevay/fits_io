@@ -1,8 +1,22 @@
 
-with FITS.Header; use FITS.Header;
+with Ada.Strings.Bounded;
+use Ada.Strings.Bounded;
 
 
 package FITS.Keyword is
+
+   package Max_8 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max =>  8);
+   package Max20 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
+   package Max48 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 48);
+   package Max70 is
+       new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 70);
+
+
+
+
 
 
    type Keyword_Type is tagged
