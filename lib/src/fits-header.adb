@@ -6,10 +6,94 @@
 
 with Ada.Strings.Fixed; use  Ada.Strings.Fixed;
 with Ada.Strings.Bounded; use  Ada.Strings.Bounded;
-
+with Ada.Strings.Unbounded;
 
 package body FITS.Header is
 
+     procedure Parse
+              (Cards        : Card_Arr;
+               ENDCardFound : out Boolean) 
+     is
+	Card : Card_Type;
+     begin
+	for I in Cards'Range
+	loop
+           Card := Cards(I);
+	   ENDCardFound := (Card = ENDCard);
+	   exit when ENDCardFound; 
+	end loop;
+     end Parse;
+
+	
+     --
+     -- DataSize parsing
+     --
+use Max_8;
+     type Key_Arr is array (Positive_Count range <>) of Max_8.Bounded_String;
+
+     RefKeys : constant Key_Arr := (
+	     Max_8.To_Bounded_String("SIMPLE"),
+	     Max_8.To_Bounded_String("XTENSION"),
+	     Max_8.To_Bounded_String("BITPIX"),
+	     Max_8.To_Bounded_String("NAXIS")
+	     );
+
+-- NOTE: needs 3 actions:
+     -- selection -> can be done with arrays like RefKeys
+     -- conversion -> can be done by type, but must know type, e.g. variable e.g. which key
+     -- set-value to struct.field, e.g.must know which key
+
+
+     procedure ParseCard
+               (Card : Card_Type;
+                Data : out DataSize_Keys)
+     is
+     begin
+        for I in RefKeys'Range
+        loop
+		if (Card(1..8) = RefKeys(I))
+		then
+			Data.BITPIX := 1;
+--			case RefKeys(I) is
+--				when "SIMPLE" =>
+--					null;--Data.SIMPLE := Card(11..30);
+--			end case;
+		end if;
+	end loop;
+     end ParseCard;
+
+    procedure Parse
+               (Cards : Card_Arr;
+                Keys  : out DataSize_Keys)
+     is
+	Card : Card_Type;
+     begin
+	for I in Cards'Range
+	loop
+           Card := Cards(I);
+	   ParseCard(Card, Keys);
+	end loop;
+     end Parse;
+
+
+     -- NOTE when composing and writing Mandatory keys to File many rules
+     -- must be kept: FITS-standard defines order of keys etc...
+     procedure Compose
+                (Keys  : DataSize_Keys;
+                 Cards : Card_Arr) is
+     begin
+	     null;
+     end Compose;
+
+
+
+
+
+-- --------------------------------------------------------------------------------
+	--
+	-- OLD below
+	--
+	
    -- calc number of free cards to fill up HeaderBlock
    function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
    is
