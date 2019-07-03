@@ -38,7 +38,7 @@ package body FITS_IO.Media is
                        Keys   : in out Key_Arr)
     return FITS_IO.Positive_Count
   is
-   HBlk          : FITS.Card_Block;
+   HBlk          : Card_Block;
    Card          : Card_Type;
    CardsCnt      : FITS_IO.Positive_Count := 1;
    ENDCardFound  : Boolean := False;

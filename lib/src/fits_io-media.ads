@@ -1,8 +1,8 @@
-with FITS; use FITS;
+with FITS_IO;
 
 -- Media (File, Network, etc)
 
--- implementation behind this interface operates on FITS.Card_Block
+-- implementation behind this interface operates on Card_Block
 -- and so is agnostic of media where FITS file blocks are read from (disk File, network).
 -- However Index and Set_Index restricts possible media and is needed only due to 2-scan parsing
 -- (first parse HDU_Type then reset to header start and parse for HDU_Size)
@@ -10,7 +10,7 @@ with FITS; use FITS;
 generic
    type Source_Type is limited private;
    type Index_Type  is limited private;
-   with function  Next(Source : in Source_Type) return FITS.Card_Block;
+   with function  Next(Source : in Source_Type) return Card_Block;
    with function  Index(Source : Source_Type) return Index_Type;
    with procedure Set_Index(Source : Source_Type; Index : Index_Type);
 package FITS_IO.Media is
