@@ -12,7 +12,7 @@ package body FITSlib.HDU is
 		(Source  : Source_Type)
 		return HDU_Type
 	is
-		HBlk  : FITSlib.Header.Card_Block;
+		HBlk  : Card_Block;
 		HSize : HeaderSize_Type;
 		DSize : DataSize_Type;
 		HDUCat : HDU_Category;

@@ -4,11 +4,11 @@
 --
 -- TODO add generic param N to configure buffer size (N-blocks)
 
-with FITSlib.Header; -- FIXME only temp: Card_Block is also defined in FITS.ads
+with FITSlib.Header; use FITSlib.Header;
 
 generic
  Type  Source_Type is limited private;
- with function Next (Source : Source_Type) return FITSlib.Header.Card_Block;
+ with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
 	-- establish HDU Type and its dimensions
@@ -20,7 +20,7 @@ package FITSlib.HDU is
 		record
 			CardCount : Positive;
 			BITPIX : Integer;
-			NAXISn : FITSlib.Header.NAXIS_Arr(1..NAXIS);
+			NAXISn : NAXIS_Arr(1..NAXIS);
 			case HDUCat is
 				when PRIMARY =>
 					null;

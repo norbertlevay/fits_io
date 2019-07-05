@@ -25,7 +25,8 @@ package FITSlib.Header is
  
 	subtype Card_Type  is String(CardRange);
 	type    Card_Arr   is array (Positive range <>) of Card_Type;
-        subtype Card_Block is Card_Arr(1..CardsCntInBlock);
+	CardsPerBlock : constant Positive := 36;
+	subtype Card_Block is Card_Arr(1..CardsPerBlock);
 
 
 	-- For header size calculation
