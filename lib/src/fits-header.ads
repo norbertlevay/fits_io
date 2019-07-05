@@ -22,8 +22,9 @@ package FITS.Header is
 	subtype ValueRange   is Integer range 11 .. 30;
 	subtype CommentRange is Integer range 33 .. 80;
  
-	subtype Card_Type is String(CardRange);
-	type    Card_Arr  is array (Positive range <>) of Card_Type;
+	subtype Card_Type  is String(CardRange);
+	type    Card_Arr   is array (Positive range <>) of Card_Type;
+        subtype Card_Block is Card_Arr(1..CardsCntInBlock);
 
 
 	-- For header size calculation
@@ -44,11 +45,9 @@ package FITS.Header is
 
 	-- For data size calculation
 	
-	--subtype CardValue_Type is String(1 .. 20);
-
 	NAXIS_Last : constant := 999;
 	subtype NAXIS_Type is Natural range 0 .. NAXIS_Last;
-	type    NAXIS_Arr  is array (1 .. NAXIS_Type'Last) of Natural;
+	type    NAXIS_Arr  is array (NAXIS_Type range <>) of Natural;
 	
 	type DataSize_Type is
 		record
@@ -57,7 +56,7 @@ package FITS.Header is
 			XTENSION : String(ValueRange);
 			BITPIX : Integer;
 			NAXIS  : NAXIS_Type;
-			NAXISn : NAXIS_Arr;
+			NAXISn : NAXIS_Arr(NAXIS_Type);
 			PCOUNT : Natural;
 			GCOUNT : Positive;
 		end record;
