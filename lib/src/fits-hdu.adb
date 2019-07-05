@@ -16,7 +16,7 @@ package body FITS.HDU is
 		HBlk  : FITS.Header.Card_Block;
 		HSize : HeaderSize_Type;
 		DSize : DataSize_Type;
-		HDUType : HDUPos_Type;
+		HDUType : HDU_Category;
 	begin
 	
 		loop
@@ -77,10 +77,10 @@ package body FITS.HDU is
 
 		
 		declare
-			HDUName : HDUPos_Type := HDUType;
+			HDUCat  : HDU_Category := HDUType;
 			Last    : Positive := DSize.NAXIS; 
 			-- FIXME should crosscheck NAXIS and max(NAXIS_Arr) whether consistent
-			HDUType : HDU_Type(HDUName, Last);
+			HDUType : HDU_Type(HDUCat, Last);
 		begin
 			
 			HDUType.CardCount := HSize.CardCount;

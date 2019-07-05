@@ -11,7 +11,8 @@
 -- NOTE Data Size: length of Data (without padding).
 -- NOTE DataUnit Size: length of DataUnit (including padding).
 
-
+-- FIXME change XxxxSize_Type to XxxxDimensions_Type or similar: 
+-- size is calculated from dimensions stored in these structtures
 
 
 package FITS.Header is

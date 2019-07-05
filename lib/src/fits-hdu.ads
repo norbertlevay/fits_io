@@ -1,6 +1,8 @@
 --
--- HDU may be "too big" to keep in memory. This module operates with buffer.
+-- HDU may be "too big" to keep in memory. Source_Type is "container" holding the HDU; usually
+-- file on a disk. This module operates on buffer.
 --
+-- TODO add generic param N to configure buffer size (N-blocks)
 
 with FITS.Header; -- FIXME only temp: Card_Block is also defined in FITS.ads
 
@@ -11,9 +13,9 @@ package FITS.HDU is
 
 	-- establish HDU Type and its dimensions
 	
-	type HDUPos_Type is (PRIMARY, RANDGROUPS, CONF_EXT);
+	type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
 	
-	type HDU_Type ( HDUType : HDUPos_Type;
+	type HDU_Type ( HDUType : HDU_Category;
 	                NAXIS   : NAXIS_Type ) is
 		record
 			CardCount : Positive;
