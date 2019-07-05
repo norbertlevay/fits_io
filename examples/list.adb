@@ -43,6 +43,9 @@ begin
 
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
+   FIO.Read_HDU(InFile);
+   FIO.Set_Index(InFile, 1);
+
    while not SIO.End_Of_File(InFile)
    loop
      declare

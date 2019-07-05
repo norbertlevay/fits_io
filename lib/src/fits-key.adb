@@ -25,10 +25,6 @@
 package body FITS.Key is
 
 
-
-
-    
-
     function Match
            (CardKey : String;
             RefRoot : String;
@@ -39,16 +35,25 @@ package body FITS.Key is
 	    Root      : String  := RefRoot;
 	    Match     : Boolean := False;
 	    HasIndex  : Boolean := Root'Length < CardKey'Length;
-	    CardKeyRoot_Last : Positive := CardKey'First + Root'Length - 1;
-	    RootMatch : Boolean := Root = CardKey(CardKey'First..CardKeyRoot_Last);
+	    CardKeyRoot_Last : Positive;
+	    RootMatch : Boolean;
     begin
-	    if (NOT HasIndex OR NOT RootMatch)
+	    
+	    if (NOT HasIndex)
+	    then
+		    return False;
+	    end if;
+
+	    CardKeyRoot_Last := CardKey'First + Root'Length - 1;
+	    RootMatch := (Root = CardKey(CardKey'First..CardKeyRoot_Last));
+	
+	    if (NOT RootMatch)
 	    then
 		    return False;
 	    end if;
 	    
 	    begin
-		    ParsedIndex := Natural'Value(CardKey(CardKeyRoot_Last .. CardKey'Last));
+		    ParsedIndex := Natural'Value(CardKey(CardKeyRoot_Last+1 .. CardKey'Last));
 	    exception
 	    -- conversion attempt failed, not a number
 		    when ExceptID : others =>

@@ -18,4 +18,8 @@ package FITS_IO.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive);
 
+
+   procedure Read_HDU (FitsFile : in SIO.File_Type);
+   -- only experimental with debug prints
+
 end FITS_IO.File;

@@ -15,13 +15,13 @@ package FITS.HDU is
 	
 	type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
 	
-	type HDU_Type ( HDUType : HDU_Category;
-	                NAXIS   : NAXIS_Type ) is
+	type HDU_Type ( HDUCat : HDU_Category;
+	                NAXIS  : NAXIS_Type ) is
 		record
 			CardCount : Positive;
-			BITPIX : Positive;
+			BITPIX : Integer;
 			NAXISn : FITS.Header.NAXIS_Arr(1..NAXIS);
-			case HDUType is
+			case HDUCat is
 				when PRIMARY =>
 					null;
 				when RANDGROUPS .. CONF_EXT =>

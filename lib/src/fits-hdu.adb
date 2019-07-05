@@ -5,7 +5,6 @@ with Ada.Strings.Fixed; -- Trim
 with FITS.Header; use FITS.Header;
 
 
-
 package body FITS.HDU is
 
 
@@ -16,7 +15,7 @@ package body FITS.HDU is
 		HBlk  : FITS.Header.Card_Block;
 		HSize : HeaderSize_Type;
 		DSize : DataSize_Type;
-		HDUType : HDU_Category;
+		HDUCat : HDU_Category;
 	begin
 	
 		loop
@@ -45,10 +44,10 @@ package body FITS.HDU is
 			if (SIMPLE = "T") then
 				
 				if (DSize.NAXISn((1)) = 0) then
-					HDUType := RANDGROUPS;
+					HDUCat := RANDGROUPS;
 					-- FIXME how about GROUPS key ?
 					else
-						HDUType := PRIMARY;
+						HDUCat := PRIMARY;
 				end if;
 			
 			elsif (SIMPLE = "F") then
@@ -61,11 +60,11 @@ package body FITS.HDU is
 			end if;
 		
 			if (XTENSION = "IMAGE") then
-				HDUType := CONF_EXT;
+				HDUCat := CONF_EXT;
 			elsif(XTENSION = "TABLE") then
-				HDUType := CONF_EXT;
+				HDUCat := CONF_EXT;
 			elsif(XTENSION = "BINTABLE") then
-				HDUType := CONF_EXT;
+				HDUCat := CONF_EXT;
 			else
 				-- unknown extesion, raise exception unknown
 				null;
@@ -77,18 +76,18 @@ package body FITS.HDU is
 
 		
 		declare
-			HDUCat  : HDU_Category := HDUType;
+			--HDUCat  : HDU_Category := HDUCat;
 			Last    : Positive := DSize.NAXIS; 
 			-- FIXME should crosscheck NAXIS and max(NAXIS_Arr) whether consistent
 			HDUType : HDU_Type(HDUCat, Last);
 		begin
-			
+
 			HDUType.CardCount := HSize.CardCount;
 
-			HDUType.BITPIX := Dsize.BITPIX;
+			HDUType.BITPIX := DSize.BITPIX;
 			HDUType.NAXISn := DSize.NAXISn(1..Last);
 			
-			case HDUType.HDUType is
+			case HDUType.HDUCat is
                                 when PRIMARY =>
                                         null;
                                 when RANDGROUPS .. CONF_EXT =>
