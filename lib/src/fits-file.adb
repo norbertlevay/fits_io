@@ -53,7 +53,6 @@ with FITS.Keyword; use FITS.Keyword;
 with FITS.Parser;
 with FITS.Parser.DUSize;
 
-with FITS_IO.File;
 
 package body FITS.File is
    -- moved in from fits-header.ads because not used elsewhere
@@ -503,11 +502,6 @@ package body FITS.File is
      pragma Inline (Move_Index);
      -- util: consider this part of Stream_IO
    begin
--- test FIXME begin
--- now created examples/list.adb instead of this...
-   -- FITS_IO.File.Set_Index(FitsFile,HDUNum);
-   -- return;
--- test FIXME end
 
     SIO.Set_Index(FitsFile, 1);
     -- move to begining of the Primary HDU
