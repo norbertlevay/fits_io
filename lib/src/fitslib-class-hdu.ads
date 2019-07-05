@@ -4,7 +4,7 @@
 
 -- Implements [FITS Table C.1]
 
-package FITS.Class.HDU is
+package FITSlib.Class.HDU is
 
    type NAXIS_Arr is array (Natural range <>) of Positive;
 
@@ -59,5 +59,5 @@ package FITS.Class.HDU is
 
    -- skip here BinTable for testing extendeability
 
-end FITS.Class.HDU;
+end FITSlib.Class.HDU;
 

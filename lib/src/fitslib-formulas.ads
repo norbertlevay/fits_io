@@ -2,9 +2,9 @@
 -- Various calculations formulas from [FITS].
 --
 -- FIXME error/exception handling missing
--- FIXME rename/re-examine FPositive FNatural definition in FITS.ads
+-- FIXME rename/re-examine FPositive FNatural definition in FITSlib.ads
 
-package FITS.Formulas is
+package FITSlib.Formulas is
 
 --	type    FInteger  is range -(2**63) .. +(2**63 - 1);
 	-- 64bit portable, guaranteed to be 64bit or will not compile
@@ -40,4 +40,4 @@ package FITS.Formulas is
 		 GCOUNT : FPositive) return FPositive;
 
 
-end FITS.Formulas;
+end FITSlib.Formulas;

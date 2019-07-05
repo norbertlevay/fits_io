@@ -2,17 +2,17 @@
 
 with Ada.Strings.Fixed; -- Trim
 
-with FITS.Header; use FITS.Header;
+with FITSlib.Header; use FITSlib.Header;
 
 
-package body FITS.HDU is
+package body FITSlib.HDU is
 
 
 	function Read_Header
 		(Source  : Source_Type)
 		return HDU_Type
 	is
-		HBlk  : FITS.Header.Card_Block;
+		HBlk  : FITSlib.Header.Card_Block;
 		HSize : HeaderSize_Type;
 		DSize : DataSize_Type;
 		HDUCat : HDU_Category;
@@ -104,4 +104,4 @@ package body FITS.HDU is
 
 
 
-end FITS.HDU;
+end FITSlib.HDU;

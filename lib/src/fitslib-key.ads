@@ -4,7 +4,7 @@
 --
 -- FIXME error/exception handling missing
 
-package FITS.Key is
+package FITSlib.Key is
 
    type Indexed_Key_Type is
 	   record
@@ -25,4 +25,4 @@ package FITS.Key is
   	     Index : Positive) return String;
 
 
-end FITS.Key;
+end FITSlib.Key;

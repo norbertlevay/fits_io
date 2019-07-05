@@ -8,10 +8,10 @@
 
 with Ada.Strings.Fixed;
 
-with FITS.Key;
+with FITSlib.Key;
 
 
-package body FITS.Header is
+package body FITSlib.Header is
 	
 	
 	-- info for header size calculation
@@ -63,7 +63,7 @@ package body FITS.Header is
 		then
 			Keys.NAXIS := Integer'Value(Card(ValueRange));
 
-		elsif(FITS.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
+		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
 		then
 			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
 
@@ -102,4 +102,4 @@ package body FITS.Header is
 
 
 
-end FITS.Header;	
+end FITSlib.Header;	

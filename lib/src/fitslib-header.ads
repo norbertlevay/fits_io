@@ -15,7 +15,7 @@
 -- size is calculated from dimensions stored in these structtures
 
 
-package FITS.Header is
+package FITSlib.Header is
 	
 	subtype CardRange    is Integer range  1 .. 80;
 
@@ -58,6 +58,7 @@ package FITS.Header is
 			BITPIX : Integer;
 			NAXIS  : NAXIS_Type;
 			NAXISn : NAXIS_Arr(NAXIS_Type);
+			-- FIXME NAXIS1=0 if RandGroups: make separate and let NAXIS run from 2...NAXIS
 			PCOUNT : Natural;
 			GCOUNT : Positive;
 		end record;
@@ -79,4 +80,4 @@ package FITS.Header is
 		 Cards : Card_Arr);
 
 
-end FITS.Header;
+end FITSlib.Header;

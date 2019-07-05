@@ -5,24 +5,24 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with FITS_IO.Media;
 
-with FITS.HDU; -- experimental BEGIN...END
-with FITS.Header; -- experimental BEGIN...END
+with FITSlib.HDU; -- experimental BEGIN...END
+with FITSlib.Header; -- experimental BEGIN...END
 
 package body FITS_IO.File is
 
  -- ----------------------------------------------------------
- -- BEGIN testing fits.hdu fits.header .fits.key fits.fomrulas
+ -- BEGIN testing FITSlib.hdu FITSlib.header .FITSlib.key FITSlib.fomrulas
 
-  function HDUSIO_File_Next(File : Ada.Streams.Stream_IO.File_Type) return FITS.Header.Card_Block
+  function HDUSIO_File_Next(File : Ada.Streams.Stream_IO.File_Type) return FITSlib.Header.Card_Block
   is 
-   HBlk : FITS.Header.Card_Block; 
+   HBlk : FITSlib.Header.Card_Block; 
   begin
-   FITS.Header.Card_Block'Read(Stream(File), HBlk); 
+   FITSlib.Header.Card_Block'Read(Stream(File), HBlk); 
    return HBlk; 
   end HDUSIO_File_Next; 
 
 
-  package SIO_HDU is new FITS.HDU(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
+  package SIO_HDU is new FITSlib.HDU(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
         	                         Next =>  HDUSIO_File_Next); 
 --  use SIO_HDU;
 
@@ -35,7 +35,7 @@ package body FITS_IO.File is
 	 HDU : SIO_HDU.HDU_Type := SIO_HDU.Read_Header(FitsFile);
  begin
 	 TIO.Put_Line( "HDU       " & SIO_HDU.HDU_Category'Image(HDU.HDUCat) );
-	 TIO.Put_Line( "NAXIS     " & FITS.Header.NAXIS_Type'Image(HDU.NAXIS) );
+	 TIO.Put_Line( "NAXIS     " & FITSlib.Header.NAXIS_Type'Image(HDU.NAXIS) );
 	 TIO.Put_Line( "CardCount " & Positive'Image(HDU.CardCount) );
 	 TIO.Put_Line( "BITPIX    " & Integer'Image(HDU.BITPIX) );
 	 TIO.Put( "NAXISn    " );
@@ -48,7 +48,7 @@ package body FITS_IO.File is
 
 
 
- -- END   testing fits.hdu fits.header .fits.key fits.fomrulas
+ -- END   testing FITSlib.hdu FITSlib.header .FITSlib.key FITSlib.fomrulas
  -- ----------------------------------------------------------
 
 

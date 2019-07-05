@@ -4,7 +4,7 @@
 
 
 
-package body FITS.Formulas is
+package body FITSlib.Formulas is
 
 	-- implements [FITS] Eq(1)
 
@@ -84,4 +84,4 @@ package body FITS.Formulas is
 
 
 
-end FITS.Formulas;
+end FITSlib.Formulas;

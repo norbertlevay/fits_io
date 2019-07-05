@@ -22,7 +22,7 @@
 -- any combination of hyphens, under-scores, and digits are legal.
 --
 
-package body FITS.Key is
+package body FITSlib.Key is
 
 
     function Match
@@ -86,4 +86,4 @@ package body FITS.Key is
     end Compose;
 
 
-end FITS.Key;
+end FITSlib.Key;
