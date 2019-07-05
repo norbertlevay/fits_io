@@ -13,9 +13,10 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
 
+with Ada.Strings.Unbounded;
 
 with FITS_IO.File;   --use FITS_IO.File;
-with Ada.Strings.Unbounded;
+with FITSlib.File;   --use FITSlib.File;
 
 procedure list
 is
@@ -43,7 +44,7 @@ begin
 
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
-   FIO.Read_HDU(InFile);
+   FITSlib.File.Read_HDU(InFile);
    FIO.Set_Index(InFile, 1);
 
    while not SIO.End_Of_File(InFile)
