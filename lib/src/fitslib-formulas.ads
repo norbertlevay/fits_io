@@ -4,12 +4,14 @@
 -- FIXME error/exception handling missing
 -- FIXME rename/re-examine FPositive FNatural definition in FITSlib.ads
 
+with FITSlib.Header; use FITSlib.Header;
+
 package FITSlib.Formulas is
 
---	type    FInteger  is range -(2**63) .. +(2**63 - 1);
+	type    FInteger  is range -(2**63) .. +(2**63 - 1);
 	-- 64bit portable, guaranteed to be 64bit or will not compile
---	subtype FNatural  is FInteger range 0 .. FInteger'Last;
---	subtype FPositive is FNatural range 1 .. FNatural'Last;
+	subtype FNatural  is FInteger range 0 .. FInteger'Last;
+	subtype FPositive is FNatural range 1 .. FNatural'Last;
 	
 	--
 	-- Data array size calculations for all HDU types

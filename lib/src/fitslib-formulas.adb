@@ -73,11 +73,11 @@ package body FITSlib.Formulas is
 	
 	function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
 	is
-		FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+		FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsPerBlock) );
 		-- explicit conversion ok: mod < CardsCntInBlock = 36;
 	begin
 		if FreeSlotCnt /= 0 then
-			FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+			FreeSlotCnt := CardsPerBlock - FreeSlotCnt;
 		end if;
 		return FreeSlotCnt;
 	end Free_Card_Slots;
