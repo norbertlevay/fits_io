@@ -6,6 +6,10 @@
 -- NOTE When composing and writing Mandatory keys to File many rules
 -- must be kept: FITS-standard defines order of keys etc...
 
+with Ada.Strings.Fixed;
+
+with FITS.Key;
+
 
 package body FITS.Header is
 	
@@ -33,23 +37,44 @@ package body FITS.Header is
                (Card : Card_Type;
                 Keys : in out DataSize_Type)
 	is
-		CardKey : String := Card(1..8); -- Trim FIXME
+		CardKey   : String := Ada.Strings.Fixed.Trim(Card(NameRange), Ada.Strings.Both);
+		CardValue : String := Ada.Strings.Fixed.Trim(Card(ValueRange),Ada.Strings.Both);
+		-- FIXME CardValue runs on EACH card, even those which not match on Name/Key
+		Index     : Positive;
 	begin
+		-- FIXME number conversion might raise exception
 		if (CardKey = "SIMPLE")
 		then
-			Keys.SIMPLE := Card(11..30);
+			Keys.SIMPLE := Card(ValueRange);
 
 		elsif (CardKey = "XTENSION")
 		then
-			Keys.XTENSION := Card(11..30);
+			Keys.XTENSION := Card(ValueRange);
 		
 		elsif (CardKey = "GROUPS")
 		then
-			Keys.GROUPS := Card(11..30);
+			Keys.GROUPS := Card(ValueRange);
 		
 		elsif(CardKey = "BITPIX")
 		then
-			Keys.BITPIX := 1;
+			Keys.BITPIX := Integer'Value(Card(ValueRange));
+		
+		elsif(CardKey = "NAXIS")
+		then
+			Keys.NAXIS := Integer'Value(Card(ValueRange));
+
+		elsif(FITS.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
+		then
+			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
+
+		elsif(CardKey = "PCOUNT")
+		then
+			Keys.PCOUNT := Natural'Value(Card(ValueRange));
+		
+		elsif(CardKey = "GCOUNT")
+		then
+			Keys.GCOUNT := Positive'Value(Card(ValueRange));
+		
 		end if;
 	
 	end ParseCard;

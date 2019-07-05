@@ -15,8 +15,14 @@
 
 
 package FITS.Header is
+	
+	subtype CardRange    is Integer range  1 .. 80;
 
-	subtype Card_Type is String(1..80);
+	subtype NameRange    is Integer range  1 ..  8;
+	subtype ValueRange   is Integer range 11 .. 30;
+	subtype CommentRange is Integer range 33 .. 80;
+ 
+	subtype Card_Type is String(CardRange);
 	type    Card_Arr  is array (Positive range <>) of Card_Type;
 
 
@@ -38,23 +44,32 @@ package FITS.Header is
 
 	-- For data size calculation
 	
-	subtype CardValue_Type is String(1 .. 20);
+	--subtype CardValue_Type is String(1 .. 20);
 
-	subtype NAXIS_Type is Natural range 0 .. 999;
-	type    NAXIS_Arr  is array (1 .. NAXIS_Type'Last) of Positive;
+	NAXIS_Last : constant := 999;
+	subtype NAXIS_Type is Natural range 0 .. NAXIS_Last;
+	type    NAXIS_Arr  is array (1 .. NAXIS_Type'Last) of Natural;
 	
 	type DataSize_Type is
 		record
-			SIMPLE   : CardValue_Type;
-			GROUPS   : CardValue_Type;
-			XTENSION : CardValue_Type;
+			SIMPLE   : String(ValueRange);
+			GROUPS   : String(ValueRange);
+			XTENSION : String(ValueRange);
 			BITPIX : Integer;
 			NAXIS  : NAXIS_Type;
 			NAXISn : NAXIS_Arr;
 			PCOUNT : Natural;
 			GCOUNT : Positive;
 		end record;
-	
+
+	EmptyCardValue : constant String(ValueRange) := (others =>  ' ');
+	DataSize_Null  : constant DataSize_Type := (EmptyCardValue,
+	                                            EmptyCardValue,
+						    EmptyCardValue,
+						    0, 0, (others => 0), 0, 1);
+
+
+
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out DataSize_Type);

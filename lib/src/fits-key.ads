@@ -8,14 +8,17 @@ package FITS.Key is
 
    type Indexed_Key_Type is
 	   record
-		   Root : String(1..8);
+		   --Root : String(1..8);
 		   Index_First : Natural;
 		   Index_Last  : Positive;
 	   end record;
    
-    function Index
+    function Match
 	   (CardKey : String;
-	    RefKey  : Indexed_Key_Type) return Positive;
+	    RefRoot : String;
+	    RefKey  : Indexed_Key_Type;
+	    Index   : out Positive) return Boolean;
+	    -- if False Index is undefined
 	    
     function Compose
 	    (Root  : String;
