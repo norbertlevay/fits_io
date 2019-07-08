@@ -32,6 +32,15 @@ package body FITSlib.HDU is
 		
 		-- convert Dsize & HSize into HDU_Type
 
+
+		-- FIXME this procedure should not have parsing of keys; That should be in Header,
+		-- and here only call it.
+		-- Result: HDU_Type (Prim, RandGroup, IMAGE, TABOE,BINTABLE) + NAXIS or TFIELDS, (PCOUNT,GCOUNT?):
+		-- NAXIS: Prim, RandGroups, EXT_IMAGE
+		-- TFIELDS: EXT_TABLE, EXT_BINTABLE -> these have NAXIS = 2, BITPIX=8
+		-- PCOUNT & GCOUNT only RandGRoups
+		-- PCOUNT in BIN_TABLE
+		-- Primary: not present, in others: PCOUNT=0 GCOUNT=1
 		declare
 			SIMPLE   : String := Ada.Strings.Fixed.Trim(DSize.SIMPLE,  Ada.Strings.Both);
 			XTENSION : String := Ada.Strings.Fixed.Trim(DSize.XTENSION,Ada.Strings.Both);

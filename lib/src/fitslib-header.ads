@@ -1,5 +1,9 @@
 --
--- Convert between array-of-cards <-> ada-record-fields
+-- Describes (through type-records) what information is available
+-- in the Header.
+--
+-- Provides parse and compose procedures to convert between 
+-- array-of-cards <-> ada-record-fields.
 --
 -- The array does not need to be complete, only those
 -- record-fields are filled in whose cards where found in the array, 
