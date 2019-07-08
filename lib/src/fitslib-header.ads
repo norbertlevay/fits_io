@@ -41,6 +41,22 @@ package FITSlib.Header is
 	subtype Card_Block is Card_Arr(1..CardsPerBlock);
 
 
+
+ 	-- HDU type determination
+	
+	type HDU_Variant is  (UNKNOWN, PRIM_UNKNOWN, PRIM_NON_STANDARD, 
+		              PRIM_NO_DATA, PRIM_IMAGE, 
+			      RAND_GROUPS,
+		              EXT_IMAGE, EXT_TABLE, EXT_BINTABLE, EXT_UNKNOWN);
+	type Std_Prim is new HDU_Variant range PRIM_NO_DATA .. PRIM_IMAGE;
+	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
+	-- FIXME confilcts with CONF_EXT later in the file
+
+	procedure Parse (Cards  : Card_Arr;
+		         HDUVar : out HDU_Variant) is null;
+
+
+
 	-- For header size calculation
 
 	ENDCard : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
@@ -54,6 +70,8 @@ package FITSlib.Header is
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out HeaderSize_Type);
+
+
 
 
 
@@ -83,9 +101,6 @@ package FITSlib.Header is
 	                                            EmptyCardValue,
 						    EmptyCardValue,
 						    0, 0, (others => 0), 0, 1);
-	-- FIXME NAXIS_Type shoul start with 0 or 1?
-
-
 
 	procedure Parse
 		(Cards : Card_Arr;

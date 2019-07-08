@@ -25,6 +25,13 @@ generic
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
+-- FIXME should funcs in this interface always recognize internally the HDU type
+	-- or there should be a explicit func which returns HDU type and then separate
+	-- funcs for each HDUTtype -> later alternative requires to reset FileIndex to Header start
+	
+	-- Rule: each of the Read_*() funcs assumes FileIndex is at HeaderStart.
+
+
 	-- read header and calculate size of data (for all known HDU types)
 	function Read_Data_Size_bits (Source : Source_Type) return Natural;
 
