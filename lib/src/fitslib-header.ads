@@ -38,6 +38,7 @@ package FITSlib.Header is
 	subtype Card_Type  is String(CardRange);
 	type    Card_Arr   is array (Positive range <>) of Card_Type;
 	CardsPerBlock : constant Positive := 36;
+	--BlockSize : constant Positive := CardsPerBlock * 80;
 	subtype Card_Block is Card_Arr(1..CardsPerBlock);
 
 
@@ -52,8 +53,7 @@ package FITSlib.Header is
 	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
 	-- FIXME confilcts with CONF_EXT later in the file
 
-	procedure Parse (Cards  : Card_Arr;
-		         HDUVar : out HDU_Variant) is null;
+	function Parse (Cards  : Card_Arr) return HDU_Variant;
 
 
 

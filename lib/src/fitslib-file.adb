@@ -27,6 +27,20 @@ package body FITSlib.File is
 	   Next        =>  HDUSIO_File_Next); 
 
 
+  function Peek (File : in SIO.File_Type) return HDU_Variant
+  is
+	  OrigIndex : SIO.Positive_Count := SIO.Index(File);
+	  Blk : Card_Block  := HDUSIO_File_Next(File);
+	  Var : HDU_Variant := Parse(Blk);
+  begin
+	  -- Peek should not modify File index 
+	  Set_Index(File, OrigIndex);
+	  -- FIXME explicit cast
+	  return Var;
+  end Peek;
+ 
+
+
 
   procedure Read_HDU (FitsFile : in SIO.File_Type)
   is

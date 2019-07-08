@@ -17,6 +17,7 @@ with Ada.Strings.Unbounded;
 
 with FITS_IO.File;   --use FITS_IO.File;
 with FITSlib.File;   --use FITSlib.File;
+with FITSlib.Header;   use FITSlib.Header; -- HDU_Variant needed
 
 procedure list
 is
@@ -49,6 +50,14 @@ begin
    FITSlib.File.Read_HDU(InFile);
 
    FIO.Set_Index(InFile, 1);
+   -- type
+   TIO.Put_Line("HDU: " &
+     HDU_Variant'Image( FITSlib.File.Peek(InFile)  )
+   );
+
+
+   -- Peek() resets origi FileIndex: no need for this: FIO.Set_Index(InFile, 1);
+   -- size
    DSize := FITSlib.File.Read_DataSize_bits(InFile);
    TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
    DURem  := (DSize/8) rem 2880;
