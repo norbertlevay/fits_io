@@ -85,4 +85,100 @@ package FITSlib.Header is
 		 Cards : Card_Arr);
 
 
+
+	-- experimental: For Primary Header 
+	
+	-- Ratio: bacause Primary header has special properties:
+	-- -- it is always IMAGE
+	-- -- can have no data NAXIS=0 (serves as header for extensions)
+	-- -- can have NAXIS1=0 then it contains RandomGroups
+	-- Extensions: may be other then IMAGE. But if image NAXIS<0,NAXIS1>0
+
+
+	-- 1st Header-in-File can be:
+	-- non-standard if SIMPLE = 'F'
+	-- HeaderForExtensions: SIMPLE='T' & NAXIS = 0 (NAXISn-array cards not present)
+	-- RandomGroups: SIMPLE='T' NAXIS=>1 NAXIS1 = 0 (GROUPS='T' and has PCOUNT GCOUNT)
+	-- Primary IMAGE: SIMPLE='T' NAXIS=>1 NAXIS1=>1
+
+	-- Q: hide these distinctions (withinSize calcs) or maybe each of these is 
+	-- useful to know explicitely for other decisions (than only size calculation).
+	-- Standard talks about these HDU types - should the lib-if be explicit on them too:
+	-- type Prim_Types enum (NONSTANDARD NODATA RANDGROUPS IMAGE)
+
+
+	-- NOTE whether ONE Vriant-record and 2 funcs: 
+	-- parse discriminants + parse variant record(for given discriminants)
+	-- or having MANY (non-variant) records and parse record funcs
+	-- is implementation detail
+	--
+	-- Regardless of implementation 
+	-- NON_VARIANT DATA MUST ALWAYS BE DETERMINED(PARESED) FIRST !!!
+	-- First nail down the variant part and then procde accordingly...
+	--
+	-- FIXME: Start even earlier: 
+	-- 1st HeaderBlock read:
+	-- if FileIndex = 1 -> card(1..8)='SIMPLE' 
+	-- -- one PrimaryHDU types (SIMPLE T or F) or not a FITS-file
+	-- if FileIndex > 1 -> 
+	-- if first card(1..8) = XTENSION -> one of extensions XTENSION=<type>
+	-- -- if first card(1..8) key neither SIMPLE nor XTENSION -> unspecified data follows
+	--
+
+	type What_File is (NOT_FITS_FILE, STANDARD_PRIMARY, NON_STANDARD_PRIMARY);
+	-- FIXME how to ensure here that FileIndex = 1, e.g. we examin 
+	-- cards from begining of the file?
+	procedure Parse_First_Block 
+		(Cards : Card_Arr;
+		 What  : out What_File) is null;
+	-- after call 'What' is always valid
+
+	type Standard_Primary_Type is (NO_DATA, RANDOM_GROUPS, IMAGE);
+
+	procedure Parse 
+		(Cards : Card_Arr;
+		 Prim  : out Standard_Primary_Type) is null;
+	-- after call 'Prim' is always valid
+
+	-- Primary IMAGE
+
+         type Primary_Image_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Type);
+			-- FIXME for mem usage optimization provad NAXIS arr max length by generic
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Primary_Image_Type) is null;
+
+        procedure Compose
+                (Keys  : Primary_Image_Type;
+                 Cards : out Card_Arr) is null;
+
+	-- Primary with RandomGroups
+
+       type Random_Groups_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Type);
+			PCOUNT : Natural;
+			GCOUNT : Positive;
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Random_Groups_Type) is null;
+
+	-- RandomGroups not supported -> no Compose()
+	-- we need Parse only to determine DU-size 
+	-- to be able to read other HDU's after RandGroups if present in the same file
+
+
+
+
+
 end FITSlib.Header;

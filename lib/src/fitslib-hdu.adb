@@ -7,6 +7,65 @@ with FITSlib.Header; use FITSlib.Header;
 
 package body FITSlib.HDU is
 
+	function Read_Primary_Image
+		(Source  : Source_Type)
+		return Primary_Image_Type
+	is
+		HBlk  : Card_Block;
+		DSize : Primary_Image_Type;
+		HEnd  : HeaderSize_Type;
+		What  : What_File;
+		Prim  : Standard_Primary_Type;
+	begin
+
+		HBlk := Next(Source);
+		-- read first block (after Set_Index(1))
+		
+		Parse_First_Block(HBlk, What);
+		case What is
+			when NOT_FITS_FILE => 
+				null;
+			when NON_STANDARD_PRIMARY => 
+				-- raise exception and exit
+				null;
+			when STANDARD_PRIMARY =>
+				Parse(HBlk, Prim);
+		end case;
+
+		case Prim is
+			when NO_DATA =>
+				-- HDU wihtout DataUnit: HDUSize = HeadSize
+				-- FIXME what to do ?? read until end of header?
+				null;
+			when RANDOM_GROUPS => 
+				null; -- we intend to read Primary IMAGE ???? raise exception
+			when IMAGE =>
+				Parse(HBlk, DSize);
+				-- and continue loop reading until Header END
+		end case;
+
+
+		loop
+			HBlk := Next(Source);
+			Parse(HBlk, DSize);
+			Parse(HBlk, HEnd);
+			exit when HEnd.ENDCardFound;
+		end loop;
+
+		return DSize;
+	
+	end Read_Primary_Image;
+
+
+
+
+
+	-- -------------------------------------------------
+	-- backup to save typing
+	-- -------------------------------------------------
+	--
+        -- establish HDU Type and its dimensions
+
 
 	function Read_Header
 		(Source  : Source_Type)

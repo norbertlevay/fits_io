@@ -1,4 +1,13 @@
 --
+-- File -> HDU separation allows to separate 
+-- operations within HDU(Read/Write/Header/Data) vs 
+-- operations on HDUs (remove HDU, copy HDU,..).
+-- HOWEVER both (File and HDU) operate on File_Type!!
+--
+-- ALTERNATIVE: don't separate, have only File and
+-- disctiguish ops with HDU vs on HDU by function names (prefix HDU_):
+-- Remove_HDU(File, HDUNum) vs HDU_Read_Primary_Header(File, PrimHead)
+--
 -- Multi-HDU FITS: Many HDU's are stored in one File. This module describes access (Read/Write) 
 -- to one particular HDU.
 --
@@ -16,31 +25,34 @@ generic
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
-	-- establish HDU Type and its dimensions
 	
-	type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
+	function Read_Primary_Image (Source : Source_Type) return Primary_Image_Type;
 	
-	type HDU_Type ( HDUCat : HDU_Category;
-	                NAXIS  : NAXIS_Type ) is
-		record
-			CardCount : Positive;
-			BITPIX : Integer;
-			NAXISn : NAXIS_Arr(1..NAXIS);
-			case HDUCat is
-				when PRIMARY =>
-					null;
-				when RANDGROUPS .. CONF_EXT =>
-					PCOUNT   : Positive;
-					GCOUNT   : Positive;
-			end case;
-		end record;
-	
-	
-	function Read_Header (Source : Source_Type) return HDU_Type;
-	
-	procedure Write_Header (Sink : Sink_Type; HDUType : HDU_Type) is null;
+	procedure Write_Primary_Image (Sink : Sink_Type; Primary : Primary_Image_Type) is null;
 
 
+-- left here for backward comaptibily for test with fits_io-file.adb
+	
 
+	        type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
+
+        type HDU_Type ( HDUCat : HDU_Category;
+                        NAXIS  : NAXIS_Type ) is
+                record
+                        CardCount : Positive;
+                        BITPIX : Integer;
+                        NAXISn : NAXIS_Arr(1..NAXIS);
+                        case HDUCat is
+                                when PRIMARY =>
+                                        null;
+                                when RANDGROUPS .. CONF_EXT =>
+                                        PCOUNT   : Positive;
+                                        GCOUNT   : Positive;
+                        end case;
+                end record;
+
+       function Read_Header
+                (Source  : Source_Type)
+                return HDU_Type;
 
 end FITSlib.HDU;

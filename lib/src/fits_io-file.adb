@@ -22,8 +22,10 @@ package body FITS_IO.File is
   end HDUSIO_File_Next; 
 
 
-  package SIO_HDU is new FITSlib.HDU(Source_Type =>  Ada.Streams.Stream_IO.File_Type, 
-        	                         Next =>  HDUSIO_File_Next); 
+  package SIO_HDU is new FITSlib.HDU
+	  (Source_Type =>  Ada.Streams.Stream_IO.File_Type,
+	   Sink_Type   =>  Ada.Streams.Stream_IO.File_Type,
+	   Next =>  HDUSIO_File_Next); 
 --  use SIO_HDU;
 
  package TIO renames Ada.Text_IO;
