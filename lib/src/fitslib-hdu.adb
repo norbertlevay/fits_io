@@ -2,59 +2,110 @@
 
 with Ada.Strings.Fixed; -- Trim
 
-with FITSlib.Header; use FITSlib.Header;
+with FITSlib.Header;   use FITSlib.Header;
+with FITSlib.Formulas; use FITSlib.Formulas;
 
 
 package body FITSlib.HDU is
 
-	function Read_Primary_Image
+
+
+
+	-- determine Data size of an unknown HDU type
+	function Read_Data_Size_bits
 		(Source  : Source_Type)
-		return Primary_Image_Type
+		return Natural
 	is
+		Nbits : Natural := 0;
 		HBlk  : Card_Block;
-		DSize : Primary_Image_Type;
 		HEnd  : HeaderSize_Type;
 		What  : What_File;
 		Prim  : Standard_Primary_Type;
+		PrimImg    : Primary_Image_Type;
+		RandGroups : Random_Groups_Type;
+		ConfExt    : Conforming_Extension_Type;
 	begin
 
 		HBlk := Next(Source);
-		-- read first block (after Set_Index(1))
+		-- read first block (after Set_Index(1 or n))
 		
 		Parse_First_Block(HBlk, What);
 		case What is
 			when NOT_FITS_FILE => 
 				null;
+				-- raise exception if Index() is 1 
+				-- (if >1 it will be unspecified extension)
+				-- FIXME better solution here ? if not a fitsfile 
+				-- we should not even call this function
+
 			when NON_STANDARD_PRIMARY => 
 				-- raise exception and exit
 				null;
+
 			when STANDARD_PRIMARY =>
 				Parse(HBlk, Prim);
+
+			when CONF_EXT =>
+				Parse(HBlk, ConfExt);
+				loop
+					HBlk := Next(Source);
+					Parse(HBlk, ConfExt);
+					Parse(HBlk, HEnd);
+					exit when HEnd.ENDCardFound;
+				end loop;
+				Nbits := ConformingExtension_DataSize_bits
+				          (ConfExt.BITPIX,
+					   ConfExt.NAXISn(ConfExt.NAXISn'First..ConfExt.NAXIS),
+					   ConfExt.PCOUNT,
+					   ConfExt.GCOUNT);
+				return Nbits;
+				-- FIXME not nice return here (due to case Prim below)
 		end case;
+
+
 
 		case Prim is
 			when NO_DATA =>
 				-- HDU wihtout DataUnit: HDUSize = HeadSize
 				-- FIXME what to do ?? read until end of header?
-				null;
+				-- or leave FileIndex after 1st block?
+				Nbits := 0;
+
 			when RANDOM_GROUPS => 
-				null; -- we intend to read Primary IMAGE ???? raise exception
+				Parse(HBlk, RandGroups);
+				loop
+					HBlk := Next(Source);
+					Parse(HBlk, RandGroups);
+					Parse(HBlk, HEnd);
+					exit when HEnd.ENDCardFound;
+				end loop;
+				Nbits := RandomGroups_DataSize_bits
+					(RandGroups.BITPIX,
+					 RandGroups.NAXISn(RandGroups.NAXISn'First..RandGroups.NAXIS),
+					 RandGroups.PCOUNT,
+					 RandGroups.GCOUNT);
+
 			when IMAGE =>
-				Parse(HBlk, DSize);
-				-- and continue loop reading until Header END
+				Parse(HBlk, PrimImg);
+
+				loop
+					HBlk := Next(Source);
+					Parse(HBlk, PrimImg);
+					Parse(HBlk, HEnd);
+					exit when HEnd.ENDCardFound;
+				end loop;
+				Nbits := PrimaryImage_DataSize_bits
+					(PrimImg.BITPIX,
+					 PrimImg.NAXISn(PrimImg.NAXISn'First..PrimImg.NAXIS));
+
 		end case;
 
+		return Nbits;
 
-		loop
-			HBlk := Next(Source);
-			Parse(HBlk, DSize);
-			Parse(HBlk, HEnd);
-			exit when HEnd.ENDCardFound;
-		end loop;
+	-- FIXME still missing check if all cards for all fields in structs were found
+		-- while Parse() calls.
 
-		return DSize;
-	
-	end Read_Primary_Image;
+	end Read_Data_Size_bits;
 
 
 

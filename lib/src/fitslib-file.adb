@@ -23,6 +23,7 @@ package body FITSlib.File is
 
   package SIO_HDU is new FITSlib.HDU
 	  (Source_Type =>  SIO.File_Type, 
+	   Sink_Type   =>  SIO.File_Type, 
 	   Next        =>  HDUSIO_File_Next); 
 
 
@@ -43,5 +44,14 @@ package body FITSlib.File is
 	 end loop;
 	 TIO.Put_Line("");
   end Read_HDU;
+
+
+ function Read_DataSize_bits (FitsFile : in SIO.File_Type) return Natural
+ is
+ begin
+         return SIO_HDU.Read_Data_Size_bits(FitsFile);
+ end Read_DataSize_bits;
+
+
 
 end FITSlib.File;

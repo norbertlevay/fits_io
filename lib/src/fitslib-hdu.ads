@@ -25,16 +25,20 @@ generic
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
-	
-	function Read_Primary_Image (Source : Source_Type) return Primary_Image_Type;
-	
+	-- read header and calculate size of data (for all known HDU types)
+	function Read_Data_Size_bits (Source : Source_Type) return Natural;
+
+
+
+
+-- writing routines for varios data types	
 	procedure Write_Primary_Image (Sink : Sink_Type; Primary : Primary_Image_Type) is null;
 
 
 -- left here for backward comaptibily for test with fits_io-file.adb
 	
 
-	        type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
+        type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
 
         type HDU_Type ( HDUCat : HDU_Category;
                         NAXIS  : NAXIS_Type ) is

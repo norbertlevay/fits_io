@@ -19,6 +19,14 @@
 -- size is calculated from dimensions stored in these structtures
 
 
+--
+-- groups of triple:
+-- -- type XY is ...
+-- -- Parse(Card_Arr; in out XY);
+-- -- Compose(XY) return Card_Arr;
+--
+
+
 package FITSlib.Header is
 	
 	subtype CardRange    is Integer range  1 .. 80;
@@ -52,8 +60,10 @@ package FITSlib.Header is
 	-- For data size calculation
 	
 	NAXIS_Last : constant := 999;
-	subtype NAXIS_Type is Natural range 0 .. NAXIS_Last;
-	type    NAXIS_Arr  is array (NAXIS_Type range <>) of Natural;
+	subtype NAXIS_Range is Positive range 1 .. NAXIS_Last;
+	subtype NAXIS_Type  is Natural  range 0 .. NAXIS_Last;
+	-- Primary HDU has no data if NAXIS=0
+	type    NAXIS_Arr  is array (NAXIS_Range range <>) of Positive;
 	
 	type DataSize_Type is
 		record
@@ -62,7 +72,7 @@ package FITSlib.Header is
 			XTENSION : String(ValueRange);
 			BITPIX : Integer;
 			NAXIS  : NAXIS_Type;
-			NAXISn : NAXIS_Arr(NAXIS_Type);
+			NAXISn : NAXIS_Arr(NAXIS_Range);
 			-- FIXME NAXIS1=0 if RandGroups: make separate and let NAXIS run from 2...NAXIS
 			PCOUNT : Natural;
 			GCOUNT : Positive;
@@ -73,6 +83,7 @@ package FITSlib.Header is
 	                                            EmptyCardValue,
 						    EmptyCardValue,
 						    0, 0, (others => 0), 0, 1);
+	-- FIXME NAXIS_Type shoul start with 0 or 1?
 
 
 
@@ -125,20 +136,20 @@ package FITSlib.Header is
 	-- -- if first card(1..8) key neither SIMPLE nor XTENSION -> unspecified data follows
 	--
 
-	type What_File is (NOT_FITS_FILE, STANDARD_PRIMARY, NON_STANDARD_PRIMARY);
+	type What_File is (NOT_FITS_FILE, STANDARD_PRIMARY, NON_STANDARD_PRIMARY, CONF_EXT);
+	-- observes SIMPLE key and its values or SIMPLE not found.
 	-- FIXME how to ensure here that FileIndex = 1, e.g. we examin 
 	-- cards from begining of the file?
 	procedure Parse_First_Block 
 		(Cards : Card_Arr;
-		 What  : out What_File) is null;
+		 What  : out What_File);
 	-- after call 'What' is always valid
 
 	type Standard_Primary_Type is (NO_DATA, RANDOM_GROUPS, IMAGE);
-
+	-- observes NAXIS NAXIS1 keys
 	procedure Parse 
 		(Cards : Card_Arr;
-		 Prim  : out Standard_Primary_Type) is null;
-	-- after call 'Prim' is always valid
+		 Prim  : out Standard_Primary_Type);
 
 	-- Primary IMAGE
 
@@ -146,13 +157,13 @@ package FITSlib.Header is
                 record
                         BITPIX : Integer;
                         NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Type);
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
 			-- FIXME for mem usage optimization provad NAXIS arr max length by generic
                 end record;
 
         procedure Parse
                 (Cards : Card_Arr;
-                 Keys  : in out Primary_Image_Type) is null;
+                 Keys  : in out Primary_Image_Type);
 
         procedure Compose
                 (Keys  : Primary_Image_Type;
@@ -160,11 +171,13 @@ package FITSlib.Header is
 
 	-- Primary with RandomGroups
 
+	-- FIXME differs from ConformingExt in NAXIS1/Natural & NAXISn(2...Last)/Positive 
+		 -- - implement it!
        type Random_Groups_Type is
                 record
                         BITPIX : Integer;
                         NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Type);
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
 			PCOUNT : Natural;
 			GCOUNT : Positive;
                 end record;
@@ -176,6 +189,19 @@ package FITSlib.Header is
 	-- RandomGroups not supported -> no Compose()
 	-- we need Parse only to determine DU-size 
 	-- to be able to read other HDU's after RandGroups if present in the same file
+	
+       type Conforming_Extension_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
+			PCOUNT : Natural;
+			GCOUNT : Positive;
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Conforming_Extension_Type) is null;
 
 
 

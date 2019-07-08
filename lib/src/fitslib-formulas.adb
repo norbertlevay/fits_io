@@ -1,18 +1,18 @@
 
 
 
-
+with Ada.Text_IO;
 
 
 package body FITSlib.Formulas is
 
 	-- implements [FITS] Eq(1)
 
-        function PrimaryHDU_DataSize_bits
+        function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : NAXIS_Arr) return FPositive
+                 NAXIS  : NAXIS_Arr) return Positive
 	is
-		Nbits : FPositive := 1;
+		Nbits : Positive := 1;
 	begin
 
 		for I in NAXIS'Range
@@ -20,11 +20,11 @@ package body FITSlib.Formulas is
 			Nbits := Nbits * NAXIS(I);
 		end loop;
 
-		Nbits := FNatural(abs BITPIX) * Nbits;
+		Nbits := Natural(abs BITPIX) * Nbits;
 		
 		return Nbits;
 
-	end PrimaryHDU_DataSize_bits;
+	end PrimaryImage_DataSize_bits;
 
 
         -- implements [FITS] Eq(2)
@@ -32,13 +32,13 @@ package body FITSlib.Formulas is
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : NAXIS_Arr;
-                 PCOUNT : FNatural;
-                 GCOUNT : FPositive) return FPositive
+                 PCOUNT : Natural;
+                 GCOUNT : Positive) return Positive
 	is
-		Nbits : FPositive := PrimaryHDU_DataSize_bits(BITPIX,NAXIS);
+		Nbits : Positive := PrimaryImage_DataSize_bits(BITPIX,NAXIS);
 	begin
 
-		Nbits := Nbits + FNatural(abs BITPIX) * PCOUNT;
+		Nbits := Nbits + Natural(abs BITPIX) * PCOUNT;
 		Nbits := Nbits * GCOUNT;
 
 		return Nbits;
@@ -51,8 +51,8 @@ package body FITSlib.Formulas is
 	function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : NAXIS_Arr;
-                 PCOUNT : FNatural;
-                 GCOUNT : FPositive) return FPositive
+                 PCOUNT : Natural;
+                 GCOUNT : Positive) return Positive
 	is
 		NAXISCopy : NAXIS_Arr := NAXIS;
 	begin

@@ -32,6 +32,12 @@ package body FITS_IO.File is
 
 
  -- call IF      
+ function Read_DataSize_bits (FitsFile : in SIO.File_Type) return Natural
+ is
+ begin
+	 return SIO_HDU.Read_Data_Size_bits(FitsFile);
+ end Read_DataSize_bits;
+
  procedure Read_HDU (FitsFile : in SIO.File_Type)
  is
 	 HDU : SIO_HDU.HDU_Type := SIO_HDU.Read_Header(FitsFile);

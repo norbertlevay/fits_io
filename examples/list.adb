@@ -30,7 +30,9 @@ is
  InFileName : SU.Unbounded_String; 
  InFile     : SIO.File_Type;
  HDUNum     : Positive := 1;
-
+ DSize      : Natural := 0;
+ DUSize     : Natural := 0;
+ DURem      : Natural; 
 begin
 
  if (CLI.Argument_Count /= 1) then
@@ -45,8 +47,19 @@ begin
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
    FITSlib.File.Read_HDU(InFile);
-   FIO.Set_Index(InFile, 1);
 
+   FIO.Set_Index(InFile, 1);
+   DSize := FITSlib.File.Read_DataSize_bits(InFile);
+   TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
+   DURem  := (DSize/8) rem 2880;
+   TIO.Put_Line("DURem : " & Natural'Image(DURem));
+   DUSize := ((DSize/8) / 2880 + 1) * 2880;
+   if(DURem = 0) then
+	   DUSize := DUSize - 2880;
+   end if;
+   TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
+   
+   FIO.Set_Index(InFile, 1);
    while not SIO.End_Of_File(InFile)
    loop
      declare
