@@ -11,13 +11,53 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
+with Ada.Strings;
+with Ada.Strings.Fixed;
+
 with FITS;        use FITS;
-with FITS.Header; use FITS.Header;
+--with FITS.Header; use FITS.Header;
+with FITS.Keyword; use FITS.Keyword; -- Max_8 ... needed
 with FITS.File;   use FITS.File;
 
 
 procedure create
 is
+
+   function To_Card (Key     : in Max_8.Bounded_String;
+                     Value   : in Max20.Bounded_String;
+                     Comment : in Max48.Bounded_String)
+                     return Card_Type
+   is
+    Card : Card_Type := EmptyCard;
+   begin
+    -- FIXME how to guarantee Key and Comment are right justified
+    --       Value (often) left justified
+
+--    Card(1 .. 8) := Max_8.To_String(Key);
+    Ada.Strings.Fixed.Move (Source  => Max_8.To_String(Key),
+                        Target  => Card(1 .. 8),
+                        Justify => Ada.Strings.Left, 
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
+
+
+    Card(9 ..10) := "= ";
+    -- Card(11..30) := Max20.To_String(Value);
+    Ada.Strings.Fixed.Move (Source  => Max20.To_String(Value),
+                        Target  => Card(11 .. 30),
+                        Justify => Ada.Strings.Right,
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
+    Card(31..32) := " /"; -- [FITS 4.1.2.3: "Space strongly recommended" ]
+--    Card(33..80) := Max48.To_String(Comment);
+    Ada.Strings.Fixed.Move (Source  => Max48.To_String(Comment),
+                        Target  => Card(33 .. 80),
+                        Justify => Ada.Strings.Left,
+                        Drop    => Ada.Strings.Error, 
+                        Pad     => ' '); 
+    return Card;
+   end To_Card;
+
 
  package SIO renames Ada.Streams.Stream_IO;
 
