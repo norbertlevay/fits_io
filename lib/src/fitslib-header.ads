@@ -67,7 +67,6 @@ package FITSlib.Header is
 
 	type Std_Prim is new HDU_Variant range PRIM_NO_DATA .. PRIM_IMAGE;
 	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
-	-- FIXME confilcts with CONF_EXT later in the file
 
 	function Parse (Cards  : Card_Arr) return HDU_Variant;
 
@@ -164,8 +163,9 @@ package FITSlib.Header is
 
 
 
-	-- FIXME what to do with this ? Can be used for list() ?
-	-- For data size calculation
+	-- FIXME what to do with this ? Can be used for list() -> yes, use it as "common" type
+		 -- to calc data size (common = uniting all 3 calc formulas into one: Conf_Ext)
+	-- For common data size calculation
 	
 
 	type DataSize_Type is

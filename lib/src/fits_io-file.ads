@@ -18,10 +18,4 @@ package FITS_IO.File is
    procedure Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive);
 
-   function Read_DataSize_bits (FitsFile : in SIO.File_Type) 
-	   return Natural;
-
-   procedure Read_HDU (FitsFile : in SIO.File_Type);
-   -- only experimental with debug prints
-
 end FITS_IO.File;
