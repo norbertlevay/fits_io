@@ -15,8 +15,26 @@ package FITSlib.File is
    function Peek (File : in SIO.File_Type) return HDU_Variant;
 
 
-   function Read_DataSize_bits 
+  function Read_DataSize_bits 
 	   (FitsFile : in SIO.File_Type) return Natural;
+
+
+
+  type Data_Dimensions_Type is
+                record
+                        HDUVar     : HDU_Variant;
+                        CardsCount : Positive;
+                        BITPIX     : Integer;
+                        NAXIS      : Natural;
+                        NAXISn     : NAXIS_Arr(NAXIS_Range);
+                end record;
+
+ procedure Read_Data_Dimensions
+                (Source  : SIO.File_Type;
+                 DDims   : out Data_Dimensions_Type);
+
+
+
 
 
 end FITSlib.File;

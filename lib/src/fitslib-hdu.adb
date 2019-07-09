@@ -13,10 +13,10 @@ package body FITSlib.HDU is
         procedure Read_Conforming_Extensions
                 (Source     : Source_Type;
                  FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
 		 ConfExt    : out Conforming_Extension_Type)
 	is
 		HBlk    : Card_Block;
-		HEnd    : HeaderSize_Type;
 	begin
 		Parse(FirstBlock, ConfExt);
 		loop
@@ -35,10 +35,11 @@ package body FITSlib.HDU is
 	is
 		ConfExt : Conforming_Extension_Type;
 		First   : Positive;
+		HDummy  : HeaderSize_Type;
 	begin
 
 		Read_Conforming_Extensions
-			(Source, FirstBlock, ConfExt);
+			(Source, FirstBlock, HDummy, ConfExt);
 
 		First := ConfExt.NAXISn'First;
 
@@ -60,10 +61,10 @@ package body FITSlib.HDU is
         procedure Read_Random_Groups
 		(Source     : Source_Type;
 		 FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
 		 RandGroups : out Random_Groups_Type)
 	is
 		HBlk    : Card_Block;
-		HEnd    : HeaderSize_Type;
 	begin
 		Parse(FirstBlock, RandGroups);
 		loop
@@ -81,9 +82,10 @@ package body FITSlib.HDU is
 	is
 		RandGroups : Random_Groups_Type;
 		First      : Positive;
+		HDummy  : HeaderSize_Type;
 	begin
 	        Read_Random_Groups
-			(Source, FirstBlock, RandGroups);
+			(Source, FirstBlock, HDummy, RandGroups);
 
 		First := RandGroups.NAXISn'First;
 
@@ -102,10 +104,10 @@ package body FITSlib.HDU is
         procedure Read_Primary 
 		(Source     : Source_Type;
 		 FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
 		 PrimImg    : out Primary_Image_Type)
 	is
 		HBlk    : Card_Block;
-		HEnd    : HeaderSize_Type;
 	begin
 		Parse(FirstBlock, PrimImg);
 		loop
@@ -123,9 +125,10 @@ package body FITSlib.HDU is
 	is
 		PrimImg : Primary_Image_Type;
 		First   : Positive;
+		HDummy  : HeaderSize_Type;
 	begin
 		Read_Primary
-			(Source, FirstBlock, PrimImg);
+			(Source, FirstBlock, HDummy, PrimImg);
 
 		First := PrimImg.NAXISn'First;
 
@@ -193,5 +196,10 @@ package body FITSlib.HDU is
 		-- while Parse() calls.
 
 	end Read_Data_Size_bits;
+
+
+
+
+
 
 end FITSlib.HDU;

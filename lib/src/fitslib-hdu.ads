@@ -45,20 +45,23 @@ package FITSlib.HDU is
 	procedure Read_Conforming_Extensions
 		(Source     : Source_Type;
                  FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
                  ConfExt    : out Conforming_Extension_Type);
 
 	procedure Read_Random_Groups
 		(Source     : Source_Type;
                  FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
 		 RandGroups : out Random_Groups_Type);
 
 	procedure Read_Primary 
 		(Source     : Source_Type;
                  FirstBlock : Card_Block;
+		 HEnd       : out HeaderSize_Type;
                  PrimImg    : out Primary_Image_Type);
 
 
-	
+
 	function Read_Conforming_Extensions_Data_Size_bits 
 		(Source     : Source_Type;
                  FirstBlock : Card_Block) return Natural;

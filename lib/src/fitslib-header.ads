@@ -73,7 +73,7 @@ package FITSlib.Header is
 	type HeaderSize_Type is
 		record
 			ENDCardFound : Boolean;
-			CardCount    : Positive;
+			CardCount    : Natural;
 		end record;
 	
 	procedure Parse

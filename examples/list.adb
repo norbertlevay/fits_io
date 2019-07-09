@@ -16,7 +16,7 @@ with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded;
 
 with FITS_IO.File;   --use FITS_IO.File;
-with FITSlib.File;   --use FITSlib.File;
+with FITSlib.File;   use FITSlib.File;
 with FITSlib.Header;   use FITSlib.Header; -- HDU_Variant needed
 
 procedure list
@@ -33,8 +33,94 @@ is
  HDUNum     : Positive := 1;
  DSize      : Natural := 0;
  DUSize     : Natural := 0;
- DURem      : Natural; 
+ DURem      : Natural;
+ HStart     : SIO.Positive_Count; 
  use SIO;
+
+    
+    procedure Print_DDims_Rec (DDims  : Data_Dimensions_Type)
+    is
+	    lNAXISn : NAXIS_Arr := DDims.NAXISn(1 .. DDims.NAXIS);
+    begin
+	    TIO.Put(
+		    HDU_Variant'Image(DDims.HDUVar)
+		    & " " &
+		    Positive'Image(DDims.CardsCount)
+		    & " " &
+		    Integer'Image(DDims.BITPIX)
+		    );
+	    
+	    TIO.Put(" ( ");
+	    TIO.Put(Positive'Image(lNAXISn(1)));
+	    for I in 2 .. lNAXISn'Last
+		    loop
+			    TIO.Put(" x " & Positive'Image(lNAXISn(I)));
+		    end loop;
+	    TIO.Put_Line(" )");
+
+    end Print_DDims_Rec;
+
+
+
+    procedure Read_Print_Data_Dimensions (Source : SIO.File_Type;
+	    Var : HDU_Variant)
+    is
+	     DDims  : Data_Dimensions_Type;
+    begin
+
+                case Var is
+                        when UNKNOWN =>
+                                null;
+                                -- raise exception if Index() is 1 
+                                -- (if >1 it will be unspecified extension)
+                                -- FIXME better solution here ? if not a fitsfile 
+                                -- we should not even call this function
+
+                        when PRIM_UNKNOWN =>
+                                -- raise exception and exit
+                                null;
+
+                        when PRIM_NON_STANDARD =>
+                                -- raise exception and exit
+                                null;
+
+                        when PRIM_NO_DATA =>
+                                -- FIXME what to do ?? read until end of header?
+                                -- or leave FileIndex after 1st block?
+                                DDims.NAXIS := 0;
+
+                        when PRIM_IMAGE =>
+                                Read_Data_Dimensions (Source, DDims);
+				Print_DDims_Rec(DDims);
+
+                        when RAND_GROUPS =>
+                                Read_Data_Dimensions (Source, DDims);
+				Print_DDims_Rec(DDims);
+
+                        when EXT_IMAGE .. EXT_BINTABLE =>
+                                Read_Data_Dimensions (Source, DDims);
+				Print_DDims_Rec(DDims);
+
+                        when EXT_UNKNOWN =>
+                                -- raise exception and exit
+                                null;
+                end case;
+
+    end Read_Print_Data_Dimensions;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- main begins ----------------------------------------------
 begin
 
  if (CLI.Argument_Count /= 1) then
@@ -49,11 +135,12 @@ begin
    --FITSlib.File.Read_HDU(InFile);
    --TIO.Put_Line("New: ---------------");
 
-   FIO.Set_Index(InFile, 1);
-
 
    TIO.Put_Line("______________________________________");
    TIO.Put_Line("TEST1: FITSlib.File.Read_DataSize_bits");
+   
+   FIO.Set_Index(InFile, 1);
+
    while not SIO.End_Of_File(InFile)
    loop
 
@@ -79,14 +166,40 @@ begin
 
  end loop;
 
+ 
+
+
+   TIO.Put_Line("______________________________________");
+   TIO.Put_Line("TEST2: FITSlib.File.Read data dimensions");
+
+   FIO.Set_Index(InFile, 1);
+	 
+   while not SIO.End_Of_File(InFile)
+   loop
+
+	   HStart := Index(InFile);
+
+    Read_Print_Data_Dimensions( InFile, FITSlib.File.Peek(InFile)  );
+
+	SIO.Set_Index(InFile, HStart);
+
+    DSize  := FITSlib.File.Read_DataSize_bits(InFile);
+    DUSize := ((DSize/8) / 2880 + 1) * 2880;
+
+    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+
+  end loop;
+
+
 
 
    
    TIO.Put_Line("");
    TIO.Put_Line("________________________");
-   TIO.Put_Line("TEST2: FITS_IO.Set_Index");
+   TIO.Put_Line("TEST3: FITS_IO.Set_Index");
 
    FIO.Set_Index(InFile, 1);
+
    while not SIO.End_Of_File(InFile)
    loop
      declare
