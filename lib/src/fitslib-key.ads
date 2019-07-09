@@ -8,7 +8,7 @@ package FITSlib.Key is
 
    type Indexed_Key_Type is
 	   record
-		   --Root : String(1..8);
+		   -- FIXME Root : String(1..8);
 		   Index_First : Natural;
 		   Index_Last  : Positive;
 	   end record;

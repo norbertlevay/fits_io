@@ -164,7 +164,26 @@ package body FITSlib.Header is
 	end Parse;
 
 
+
+
 	
+	procedure Parse
+		(Cards : Card_Arr;
+		 Keys  : in out HeaderSize_Type)
+	is
+	begin
+		for I in Cards'Range
+		loop
+			Keys.ENDCardFound := (Cards(I) = ENDCard);
+			Keys.CardCount    := Keys.CardCount + 1;
+			exit when Keys.ENDCardFound;
+		end loop;
+	end Parse;
+	
+	
+	
+
+
 	procedure ParseCard
                (Card : Card_Type;
                 Keys : in out Primary_Image_Type)
@@ -190,8 +209,6 @@ package body FITSlib.Header is
 		end if;
 	
 	end ParseCard;
-	
-
 
 	-- FIXME replace these for-cycles with generic with ParseCard()
          procedure Parse
@@ -206,7 +223,9 @@ package body FITSlib.Header is
 	end Parse;
 
 
-	-- Random Groups
+
+
+
 
 	procedure ParseCard
                (Card : Card_Type;
@@ -256,7 +275,10 @@ package body FITSlib.Header is
 	end Parse;
 
 
-	-- Conforming extension
+
+
+
+
 
 	procedure ParseCard
                (Card : Card_Type;
@@ -307,25 +329,33 @@ package body FITSlib.Header is
 
 
 
-	-- info for header size calculation
+
 	
-	procedure Parse
-		(Cards : Card_Arr;
-		 Keys  : in out HeaderSize_Type)
-	is
-	begin
-		for I in Cards'Range
-		loop
-			Keys.ENDCardFound := (Cards(I) = ENDCard);
-			Keys.CardCount    := Keys.CardCount + 1;
-			exit when Keys.ENDCardFound;
-		end loop;
-	end Parse;
-	
-	
-	
-	-- keys for data-size calculation
-	
+	-- old data-size calculation --> FIXME re-use as common info for all HDUtypes in list() ??
+        -- FIXME what to do with this ? Can be used for list() -> yes, use it as "common" type
+                 -- to calc data size (common = uniting all 3 calc formulas into one: Conf_Ext)
+        -- For common data size calculation
+
+        type DataSize_Type is
+                record
+                        SIMPLE   : String(ValueRange);
+                        GROUPS   : String(ValueRange);
+                        XTENSION : String(ValueRange);
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
+                        -- FIXME NAXIS1=0 if RandGroups: make separate and let NAXIS run from 2...NAXIS
+                        PCOUNT : Natural;
+                        GCOUNT : Positive;
+                end record;
+
+        EmptyCardValue : constant String(ValueRange) := (others =>  ' ');
+        DataSize_Null  : constant DataSize_Type := (EmptyCardValue,
+                                                    EmptyCardValue,
+                                                    EmptyCardValue,
+                                                    0, 0, (others => 0), 0, 1);
+
+
 	procedure ParseCard
                (Card : Card_Type;
                 Keys : in out DataSize_Type)

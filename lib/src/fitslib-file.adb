@@ -41,25 +41,6 @@ package body FITSlib.File is
  
 
 
-
-  procedure Read_HDU (FitsFile : in SIO.File_Type)
-  is
-	 HDU : SIO_HDU.HDU_Type := SIO_HDU.Read_Header(FitsFile);
-  begin
-
-	 TIO.Put_Line( "HDU       " & SIO_HDU.HDU_Category'Image(HDU.HDUCat) );
-	 TIO.Put_Line( "NAXIS     " & NAXIS_Type'Image(HDU.NAXIS) );
-	 TIO.Put_Line( "CardCount " & Positive'Image(HDU.CardCount) );
-	 TIO.Put_Line( "BITPIX    " & Integer'Image(HDU.BITPIX) );
-	 TIO.Put( "NAXISn    " );
-	 for I in HDU.NAXISn'Range
-	 loop
-		 TIO.Put(Positive'Image(HDU.NAXISn(I)) & " " );
-	 end loop;
-	 TIO.Put_Line("");
-  end Read_HDU;
-
-
  function Read_DataSize_bits (FitsFile : in SIO.File_Type) return Natural
  is
  begin

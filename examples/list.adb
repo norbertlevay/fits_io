@@ -52,6 +52,8 @@ begin
    FIO.Set_Index(InFile, 1);
 
 
+   TIO.Put_Line("______________________________________");
+   TIO.Put_Line("TEST1: FITSlib.File.Read_DataSize_bits");
    while not SIO.End_Of_File(InFile)
    loop
 
@@ -65,7 +67,7 @@ begin
     DSize := FITSlib.File.Read_DataSize_bits(InFile);
     TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
     DURem  := (DSize/8) rem 2880;
-    TIO.Put_Line("DURem : " & Natural'Image(DURem));
+    --TIO.Put_Line("DURem : " & Natural'Image(DURem));
     DUSize := ((DSize/8) / 2880 + 1) * 2880;
     if(DURem = 0) then
 	   DUSize := DUSize - 2880;
@@ -81,7 +83,8 @@ begin
 
    
    TIO.Put_Line("");
-   TIO.Put_Line("FITS_IO.Set_Index test:");
+   TIO.Put_Line("________________________");
+   TIO.Put_Line("TEST2: FITS_IO.Set_Index");
 
    FIO.Set_Index(InFile, 1);
    while not SIO.End_Of_File(InFile)
