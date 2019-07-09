@@ -24,7 +24,11 @@
 -- file on a disk. This module operates on buffer.
 --
 -- FIXME add generic param N to configure buffer size (N-blocks)
-
+-- FIXME _consider_ implement one common DataDimensions_Type and 
+-- DataSize calculation routine for all three types below.
+-- Use it also for list() of HDU info --> e.g. how to map
+-- the three types PrimIMAGE COnfExt and RandGroup record fields
+-- to ome common suitable for list() HD-info ?
 
 with FITSlib.Header; use FITSlib.Header;
 
@@ -35,6 +39,21 @@ generic
  Type  Sink_Type   is limited private;
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
+
+	-- FIXME implement these
+
+	procedure Read_Conforming_Extensions_Data_Dimensions 
+		(Source  : Source_Type;
+                 ConfExt : out Conforming_Extension_Type) is null;
+
+	procedure Read_Random_Groups_Data_Dimensions 
+		(Source  : Source_Type;
+                 ConfExt : out Random_Groups_Type) is null;
+
+	procedure Read_Primary_Image_Data_Dimensions 
+		(Source  : Source_Type;
+                 ConfExt : out Primary_Image_Type) is null;
+
 
 	--FIXME id FirstBlock needed - review for other solution
 	

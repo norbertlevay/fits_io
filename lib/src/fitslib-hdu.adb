@@ -20,6 +20,8 @@ package body FITSlib.HDU is
 		First   : Positive;
 		HEnd    : HeaderSize_Type;
 	begin
+		-- FIXME make these loops separate for each Type:
+		-- Read_X_Y_Data_Dimensions(Source, XY_Type in out)
 		Parse(FirstBlock, ConfExt);
 		loop
 			HBlk := Next(Source);
