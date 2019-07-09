@@ -40,22 +40,24 @@ generic
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
-	-- FIXME implement these
-
-	procedure Read_Conforming_Extensions_Data_Dimensions 
-		(Source  : Source_Type;
-                 ConfExt : out Conforming_Extension_Type) is null;
-
-	procedure Read_Random_Groups_Data_Dimensions 
-		(Source  : Source_Type;
-                 ConfExt : out Random_Groups_Type) is null;
-
-	procedure Read_Primary_Image_Data_Dimensions 
-		(Source  : Source_Type;
-                 ConfExt : out Primary_Image_Type) is null;
-
-
 	--FIXME id FirstBlock needed - review for other solution
+
+	procedure Read_Conforming_Extensions
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block;
+                 ConfExt    : out Conforming_Extension_Type);
+
+	procedure Read_Random_Groups
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block;
+		 RandGroups : out Random_Groups_Type);
+
+	procedure Read_Primary 
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block;
+                 PrimImg    : out Primary_Image_Type);
+
+
 	
 	function Read_Conforming_Extensions_Data_Size_bits 
 		(Source     : Source_Type;

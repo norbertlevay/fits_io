@@ -10,18 +10,14 @@ with Ada.Text_IO;
 package body FITSlib.HDU is
 
 
-
-        function Read_Conforming_Extensions_Data_Size_bits
+        procedure Read_Conforming_Extensions
                 (Source     : Source_Type;
-                 FirstBlock : Card_Block) return Natural
+                 FirstBlock : Card_Block;
+		 ConfExt    : out Conforming_Extension_Type)
 	is
-		ConfExt : Conforming_Extension_Type;
 		HBlk    : Card_Block;
-		First   : Positive;
 		HEnd    : HeaderSize_Type;
 	begin
-		-- FIXME make these loops separate for each Type:
-		-- Read_X_Y_Data_Dimensions(Source, XY_Type in out)
 		Parse(FirstBlock, ConfExt);
 		loop
 			HBlk := Next(Source);
@@ -29,23 +25,44 @@ package body FITSlib.HDU is
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
 		end loop;
+	end Read_Conforming_Extensions;
+
+
+
+        function Read_Conforming_Extensions_Data_Size_bits
+                (Source     : Source_Type;
+                 FirstBlock : Card_Block) return Natural
+	is
+		ConfExt : Conforming_Extension_Type;
+		First   : Positive;
+	begin
+
+		Read_Conforming_Extensions
+			(Source, FirstBlock, ConfExt);
+
 		First := ConfExt.NAXISn'First;
+
 		return ConformingExtension_DataSize_bits
 		          (ConfExt.BITPIX,
 			   ConfExt.NAXISn(First..ConfExt.NAXIS),
 			   ConfExt.PCOUNT,
 			   ConfExt.GCOUNT);
+		
 	end Read_Conforming_Extensions_Data_Size_bits;
 
 
 
-        function Read_Random_Groups_Data_Size_bits 
+
+
+
+
+
+        procedure Read_Random_Groups
 		(Source     : Source_Type;
-		 FirstBlock : Card_Block) return Natural
+		 FirstBlock : Card_Block;
+		 RandGroups : out Random_Groups_Type)
 	is
-		RandGroups : Random_Groups_Type;
 		HBlk    : Card_Block;
-		First   : Positive;
 		HEnd    : HeaderSize_Type;
 	begin
 		Parse(FirstBlock, RandGroups);
@@ -55,24 +72,39 @@ package body FITSlib.HDU is
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
 		end loop;
+	end Read_Random_Groups;
+	
+
+        function Read_Random_Groups_Data_Size_bits 
+		(Source     : Source_Type;
+		 FirstBlock : Card_Block) return Natural
+	is
+		RandGroups : Random_Groups_Type;
+		First      : Positive;
+	begin
+	        Read_Random_Groups
+			(Source, FirstBlock, RandGroups);
+
 		First := RandGroups.NAXISn'First;
+
 		return RandomGroups_DataSize_bits
 			(RandGroups.BITPIX,
 			 RandGroups.NAXISn(First .. RandGroups.NAXIS),
 			 RandGroups.PCOUNT,
 			 RandGroups.GCOUNT);
+
 	end Read_Random_Groups_Data_Size_bits;
 
 
 
 
-        function Read_Primary_Data_Size_bits 
+
+        procedure Read_Primary 
 		(Source     : Source_Type;
-		 FirstBlock : Card_Block) return Natural
+		 FirstBlock : Card_Block;
+		 PrimImg    : out Primary_Image_Type)
 	is
-		PrimImg : Primary_Image_Type;
 		HBlk    : Card_Block;
-		First   : Positive;
 		HEnd    : HeaderSize_Type;
 	begin
 		Parse(FirstBlock, PrimImg);
@@ -82,12 +114,30 @@ package body FITSlib.HDU is
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
 		end loop;
+	end Read_Primary;
+	
+
+        function Read_Primary_Data_Size_bits 
+		(Source     : Source_Type;
+		 FirstBlock : Card_Block) return Natural
+	is
+		PrimImg : Primary_Image_Type;
+		First   : Positive;
+	begin
+		Read_Primary
+			(Source, FirstBlock, PrimImg);
+
 		First := PrimImg.NAXISn'First;
+
 		return PrimaryImage_DataSize_bits
 			(PrimImg.BITPIX,
 			 PrimImg.NAXISn(First .. PrimImg.NAXIS));
 
 	end Read_Primary_Data_Size_bits;
+
+
+
+
 
 
 
