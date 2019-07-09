@@ -127,9 +127,9 @@ package body FITSlib.Header is
 			declare
 				FirstCardValue : String := Ada.Strings.Fixed.Trim(
 					FirstCard(ValueRange),Ada.Strings.Both);
-				Is_IMAGE : Boolean    := (FirstCardValue = "IMAGE");
-				Is_TABLE : Boolean    := (FirstCardValue = "TABLE");
-				Is_BINTABLE : Boolean := (FirstCardValue = "BINTABLE");
+				Is_IMAGE : Boolean    := (FirstCardValue = "'IMAGE   '");
+				Is_TABLE : Boolean    := (FirstCardValue = "'TABLE   '");
+				Is_BINTABLE : Boolean := (FirstCardValue = "'BINTABLE'");
 			begin
 				if (Is_IMAGE)       then Var := EXT_IMAGE;
 				elsif (Is_TABLE)    then Var := EXT_TABLE;
@@ -194,7 +194,7 @@ package body FITSlib.Header is
 
 
 	-- FIXME replace these for-cycles with generic with ParseCard()
-        procedure Parse
+         procedure Parse
                 (Cards : Card_Arr;
                  Keys  : in out Primary_Image_Type)
 	is
@@ -204,6 +204,107 @@ package body FITSlib.Header is
                         ParseCard(Cards(I), Keys);
                 end loop;
 	end Parse;
+
+
+	-- Random Groups
+
+	procedure ParseCard
+               (Card : Card_Type;
+                Keys : in out Random_Groups_Type)
+	is
+		CardKey   : String := Ada.Strings.Fixed.Trim(Card(NameRange), Ada.Strings.Both);
+		CardValue : String := Ada.Strings.Fixed.Trim(Card(ValueRange),Ada.Strings.Both);
+		-- FIXME CardValue runs on EACH card, even those which not match on Name/Key
+		Index     : Positive;
+	begin
+		if(CardKey = "BITPIX")
+		then
+			Keys.BITPIX := Integer'Value(Card(ValueRange));
+		
+		elsif(CardKey = "NAXIS")
+		then
+			Keys.NAXIS := Positive'Value(Card(ValueRange));
+
+		elsif(CardKey = "NAXIS1")
+		then
+			Keys.NAXIS1 := Natural'Value(Card(ValueRange));
+
+		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(2,NAXIS_Last), Index))
+		then
+			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
+	
+		elsif(CardKey = "PCOUNT")
+		then
+			Keys.PCOUNT := Natural'Value(Card(ValueRange));
+
+		elsif(CardKey = "GCOUNT")
+		then
+			Keys.GCOUNT := Positive'Value(Card(ValueRange));
+		
+		end if;
+	end ParseCard;
+	
+       procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Random_Groups_Type)
+	is
+	begin
+                for I in Cards'Range
+                loop
+                        ParseCard(Cards(I), Keys);
+                end loop;
+	end Parse;
+
+
+	-- Conforming extension
+
+	procedure ParseCard
+               (Card : Card_Type;
+                Keys : in out Conforming_Extension_Type)
+	is
+		CardKey   : String := Ada.Strings.Fixed.Trim(Card(NameRange), Ada.Strings.Both);
+		CardValue : String := Ada.Strings.Fixed.Trim(Card(ValueRange),Ada.Strings.Both);
+		-- FIXME CardValue runs on EACH card, even those which not match on Name/Key
+		-- Trim only when needed
+		Index     : Positive;
+	begin
+		if(CardKey = "BITPIX")
+		then
+			Keys.BITPIX := Integer'Value(Card(ValueRange));
+		
+		elsif(CardKey = "NAXIS")
+		then
+			Keys.NAXIS := Positive'Value(Card(ValueRange));
+
+		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
+			-- FIXME literal 1 on NAXISn range - crosschek!!
+		then
+			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
+	
+		elsif(CardKey = "PCOUNT")
+		then
+			Keys.PCOUNT := Natural'Value(Card(ValueRange));
+
+		elsif(CardKey = "GCOUNT")
+		then
+			Keys.GCOUNT := Positive'Value(Card(ValueRange));
+		
+		end if;
+	end ParseCard;
+	
+       procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Conforming_Extension_Type)
+	is
+	begin
+                for I in Cards'Range
+                loop
+                        ParseCard(Cards(I), Keys);
+                end loop;
+	end Parse;
+
+
+
 
 
 	-- info for header size calculation

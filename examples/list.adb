@@ -34,6 +34,7 @@ is
  DSize      : Natural := 0;
  DUSize     : Natural := 0;
  DURem      : Natural; 
+ use SIO;
 begin
 
  if (CLI.Argument_Count /= 1) then
@@ -44,31 +45,44 @@ begin
  end if;
 
 
-
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
-
-   -- type
-   TIO.Put_Line("HDU: " &
-     HDU_Variant'Image( FITSlib.File.Peek(InFile)  )
-   );
-
-
-   FITSlib.File.Read_HDU(InFile);
+   --FITSlib.File.Read_HDU(InFile);
+   --TIO.Put_Line("New: ---------------");
 
    FIO.Set_Index(InFile, 1);
 
-   -- Peek() resets origi FileIndex: no need for this: FIO.Set_Index(InFile, 1);
-   -- size
-   DSize := FITSlib.File.Read_DataSize_bits(InFile);
-   TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
-   DURem  := (DSize/8) rem 2880;
-   TIO.Put_Line("DURem : " & Natural'Image(DURem));
-   DUSize := ((DSize/8) / 2880 + 1) * 2880;
-   if(DURem = 0) then
+
+   while not SIO.End_Of_File(InFile)
+   loop
+
+    -- Peek() resets origi FileIndex: no need for this: FIO.Set_Index(InFile, 1);
+    -- size
+    -- type
+    TIO.Put_Line("HDU: " &
+      HDU_Variant'Image( FITSlib.File.Peek(InFile)  )
+    );
+
+    DSize := FITSlib.File.Read_DataSize_bits(InFile);
+    TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
+    DURem  := (DSize/8) rem 2880;
+    TIO.Put_Line("DURem : " & Natural'Image(DURem));
+    DUSize := ((DSize/8) / 2880 + 1) * 2880;
+    if(DURem = 0) then
 	   DUSize := DUSize - 2880;
-   end if;
-   TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
+    end if;
+    TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
+
+
+    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+
+ end loop;
+
+
+
    
+   TIO.Put_Line("");
+   TIO.Put_Line("FITS_IO.Set_Index test:");
+
    FIO.Set_Index(InFile, 1);
    while not SIO.End_Of_File(InFile)
    loop

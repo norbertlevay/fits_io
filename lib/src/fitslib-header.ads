@@ -126,15 +126,16 @@ package FITSlib.Header is
        type Random_Groups_Type is
                 record
                         BITPIX : Integer;
-                        NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Range);
+                        NAXIS  : NAXIS_Range;
+                        NAXIS1 : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(2 .. NAXIS_Range'Last);
 			PCOUNT : Natural;
 			GCOUNT : Positive;
                 end record;
 
         procedure Parse
                 (Cards : Card_Arr;
-                 Keys  : in out Random_Groups_Type) is null;
+                 Keys  : in out Random_Groups_Type);
 
 	-- no Compose()
 	-- no support for RandomGroups:
@@ -147,7 +148,7 @@ package FITSlib.Header is
        type Conforming_Extension_Type is
                 record
                         BITPIX : Integer;
-                        NAXIS  : NAXIS_Type;
+                        NAXIS  : NAXIS_Range;
                         NAXISn : NAXIS_Arr(NAXIS_Range);
 			PCOUNT : Natural;
 			GCOUNT : Positive;
@@ -155,7 +156,7 @@ package FITSlib.Header is
 
         procedure Parse
                 (Cards : Card_Arr;
-                 Keys  : in out Conforming_Extension_Type) is null;
+                 Keys  : in out Conforming_Extension_Type);
 
         procedure Compose
                 (Keys  : Conforming_Extension_Type;

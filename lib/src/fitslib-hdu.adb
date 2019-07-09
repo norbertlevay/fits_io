@@ -30,7 +30,7 @@ package body FITSlib.HDU is
 		First := ConfExt.NAXISn'First;
 		return ConformingExtension_DataSize_bits
 		          (ConfExt.BITPIX,
-			   ConfExt.NAXISn(ConfExt.NAXISn'First..ConfExt.NAXIS),
+			   ConfExt.NAXISn(First..ConfExt.NAXIS),
 			   ConfExt.PCOUNT,
 			   ConfExt.GCOUNT);
 	end Read_Conforming_Extensions_Data_Size_bits;
@@ -128,8 +128,7 @@ package body FITSlib.HDU is
 				Nbits := Read_Random_Groups_Data_Size_bits (Source, HBlk);
 
 			when EXT_IMAGE .. EXT_BINTABLE =>
-				-- FIXME use type Conf_Ext... here
-				Nbits := Read_Random_Groups_Data_Size_bits (Source, HBlk);
+				Nbits := Read_Conforming_Extensions_Data_Size_bits (Source, HBlk);
 			
 			when EXT_UNKNOWN =>
 				-- raise exception and exit
