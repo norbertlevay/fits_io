@@ -193,6 +193,7 @@ package body FITSlib.Header is
 	
 
 
+	-- FIXME replace these for-cycles with generic with ParseCard()
         procedure Parse
                 (Cards : Card_Arr;
                  Keys  : in out Primary_Image_Type)
