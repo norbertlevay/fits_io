@@ -9,7 +9,7 @@
 -- record-fields are filled in whose cards where found in the array, 
 -- e.g. ada-record might leave some fields at init value:
 -- repeat Parse() for all avalable cards (e.g. complete header). 
---
+
 -- FIXME error/exception handling missing
 -- FIXME introduce FITS_Character as defined in [FITSxxx]
 -- NOTE Data Size: length of Data (without padding).
@@ -18,9 +18,15 @@
 -- FIXME change XxxxSize_Type to XxxxDimensions_Type or similar: 
 -- size is calculated from dimensions stored in these structtures
 
+-- NOTE whether ONE Vriant-record and 2 funcs: 
+-- parse discriminants + parse variant record(for given discriminants)
+-- or having MANY (non-variant) records and parse record funcs
+-- is implementation detail
+
+
 
 --
--- groups of triple:
+-- this spec contains groups of triple:
 -- -- type XY is ...
 -- -- Parse(Card_Arr; in out XY);
 -- -- Compose(XY) return Card_Arr;
@@ -37,18 +43,28 @@ package FITSlib.Header is
  
 	subtype Card_Type  is String(CardRange);
 	type    Card_Arr   is array (Positive range <>) of Card_Type;
+	
 	CardsPerBlock : constant Positive := 36;
 	--BlockSize : constant Positive := CardsPerBlock * 80;
+	
 	subtype Card_Block is Card_Arr(1..CardsPerBlock);
 
 
 
- 	-- HDU type determination
+ 	-- HDU determination
 	
-	type HDU_Variant is  (UNKNOWN, PRIM_UNKNOWN, PRIM_NON_STANDARD, 
-		              PRIM_NO_DATA, PRIM_IMAGE, 
-			      RAND_GROUPS,
-		              EXT_IMAGE, EXT_TABLE, EXT_BINTABLE, EXT_UNKNOWN);
+	type HDU_Variant is 
+		(UNKNOWN,          -- nor SIMPLE nor XTENSION found 
+		 PRIM_UNKNOWN,     -- SIMPLE found but value not F nor T
+		 PRIM_NON_STANDARD,-- SIMPLE = F
+		 PRIM_NO_DATA,     -- SIMPLE = T and NAXIS  = 0 
+		 PRIM_IMAGE,       -- SIMPLE = T and NAXIS != 0
+		 RAND_GROUPS,      -- SIMPLE = T and NAXIS != 0 and NAXIS1 = 0
+		 EXT_IMAGE,        -- XTENSION = IMAGE
+		 EXT_TABLE,        -- XTENSION = TABLE
+		 EXT_BINTABLE,     -- XTENSION = BINTABLE
+		 EXT_UNKNOWN);     -- XTENSION found but value none of above
+
 	type Std_Prim is new HDU_Variant range PRIM_NO_DATA .. PRIM_IMAGE;
 	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
 	-- FIXME confilcts with CONF_EXT later in the file
@@ -74,15 +90,84 @@ package FITSlib.Header is
 
 
 
-
-	-- For data size calculation
-	
+	-- FIXME for mem usage optimization provide NAXISn arr max length by generic
 	NAXIS_Last : constant := 999;
 	subtype NAXIS_Range is Positive range 1 .. NAXIS_Last;
 	subtype NAXIS_Type  is Natural  range 0 .. NAXIS_Last;
 	-- Primary HDU has no data if NAXIS=0
 	type    NAXIS_Arr  is array (NAXIS_Range range <>) of Positive;
 	
+
+	-- Primary with IMAGE
+	-- note: cannot be callled Primary_Type, because 
+	-- Primary HDU may have no data (e.g. implies no NAXIS_Arr in record)
+         
+	type Primary_Image_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Primary_Image_Type);
+
+        procedure Compose
+                (Keys  : Primary_Image_Type;
+                 Cards : out Card_Arr) is null;
+
+
+
+
+	-- Primary with RandomGroups
+
+	-- FIXME differs from ConformingExt in NAXIS1/Natural & NAXISn(2...Last)/Positive 
+		 -- - implement it!
+       type Random_Groups_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
+			PCOUNT : Natural;
+			GCOUNT : Positive;
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Random_Groups_Type) is null;
+
+	-- no Compose()
+	-- no support for RandomGroups:
+	-- we need only Parse to determine DataUnit-size 
+	-- to be able to read other HDU's following 
+	-- RandGroups if present in the same file
+
+
+
+       type Conforming_Extension_Type is
+                record
+                        BITPIX : Integer;
+                        NAXIS  : NAXIS_Type;
+                        NAXISn : NAXIS_Arr(NAXIS_Range);
+			PCOUNT : Natural;
+			GCOUNT : Positive;
+                end record;
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Conforming_Extension_Type) is null;
+
+        procedure Compose
+                (Keys  : Conforming_Extension_Type;
+                 Cards : out Card_Arr) is null;
+
+
+
+	-- FIXME what to do with this ? Can be used for list() ?
+	-- For data size calculation
+	
+
 	type DataSize_Type is
 		record
 			SIMPLE   : String(ValueRange);
@@ -111,114 +196,7 @@ package FITSlib.Header is
 		 Cards : Card_Arr);
 
 
-
-	-- experimental: For Primary Header 
 	
-	-- Ratio: bacause Primary header has special properties:
-	-- -- it is always IMAGE
-	-- -- can have no data NAXIS=0 (serves as header for extensions)
-	-- -- can have NAXIS1=0 then it contains RandomGroups
-	-- Extensions: may be other then IMAGE. But if image NAXIS<0,NAXIS1>0
-
-
-	-- 1st Header-in-File can be:
-	-- non-standard if SIMPLE = 'F'
-	-- HeaderForExtensions: SIMPLE='T' & NAXIS = 0 (NAXISn-array cards not present)
-	-- RandomGroups: SIMPLE='T' NAXIS=>1 NAXIS1 = 0 (GROUPS='T' and has PCOUNT GCOUNT)
-	-- Primary IMAGE: SIMPLE='T' NAXIS=>1 NAXIS1=>1
-
-	-- Q: hide these distinctions (withinSize calcs) or maybe each of these is 
-	-- useful to know explicitely for other decisions (than only size calculation).
-	-- Standard talks about these HDU types - should the lib-if be explicit on them too:
-	-- type Prim_Types enum (NONSTANDARD NODATA RANDGROUPS IMAGE)
-
-
-	-- NOTE whether ONE Vriant-record and 2 funcs: 
-	-- parse discriminants + parse variant record(for given discriminants)
-	-- or having MANY (non-variant) records and parse record funcs
-	-- is implementation detail
-	--
-	-- Regardless of implementation 
-	-- NON_VARIANT DATA MUST ALWAYS BE DETERMINED(PARESED) FIRST !!!
-	-- First nail down the variant part and then procde accordingly...
-	--
-	-- FIXME: Start even earlier: 
-	-- 1st HeaderBlock read:
-	-- if FileIndex = 1 -> card(1..8)='SIMPLE' 
-	-- -- one PrimaryHDU types (SIMPLE T or F) or not a FITS-file
-	-- if FileIndex > 1 -> 
-	-- if first card(1..8) = XTENSION -> one of extensions XTENSION=<type>
-	-- -- if first card(1..8) key neither SIMPLE nor XTENSION -> unspecified data follows
-	--
-
-	type What_File is (NOT_FITS_FILE, STANDARD_PRIMARY, NON_STANDARD_PRIMARY, CONF_EXT);
-	-- observes SIMPLE key and its values or SIMPLE not found.
-	-- FIXME how to ensure here that FileIndex = 1, e.g. we examin 
-	-- cards from begining of the file?
-	procedure Parse_First_Block 
-		(Cards : Card_Arr;
-		 What  : out What_File);
-	-- after call 'What' is always valid
-
-	type Standard_Primary_Type is (NO_DATA, RANDOM_GROUPS, IMAGE);
-	-- observes NAXIS NAXIS1 keys
-	procedure Parse 
-		(Cards : Card_Arr;
-		 Prim  : out Standard_Primary_Type);
-
-	-- Primary IMAGE
-
-         type Primary_Image_Type is
-                record
-                        BITPIX : Integer;
-                        NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Range);
-			-- FIXME for mem usage optimization provad NAXIS arr max length by generic
-                end record;
-
-        procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Primary_Image_Type);
-
-        procedure Compose
-                (Keys  : Primary_Image_Type;
-                 Cards : out Card_Arr) is null;
-
-	-- Primary with RandomGroups
-
-	-- FIXME differs from ConformingExt in NAXIS1/Natural & NAXISn(2...Last)/Positive 
-		 -- - implement it!
-       type Random_Groups_Type is
-                record
-                        BITPIX : Integer;
-                        NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Range);
-			PCOUNT : Natural;
-			GCOUNT : Positive;
-                end record;
-
-        procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Random_Groups_Type) is null;
-
-	-- RandomGroups not supported -> no Compose()
-	-- we need Parse only to determine DU-size 
-	-- to be able to read other HDU's after RandGroups if present in the same file
-	
-       type Conforming_Extension_Type is
-                record
-                        BITPIX : Integer;
-                        NAXIS  : NAXIS_Type;
-                        NAXISn : NAXIS_Arr(NAXIS_Range);
-			PCOUNT : Natural;
-			GCOUNT : Positive;
-                end record;
-
-        procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Conforming_Extension_Type) is null;
-
-
 
 
 

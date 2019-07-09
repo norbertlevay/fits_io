@@ -164,29 +164,6 @@ package body FITSlib.Header is
 	end Parse;
 
 
-
-
-
-
-
-	-- dummy implement
-        procedure Parse_First_Block
-                (Cards : Card_Arr;
-                 What  : out What_File)
-	is
-	begin
-		What := STANDARD_PRIMARY;
-	end Parse_First_Block;
-
- 	procedure Parse
-                (Cards : Card_Arr;
-                 Prim  : out Standard_Primary_Type)is
-	begin
-		Prim := IMAGE;
-	end Parse;
-
-	
-	-- parsing
 	
 	procedure ParseCard
                (Card : Card_Type;
@@ -205,7 +182,7 @@ package body FITSlib.Header is
 		
 		elsif(CardKey = "NAXIS")
 		then
-			Keys.NAXIS := Integer'Value(Card(ValueRange));
+			Keys.NAXIS := Natural'Value(Card(ValueRange));
 
 		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
 		then

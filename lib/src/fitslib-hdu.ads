@@ -19,18 +19,28 @@
 
 with FITSlib.Header; use FITSlib.Header;
 
+	-- Rule: each of the Read_*() funcs needs FileIndex at HeaderStart
+
 generic
  Type  Source_Type is limited private;
  Type  Sink_Type   is limited private;
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
--- FIXME should funcs in this interface always recognize internally the HDU type
-	-- or there should be a explicit func which returns HDU type and then separate
-	-- funcs for each HDUTtype -> later alternative requires to reset FileIndex to Header start
-	
-	-- Rule: each of the Read_*() funcs assumes FileIndex is at HeaderStart.
 
+
+
+	function Read_Conforming_Extensions_Data_Size_bits 
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block) return Natural;
+	
+	function Read_Random_Groups_Data_Size_bits 
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block) return Natural;
+		 
+	function Read_Primary_Data_Size_bits
+		(Source     : Source_Type;
+                 FirstBlock : Card_Block) return Natural;
 
 	-- read header and calculate size of data (for all known HDU types)
 	function Read_Data_Size_bits (Source : Source_Type) return Natural;
@@ -38,12 +48,16 @@ package FITSlib.HDU is
 
 
 
--- writing routines for varios data types	
+	-- writing routines for varios data types ...
+	
 	procedure Write_Primary_Image (Sink : Sink_Type; Primary : Primary_Image_Type) is null;
 
 
+
+
+-- ----------------------------------------------------------------
 -- left here for backward comaptibily for test with fits_io-file.adb
-	
+-- ----------------------------------------------------------------
 
         type HDU_Category is (PRIMARY, RANDGROUPS, CONF_EXT);
 

@@ -47,14 +47,15 @@ begin
 
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
-   FITSlib.File.Read_HDU(InFile);
-
-   FIO.Set_Index(InFile, 1);
    -- type
    TIO.Put_Line("HDU: " &
      HDU_Variant'Image( FITSlib.File.Peek(InFile)  )
    );
 
+
+   FITSlib.File.Read_HDU(InFile);
+
+   FIO.Set_Index(InFile, 1);
 
    -- Peek() resets origi FileIndex: no need for this: FIO.Set_Index(InFile, 1);
    -- size
