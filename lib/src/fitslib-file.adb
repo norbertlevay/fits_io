@@ -116,4 +116,143 @@ package body FITSlib.File is
         end Read_Data_Dimensions;
 
 
-end FITSlib.File;
+	-- -----------------------------------------------------------------------------
+	-- exprimental, will be in HDU later, and HDU not generic but this func only
+	-- -----------------------------------------------------------------------------
+	
+	generic
+		type Source_Type is limited private;
+		with function Next(Source : Source_Type) return Card_Block;
+		with function First_Block(Blk : Card_Arr) return Boolean;
+		with function Parse_Cards(Pos : Positive; Blk : Card_Arr) return Boolean;
+	procedure Read_Cards (Source : Source_Type);
+
+
+
+	procedure Read_Cards (Source : Source_Type)
+	is
+		Blk  : Card_Block;
+		Cont : Boolean := True;
+		Pos  : Natural := 0;
+	begin
+
+		Blk  := Next(Source);
+		Pos  := Pos + 1;
+		
+		-- pass the first block to callbacks
+
+		Cont := First_Block(Blk);
+		if (not Cont) then
+		       return;
+		end if;
+
+		Cont := Parse_Cards(Pos, Blk);
+		if (not Cont) then
+		       return;
+		end if;
+
+		-- pass blocks 2 ... to the callback
+
+		loop
+			Blk  := Next(Source);
+			Pos  := Pos + 1;
+			Cont := Parse_Cards(Pos, Blk);
+			exit when not Cont;
+		end loop;
+
+	end Read_Cards;
+
+	-- test the above generic : try to create read func for type X
+	-- using types from Header; 
+	-- first: instantiate generic for it
+	
+	function SIO_File_Next(File : SIO.File_Type) return Card_Block
+	is 
+		Blk : Card_Block;
+	begin
+		Card_Block'Read(Stream(File), Blk);
+		return Blk;
+	end SIO_File_Next;
+
+
+	Var  : HDU_Variant;
+ 	HEnd : HeaderSize_Type := (False, 0);
+
+
+	function a_First_Block(Blk : Card_Arr) return Boolean
+	is
+		Cont : Boolean := True;
+		coff : Positive := 1; -- FIXME from Header.Parse func 
+	begin
+		Var := Parse(Blk);
+		
+		case Var is
+			when UNKNOWN .. PRIM_NO_DATA =>
+				Cont := False;
+			when PRIM_IMAGE .. EXT_BINTABLE =>
+				Cont := True;
+			when EXT_UNKNOWN =>
+				Cont := False;
+		end case;
+
+		Parse(Blk, HEnd);
+		HEnd.CardCount := coff;
+		if(HEnd.ENDCardFound) then
+			Cont := False;
+		end if;
+
+
+		return Cont;
+	end a_First_Block;
+
+
+	
+	Prim : Primary_Image_Type;
+
+	function a_Parse_Cards (Pos : Positive; Blk : Card_Arr) return Boolean
+	is
+		Cont : Boolean := True;
+		coff : Positive := 1; -- FIXME from Header.Parse func 
+	begin
+		Parse(Blk, Prim);
+
+		Parse(Blk, HEnd);
+		HEnd.CardCount := Pos*32 - 32 + coff;
+		if(HEnd.ENDCardFound) then
+			Cont := False;
+		end if;
+	return Cont;
+	end a_Parse_Cards;
+
+
+
+	procedure Read_Cards_Exp is new Read_Cards (
+				Source_Type => SIO.File_Type,
+				Next        => SIO_File_Next,
+				First_Block => a_First_Block, 
+				Parse_Cards => a_Parse_Cards);
+
+
+
+
+
+	procedure Read_Exp (File : SIO.File_Type; Exp : out Exp_Type)
+	is
+	begin
+		Read_Cards_Exp(File);
+
+		-- now Prim filled in, convert to Exp
+
+		Exp.CardsCount := HEnd.CardCount;
+		Exp.BITPIX     := Prim.BITPIX;
+		
+		TIO.Put_Line("DBG> Var        : " & HDU_Variant'Image(Var));
+		TIO.Put_Line("DBG> Exp CCount : " & Positive'Image(Exp.CardsCount));
+		TIO.Put_Line("DBG> Exp BITPIX : " & Integer'Image(Exp.BITPIX));
+
+	end Read_Exp;
+
+
+
+ 
+ end FITSlib.File;

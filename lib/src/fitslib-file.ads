@@ -34,6 +34,20 @@ package FITSlib.File is
                  DDims   : out Data_Dimensions_Type);
 
 
+ -- -------------------------------------------------
+ -- Experimental
+ -- -------------------------------------------------
+
+         type Exp_Type is
+                record
+                        CardsCount : Positive;
+                        BITPIX     : Integer;
+                end record;
+
+    procedure Read_Exp
+	    (File : SIO.File_Type; 
+	     Exp  : out Exp_Type);
+     
 
 
 

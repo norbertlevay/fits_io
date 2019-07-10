@@ -118,7 +118,7 @@ is
 
 
 
-
+ Exp : Exp_Type;
 
 -- main begins ----------------------------------------------
 begin
@@ -132,8 +132,10 @@ begin
 
 
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
-   --FITSlib.File.Read_HDU(InFile);
-   --TIO.Put_Line("New: ---------------");
+   
+   TIO.Put_Line("New: ---------------");
+
+   FITSlib.File.Read_Exp(InFile,Exp);
 
 
    TIO.Put_Line("______________________________________");
