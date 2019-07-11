@@ -32,11 +32,10 @@
 
 with FITSlib.Header; use FITSlib.Header;
 
--- Rule: each of the Read funcs needs FileIndex at HeaderStart
 
 generic
- Type  Source_Type is limited private;
- Type  Sink_Type   is limited private;
+ type  Source_Type is limited private;
+ type  Sink_Type   is limited private;
  with function Next (Source : Source_Type) return Card_Block;
 package FITSlib.HDU is
 
@@ -74,12 +73,48 @@ package FITSlib.HDU is
 		(Source     : Source_Type;
                  FirstBlock : Card_Block) return Natural;
 
-	-- read header and calculate size of data (for all known HDU types)
+
+
+	-- read header (for all known HDU types)
+
 	function Read_Data_Size_bits (Source : Source_Type) return Natural;
+
+
+
+	type Data_Dimensions_Type is
+                record
+                        HDUVar     : HDU_Variant;
+                        CardsCount : Positive;
+                        BITPIX     : Integer;
+                        NAXIS      : Natural;
+                        NAXISn     : NAXIS_Arr(NAXIS_Range);
+                end record;
+
+	procedure Read_Data_Dimensions
+                (Source : Source_Type;
+                 DDims  : out Data_Dimensions_Type);
+   
 
 
 	-- writing routines for varios data types ...
 	
-	procedure Write_Primary_Image (Sink : Sink_Type; Primary : Primary_Image_Type) is null;
+	procedure Write_Primary_Image 
+		(Sink : Sink_Type; 
+		 Primary : Primary_Image_Type) is null;
+
+
+	-- -------------------------------------------------------------------------
+	-- experimental with generic Read_Cards
+	-- -------------------------------------------------------------------------
+	
+        procedure Read_Exp 
+		(File : Source_Type; 
+		 DDims : out Data_Dimensions_Type);
+	
+	procedure Read_Exp 
+		(File : Source_Type; 
+		 DSize : out Natural);
+ 
+
 
 end FITSlib.HDU;

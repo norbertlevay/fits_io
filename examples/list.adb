@@ -5,25 +5,27 @@
 --
 
 
-with Ada.Text_IO;      --use Ada.Text_IO;
-with Ada.Command_Line; --use Ada.Command_Line;
+with Ada.Text_IO;
+with Ada.Command_Line;
 
 with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
 
-with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Unbounded;
 
-with FITS_IO.File;   --use FITS_IO.File;
-with FITSlib.File;   use FITSlib.File;
+with FITS_IO.File;
+
 with FITSlib.Header;   use FITSlib.Header; -- HDU_Variant needed
+with FITSlib.HDU;
 
 procedure list
 is
 
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
+ use SIO;
  package CLI renames Ada.Command_Line;
  package SU  renames Ada.Strings.Unbounded;
  package FIO renames FITS_IO.File;
@@ -35,7 +37,24 @@ is
  DUSize     : Natural := 0;
  DURem      : Natural;
  HStart     : SIO.Positive_Count; 
- use SIO;
+
+  function HDUSIO_File_Next(File : SIO.File_Type) return Card_Block
+  is
+   HBlk : Card_Block;
+  begin
+   Card_Block'Read(SIO.Stream(File), HBlk);
+   return HBlk;
+  end HDUSIO_File_Next;
+
+
+  package SIO_HDU is new FITSlib.HDU
+          (Source_Type =>  SIO.File_Type,
+           Sink_Type   =>  SIO.File_Type,
+           Next        =>  HDUSIO_File_Next);
+
+  use SIO_HDU;
+
+  -- --------------------------------------------------------------------
 
     
     procedure Print_DDims_Rec (DDims  : Data_Dimensions_Type)
@@ -109,16 +128,6 @@ is
     end Read_Print_Data_Dimensions;
 
 
-
-
-
-
-
-
-
-
-
--- Exp : Exp_Type;
  DDims : Data_Dimensions_Type;
 
 -- main begins ----------------------------------------------
@@ -135,34 +144,48 @@ begin
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
    
    TIO.Put_Line("New: ---------------");
-   FITSlib.File.Read_Exp(InFile,DDims);
+   SIO_HDU.Read_Exp(InFile,DDims);
    TIO.Put_Line("DBG Var        : " & HDU_Variant'Image(DDims.HDUVar));
    TIO.Put_Line("DBG Exp CCount : " & Positive'Image(DDims.CardsCount));
    TIO.Put_Line("DBG Exp BITPIX : " & Integer'Image(DDims.BITPIX));
 
 
-
-
-
    TIO.Put_Line("______________________________________");
-   TIO.Put_Line("TEST1: FITSlib.File.Read_DataSize_bits");
+   TIO.Put_Line("TEST1a: FITSlib.File.Read_Data_Size_bits");
    
    FIO.Set_Index(InFile, 1);
 
    while not SIO.End_Of_File(InFile)
    loop
 
-    -- Peek() resets origi FileIndex: no need for this: FIO.Set_Index(InFile, 1);
-    -- size
-    -- type
-    TIO.Put_Line("HDU: " &
-      HDU_Variant'Image( FITSlib.File.Peek(InFile)  )
-    );
+    DSize := SIO_HDU.Read_Data_Size_bits(InFile);
 
-    DSize := FITSlib.File.Read_DataSize_bits(InFile);
     TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
     DURem  := (DSize/8) rem 2880;
-    --TIO.Put_Line("DURem : " & Natural'Image(DURem));
+    DUSize := ((DSize/8) / 2880 + 1) * 2880;
+    if(DURem = 0) then
+	   DUSize := DUSize - 2880;
+    end if;
+    TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
+
+
+    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+
+ end loop;
+
+   TIO.Put_Line("______________________________________");
+   TIO.Put_Line("TEST1b: FITSlib.File.Read_Exp for DataSize bits");
+   
+   FIO.Set_Index(InFile, 1);
+   DSize := 0;
+
+   while not SIO.End_Of_File(InFile)
+   loop
+
+    SIO_HDU.Read_Exp(InFile,DSize);
+
+    TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
+    DURem  := (DSize/8) rem 2880;
     DUSize := ((DSize/8) / 2880 + 1) * 2880;
     if(DURem = 0) then
 	   DUSize := DUSize - 2880;
@@ -186,14 +209,18 @@ begin
    loop
 	   HStart := Index(InFile);
 	   
-   	   FITSlib.File.Read_Exp(InFile,DDims);
+   	   SIO_HDU.Read_Exp(InFile,DDims);
 	   Print_DDims_Rec(DDims);
 	   --Read_Print_Data_Dimensions( InFile, FITSlib.File.Peek(InFile)  );
 	   
 	   SIO.Set_Index(InFile, HStart);
 	   
-	   DSize  := FITSlib.File.Read_DataSize_bits(InFile);
-	   DUSize := ((DSize/8) / 2880 + 1) * 2880;
+   	   SIO_HDU.Read_Exp(InFile,DSize);
+	   --DSize  := SIO_HDU.Read_Data_Size_bits(InFile);
+ 	   DUSize := ((DSize/8) / 2880 + 1) * 2880;
+	   if(DURem = 0) then
+		   DUSize := DUSize - 2880;
+	   end if;
 	   
 	   SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
 
