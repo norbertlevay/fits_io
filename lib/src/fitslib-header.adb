@@ -167,6 +167,19 @@ package body FITSlib.Header is
 
 
 	
+	procedure Match_Card
+		(Pos  : Positive;
+		 Card : Card_Type;
+		 Keys : in out HeaderSize_Type)
+	is
+	begin
+		-- FIXME redesign this: with Pos & Cont HeaderSize_Type not needed ?
+		if (Card = ENDCard) then
+			Keys.ENDCardFound := True;
+			Keys.CardCount    := Pos;
+		end if;
+	end Match_Card;
+
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out HeaderSize_Type)

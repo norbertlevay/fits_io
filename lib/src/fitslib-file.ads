@@ -40,13 +40,14 @@ package FITSlib.File is
 
          type Exp_Type is
                 record
+                        Var        : HDU_Variant;
                         CardsCount : Positive;
                         BITPIX     : Integer;
                 end record;
 
     procedure Read_Exp
-	    (File : SIO.File_Type; 
-	     Exp  : out Exp_Type);
+	    (File  : SIO.File_Type; 
+	     DDims : out Data_Dimensions_Type);
      
 
 

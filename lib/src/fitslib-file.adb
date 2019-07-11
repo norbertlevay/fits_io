@@ -207,20 +207,47 @@ package body FITSlib.File is
 
 
 	
-	Prim : Primary_Image_Type;
+	PrimImg    : Primary_Image_Type;
+	RandGroups : Random_Groups_Type;
+	ConfExt    : Conforming_Extension_Type;
 
 	function a_Parse_Cards (Pos : Positive; Blk : Card_Arr) return Boolean
 	is
 		Cont : Boolean := True;
-		coff : Positive := 1; -- FIXME from Header.Parse func 
+		CardPos : Positive;
 	begin
-		Parse(Blk, Prim);
 
-		Parse(Blk, HEnd);
-		HEnd.CardCount := Pos*32 - 32 + coff;
-		if(HEnd.ENDCardFound) then
-			Cont := False;
-		end if;
+                for I in Blk'Range
+                loop
+			case Var is
+				when UNKNOWN .. PRIM_NO_DATA =>
+					Cont := False;
+				when PRIM_IMAGE =>
+					ParseCard(Blk(I), PrimImg);
+					Cont := True;
+				when RAND_GROUPS =>
+					ParseCard(Blk(I), RandGroups);
+					Cont := True;
+				when EXT_IMAGE .. EXT_BINTABLE =>
+					ParseCard(Blk(I), ConfExt);
+					Cont := True;
+				when EXT_UNKNOWN =>
+					Cont := False;
+			end case;
+
+			CardPos := I + (Pos-1)*CardsPerBlock;
+			Match_Card(CardPos, Blk(I), HEnd);
+			if(HEnd.ENDCardFound) then
+				Cont := False;
+			end if;
+	
+		end loop;
+
+--		Parse(Blk, HEnd);-- has no ParseCard on Header
+--		HEnd.CardCount := Pos*32 - 32 + coff;
+--		if(HEnd.ENDCardFound) then
+--			Cont := False;
+--		end if;
 	return Cont;
 	end a_Parse_Cards;
 
@@ -236,20 +263,40 @@ package body FITSlib.File is
 
 
 
-	procedure Read_Exp (File : SIO.File_Type; Exp : out Exp_Type)
+	--procedure Read_Exp (File : SIO.File_Type; Exp : out Exp_Type)
+	procedure Read_Exp (File : SIO.File_Type; DDims : out Data_Dimensions_Type)
 	is
 	begin
 		Read_Cards_Exp(File);
 
 		-- now Prim filled in, convert to Exp
 
-		Exp.CardsCount := HEnd.CardCount;
-		Exp.BITPIX     := Prim.BITPIX;
-		
-		TIO.Put_Line("DBG> Var        : " & HDU_Variant'Image(Var));
-		TIO.Put_Line("DBG> Exp CCount : " & Positive'Image(Exp.CardsCount));
-		TIO.Put_Line("DBG> Exp BITPIX : " & Integer'Image(Exp.BITPIX));
+		DDims.HDUVar     := Var;
+		DDims.CardsCount := HEnd.CardCount;
+		case Var is
+			when UNKNOWN .. PRIM_NO_DATA =>
+				null;
 
+			when PRIM_IMAGE =>
+				DDims.BITPIX := PrimImg.BITPIX;
+	                        DDims.NAXIS  := PrimImg.NAXIS;
+                                DDims.NAXISn := PrimImg.NAXISn;
+
+                        when RAND_GROUPS =>
+                                DDims.BITPIX     := RandGroups.BITPIX;
+                                DDims.NAXIS      := RandGroups.NAXIS;
+				DDims.NAXISn(1)  := 1;-- FIXME why this? DDims NAXISn is type Positive
+                                DDims.NAXISn(2 .. RandGroups.NAXISn'Last) := RandGroups.NAXISn;
+
+                        when EXT_IMAGE .. EXT_BINTABLE =>
+                                DDims.BITPIX     := ConfExt.BITPIX;
+                                DDims.NAXIS      := ConfExt.NAXIS;
+                                DDims.NAXISn     := ConfExt.NAXISn;
+
+			when EXT_UNKNOWN =>
+				null;
+		end case;
+	
 	end Read_Exp;
 
 

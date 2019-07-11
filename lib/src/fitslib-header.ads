@@ -75,7 +75,13 @@ package FITSlib.Header is
 			ENDCardFound : Boolean;
 			CardCount    : Natural;
 		end record;
-	
+
+       procedure Match_Card
+                (Pos  : Positive;
+                 Card : Card_Type;
+                 Keys : in out HeaderSize_Type);
+   
+
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out HeaderSize_Type);
@@ -101,7 +107,11 @@ package FITSlib.Header is
                         NAXISn : NAXIS_Arr(NAXIS_Range);
                 end record;
 
-        procedure Parse
+       procedure ParseCard
+                (Card : Card_Type;
+                 Keys : in out Primary_Image_Type);
+
+       procedure Parse
                 (Cards : Card_Arr;
                  Keys  : in out Primary_Image_Type);
 
@@ -122,6 +132,11 @@ package FITSlib.Header is
 			PCOUNT : Natural;
 			GCOUNT : Positive;
                 end record;
+
+        procedure ParseCard
+                (Card : Card_Type;
+                 Keys : in out Random_Groups_Type);
+
 
         procedure Parse
                 (Cards : Card_Arr;
@@ -146,6 +161,10 @@ package FITSlib.Header is
 			PCOUNT : Natural;
 			GCOUNT : Positive;
                 end record;
+
+        procedure ParseCard
+                (Card : Card_Type;
+                 Keys : in out Conforming_Extension_Type);
 
         procedure Parse
                 (Cards : Card_Arr;

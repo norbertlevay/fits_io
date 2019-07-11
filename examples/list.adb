@@ -118,7 +118,8 @@ is
 
 
 
- Exp : Exp_Type;
+-- Exp : Exp_Type;
+ DDims : Data_Dimensions_Type;
 
 -- main begins ----------------------------------------------
 begin
@@ -134,8 +135,13 @@ begin
    SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
    
    TIO.Put_Line("New: ---------------");
+   FITSlib.File.Read_Exp(InFile,DDims);
+   TIO.Put_Line("DBG Var        : " & HDU_Variant'Image(DDims.HDUVar));
+   TIO.Put_Line("DBG Exp CCount : " & Positive'Image(DDims.CardsCount));
+   TIO.Put_Line("DBG Exp BITPIX : " & Integer'Image(DDims.BITPIX));
 
-   FITSlib.File.Read_Exp(InFile,Exp);
+
+
 
 
    TIO.Put_Line("______________________________________");
@@ -178,17 +184,18 @@ begin
 	 
    while not SIO.End_Of_File(InFile)
    loop
-
 	   HStart := Index(InFile);
-
-    Read_Print_Data_Dimensions( InFile, FITSlib.File.Peek(InFile)  );
-
-	SIO.Set_Index(InFile, HStart);
-
-    DSize  := FITSlib.File.Read_DataSize_bits(InFile);
-    DUSize := ((DSize/8) / 2880 + 1) * 2880;
-
-    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+	   
+   	   FITSlib.File.Read_Exp(InFile,DDims);
+	   Print_DDims_Rec(DDims);
+	   --Read_Print_Data_Dimensions( InFile, FITSlib.File.Peek(InFile)  );
+	   
+	   SIO.Set_Index(InFile, HStart);
+	   
+	   DSize  := FITSlib.File.Read_DataSize_bits(InFile);
+	   DUSize := ((DSize/8) / 2880 + 1) * 2880;
+	   
+	   SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
 
   end loop;
 
