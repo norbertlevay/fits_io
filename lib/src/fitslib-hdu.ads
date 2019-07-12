@@ -29,7 +29,6 @@ with FITSlib.Header; use FITSlib.Header;
 
 
 generic
- NBufferBlocks : Positive := 1;-- FIXME not implemented
  type  Buffered_Source_Type is limited private;
  type  Buffered_Sink_Type   is limited private;
  with function Next_Buffer_Content (Source : Buffered_Source_Type) return Card_Block;
