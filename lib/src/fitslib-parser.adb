@@ -34,6 +34,14 @@ package body FITSlib.Parser is
                         exit when not Cont;
                 end loop;
 
+-- FIXME do this? -> if yes, caller at
+-- instantiation needs to implement Last_Block whether needed or not
+-- 
+--		Cont := Last_Block(Blk);
+--                if (not Cont) then
+--                       return;
+--                end if;
+
         end Read_Cards;
 
 end FITSlib.Parser;

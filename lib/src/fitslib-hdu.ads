@@ -34,7 +34,7 @@ with FITSlib.Header; use FITSlib.Header;
 
 
 generic
--- NBuuferBlocks : Positive;
+-- NBuuferBlocks : Positive := 1;
  type  Buffered_Source_Type is limited private;
  type  Buffered_Sink_Type   is limited private;
  with function Next_Buffer_Content (Source : Buffered_Source_Type) return Card_Block;
