@@ -48,9 +48,9 @@ is
 
 
   package SIO_HDU is new FITSlib.HDU
-          (Source_Type =>  SIO.File_Type,
-           Sink_Type   =>  SIO.File_Type,
-           Next        =>  HDUSIO_File_Next);
+          (Buffered_Source_Type =>  SIO.File_Type,
+           Buffered_Sink_Type   =>  SIO.File_Type,
+           Next_Buffer_Content  =>  HDUSIO_File_Next);
 
   use SIO_HDU;
 

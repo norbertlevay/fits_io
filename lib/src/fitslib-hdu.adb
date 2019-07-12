@@ -2,6 +2,7 @@
 
 with Ada.Strings.Fixed; -- Trim
 
+with FITSlib.Parser;   use FITSlib.Parser;
 with FITSlib.Header;   use FITSlib.Header;
 with FITSlib.Formulas; use FITSlib.Formulas;
 
@@ -11,7 +12,7 @@ package body FITSlib.HDU is
 
 
         procedure Read_Conforming_Extensions
-                (Source     : Source_Type;
+                (Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
 		 ConfExt    : out Conforming_Extension_Type)
@@ -20,7 +21,7 @@ package body FITSlib.HDU is
 	begin
 		Parse(FirstBlock, ConfExt);
 		loop
-			HBlk := Next(Source);
+			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, ConfExt);
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
@@ -30,7 +31,7 @@ package body FITSlib.HDU is
 
 
         function Read_Conforming_Extensions_Data_Size_bits
-                (Source     : Source_Type;
+                (Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block) return Natural
 	is
 		ConfExt : Conforming_Extension_Type;
@@ -59,7 +60,7 @@ package body FITSlib.HDU is
 
 
         procedure Read_Random_Groups
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
 		 RandGroups : out Random_Groups_Type)
@@ -68,7 +69,7 @@ package body FITSlib.HDU is
 	begin
 		Parse(FirstBlock, RandGroups);
 		loop
-			HBlk := Next(Source);
+			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, RandGroups);
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
@@ -77,7 +78,7 @@ package body FITSlib.HDU is
 	
 
         function Read_Random_Groups_Data_Size_bits 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block) return Natural
 	is
 		RandGroups : Random_Groups_Type;
@@ -102,7 +103,7 @@ package body FITSlib.HDU is
 
 
         procedure Read_Primary 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
 		 PrimImg    : out Primary_Image_Type)
@@ -111,7 +112,7 @@ package body FITSlib.HDU is
 	begin
 		Parse(FirstBlock, PrimImg);
 		loop
-			HBlk := Next(Source);
+			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, PrimImg);
 			Parse(HBlk, HEnd);
 			exit when HEnd.ENDCardFound;
@@ -120,7 +121,7 @@ package body FITSlib.HDU is
 	
 
         function Read_Primary_Data_Size_bits 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block) return Natural
 	is
 		PrimImg : Primary_Image_Type;
@@ -146,12 +147,12 @@ package body FITSlib.HDU is
 
 	-- determine Data size of an unknown HDU type
 	function Read_Data_Size_bits
-		(Source  : Source_Type)
+		(Source  : Buffered_Source_Type)
 		return Natural
 	is
 		Nbits : Natural := 0;
 		-- analyze first block (after caller did Set_Index(1 or n)
-		HBlk : Card_Block  := Next(Source);
+		HBlk : Card_Block  := Next_Buffer_Content(Source);
 		Var  : HDU_Variant := Parse(HBlk);
 	begin
 
@@ -199,7 +200,7 @@ package body FITSlib.HDU is
 
 
         procedure Read_Data_Dimensions
-                (Source : Source_Type;
+                (Source : Buffered_Source_Type;
                  DDims  : out Data_Dimensions_Type)
         is
                 HSize      : HeaderSize_Type;
@@ -207,7 +208,7 @@ package body FITSlib.HDU is
                 RandGroups : Random_Groups_Type;
                 PrimImg    : Primary_Image_Type;
                 -- analyze first block (after caller did Set_Index(1 or n)
-                HBlk : Card_Block  := Next(Source);
+                HBlk : Card_Block  := Next_Buffer_Content(Source);
                 Var  : HDU_Variant := Parse(HBlk);
         begin
                 HSize.CardCount := 0;
@@ -270,50 +271,8 @@ package body FITSlib.HDU is
         -- exprimental, later HDU not generic but this func only
         -- -----------------------------------------------------------------------------
 
-        generic
---                type Source_Type is limited private;
---                with function Next(Source : Source_Type) return Card_Block;
-                with function First_Block(Blk : Card_Arr) return Boolean;
-                with function Parse_Cards(Pos : Positive; Blk : Card_Arr) return Boolean;
-        procedure Read_Cards (Source : Source_Type);
 
-
-
-        procedure Read_Cards (Source : Source_Type)
-        is
-                Blk  : Card_Block;
-                Cont : Boolean := True;
-                Pos  : Natural := 0;
-        begin
-
-                Blk  := Next(Source);
-                Pos  := Pos + 1;
-
-                -- pass the first block to callbacks
-
-                Cont := First_Block(Blk);
-                if (not Cont) then
-                       return;
-                end if;
-
-                Cont := Parse_Cards(Pos, Blk);
-                if (not Cont) then
-                       return;
-                end if;
-
-                -- pass blocks 2 ... to the callback
-
-                loop
-                        Blk  := Next(Source);
-                        Pos  := Pos + 1;
-                        Cont := Parse_Cards(Pos, Blk);
-                        exit when not Cont;
-                end loop;
-
-        end Read_Cards;
-
-
-        -- test the above generic : try to create read func for type X
+        -- test  : try to create read func for type X
         -- using types from Header; 
         -- first: instantiate generic for it
 
@@ -391,8 +350,8 @@ package body FITSlib.HDU is
 
         procedure Read_Cards_Exp
            is new Read_Cards
-                (--Source_Type => Source_Type,--SIO.File_Type,
-                 --Next        => HDU.Next,--SIO_File_Next,
+                (Source_Type => Buffered_Source_Type,
+                 Next        => Next_Buffer_Content,
                  First_Block => a_First_Block,
                  Parse_Cards => a_Parse_Cards);
 
@@ -400,7 +359,7 @@ package body FITSlib.HDU is
 
 
 
-         procedure Read_Exp (File : Source_Type; DDims : out Data_Dimensions_Type)
+         procedure Read_Exp (File : Buffered_Source_Type; DDims : out Data_Dimensions_Type)
         is
         begin
                 Read_Cards_Exp(File);
@@ -437,7 +396,7 @@ package body FITSlib.HDU is
 
 
 
-       procedure Read_Exp (File : Source_Type; DSize : out Natural)
+       procedure Read_Exp (File : Buffered_Source_Type; DSize : out Natural)
        is
               First   : Positive;
         begin

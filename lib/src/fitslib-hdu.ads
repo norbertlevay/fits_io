@@ -34,27 +34,28 @@ with FITSlib.Header; use FITSlib.Header;
 
 
 generic
- type  Source_Type is limited private;
- type  Sink_Type   is limited private;
- with function Next (Source : Source_Type) return Card_Block;
+-- NBuuferBlocks : Positive;
+ type  Buffered_Source_Type is limited private;
+ type  Buffered_Sink_Type   is limited private;
+ with function Next_Buffer_Content (Source : Buffered_Source_Type) return Card_Block;
 package FITSlib.HDU is
 
 	--FIXME id FirstBlock needed - review for other solution
 
 	procedure Read_Conforming_Extensions
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
                  ConfExt    : out Conforming_Extension_Type);
 
 	procedure Read_Random_Groups
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
 		 RandGroups : out Random_Groups_Type);
 
 	procedure Read_Primary 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block;
 		 HEnd       : out HeaderSize_Type;
                  PrimImg    : out Primary_Image_Type);
@@ -62,22 +63,22 @@ package FITSlib.HDU is
 
 
 	function Read_Conforming_Extensions_Data_Size_bits 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block) return Natural;
 	
 	function Read_Random_Groups_Data_Size_bits 
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block) return Natural;
 		 
 	function Read_Primary_Data_Size_bits
-		(Source     : Source_Type;
+		(Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block) return Natural;
 
 
 
 	-- read header (for all known HDU types)
 
-	function Read_Data_Size_bits (Source : Source_Type) return Natural;
+	function Read_Data_Size_bits (Source : Buffered_Source_Type) return Natural;
 
 
 
@@ -91,7 +92,7 @@ package FITSlib.HDU is
                 end record;
 
 	procedure Read_Data_Dimensions
-                (Source : Source_Type;
+                (Source : Buffered_Source_Type;
                  DDims  : out Data_Dimensions_Type);
    
 
@@ -99,7 +100,7 @@ package FITSlib.HDU is
 	-- writing routines for varios data types ...
 	
 	procedure Write_Primary_Image 
-		(Sink : Sink_Type; 
+		(Sink : Buffered_Sink_Type; 
 		 Primary : Primary_Image_Type) is null;
 
 
@@ -108,11 +109,11 @@ package FITSlib.HDU is
 	-- -------------------------------------------------------------------------
 	
         procedure Read_Exp 
-		(File : Source_Type; 
+		(File : Buffered_Source_Type; 
 		 DDims : out Data_Dimensions_Type);
 	
 	procedure Read_Exp 
-		(File : Source_Type; 
+		(File : Buffered_Source_Type; 
 		 DSize : out Natural);
  
 
