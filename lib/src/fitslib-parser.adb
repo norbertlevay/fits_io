@@ -3,6 +3,14 @@
 
 package body FITSlib.Parser is
 
+
+        function First_Block_Null(Blk : Card_Arr) return Boolean
+	is
+	begin
+		return True;
+	end First_Block_Null;
+
+
         procedure Read_Cards (Source : Source_Type)
         is
                 Blk  : Card_Block;

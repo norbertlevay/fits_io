@@ -8,6 +8,10 @@ with FITSlib.Header; use FITSlib.Header;
 
 package FITSlib.Parser is
 
+
+	
+         function First_Block_Null(Blk : Card_Arr) return Boolean;
+
 	 generic
                 type Source_Type is limited private;
                 with function Next(Source : Source_Type) return Card_Block;

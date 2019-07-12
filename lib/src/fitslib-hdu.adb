@@ -98,9 +98,36 @@ package body FITSlib.HDU is
 
 	end Read_Random_Groups_Data_Size_bits;
 
+-- experimental: use generic Parser
 
+        procedure Read_Primary_Image 
+		(Source     : Buffered_Source_Type;
+		 PrimImg    : out Primary_Image_Type)
+	is
+		function Parse_Cards_For_PrimImg(Pos : Positive; Blk : Card_Arr) 
+			return Boolean
+		is
+			HEnd : HeaderSize_Type;
+			--CardPos : Positive;
+		begin
+			--CardPos := I + (Pos-1)*CardsPerBlock;
+			Parse(Blk, PrimImg);
+			-- check for END card
+                        -- Match_Card(CardPos, Blk(I), HEnd);
+			Parse(Blk, HEnd);
+			return HEnd.ENDCardFound;
+		end Parse_Cards_For_PrimImg;
 
-
+		procedure Read_Cards_PrimImg is 
+			new Read_Cards
+		(Source_Type => Buffered_Source_Type,
+		 Next        => Next_Buffer_Content,
+		 First_Block => First_Block_Null,
+		 Parse_Cards => Parse_Cards_For_PrimImg);
+	begin
+		Read_Cards_PrimImg(Source);
+	end Read_Primary_Image;
+	
 
         procedure Read_Primary 
 		(Source     : Buffered_Source_Type;
