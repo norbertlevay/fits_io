@@ -15,7 +15,7 @@ package FITSlib.File is
 
    procedure Set_HDU
 	   (File   : SIO.File_Type; 
-	    HDUNum : Positive) is null;
+	    HDUNum : Positive);
 
 
    -- and also something like:

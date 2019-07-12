@@ -10,6 +10,15 @@ with Ada.Text_IO;
 
 package body FITSlib.HDU is
 
+  package TIO renames Ada.Text_IO;
+
+
+  function  Header_Size_blocks (CardsCnt : in Positive) return Positive
+   is
+   begin
+    return ( 1 + (CardsCnt - 1)/Positive(CardsPerBlock) );
+   end Header_Size_blocks;
+ 
 
         procedure Read_Conforming_Extensions
                 (Source     : Buffered_Source_Type;
@@ -19,7 +28,9 @@ package body FITSlib.HDU is
 	is
 		HBlk    : Card_Block;
 	begin
+		HEnd.CardCount := 0;
 		Parse(FirstBlock, ConfExt);
+		Parse(FirstBlock, HEnd);
 		loop
 			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, ConfExt);
@@ -30,27 +41,29 @@ package body FITSlib.HDU is
 
 
 
-        function Read_Conforming_Extensions_Data_Size_bits
+        function Read_Conforming_Extensions_HDU_Size_bits
                 (Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block) return Natural
 	is
 		ConfExt : Conforming_Extension_Type;
 		First   : Positive;
-		HDummy  : HeaderSize_Type;
+		HSize   : HeaderSize_Type;
 	begin
 
 		Read_Conforming_Extensions
-			(Source, FirstBlock, HDummy, ConfExt);
+			(Source, FirstBlock, HSize, ConfExt);
 
 		First := ConfExt.NAXISn'First;
 
-		return ConformingExtension_DataSize_bits
+		return (2880*8)*Header_Size_blocks(HSize.CardCount)
+		       +
+		       ConformingExtension_DataSize_bits
 		          (ConfExt.BITPIX,
 			   ConfExt.NAXISn(First..ConfExt.NAXIS),
 			   ConfExt.PCOUNT,
 			   ConfExt.GCOUNT);
 		
-	end Read_Conforming_Extensions_Data_Size_bits;
+	end Read_Conforming_Extensions_HDU_Size_bits;
 
 
 
@@ -67,7 +80,9 @@ package body FITSlib.HDU is
 	is
 		HBlk    : Card_Block;
 	begin
+		HEnd.CardCount := 0;
 		Parse(FirstBlock, RandGroups);
+		Parse(FirstBlock, HEnd);
 		loop
 			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, RandGroups);
@@ -77,57 +92,30 @@ package body FITSlib.HDU is
 	end Read_Random_Groups;
 	
 
-        function Read_Random_Groups_Data_Size_bits 
+        function Read_Random_Groups_HDU_Size_bits 
 		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block) return Natural
 	is
 		RandGroups : Random_Groups_Type;
 		First      : Positive;
-		HDummy  : HeaderSize_Type;
+		HSize  : HeaderSize_Type;
 	begin
 	        Read_Random_Groups
-			(Source, FirstBlock, HDummy, RandGroups);
+			(Source, FirstBlock, HSize, RandGroups);
 
 		First := RandGroups.NAXISn'First;
 
-		return RandomGroups_DataSize_bits
+		return (2880*8)*Header_Size_blocks(HSize.CardCount)
+		       +
+		       RandomGroups_DataSize_bits
 			(RandGroups.BITPIX,
 			 RandGroups.NAXISn(First .. RandGroups.NAXIS),
 			 RandGroups.PCOUNT,
 			 RandGroups.GCOUNT);
 
-	end Read_Random_Groups_Data_Size_bits;
+	end Read_Random_Groups_HDU_Size_bits;
 
--- experimental: use generic Parser
 
-        procedure Read_Primary_Image 
-		(Source     : Buffered_Source_Type;
-		 PrimImg    : out Primary_Image_Type)
-	is
-		function Parse_Cards_For_PrimImg(Pos : Positive; Blk : Card_Arr) 
-			return Boolean
-		is
-			HEnd : HeaderSize_Type;
-			--CardPos : Positive;
-		begin
-			--CardPos := I + (Pos-1)*CardsPerBlock;
-			Parse(Blk, PrimImg);
-			-- check for END card
-                        -- Match_Card(CardPos, Blk(I), HEnd);
-			Parse(Blk, HEnd);
-			return HEnd.ENDCardFound;
-		end Parse_Cards_For_PrimImg;
-
-		procedure Read_Cards_PrimImg is 
-			new Read_Cards
-		(Source_Type => Buffered_Source_Type,
-		 Next        => Next_Buffer_Content,
-		 First_Block => First_Block_Null,
-		 Parse_Cards => Parse_Cards_For_PrimImg);
-	begin
-		Read_Cards_PrimImg(Source);
-	end Read_Primary_Image;
-	
 
         procedure Read_Primary 
 		(Source     : Buffered_Source_Type;
@@ -137,7 +125,9 @@ package body FITSlib.HDU is
 	is
 		HBlk    : Card_Block;
 	begin
+		HEnd.CardCount := 0;
 		Parse(FirstBlock, PrimImg);
+		Parse(FirstBlock, HEnd);
 		loop
 			HBlk := Next_Buffer_Content(Source);
 			Parse(HBlk, PrimImg);
@@ -147,24 +137,26 @@ package body FITSlib.HDU is
 	end Read_Primary;
 	
 
-        function Read_Primary_Data_Size_bits 
+        function Read_Primary_HDU_Size_bits 
 		(Source     : Buffered_Source_Type;
 		 FirstBlock : Card_Block) return Natural
 	is
 		PrimImg : Primary_Image_Type;
 		First   : Positive;
-		HDummy  : HeaderSize_Type;
+		HSize  : HeaderSize_Type;
 	begin
 		Read_Primary
-			(Source, FirstBlock, HDummy, PrimImg);
+			(Source, FirstBlock, HSize, PrimImg);
 
 		First := PrimImg.NAXISn'First;
 
-		return PrimaryImage_DataSize_bits
+		return (2880*8)*Header_Size_blocks(HSize.CardCount)
+		       +
+		       PrimaryImage_DataSize_bits
 			(PrimImg.BITPIX,
 			 PrimImg.NAXISn(First .. PrimImg.NAXIS));
 
-	end Read_Primary_Data_Size_bits;
+	end Read_Primary_HDU_Size_bits;
 
 
 
@@ -173,7 +165,7 @@ package body FITSlib.HDU is
 
 
 	-- determine Data size of an unknown HDU type
-	function Read_Data_Size_bits
+	function Read_HDU_Size_bits
 		(Source  : Buffered_Source_Type)
 		return Natural
 	is
@@ -205,13 +197,13 @@ package body FITSlib.HDU is
 				Nbits := 0;
 
 			when PRIM_IMAGE =>
-				Nbits := Read_Primary_Data_Size_bits (Source, HBlk);
+				Nbits := Read_Primary_HDU_Size_bits (Source, HBlk);
 
 			when RAND_GROUPS => 
-				Nbits := Read_Random_Groups_Data_Size_bits (Source, HBlk);
+				Nbits := Read_Random_Groups_HDU_Size_bits (Source, HBlk);
 
 			when EXT_IMAGE .. EXT_BINTABLE =>
-				Nbits := Read_Conforming_Extensions_Data_Size_bits (Source, HBlk);
+				Nbits := Read_Conforming_Extensions_HDU_Size_bits (Source, HBlk);
 			
 			when EXT_UNKNOWN =>
 				-- raise exception and exit
@@ -223,7 +215,7 @@ package body FITSlib.HDU is
 	-- FIXME still missing check if all cards for all fields in structs were found
 		-- while Parse() calls.
 
-	end Read_Data_Size_bits;
+	end Read_HDU_Size_bits;
 
 
         procedure Read_Data_Dimensions
@@ -297,7 +289,36 @@ package body FITSlib.HDU is
         -- -----------------------------------------------------------------------------
         -- exprimental, later HDU not generic but this func only
         -- -----------------------------------------------------------------------------
+-- experimental: use generic Parser
 
+        procedure Read_Primary_Image 
+		(Source     : Buffered_Source_Type;
+		 PrimImg    : out Primary_Image_Type)
+	is
+		function Parse_Cards_For_PrimImg(Pos : Positive; Blk : Card_Arr) 
+			return Boolean
+		is
+			HEnd : HeaderSize_Type;
+			--CardPos : Positive;
+		begin
+			--CardPos := I + (Pos-1)*CardsPerBlock;
+			Parse(Blk, PrimImg);
+			-- check for END card
+                        -- Match_Card(CardPos, Blk(I), HEnd);
+			Parse(Blk, HEnd);
+			return HEnd.ENDCardFound;
+		end Parse_Cards_For_PrimImg;
+
+		procedure Read_Cards_PrimImg is 
+			new Read_Cards
+		(Source_Type => Buffered_Source_Type,
+		 Next        => Next_Buffer_Content,
+		 First_Block => First_Block_Null,
+		 Parse_Cards => Parse_Cards_For_PrimImg);
+	begin
+		Read_Cards_PrimImg(Source);
+	end Read_Primary_Image;
+	
 
         -- test  : try to create read func for type X
         -- using types from Header; 

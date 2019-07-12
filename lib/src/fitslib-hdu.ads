@@ -41,7 +41,19 @@ package FITSlib.HDU is
 
 	-- FIXME Read_ or Get_ ?? File-Index is moved(?).
 
-	function Read_Data_Size_bits
+	type Conforming_Extension_Form is
+                record
+                        HDUVar : HDU_Variant;
+                        PCOUNT : Natural;
+                        GCOUNT : Positive;
+                end record;
+
+	procedure Get
+		(BSource : in  Buffered_Source_Type;
+		 ExtForm : out Conforming_Extension_Form) is null;
+
+
+	function Read_HDU_Size_bits
 		(Source : Buffered_Source_Type) return Natural;
 
 

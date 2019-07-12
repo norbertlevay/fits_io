@@ -158,7 +158,9 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
 
-    DSize := SIO_HDU.Read_Data_Size_bits(InFile);
+    Hstart := SIO.Index(InFile);
+
+    DSize := SIO_HDU.Read_HDU_Size_bits(InFile);
 
     TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
     DURem  := (DSize/8) rem 2880;
@@ -169,7 +171,7 @@ begin
     TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
 
 
-    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+    SIO.Set_Index(InFile, HStart + SIO.Positive_Count(DUSize) );
 
  end loop;
 
@@ -182,6 +184,8 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
 
+    Hstart := SIO.Index(InFile);
+
     SIO_HDU.Read_Exp(InFile,DSize);
 
     TIO.Put_Line("Data Size     [bytes] : " & Natural'Image(DSize/8));
@@ -193,7 +197,7 @@ begin
     TIO.Put_Line("DataUnit Size [bytes] : " & Natural'Image(DUSize));
 
 
-    SIO.Set_Index(InFile, SIO.Index(InFile) + SIO.Positive_Count(DUSize) );
+    SIO.Set_Index(InFile, HStart + SIO.Positive_Count(DUSize) );
 
  end loop;
 
