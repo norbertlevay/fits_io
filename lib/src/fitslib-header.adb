@@ -194,10 +194,11 @@ package body FITSlib.Header is
 	end Parse;
 	
 	
-	
+	-- -----------------------
+	-- Information from Header
+	-- -----------------------
 
-
-	procedure ParseCard
+	procedure Select_Card
                (Card : Card_Type;
                 Keys : in out Primary_Image_Type)
 	is
@@ -221,26 +222,50 @@ package body FITSlib.Header is
 			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
 		end if;
 	
-	end ParseCard;
+	end Select_Card;
 
-	-- FIXME replace these for-cycles with generic with ParseCard()
-         procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Primary_Image_Type)
+ 
+
+
+
+
+	procedure Select_Card
+               (Card : Card_Type;
+                Keys : in out Conforming_Extension_Type)
 	is
+		CardKey   : String := Ada.Strings.Fixed.Trim(Card(NameRange), Ada.Strings.Both);
+		CardValue : String := Ada.Strings.Fixed.Trim(Card(ValueRange),Ada.Strings.Both);
+		-- FIXME CardValue runs on EACH card, even those which not match on Name/Key
+		-- Trim only when needed
+		Index     : Positive;
 	begin
-                for I in Cards'Range
-                loop
-                        ParseCard(Cards(I), Keys);
-                end loop;
-	end Parse;
+		if(CardKey = "BITPIX")
+		then
+			Keys.BITPIX := Integer'Value(Card(ValueRange));
+		
+		elsif(CardKey = "NAXIS")
+		then
+			Keys.NAXIS := Positive'Value(Card(ValueRange));
+
+		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
+			-- FIXME literal 1 on NAXISn range - crosschek!!
+		then
+			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
+	
+		elsif(CardKey = "PCOUNT")
+		then
+			Keys.PCOUNT := Natural'Value(Card(ValueRange));
+
+		elsif(CardKey = "GCOUNT")
+		then
+			Keys.GCOUNT := Positive'Value(Card(ValueRange));
+		
+		end if;
+	end Select_Card;
+	
 
 
-
-
-
-
-	procedure ParseCard
+	procedure Select_Card
                (Card : Card_Type;
                 Keys : in out Random_Groups_Type)
 	is
@@ -274,75 +299,13 @@ package body FITSlib.Header is
 			Keys.GCOUNT := Positive'Value(Card(ValueRange));
 		
 		end if;
-	end ParseCard;
+	end Select_Card;
 	
-       procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Random_Groups_Type)
-	is
-	begin
-                for I in Cards'Range
-                loop
-                        ParseCard(Cards(I), Keys);
-                end loop;
-	end Parse;
 
 
 
 
-
-
-
-	procedure ParseCard
-               (Card : Card_Type;
-                Keys : in out Conforming_Extension_Type)
-	is
-		CardKey   : String := Ada.Strings.Fixed.Trim(Card(NameRange), Ada.Strings.Both);
-		CardValue : String := Ada.Strings.Fixed.Trim(Card(ValueRange),Ada.Strings.Both);
-		-- FIXME CardValue runs on EACH card, even those which not match on Name/Key
-		-- Trim only when needed
-		Index     : Positive;
-	begin
-		if(CardKey = "BITPIX")
-		then
-			Keys.BITPIX := Integer'Value(Card(ValueRange));
-		
-		elsif(CardKey = "NAXIS")
-		then
-			Keys.NAXIS := Positive'Value(Card(ValueRange));
-
-		elsif(FITSlib.Key.Match(CardKey, "NAXIS",(1,NAXIS_Last), Index))
-			-- FIXME literal 1 on NAXISn range - crosschek!!
-		then
-			Keys.NAXISn(Index) := Positive'Value(Card(ValueRange));
-	
-		elsif(CardKey = "PCOUNT")
-		then
-			Keys.PCOUNT := Natural'Value(Card(ValueRange));
-
-		elsif(CardKey = "GCOUNT")
-		then
-			Keys.GCOUNT := Positive'Value(Card(ValueRange));
-		
-		end if;
-	end ParseCard;
-	
-       procedure Parse
-                (Cards : Card_Arr;
-                 Keys  : in out Conforming_Extension_Type)
-	is
-	begin
-                for I in Cards'Range
-                loop
-                        ParseCard(Cards(I), Keys);
-                end loop;
-	end Parse;
-
-
-
-
-
-
+-- ------------------------------------------------------------------------------------------
 	
 	-- old data-size calculation --> FIXME re-use as common info for all HDUtypes in list() ??
         -- FIXME what to do with this ? Can be used for list() -> yes, use it as "common" type

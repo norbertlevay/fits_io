@@ -20,6 +20,17 @@ package body FITSlib.HDU is
    end Header_Size_blocks;
  
 
+       procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Conforming_Extension_Type)
+        is
+        begin
+                for I in Cards'Range
+                loop
+                        Select_Card(Cards(I), Keys);
+                end loop;
+        end Parse;
+
         procedure Read_Conforming_Extensions
                 (Source     : Buffered_Source_Type;
                  FirstBlock : Card_Block;
@@ -38,8 +49,6 @@ package body FITSlib.HDU is
 			exit when HEnd.ENDCardFound;
 		end loop;
 	end Read_Conforming_Extensions;
-
-
 
         function Read_Conforming_Extensions_HDU_Size_bits
                 (Source     : Buffered_Source_Type;
@@ -69,8 +78,16 @@ package body FITSlib.HDU is
 
 
 
-
-
+       procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Random_Groups_Type)
+        is
+        begin
+                for I in Cards'Range
+                loop
+                        Select_Card(Cards(I), Keys);
+                end loop;
+        end Parse;
 
         procedure Read_Random_Groups
 		(Source     : Buffered_Source_Type;
@@ -116,6 +133,20 @@ package body FITSlib.HDU is
 	end Read_Random_Groups_HDU_Size_bits;
 
 
+
+
+
+
+        procedure Parse
+                (Cards : Card_Arr;
+                 Keys  : in out Primary_Image_Type)
+        is
+        begin
+                for I in Cards'Range
+                loop
+                        Select_Card(Cards(I), Keys);
+                end loop;
+        end Parse;
 
         procedure Read_Primary 
 		(Source     : Buffered_Source_Type;
@@ -372,13 +403,13 @@ package body FITSlib.HDU is
                                 when UNKNOWN .. PRIM_NO_DATA =>
                                         Cont := False;
                                 when PRIM_IMAGE =>
-                                        ParseCard(Blk(I), PrimImg);
+                                        Select_Card(Blk(I), PrimImg);
                                         Cont := True;
                                 when RAND_GROUPS =>
-                                        ParseCard(Blk(I), RandGroups);
+                                        Select_Card(Blk(I), RandGroups);
                                         Cont := True;
                                 when EXT_IMAGE .. EXT_BINTABLE =>
-                                        ParseCard(Blk(I), ConfExt);
+                                        Select_Card(Blk(I), ConfExt);
                                         Cont := True;
                                 when EXT_UNKNOWN =>
                                         Cont := False;
