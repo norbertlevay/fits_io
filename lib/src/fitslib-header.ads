@@ -64,7 +64,7 @@ package FITSlib.Header is
 	-- ---------------------
 
 
- 	-- HDU determination
+ 	-- Header-START by HDU determination
 	
 	type HDU_Variant is 
 		(UNKNOWN,          -- nor SIMPLE nor XTENSION found 
@@ -81,7 +81,6 @@ package FITSlib.Header is
 	--type Std_Prim is new HDU_Variant range PRIM_NO_DATA .. PRIM_IMAGE;
 	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
 
-	-- Header Start:
 	function Parse (Cards : Card_Arr) return HDU_Variant;
 	-- if returns anything else then *UNKNOWN it is 1st block of a Header
 
@@ -90,8 +89,7 @@ package FITSlib.Header is
 		 Cards : out Card_Arr) is null;
 
 
-
-	-- For header size calculation
+	-- Header-END by ENDCard (allows Header size calc)
 
 	ENDCard : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
 
@@ -101,7 +99,6 @@ package FITSlib.Header is
 			CardCount    : Natural;
 		end record;
 
-	-- Header End:
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out HeaderSize_Type);
