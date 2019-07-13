@@ -35,6 +35,10 @@
 -- or having MANY (non-variant) records and parse record funcs
 -- is _implementation detail_
 
+-- Note: Standard suggests keep fixed position of firs n-cards.
+-- Read 1st 4 cards: [SIMPLE | XTENSION], (BITPIX), NAXIS, NAXIS1
+-- 4 x 80 = 320 bytes must have certain pattern.
+	
 
 package FITSlib.Header is
 
@@ -77,7 +81,13 @@ package FITSlib.Header is
 	--type Std_Prim is new HDU_Variant range PRIM_NO_DATA .. PRIM_IMAGE;
 	--type Conf_Ext is new HDU_Variant range EXT_IMAGE .. EXT_BINTABLE;
 
-	function Parse (Cards  : Card_Arr) return HDU_Variant;
+	-- Header Start:
+	function Parse (Cards : Card_Arr) return HDU_Variant;
+	-- if returns anything else then *UNKNOWN it is 1st block of a Header
+
+	procedure Compose_Cards
+		(Var   : HDU_Variant;
+		 Cards : out Card_Arr) is null;
 
 
 
@@ -91,15 +101,22 @@ package FITSlib.Header is
 			CardCount    : Natural;
 		end record;
 
-       procedure Match_Card
-                (Pos  : Positive;
-                 Card : Card_Type;
-                 Keys : in out HeaderSize_Type);
-   
-
+	-- Header End:
 	procedure Parse
 		(Cards : Card_Arr;
 		 Keys  : in out HeaderSize_Type);
+	-- after succeful HDU_Variant call, later
+	-- ENDCard Found it marks the of the Header
+
+	-- no Compose() because END-card is already defined
+
+
+ 	procedure Match_Card
+                (Pos  : Positive;
+                 Card : Card_Type;
+                 Keys : in out HeaderSize_Type);
+	-- FIXME experimental, later remove
+ 
 
 
 

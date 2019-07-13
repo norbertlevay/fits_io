@@ -17,7 +17,9 @@ package body FITSlib.Header is
 
 	-- * Caller: 
 	-- UNKNOWN & FileIndex is  at BeginOfFile -> not a FITS file
-        -- UNKNOWN # FileIndex not at BeginOfFile -> unspecified data at end of file 
+        -- UNKNOWN # FileIndex not at BeginOfFile and 
+	--           PrimaryHDU was succesfully read and
+	--           ? at least one extension was read ? -> unspecified data at end of file 
 	--
         -- * Implement inside callee:
         -- read first 8 char: 
