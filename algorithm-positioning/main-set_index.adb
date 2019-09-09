@@ -1,20 +1,26 @@
 
 
-with Primary_Size_Info;
 with Formulas;
+with Primary_Size_Info;
+use Primary_Size_Info;
 
-
+separate(main)
 procedure Set_Index
            (File   : SIO.File_Type;
             HDUNum : Positive)
 is
 	CurHDUNum : Positive;
 	PrimaryHeaderStart : SIO.Positive_Count;
-	BlkNum : SIO.Poritive_Count;
+	ExtHeaderStart : SIO.Positive_Count;
+	BlkNum : Positive;
 	Blk : Card_Block;
-	Rc  : Header.Read_Control;
+	Rc  : Read_Control;
 	Stoped : Boolean;
+	HDUSizeInfo : HDU_Size_Info_Type;
+	HDUSize_blocks : Formulas.Positive_Count;
 
+
+	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
 begin
 
 	PrimaryHeaderStart := 1;
@@ -22,22 +28,22 @@ begin
 
 	CurHDUNum := 1;
 
-	if(CurHDUNum = HDUNum)
+	if(CurHDUNum = HDUNum) then
 		return;
 	end if;
 
 -- Read Primary HDU
 	
-	Header.Reset_State;
+	Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
 
-		BlkNum := To_Block_Count(SIO.Index(File));
+		BlkNum := Positive( SIO.Index(File) / BlockSize_SIOunits );
 
-		Rc := Header.Next(BlkNum, HBlk);
+		Rc := Next(BlkNum, Blk);
 
-		case(Rc)
+		case(Rc) is
 			when Continue =>
 				Stoped := False;
 			when StartFromBegining =>
@@ -51,9 +57,10 @@ begin
 
 	end loop;
 
-	HDUSize_blocks := To_Blocks(Header.HDU_Size_bits);
+	HDUSizeInfo := Get;
+	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
-	ExtHeaderStart := PrimaryHeaderStart + HDUSize_blocks * BlockSize_SIOunits;
+	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
 	SIO.Set_Index(File,ExtHeaderStart);
 
@@ -65,16 +72,16 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
-	Header.Ext_Reset_State;
+--	Header.Ext_Reset_State;
 
 	loop
-	 	Card_Block'Read(SIO.Stream(File), Blk);
+--	 	Card_Block'Read(SIO.Stream(File), Blk);
 
-		BlkNum := To_Block_Count(ExtHeaderStart - SIO.Index(File));
+--		BlkNum := To_Block_Count(ExtHeaderStart - SIO.Index(File));
 		
-		Rc := Header.Ext_Next(BlkNum, HBlk);
+		Rc := Stop;--Header.Ext_Next(BlkNum, HBlk);
 
-		case(Rc)
+		case(Rc) is
 			when Continue =>
 				null;
 			when StartFromBegining =>
@@ -85,9 +92,10 @@ loop
 
 	end loop;
 
-	HDUSize_blocks := To_Blocks(Header.HDU_Size_bits);
+	HDUSizeInfo := Get;
+	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
-	ExtHeaderStart := ExtHeaderStart + HDUSize_blocks * BlockSize_SIOunits;
+	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
 	SIO.Set_Index(File, ExtHeaderStart);
 
@@ -96,3 +104,7 @@ CurHDUNum := CurHDUNum + 1;
 end loop;
 
 end Set_Index;
+
+
+
+

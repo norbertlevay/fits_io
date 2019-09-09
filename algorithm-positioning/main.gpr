@@ -1,0 +1,16 @@
+
+
+-- with "xmlada";
+project main is
+   for Object_Dir use "obj";
+   for Exec_Dir use ".";
+   for Library_kind use "static";
+   Package Binder is
+        for Switches ("Ada") use ("-static");
+   end Binder;
+   Package Linker is
+        for Linker_Options use ("-static");
+   end Linker;
+   for Main use ("main");
+end main;
+

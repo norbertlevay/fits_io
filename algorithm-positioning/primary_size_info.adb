@@ -8,7 +8,7 @@ type State_Type is (
 	PRIMARY_STANDARD, -- SIMPLE = T card found
 	PRIMARY_NO_DATA,  -- NAXIS = 0
 	PRIMARY_IMAGE,    -- NAXIS1 > 0
-	RANDOM_GROUPS,    -- NAXIS1 = 0
+	RANDOM_GROUPS     -- NAXIS1 = 0
 	);
 
 State : State_Type := UNSPECIFIED;
@@ -18,7 +18,7 @@ State : State_Type := UNSPECIFIED;
 
 type CardValue is
         record
-                Value : String(1:20);
+                Value : String(1..20);
                 ReadFromHeader : Boolean;
         end record;
 
@@ -28,7 +28,7 @@ type Primary_Mandatory_Card_Values is
         BITPIX : CardValue;
         NAXIS  : CardValue;
         NAXIS1 : CardValue;
-        NAXISArr : array (2 .. NAXIS_Max_Limit) of CardValue;
+        NAXISArr : NAXIS_Arr;
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         end record;
@@ -57,18 +57,19 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 	-- or BITPIX card not in Header
 
 
-	function In_INITIALIZED
+	procedure In_INITIALIZED
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
 	begin
-		if (Card = SIMPLE_F_Card)
+		if (Card = SIMPLE_F_Card) then
 			State := PRIMARY_NON_STANDARD;
 
-		elsif (Card = SIMPLE_T_Card)
+		elsif (Card = SIMPLE_T_Card) then
 			State := PRIMARY_STANDARD;
 		else
 			-- ERROR: unexpected card, non standard or broken Header
+			null;
 		end if;
 
 	end In_INITIALIZED;
@@ -76,36 +77,37 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 
 
 
-	function In_PRIMARY_STANDARD
+	procedure In_PRIMARY_STANDARD
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
 	begin
-		if (Card.Key = BITPIX_Card.Key)
+		if (Card.Key = BITPIX_Card.Key) then
 			BITPIX_Card.Value := Card.Value;
 			BITPIX_Card.ValueRead := True;
 		
-		elsif (Card = NAXIS_0_Card.Key)
+		elsif (Card = NAXIS_0_Card.Key) then
 			NAXIS_Card.Value := Card.Value;
 			NAXIS_Card.ValueRead := True;
 			State := PRIMARY_NO_DATA;
 	
-		elsif (Card = NAXIS_NonZero_Card.Key)
+		elsif (Card = NAXIS_NonZero_Card.Key) then
 			NAXIS_Card.Value := Card.Value;
 			NAXIS_Card.ValueRead := True;
 	
-		elsif (Card = NAXIS1_NonZero_Card)
+		elsif (Card = NAXIS1_NonZero_Card) then
 			NAXISArr(1).Value := Card.Value;
 			NAXISArr(1).ValueRead := True;
 			State := PRIMARY_IMAGE;
 
-		elsif (Card = NAXIS1_0_Card)
+		elsif (Card = NAXIS1_0_Card) then
 			NAXISArr(1).Value := Card.Value;
 			NAXISArr(1).ValueRead := True;
 			State := RANDOM_GROUPS;
 
 		else
 			-- ERROR: unexpected card, non standard or broken Header
+			null;
 		end if;
 		
 	end In_PRIMARY_STANDARD;
@@ -116,18 +118,19 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 	-- after grammer check and decode it will be turned into aray of actual length as in Header
 
 
-	function In_PRIMARY_IMAGE
+	procedure In_PRIMARY_IMAGE
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
 	begin
-		if (Is_NAXIS_Arr(Card))
+		if (Is_NAXIS_Arr(Card)) then
 			Idx := Decode_Index(Card.Key,"NAXIS");
 			NAXISArr(Idx).Value := Card.Value;
 			NAXISArr(Idx).ValueRead := True;
 
 		else
 			-- ERROR: unexpected card, non standard or broken Header
+			null;
 		end if;
 
 	end In_PRIMARY_IMAGE;
@@ -160,6 +163,7 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 		
 		else
 			-- ERROR: unexpected card, non standard or broken Header
+			null;
 		end if;
 
 	end In_RANDOM_GROUPS;
@@ -173,7 +177,7 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 	-- Interface
 	--
 
-	function  Next_CardBlock
+	function  Next
 		(Pos  : in Positive; 
 		 Card : in Card_Block) return Loop_Type
 	is
@@ -186,7 +190,7 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 			State := UNSPECIFIED;
 		end if;
 
-		case(State)
+		case(State) is
 			when INITIALIZED =>
 			       In_INITIALIZED  (Pos, Card);
 			when PRIMARY_NON_STANDARD =>
@@ -208,7 +212,7 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 		
 		return ENDCardFound;
 
-	end New_Card;
+	end Next;
 
 
 
