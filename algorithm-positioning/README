@@ -1,0 +1,20 @@
+
+Focus on algorithm:
+* complies with standard
+* correctness (no bugs)
+
+
+Leave out all implementation issues like:
+- interface
+- re-entrancy
+- optimization
+
+
+
+
+FITS standard seen as describing 2 algorithms:
+- positioning within the FITS file
+- WCS coordinate system (positioning for data access)
+
+
+
