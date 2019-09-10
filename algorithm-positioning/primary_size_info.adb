@@ -31,6 +31,11 @@ type Primary_Mandatory_Card_Values is
 	ENDCardSet : Boolean;
         end record;
 
+InitMandVals : Primary_Mandatory_Card_Values := (InitVal,InitVal,InitVal,InitVal,
+                                                 InitNAXISArrVal,
+						 InitVal,InitVal,InitVal,
+						 0,False);
+
 MandVals : Primary_Mandatory_Card_Values;
 
 
@@ -78,22 +83,6 @@ TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
 TIO.Put_Line(State_Type'Image(State));
 end DBG_Print;
 -- -----------------------------------------------------------
-procedure Clear(PMV : in out Primary_Mandatory_Card_Values)
-is
-begin
-        PMV.SIMPLE := InitVal;
-        PMV.BITPIX := InitVal;
-        PMV.NAXIS  := InitVal;
-        PMV.NAXIS1 := InitVal;
-        PMV.NAXISn := InitNAXISArrVal;
-        PMV.PCOUNT := InitVal;
-        PMV.GCOUNT := InitVal;
-        PMV.GROUPS := InitVal;
-        PMV.ENDCardPos := 0;
-        PMV.ENDCardSet := False;
-end Clear;
-
-
 
 
 
@@ -105,7 +94,7 @@ end Clear;
 	procedure Reset_State 
 	is
 	begin
-		Clear(MandVals);
+		MandVals := InitMandVals;
 		State := INITIALIZED;
 	end Reset_State;
 
