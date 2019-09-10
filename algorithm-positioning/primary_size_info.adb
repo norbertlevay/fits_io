@@ -1,6 +1,16 @@
 
 package body Primary_Size_Info is
 
+-- Mandatory cards of Primary header
+ENDCard  : constant Card_Type := "END                                                                             ";
+SIMPLE_F : constant Card_Type := "SIMPLE  =                    F                                                  ";
+SIMPLE_T : constant Card_Type := "SIMPLE  =                    T                                                  ";
+BITPIX   : constant Card_Type := "BITPIX  =                                                                       ";
+NAXIS_0  : constant Card_Type := "NAXIS   =                    0                                                  ";
+NAXIS1_0 : constant Card_Type := "NAXIS1  =                    0                                                  ";
+
+
+
 type State_Type is (
 	UNSPECIFIED,   -- ?? Ada-code default
 	INITIALIZED,   -- Reset_State was called
@@ -19,21 +29,54 @@ State : State_Type := UNSPECIFIED;
 type CardValue is
         record
                 Value : String(1..20);
-                ReadFromHeader : Boolean;
+                Read  : Boolean;
         end record;
 
+type NAXISn_Arr is array (1..NAXIS_Last) of CardValue;
 type Primary_Mandatory_Card_Values is
         record
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
         NAXIS1 : CardValue;
-        NAXISArr : NAXIS_Arr;
+	NAXISn : NAXISn_Arr;
         PCOUNT : CardValue;
         GCOUNT : CardValue;
+        GROUPS : CardValue;
+	ENDCardPos : Positive;
+	ENDCardSet : Boolean;
         end record;
 
-PrimMandVals : Primary_Mandatory_Card_Values;
+MandVals : Primary_Mandatory_Card_Values;
+
+
+
+function Is_Array(Card : in  Card_Type;
+	          Root : in  String;
+		  First : in Positive;
+		  Last  : in Positive;
+	          Idx  : out Positive) return Boolean 
+is
+	IsArray : Boolean := False;
+	CardKey : String := String(Card(1..8));
+begin
+	if(CardKey(1..5) = Root) then
+
+		Idx := Positive'Value(CardKey(6..8));
+		-- will raise exception if not convertible
+
+		if ((Idx < First) OR (Idx > Last)) then
+			IsArray := False;
+		end if;
+
+	end if;
+
+	return IsArray;
+end Is_Array;
+
+
+
+
 
 
 
@@ -52,20 +95,15 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 	-- State Transition functions
 	--
 
-	-- Note: below we are not checking the cards position; Should we ?
-	-- to detect situations like: NAXIS5 found before NAXIS 
-	-- or BITPIX card not in Header
-
-
 	procedure In_INITIALIZED
 		(Pos  : in Positive;
-		 Card : in Card_Type) 
+		Card : in Card_Type) 
 	is
 	begin
-		if (Card = SIMPLE_F_Card) then
+		if (Card(1..30)   = SIMPLE_F(1..30)) then 
 			State := PRIMARY_NON_STANDARD;
 
-		elsif (Card = SIMPLE_T_Card) then
+		elsif (Card(1..30) = SIMPLE_T(1..30)) then
 			State := PRIMARY_STANDARD;
 		else
 			-- ERROR: unexpected card, non standard or broken Header
@@ -82,27 +120,27 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 		 Card : in Card_Type) 
 	is
 	begin
-		if (Card.Key = BITPIX_Card.Key) then
-			BITPIX_Card.Value := Card.Value;
-			BITPIX_Card.ValueRead := True;
+		if (Card(1..8) = BITPIX(1..8)) then
+			MandVals.BITPIX.Value := String(Card(11..30));
+			MandVals.BITPIX.Read  := True;
 		
-		elsif (Card = NAXIS_0_Card.Key) then
-			NAXIS_Card.Value := Card.Value;
-			NAXIS_Card.ValueRead := True;
+		elsif (Card(1..30) = NAXIS_0(1..30)) then
+			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Read := True;
 			State := PRIMARY_NO_DATA;
 	
-		elsif (Card = NAXIS_NonZero_Card.Key) then
-			NAXIS_Card.Value := Card.Value;
-			NAXIS_Card.ValueRead := True;
+		elsif (Card(1..30) /= NAXIS_0(1..30)) then
+			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Read := True;
 	
-		elsif (Card = NAXIS1_NonZero_Card) then
-			NAXISArr(1).Value := Card.Value;
-			NAXISArr(1).ValueRead := True;
+		elsif (Card(1..30) /= NAXIS1_0(1..30)) then
+			MandVals.NAXISn(1).Value := String(Card(11..30));
+			MandVals.NAXISn(1).Read  := True;
 			State := PRIMARY_IMAGE;
 
-		elsif (Card = NAXIS1_0_Card) then
-			NAXISArr(1).Value := Card.Value;
-			NAXISArr(1).ValueRead := True;
+		elsif (Card(1..30) = NAXIS1_0(1..30)) then
+			MandVals.NAXISn(1).Value := String(Card(11..30));
+			MandVals.NAXISn(1).Read  := True;
 			State := RANDOM_GROUPS;
 
 		else
@@ -114,19 +152,15 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 
 
 
--- NAXISArr() in Lixar should be of max size BuildLimit := StandardLimit(=999)
-	-- after grammer check and decode it will be turned into aray of actual length as in Header
-
-
 	procedure In_PRIMARY_IMAGE
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
+		Idx : Positive;
 	begin
-		if (Is_NAXIS_Arr(Card)) then
-			Idx := Decode_Index(Card.Key,"NAXIS");
-			NAXISArr(Idx).Value := Card.Value;
-			NAXISArr(Idx).ValueRead := True;
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+			MandVals.NAXISn(Idx).Value := String(Card(11..30));
+			MandVals.NAXISn(Idx).Read  := True;
 
 		else
 			-- ERROR: unexpected card, non standard or broken Header
@@ -137,29 +171,27 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 
 
 
-
-
 	procedure In_RANDOM_GROUPS
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
+		Idx : Positive;
 	begin
-		if (Is_NAXIS_Arr(Card)) then
-			Idx := Decode_Index(Card.Key,"NAXIS");
-			NAXISArr(Idx).Value := Card.Value;
-			NAXISArr(Idx).ValueRead := True;
-				
-		elsif (Card.Key = PCOUNT_Card.Key) then
-			PCOUNT_Card.Value := Card.Value;
-			PCOUNT_Card.ValueRead := True;
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+			MandVals.NAXISn(Idx).Value := String(Card(11..30));
+			MandVals.NAXISn(Idx).Read  := True;
 
-		elsif (Card.Key = GCOUNT_Card.Key) then
-			GCOUNT_Card.Value := Card.Value;
-			GCOUNT_Card.ValueRead := True;
+		elsif (Card(1..8) = "PCOUNT  ") then
+			MandVals.PCOUNT.Value := String(Card(11..30));
+			MandVals.PCOUNT.Read  := True;
+
+		elsif (Card(1..8) = "GCOUNT  ") then
+			MandVals.GCOUNT.Value := String(Card(11..30));
+			MandVals.GCOUNT.Read  := True;
 		
-		elsif (Card = GROUPS_Card) then
-			GROUPS_Card.Value := Card.Value;
-			GROUPS_Card.ValueRead := True;
+		elsif (Card(1..8) = "GROUPS  ") then
+			MandVals.GROUPS.Value := String(Card(11..30));
+			MandVals.GROUPS.Read := True;
 		
 		else
 			-- ERROR: unexpected card, non standard or broken Header
@@ -173,21 +205,22 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 
 
 
-	--
-	-- Interface
-	--
+
 
 	function  Next
 		(Pos  : in Positive; 
-		 Card : in Card_Block) return Loop_Type
+		 Card : in Card_Type) return Read_Control
 	is
-		ENDCardFound : Boolean := False;
+		Rc : Read_Control := Continue;
 	begin
 		if( (NOT(State = UNSPECIFIED)) 
 		     AND (Card = ENDCard) ) then
-			-- store END card's position and mark set
-			ENDCardFound := True;
+
+		        MandVals.ENDCardPos := Pos;
+		        MandVals.ENDCardSet := True;
+			Rc := Stop;
 			State := UNSPECIFIED;
+
 		end if;
 
 		case(State) is
@@ -210,9 +243,43 @@ PrimMandVals : Primary_Mandatory_Card_Values;
 				null;
 		end case;
 		
-		return ENDCardFound;
+		return Rc;
 
 	end Next;
+	
+
+
+
+	--
+	-- Interface
+	--
+
+
+	function  Next
+		(BlockNum  : in Positive; 
+		 CardBlock : in Card_Block) return Read_Control
+	is
+		Rc : Read_Control;
+		CardPosBase : Natural := (BlockNum-1) * 36;
+		CardPos : Positive;
+	begin
+		for I in CardBlock'Range 
+		loop
+			CardPos := CardPosBase + I;
+			Rc := Next(CardPos, CardBlock(I));
+			case (Rc) is
+				when Stop => 
+					exit;
+				when StartFromBegining =>
+					exit;
+				when Continue =>
+					null;
+			end case;
+		end loop;
+		return Rc;
+	end Next;
+	
+
 
 
 

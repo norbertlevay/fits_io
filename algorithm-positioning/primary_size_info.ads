@@ -20,10 +20,11 @@ type Read_Control is
 	 Stop);              -- do not provide more CardBlocks, usually after END-card found
 -- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
 
-type Card_Type is array(1..80) of Character;
+type Card_Type is new String(1..80);
 type Card_Block is array(1..36) of Card_Type;
 
-type NAXIS_Arr is array(1..10) of Positive;
+NAXIS_Last : Positive := 10;
+type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 
 -- Lexar: 
 -- from Heaeder cards select only those which 

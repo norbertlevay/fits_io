@@ -34,7 +34,7 @@ begin
    InFileName := SU.To_Unbounded_String (CLI.Argument (1));
  end if;
 
- TIO.Unbounded_IO.Put_Line(InFileName);
+  TIO.Unbounded_IO.Put_Line(InFileName);
 
 
   SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
