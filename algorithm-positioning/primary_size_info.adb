@@ -6,11 +6,11 @@ package body Primary_Size_Info is
 
 -- Mandatory cards of Primary header
 ENDCard  : constant Card_Type := "END                                                                             ";
-SIMPLE_F : constant Card_Type := "SIMPLE  =                    F                                                  ";
-SIMPLE_T : constant Card_Type := "SIMPLE  =                    T                                                  ";
-BITPIX   : constant Card_Type := "BITPIX  =                                                                       ";
-NAXIS_0  : constant Card_Type := "NAXIS   =                    0                                                  ";
-NAXIS1_0 : constant Card_Type := "NAXIS1  =                    0                                                  ";
+--SIMPLE_F : constant Card_Type := "SIMPLE  =                    F                                                  ";
+--SIMPLE_T : constant Card_Type := "SIMPLE  =                    T                                                  ";
+--BITPIX   : constant Card_Type := "BITPIX  =                                                                       ";
+--NAXIS_0  : constant Card_Type := "NAXIS   =                    0                                                  ";
+--NAXIS1_0 : constant Card_Type := "NAXIS1  =                    0                                                  ";
 
 EmptyVal : constant String(1..20) := (others => ' ');
 
@@ -35,7 +35,7 @@ type Primary_Mandatory_Card_Values is
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
-	ENDCardPos : Positive;
+	ENDCardPos : Natural;
 	ENDCardSet : Boolean;
         end record;
 
@@ -52,7 +52,7 @@ begin
         PMV.PCOUNT := InitVal;
         PMV.GCOUNT := InitVal;
         PMV.GROUPS := InitVal;
-        PMV.ENDCardPos := 1;
+        PMV.ENDCardPos := 0;
         PMV.ENDCardSet := False;
 end Clear;
 
@@ -163,13 +163,13 @@ end Is_Array;
 		Card : in Card_Type) 
 	is
 	begin
-		if (Card(1..8)   = SIMPLE_F(1..8) AND 
+		if ((Card(1..8) = "SIMPLE  ") AND 
  		   (Value.To_Boolean(String(Card(11..30))) = False)) then 
 			MandVals.SIMPLE.Value := String(Card(11..30));
 			MandVals.SIMPLE.Read  := True;
 			State := PRIMARY_NON_STANDARD;
 
-		elsif (Card(1..8)   = SIMPLE_F(1..8) AND 
+		elsif ((Card(1..8) = "SIMPLE  ") AND 
  		       (Value.To_Boolean(String(Card(11..30))) = True)) then 
 			MandVals.SIMPLE.Value := String(Card(11..30));
 			MandVals.SIMPLE.Read  := True;
@@ -189,28 +189,28 @@ end Is_Array;
 		 Card : in Card_Type) 
 	is
 	begin
-		if (Card(1..8) = BITPIX(1..8)) then
+		if (Card(1..8) = "BITPIX  ") then
 			MandVals.BITPIX.Value := String(Card(11..30));
 			MandVals.BITPIX.Read  := True;
 		
-		elsif (Card(1..8) = NAXIS_0(1..8) AND
+		elsif (Card(1..8) = "NAXIS   " AND
 		       (Value.To_Integer(String(Card(11..30))) = 0)) then
 			MandVals.NAXIS.Value := String(Card(11..30));
 			MandVals.NAXIS.Read := True;
 			State := PRIMARY_NO_DATA;
 	
-		elsif ((Card(1..8)    = NAXIS_0(1..8)) AND 
+		elsif ((Card(1..8) = "NAXIS   ") AND 
 		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
 			MandVals.NAXIS.Value := String(Card(11..30));
 			MandVals.NAXIS.Read := True;
 	
-		elsif ((Card(1..8)    = NAXIS1_0(1..8)) AND 
+		elsif ((Card(1..8) = "NAXIS1  ") AND 
 		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
 			MandVals.NAXISn(1).Value := String(Card(11..30));
 			MandVals.NAXISn(1).Read  := True;
 			State := PRIMARY_IMAGE;
 
-		elsif (Card(1..8) = NAXIS1_0(1..8) AND
+		elsif ((Card(1..8) = "NAXIS1  ") AND
 		       (Value.To_Integer(String(Card(11..30))) = 0)) then
 			MandVals.NAXISn(1).Value := String(Card(11..30));
 			MandVals.NAXISn(1).Read  := True;
