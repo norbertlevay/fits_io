@@ -109,18 +109,22 @@ end DBG_Print;
 		(Pos  : in Positive;
 		Card : in Card_Type) 
 	is
+		CardVal : Boolean;
 	begin
-		if ((Card(1..8) = "SIMPLE  ") AND 
- 		   (Value.To_Boolean(String(Card(11..30))) = False)) then 
-			MandVals.SIMPLE.Value := String(Card(11..30));
-			MandVals.SIMPLE.Read  := True;
-			State := PRIMARY_NON_STANDARD;
+		if (Card(1..8) = "SIMPLE  ") then 
+                       
+		        CardVal := Value.To_Boolean(String(Card(11..30)));
 
-		elsif ((Card(1..8) = "SIMPLE  ") AND 
- 		       (Value.To_Boolean(String(Card(11..30))) = True)) then 
 			MandVals.SIMPLE.Value := String(Card(11..30));
 			MandVals.SIMPLE.Read  := True;
-			State := PRIMARY_STANDARD;
+		   
+			if(CardVal) 
+			then 
+				State := PRIMARY_STANDARD;
+			else
+				State := PRIMARY_NON_STANDARD;
+			end if;
+
 		else
 			-- ERROR: unexpected card, non standard or broken Header
 			null;
@@ -135,33 +139,35 @@ end DBG_Print;
 		(Pos  : in Positive;
 		 Card : in Card_Type) 
 	is
+		CardVal : Integer;
 	begin
 		if (Card(1..8) = "BITPIX  ") then
 			MandVals.BITPIX.Value := String(Card(11..30));
 			MandVals.BITPIX.Read  := True;
 		
-		elsif (Card(1..8) = "NAXIS   " AND
-		       (Value.To_Integer(String(Card(11..30))) = 0)) then
-			MandVals.NAXIS.Value := String(Card(11..30));
-			MandVals.NAXIS.Read := True;
-			State := PRIMARY_NO_DATA;
-	
-		elsif ((Card(1..8) = "NAXIS   ") AND 
-		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
-			MandVals.NAXIS.Value := String(Card(11..30));
-			MandVals.NAXIS.Read := True;
-	
-		elsif ((Card(1..8) = "NAXIS1  ") AND 
-		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
-			MandVals.NAXISn(1).Value := String(Card(11..30));
-			MandVals.NAXISn(1).Read  := True;
-			State := PRIMARY_IMAGE;
+		elsif (Card(1..8) = "NAXIS   ") then
 
-		elsif ((Card(1..8) = "NAXIS1  ") AND
-		       (Value.To_Integer(String(Card(11..30))) = 0)) then
-			MandVals.NAXISn(1).Value := String(Card(11..30));
-			MandVals.NAXISn(1).Read  := True;
-			State := RANDOM_GROUPS;
+			CardVal := Value.To_Integer(String(Card(11..30)));
+
+			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Read := True;
+	
+			if (CardVal = 0) then
+				State := PRIMARY_NO_DATA;
+			end if;
+
+		elsif (Card(1..8) = "NAXIS1  ") then
+
+			CardVal := Value.To_Integer(String(Card(11..30)));
+
+			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Read := True;
+	
+			if (CardVal = 0) then
+				State := RANDOM_GROUPS;
+			else
+				State := PRIMARY_IMAGE;
+			end if;
 
 		else
 			-- ERROR: unexpected card, non standard or broken Header
