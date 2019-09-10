@@ -12,23 +12,7 @@ BITPIX   : constant Card_Type := "BITPIX  =                                     
 NAXIS_0  : constant Card_Type := "NAXIS   =                    0                                                  ";
 NAXIS1_0 : constant Card_Type := "NAXIS1  =                    0                                                  ";
 
-
-
-type State_Type is (
-	UNSPECIFIED,   -- ?? Ada-code default
-	INITIALIZED,   -- Reset_State was called
-	PRIMARY_NON_STANDARD, -- SIMPLE = F card found: can calculate Header size biut not DU size
-	PRIMARY_STANDARD, -- SIMPLE = T card found
-	PRIMARY_NO_DATA,  -- NAXIS = 0
-	PRIMARY_IMAGE,    -- NAXIS1 > 0
-	RANDOM_GROUPS     -- NAXIS1 = 0
-	);
-
-State : State_Type := UNSPECIFIED;
-
-
 EmptyVal : constant String(1..20) := (others => ' ');
-
 
 type CardValue is
         record
@@ -56,6 +40,7 @@ type Primary_Mandatory_Card_Values is
         end record;
 
 MandVals : Primary_Mandatory_Card_Values;
+
 procedure Clear(PMV : in out Primary_Mandatory_Card_Values)
 is
 begin
@@ -71,13 +56,29 @@ begin
         PMV.ENDCardSet := False;
 end Clear;
 
+-- END Mandatory cards of Primary header
 
 
 
+
+type State_Type is (
+	UNSPECIFIED,   -- ?? Ada-code default
+	INITIALIZED,   -- Reset_State was called
+	PRIMARY_NON_STANDARD, -- SIMPLE = F card found: can calculate Header size biut not DU size
+	PRIMARY_STANDARD, -- SIMPLE = T card found
+	PRIMARY_NO_DATA,  -- NAXIS = 0
+	PRIMARY_IMAGE,    -- NAXIS1 > 0
+	RANDOM_GROUPS     -- NAXIS1 = 0
+	);
+
+State : State_Type := UNSPECIFIED;
+
+
+
+------------------------------------------------------------------
 -- BEGIN Utils
 
 package TIO renames Ada.Text_IO;
-
 
 procedure DBG_Print 
 is
@@ -107,6 +108,7 @@ TIO.Put_Line(State_Type'Image(State));
 end DBG_Print;
 
 
+
 function Is_Array(Card : in  Card_Type;
 	          Root : in  String;
 		  First : in Positive;
@@ -132,6 +134,11 @@ begin
 end Is_Array;
 
 -- END Utils
+-- -----------------------------------------------------------
+
+
+
+
 
 
 
