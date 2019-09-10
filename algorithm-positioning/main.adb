@@ -39,6 +39,8 @@ begin
 
   SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
+  main.Set_Index(InFile,2);
+
   SIO.Close(InFile);
 
 

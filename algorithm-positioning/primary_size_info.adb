@@ -1,4 +1,7 @@
 
+with Ada.Text_IO; -- for debug only DBG_Print
+
+
 package body Primary_Size_Info is
 
 -- Mandatory cards of Primary header
@@ -24,6 +27,7 @@ type State_Type is (
 State : State_Type := UNSPECIFIED;
 
 
+EmptyVal : constant String(1..20) := (others => ' ');
 
 
 type CardValue is
@@ -32,7 +36,11 @@ type CardValue is
                 Read  : Boolean;
         end record;
 
+InitVal  : constant CardValue := (EmptyVal,False);
+
 type NAXISn_Arr is array (1..NAXIS_Last) of CardValue;
+InitNAXISArrVal : constant NAXISn_Arr := (others => InitVal);
+
 type Primary_Mandatory_Card_Values is
         record
         SIMPLE : CardValue;
@@ -48,7 +56,59 @@ type Primary_Mandatory_Card_Values is
         end record;
 
 MandVals : Primary_Mandatory_Card_Values;
+procedure Clear(PMV : in out Primary_Mandatory_Card_Values)
+is
+begin
+        PMV.SIMPLE := InitVal;
+        PMV.BITPIX := InitVal;
+        PMV.NAXIS  := InitVal;
+        PMV.NAXIS1 := InitVal;
+        PMV.NAXISn := InitNAXISArrVal;
+        PMV.PCOUNT := InitVal;
+        PMV.GCOUNT := InitVal;
+        PMV.GROUPS := InitVal;
+        PMV.ENDCardPos := 1;
+        PMV.ENDCardSet := False;
+end Clear;
 
+
+
+
+-- BEGIN Utils
+
+package TIO renames Ada.Text_IO;
+
+
+procedure DBG_Print 
+is
+begin
+TIO.Put(Boolean'Image(MandVals.SIMPLE.Read) & " ");
+TIO.Put_Line(MandVals.SIMPLE.Value);
+TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " ");
+TIO.Put_Line(MandVals.BITPIX.Value);
+TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " ");
+TIO.Put_Line(MandVals.NAXIS.Value);
+TIO.Put(Boolean'Image(MandVals.NAXIS1.Read) & " ");
+TIO.Put_Line(MandVals.NAXIS1.Value);
+
+--TIO.Put_Line(Positive'Image(MandVals.NAXISn'First));
+for I in MandVals.NAXISn'Range
+loop
+	if(MandVals.NAXISn(I).Read) then
+	TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " ");
+	TIO.Put_Line(MandVals.NAXISn(I).Value);
+	end if;
+end loop;
+TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " ");
+TIO.Put_Line(MandVals.PCOUNT.Value);
+TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " ");
+TIO.Put_Line(MandVals.GCOUNT.Value);
+TIO.Put(Boolean'Image(MandVals.GROUPS.Read) & " ");
+TIO.Put_Line(MandVals.GROUPS.Value);
+TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " ");
+TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
+TIO.Put_Line(State_Type'Image(State));
+end DBG_Print;
 
 
 function Is_Array(Card : in  Card_Type;
@@ -58,24 +118,29 @@ function Is_Array(Card : in  Card_Type;
 	          Idx  : out Positive) return Boolean 
 is
 	IsArray : Boolean := False;
-	CardKey : String := String(Card(1..8));
+	CardKey : String(1..8) := String(Card(1..8));
 begin
-	if(CardKey(1..5) = Root) then
+	if(CardKey(1..Root'Length) = Root) then
+
 
 		Idx := Positive'Value(CardKey(6..8));
 		-- will raise exception if not convertible
 
+
 		if ((Idx < First) OR (Idx > Last)) then
 			IsArray := False;
+		else
+			IsArray := True;
 		end if;
 
 	end if;
+
 
 	return IsArray;
 end Is_Array;
 
 
-
+-- END Utils
 
 
 
@@ -84,7 +149,7 @@ end Is_Array;
 	procedure Reset_State 
 	is
 	begin
-		-- clear other state-variables
+		Clear(MandVals);
 		State := INITIALIZED;
 	end Reset_State;
 
@@ -129,11 +194,13 @@ end Is_Array;
 			MandVals.NAXIS.Read := True;
 			State := PRIMARY_NO_DATA;
 	
-		elsif (Card(1..30) /= NAXIS_0(1..30)) then
+		elsif ((Card(1..8)    = NAXIS_0(1..8)) AND 
+		       (Card(11..30) /= NAXIS_0(11..30))) then
 			MandVals.NAXIS.Value := String(Card(11..30));
 			MandVals.NAXIS.Read := True;
 	
-		elsif (Card(1..30) /= NAXIS1_0(1..30)) then
+		elsif ((Card(1..8)    = NAXIS1_0(1..8)) AND 
+		       (Card(11..30) /= NAXIS1_0(11..30))) then
 			MandVals.NAXISn(1).Value := String(Card(11..30));
 			MandVals.NAXISn(1).Read  := True;
 			State := PRIMARY_IMAGE;
@@ -219,8 +286,10 @@ end Is_Array;
 		        MandVals.ENDCardPos := Pos;
 		        MandVals.ENDCardSet := True;
 			Rc := Stop;
+			
+			DBG_Print;
+			
 			State := UNSPECIFIED;
-
 		end if;
 
 		case(State) is
