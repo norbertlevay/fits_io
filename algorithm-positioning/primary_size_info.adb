@@ -82,30 +82,26 @@ package TIO renames Ada.Text_IO;
 procedure DBG_Print 
 is
 begin
-TIO.Put(Boolean'Image(MandVals.SIMPLE.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.SIMPLE.Read) & " SIMPLE ");
 TIO.Put_Line(MandVals.SIMPLE.Value);
-TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
 TIO.Put_Line(MandVals.BITPIX.Value);
-TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " NAXIS ");
 TIO.Put_Line(MandVals.NAXIS.Value);
-TIO.Put(Boolean'Image(MandVals.NAXIS1.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.NAXIS1.Read) & " NAXIS1 ");
 TIO.Put_Line(MandVals.NAXIS1.Value);
-
---TIO.Put_Line(Positive'Image(MandVals.NAXISn'First));
 for I in MandVals.NAXISn'Range
 loop
-	if(MandVals.NAXISn(I).Read) then
-	TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " ");
-	TIO.Put_Line(MandVals.NAXISn(I).Value);
-	end if;
+ TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
+ TIO.Put_Line(MandVals.NAXISn(I).Value);
 end loop;
-TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " PCOUNT ");
 TIO.Put_Line(MandVals.PCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " GCOUNT ");
 TIO.Put_Line(MandVals.GCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.GROUPS.Read) & " ");
+TIO.Put(Boolean'Image(MandVals.GROUPS.Read) & " GROUPS ");
 TIO.Put_Line(MandVals.GROUPS.Value);
-TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " ");
+TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
 TIO.Put_Line(State_Type'Image(State));
 end DBG_Print;
@@ -122,10 +118,8 @@ is
 begin
 	if(CardKey(1..Root'Length) = Root) then
 
-
 		Idx := Positive'Value(CardKey(6..8));
 		-- will raise exception if not convertible
-
 
 		if ((Idx < First) OR (Idx > Last)) then
 			IsArray := False;
@@ -134,11 +128,8 @@ begin
 		end if;
 
 	end if;
-
-
 	return IsArray;
 end Is_Array;
-
 
 -- END Utils
 
@@ -166,9 +157,13 @@ end Is_Array;
 	is
 	begin
 		if (Card(1..30)   = SIMPLE_F(1..30)) then 
+			MandVals.SIMPLE.Value := String(Card(11..30));
+			MandVals.SIMPLE.Read  := True;
 			State := PRIMARY_NON_STANDARD;
 
 		elsif (Card(1..30) = SIMPLE_T(1..30)) then
+			MandVals.SIMPLE.Value := String(Card(11..30));
+			MandVals.SIMPLE.Read  := True;
 			State := PRIMARY_STANDARD;
 		else
 			-- ERROR: unexpected card, non standard or broken Header

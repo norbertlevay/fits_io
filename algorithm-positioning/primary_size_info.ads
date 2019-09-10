@@ -23,7 +23,7 @@ type Read_Control is
 type Card_Type is new String(1..80);
 type Card_Block is array(1..36) of Card_Type;
 
-NAXIS_Last : Positive := 10;
+NAXIS_Last : Positive := 9;
 type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 
 -- Lexar: 
