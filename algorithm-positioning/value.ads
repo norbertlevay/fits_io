@@ -19,4 +19,12 @@ package Value is
 --	function To_ComplexInteger(Value : String) return ???;
 --	function To_ComplexFloat  (Value : String) return ???;
 
+
+	-- temporarile put here
+	function Is_Array(Card : in  Card_Type;
+                  Root : in  String;
+                  First : in Positive;
+                  Last  : in Positive;
+                  Idx  : out Positive) return Boolean;
+ 
 end Value;

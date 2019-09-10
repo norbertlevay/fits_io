@@ -4,13 +4,6 @@ with Value;
 
 package body Primary_Size_Info is
 
--- Mandatory cards of Primary header
-ENDCard  : constant Card_Type := "END                                                                             ";
---SIMPLE_F : constant Card_Type := "SIMPLE  =                    F                                                  ";
---SIMPLE_T : constant Card_Type := "SIMPLE  =                    T                                                  ";
---BITPIX   : constant Card_Type := "BITPIX  =                                                                       ";
---NAXIS_0  : constant Card_Type := "NAXIS   =                    0                                                  ";
---NAXIS1_0 : constant Card_Type := "NAXIS1  =                    0                                                  ";
 
 EmptyVal : constant String(1..20) := (others => ' ');
 
@@ -19,7 +12,6 @@ type CardValue is
                 Value : String(1..20);
                 Read  : Boolean;
         end record;
-
 InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXISn_Arr is array (1..NAXIS_Last) of CardValue;
@@ -41,25 +33,6 @@ type Primary_Mandatory_Card_Values is
 
 MandVals : Primary_Mandatory_Card_Values;
 
-procedure Clear(PMV : in out Primary_Mandatory_Card_Values)
-is
-begin
-        PMV.SIMPLE := InitVal;
-        PMV.BITPIX := InitVal;
-        PMV.NAXIS  := InitVal;
-        PMV.NAXIS1 := InitVal;
-        PMV.NAXISn := InitNAXISArrVal;
-        PMV.PCOUNT := InitVal;
-        PMV.GCOUNT := InitVal;
-        PMV.GROUPS := InitVal;
-        PMV.ENDCardPos := 0;
-        PMV.ENDCardSet := False;
-end Clear;
-
--- END Mandatory cards of Primary header
-
-
-
 
 type State_Type is (
 	UNSPECIFIED,   -- ?? Ada-code default
@@ -76,8 +49,6 @@ State : State_Type := UNSPECIFIED;
 
 
 ------------------------------------------------------------------
--- BEGIN Utils
-
 package TIO renames Ada.Text_IO;
 
 procedure DBG_Print 
@@ -106,35 +77,22 @@ TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
 TIO.Put_Line(State_Type'Image(State));
 end DBG_Print;
-
-
-
-function Is_Array(Card : in  Card_Type;
-	          Root : in  String;
-		  First : in Positive;
-		  Last  : in Positive;
-	          Idx  : out Positive) return Boolean 
-is
-	IsArray : Boolean := False;
-	CardKey : String(1..8) := String(Card(1..8));
-begin
-	if(CardKey(1..Root'Length) = Root) then
-
-		Idx := Positive'Value(CardKey(6..8));
-		-- will raise exception if not convertible
-
-		if ((Idx < First) OR (Idx > Last)) then
-			IsArray := False;
-		else
-			IsArray := True;
-		end if;
-
-	end if;
-	return IsArray;
-end Is_Array;
-
--- END Utils
 -- -----------------------------------------------------------
+procedure Clear(PMV : in out Primary_Mandatory_Card_Values)
+is
+begin
+        PMV.SIMPLE := InitVal;
+        PMV.BITPIX := InitVal;
+        PMV.NAXIS  := InitVal;
+        PMV.NAXIS1 := InitVal;
+        PMV.NAXISn := InitNAXISArrVal;
+        PMV.PCOUNT := InitVal;
+        PMV.GCOUNT := InitVal;
+        PMV.GROUPS := InitVal;
+        PMV.ENDCardPos := 0;
+        PMV.ENDCardSet := False;
+end Clear;
+
 
 
 
@@ -231,7 +189,7 @@ end Is_Array;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+		if (Value.Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
 			MandVals.NAXISn(Idx).Value := String(Card(11..30));
 			MandVals.NAXISn(Idx).Read  := True;
 
@@ -250,7 +208,7 @@ end Is_Array;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+		if (Value.Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
 			MandVals.NAXISn(Idx).Value := String(Card(11..30));
 			MandVals.NAXISn(Idx).Read  := True;
 

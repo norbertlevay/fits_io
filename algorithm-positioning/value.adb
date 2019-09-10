@@ -112,4 +112,34 @@ package body Value is
 --	function To_ComplexInteger(Value : String) return ???;
 --	function To_ComplexFloat  (Value : String) return ???;
 
+
+
+
+
+
+
+function Is_Array(Card : in  Card_Type;
+                  Root : in  String;
+                  First : in Positive;
+                  Last  : in Positive;
+                  Idx  : out Positive) return Boolean
+is
+        IsArray : Boolean := False;
+        CardKey : String(1..8) := String(Card(1..8));
+begin
+        if(CardKey(1..Root'Length) = Root) then
+
+                Idx := Positive'Value(CardKey(6..8));
+                -- will raise exception if not convertible
+
+                if ((Idx < First) OR (Idx > Last)) then
+                        IsArray := False;
+                else
+                        IsArray := True;
+                end if;
+
+        end if;
+        return IsArray;
+end Is_Array;
+
 end Value;
