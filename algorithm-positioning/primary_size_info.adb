@@ -1,6 +1,6 @@
 
 with Ada.Text_IO; -- for debug only DBG_Print
-
+with Value;
 
 package body Primary_Size_Info is
 
@@ -163,12 +163,14 @@ end Is_Array;
 		Card : in Card_Type) 
 	is
 	begin
-		if (Card(1..30)   = SIMPLE_F(1..30)) then 
+		if (Card(1..8)   = SIMPLE_F(1..8) AND 
+ 		   (Value.To_Boolean(String(Card(11..30))) = False)) then 
 			MandVals.SIMPLE.Value := String(Card(11..30));
 			MandVals.SIMPLE.Read  := True;
 			State := PRIMARY_NON_STANDARD;
 
-		elsif (Card(1..30) = SIMPLE_T(1..30)) then
+		elsif (Card(1..8)   = SIMPLE_F(1..8) AND 
+ 		       (Value.To_Boolean(String(Card(11..30))) = True)) then 
 			MandVals.SIMPLE.Value := String(Card(11..30));
 			MandVals.SIMPLE.Read  := True;
 			State := PRIMARY_STANDARD;
@@ -191,23 +193,25 @@ end Is_Array;
 			MandVals.BITPIX.Value := String(Card(11..30));
 			MandVals.BITPIX.Read  := True;
 		
-		elsif (Card(1..30) = NAXIS_0(1..30)) then
+		elsif (Card(1..8) = NAXIS_0(1..8) AND
+		       (Value.To_Integer(String(Card(11..30))) = 0)) then
 			MandVals.NAXIS.Value := String(Card(11..30));
 			MandVals.NAXIS.Read := True;
 			State := PRIMARY_NO_DATA;
 	
 		elsif ((Card(1..8)    = NAXIS_0(1..8)) AND 
-		       (Card(11..30) /= NAXIS_0(11..30))) then
+		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
 			MandVals.NAXIS.Value := String(Card(11..30));
 			MandVals.NAXIS.Read := True;
 	
 		elsif ((Card(1..8)    = NAXIS1_0(1..8)) AND 
-		       (Card(11..30) /= NAXIS1_0(11..30))) then
+		       (Value.To_Integer(String(Card(11..30))) /= 0)) then
 			MandVals.NAXISn(1).Value := String(Card(11..30));
 			MandVals.NAXISn(1).Read  := True;
 			State := PRIMARY_IMAGE;
 
-		elsif (Card(1..30) = NAXIS1_0(1..30)) then
+		elsif (Card(1..8) = NAXIS1_0(1..8) AND
+		       (Value.To_Integer(String(Card(11..30))) = 0)) then
 			MandVals.NAXISn(1).Value := String(Card(11..30));
 			MandVals.NAXISn(1).Read  := True;
 			State := RANDOM_GROUPS;
@@ -333,19 +337,28 @@ end Is_Array;
 		Rc : Read_Control;
 		CardPosBase : Natural := (BlockNum-1) * 36;
 		CardPos : Positive;
+		Card : Card_Type;
 	begin
 		for I in CardBlock'Range 
 		loop
-			CardPos := CardPosBase + I;
-			Rc := Next(CardPos, CardBlock(I));
-			case (Rc) is
-				when Stop => 
-					exit;
-				when StartFromBegining =>
-					exit;
-				when Continue =>
-					null;
-			end case;
+			Card := CardBlock(I);
+			
+			if ( Card = ENDCard OR Value.Is_ValuedCard(Card) ) then
+
+				CardPos := CardPosBase + I;
+				Rc := Next(CardPos, Card);
+
+				case (Rc) is
+					when Stop => 
+						exit;
+					when StartFromBegining =>
+						exit;
+					when Continue =>
+						null;
+				end case;
+
+			end if;
+
 		end loop;
 		return Rc;
 	end Next;
