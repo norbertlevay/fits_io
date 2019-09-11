@@ -52,14 +52,14 @@ type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 type HDU_Type is 
 	(PRIMARY_IMAGE, RANDOM_GROUPS, EXT_IMAGE, EXT_ASCII_TABLE, BIN_TABLE, UNSPECIFIED_EXTENSION);
 
-type Data_Type is 
-	(INT8, INT16, INT32, INT64, FLOAT32, FLOAT64);
+--type Data_Type is 
+--	(INT8, INT16, INT32, INT64, FLOAT32, FLOAT64);
 
 type HDU_Size_Info_Type is 
 	record
 		HDUType    : HDU_Type;   -- HDU info
 		CardsCount : Positive;   -- HDU info
-		BITPIX     : Data_Type;  -- HDU info
+		BITPIX     : Integer; --Data_Type;  -- HDU info
 		NAXISArr   : NAXIS_Arr;  -- HDU info
 	end record;
 

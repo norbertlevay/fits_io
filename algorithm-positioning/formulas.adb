@@ -21,19 +21,30 @@ package body Formulas is
 		return Positive_Count
 	is
 		HUSize : Positive_Count;
-	begin
+	begin 
+		HUSize := Positive_Count(1 + (CardsCount - 1)/36);
 		return HUSize;
 	end Calc_HeaderUnit_Size_blocks;
 
 
 	function  Calc_DataUnit_Size_blocks  
-		(BITPIX   : in Data_Type;
+		(BITPIX   : in Integer;--Data_Type;
 		 NAXISArr : in NAXIS_Arr) 
 		 return Positive_Count
 	is
-		DUSize : Positive_Count;
+		DUSize : Positive_Count := 1;
+		BlockSize_bits : constant Positive_Count := 2880*8;
+		DataInBlock    : constant Positive_Count := BlockSize_bits /Positive_Count(abs BITPIX);
+		DUSizeInBlocks : Positive_Count;
 	begin
-		return DUSize;
+               for I in NAXISArr'Range
+                loop
+                        DUSize := DUSize * Positive_Count(NAXISArr(I));
+                end loop;
+
+		DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
+
+		return DUSizeInBlocks;
 	end Calc_DataUnit_Size_blocks;
 	
 end Formulas;

@@ -16,7 +16,7 @@ package Formulas is
 		(CardsCount : in Positive) return Positive_Count;
 
 	function  Calc_DataUnit_Size_blocks  
-		(BITPIX   : in Data_Type;
+		(BITPIX   : in Integer;--Data_Type;
 		 NAXISArr : in NAXIS_Arr) return Positive_Count;
 	
 end Formulas;
