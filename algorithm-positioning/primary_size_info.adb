@@ -164,8 +164,8 @@ end DBG_Print;
 
 			CardVal := Value.To_Integer(String(Card(11..30)));
 
-			MandVals.NAXIS.Value := String(Card(11..30));
-			MandVals.NAXIS.Read := True;
+			MandVals.NAXISn(1).Value := String(Card(11..30));
+			MandVals.NAXISn(1).Read := True;
 	
 			if (CardVal = 0) then
 				State := RANDOM_GROUPS;
@@ -252,7 +252,7 @@ end DBG_Print;
 			
 			DBG_Print;
 			
-			State := UNSPECIFIED;
+--			State := UNSPECIFIED;
 		end if;
 
 		case(State) is
@@ -340,11 +340,82 @@ end DBG_Print;
 	--  * recognize alternative calibration sets cccccA card set and cccccB card set
 	--  That all data for SizeClaculation was Read/Set
 	--  and all those data is valid/within the range
+
+
+	function To_HDU_Type(State : in State_Type) return HDU_Type
+	is
+	begin
+		case(State) is
+			when PRIMARY_NO_DATA => 
+				return PRIMARY_WITHOUT_DATA;
+
+			when PRIMARY_IMAGE => 
+				return PRIMARY_IMAGE;
+
+			when RANDOM_GROUPS => 
+				return RANDOM_GROUPS;
+
+				--return EXT_IMAGE;
+				--return EXT_ASCII_TABLE;
+				--return EXT_BIN_TABLE;
+			when others =>
+				null;
+				-- ERROR 
+		end case;
+	end To_HDU_Type;
+
+
+
+
+
 	function  Get return HDU_Size_Info_Type
 	is
-		Results : HDU_Size_Info_Type;
+		HDUSizeInfo : HDU_Size_Info_Type;
+		NAXIS : Positive;
 	begin
-		return Results;
+		HDUSizeInfo.HDUType    := To_HDU_Type(State);
+		-- will raise exception if state not PRIMARY* or RAND Groups
+
+		if(MandVals.ENDCardSet) then
+			HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
+		else
+			null;
+			-- ERROR raise exception No END card found
+		end if;
+
+		if(MandVals.BITPIX.Read) then
+			HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
+		else
+			null;
+			-- ERROR raise exception No BITPIX card found
+		end if;
+
+		if(MandVals.NAXIS.Read) then
+			NAXIS := Integer'Value(MandVals.NAXIS.Value);
+		else
+			null;
+			-- ERROR raise exception No NAXIS card found
+		end if;
+
+		for I in 1 .. NAXIS 
+		loop
+			if(MandVals.NAXISn(I).Read) then
+				HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
+			else
+				null;
+				-- ERROR raise exception No NAXIS(I) card found
+			end if;
+
+		end loop;
+
+		-- FIXME dirty fix: should return NAXISArr only NAXIS-long
+		for I in NAXIS+1 .. NAXIS_Last 
+		loop
+			HDUSizeInfo.NAXISArr(I) := 1;
+		end loop;
+	
+
+		return HDUSizeInfo;
 	end Get;
 
 

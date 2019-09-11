@@ -64,6 +64,18 @@ begin
 
 	SIO.Set_Index(File,ExtHeaderStart);
 
+	-- DEBUG START
+	TIO.Put_Line("HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
+	
+	Card_Block'Read(SIO.Stream(File), Blk);
+	for I in Blk'Range
+	loop
+		TIO.Put_Line(String(Blk(I)));
+	end loop;
+	-- DEBUG END 
+	-- FIXME REMOVE DEBUG before implementing Extension
+
+
 -- Read Extension HDU"s if exist, 
 	-- how to handle Unspecified Ext if exist at fits-file end ?
 
