@@ -1,4 +1,8 @@
 
+-- Mandiatory keywords have values in Fixed format. No complex parsing is needed.
+-- Simple string comparison is enough to make decisions.
+
+
 with Ada.Text_IO; -- for debug only DBG_Print
 with Value;
 
