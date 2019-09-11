@@ -222,6 +222,9 @@ end DBG_Print;
 		elsif (Card(1..8) = "GROUPS  ") then
 			MandVals.GROUPS.Value := String(Card(11..30));
 			MandVals.GROUPS.Read := True;
+
+			-- FIXME see table C.1 : GROUPS value must be set T
+			-- check for it. If not set raise error
 		
 		else
 			-- ERROR: unexpected card, non standard or broken Header
