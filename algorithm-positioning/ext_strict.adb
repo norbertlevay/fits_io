@@ -232,15 +232,15 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 
 
 
-	function In_WAIT_END(RefPos : Positive; Card : Card_Type) return Positive
+	function In_WAIT_END(RefPos : Positive; Card : Card_Type) return Natural
 	is
 	begin
 		if( ENDCard = Card ) then
 			CardsCount := Pos;
+			return 0;
+		else
+			return 1;
 		end if;
-
-		return 1;-- FIXME not used
-
 	end In_WAIT_END;
 
 
@@ -251,6 +251,7 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 		Card : Card_Type) return Positive
 	is
 		RefPos : Positive;
+		rc : Natural := 1; -- continue
 	begin
 		RefPos := Pos; -- offset not used:  - StateRec.Offset;
 
@@ -274,21 +275,52 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 				In_COLLECT_TBCOL_ARRAY(RefPos, Card);
 
 			when WAIT_END =>
-				In_WAIT_END(RefPos, Card);
+				rc := In_WAIT_END(RefPos, Card);
 		end case;
 		
 		-- ask for next card
-		return Pos + 1;
-	       -- FIXME how to tell card-reader to stop ? after ENDCard or SpecRecords found ??
+		return rc;
 
 	end Next;
 
 
 
 
+        --
+        -- Interface : read by blocks
+        --
+        function  Next
+                (BlockNum  : in Positive;
+                 CardBlock : in Card_Block) return Read_Control
+        is
+		rr : Natural;
+                Rc : Read_Control;
+                CardPosBase : Natural := (BlockNum-1) * 36;
+                CardPos : Positive;
+                Card : Card_Type;
+        begin
+                for I in CardBlock'Range
+                loop
+                        Card := CardBlock(I);
 
+                        if ( Card = ENDCard OR Value.Is_ValuedCard(Card) ) then
 
+                                CardPos := CardPosBase + I;
+                                rr := Next(CardPos, Card);
+				
+				if(rr = 0)
+				then
+					Rc := Stop
+					exit;
+				else
+					Rc := Continue;
+				end if;
 
+                        end if;
+
+                end loop;
+                return Rc;
+        end Next;
 
 end Ext_Strict;
 
