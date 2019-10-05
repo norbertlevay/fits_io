@@ -6,7 +6,7 @@ package body Ext_Strict is
 
 	
 
-RefKeys : array (Positive 1..<>) of String(1..8) := (
+RefKeys : array (Positive range 1..9) of String(1..8) := (
 	"XTENSION", 
 	"BITPIX  ",
 	"NAXIS   ",
@@ -17,17 +17,26 @@ RefKeys : array (Positive 1..<>) of String(1..8) := (
 	"TFORM   ",
 	"TBCOL   "
 		);
-	
 
-Vals : array (Positive 1..RefKeys'Last) of String(1..20);
+EmptyVal : constant String(1..20) := (others => ' ');	
+type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+InitVal  : constant CardValue := (EmptyVal,False);
 
-NAXISn : array (Positive 1.. NAXIS_Last) of String(1..20);
-TFORMn : array (Positive 1.. NAXIS_Last) of String(1..20);
-TBCOLn : array (Positive 1.. NAXIS_Last) of String(1..20);
+Vals : array (Positive range 1..RefKeys'Last) of CardValue;
 
+NAXISn : array (Positive range 1.. NAXIS_Last) of CardValue;
+TFORMn : array (Positive range 1.. NAXIS_Last) of CardValue;
+TBCOLn : array (Positive range 1.. NAXIS_Last) of CardValue;
+
+gCardsCount : Positive;
+gENDCardSet : Boolean := False;
 
 type State_Type is (INITIALIZED, SPECIAL_RECORDS, 
-	CONFORMING_EXT,	COLLECT_NAXIS_ARRAY, 
+	CONFORMING_EXTENSION,	COLLECT_NAXIS_ARRAY, 
 	COLLECT_TFORM_ARRAY, COLLECT_TBCOL_ARRAY,
 	WAIT_END);
 
@@ -35,19 +44,20 @@ type State_Rec is
 	record
 		State : State_Type;
 		XTENSION : String(1..20);--value
-		Arr_Root : String;
-		Arr_Last : Positive;
-		Offset   : Natural;
+		--Arr_Root : String;
+		--Arr_Last : Positive;
+		--Offset   : Natural;
 	end record;
 
-StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
+StateRec : State_Rec := (State => INITIALIZED, XTENSION => EmptyVal);
 
 
 	procedure Reset_State 
 	is
 	begin
 		StateRec.State  := INITIALIZED;
-		StateRec.Offset := 0;
+		StateRec.XTENSION  := EmptyVal;
+		--StateRec.Offset := 0;
 	end Reset_State;
 
 
@@ -64,8 +74,9 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 			null;
 		end if;
 
-		if( RefKeys(RefPos) = Card(1..8) ) then
-			Vals(RefPos)   := Card(11.30);
+		if( RefKeys(RefPos) = String(Card(1..8)) ) then
+			Vals(RefPos).Value := String(Card(11..30));
+			Vals(RefPos).Read  := True;
 			StateRec.State := CONFORMING_EXTENSION;
 		else
 			StateRec.State := SPECIAL_RECORDS;
@@ -86,15 +97,16 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 	begin
 		-- cards BITPIX ... GCOUNT
 
-		case(RefPos) is -- FIXME needed ? these funcs are setting Pos
+		--case(RefPos) is -- FIXME needed ? these funcs are setting Pos
 				-- in strict mode we force sequential card reading:
 				-- if correctly implemented, it cannot happen that
 				-- this func would be called for other then 2..3 5..7
-			when 2 .. 3, 5 .. 7 =>
+		--	when 2 .. 3 | 5 .. 7 =>
 
-				if ( RefKeys(RefPos) = Card(1..8) )
+				if ( RefKeys(RefPos) = String(Card(1..8)) )
 				then
-					Vals(RefPos) := Card(11..30);
+					Vals(RefPos).Value := String(Card(11..30));
+					Vals(RefPos).Read  := True;
 				else
 					-- ERROR unexpected card
 					null;
@@ -107,21 +119,28 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 
 				if(RefPos = 7) -- GCOUNT
 				then
-				       case(StateRec.ExtType)
-					        when IMAGE =>
-						       	StateRec.State := WAIT_END;
-					        when TABLE, BINTABLE =>
-						       	StateRec.State := COLLECT_TFORM_ARRAY;
-						others =>
+				     --  case(StateRec.ExtType) is
+					--        when IMAGE =>
+					--	       	StateRec.State := WAIT_END;
+					  --      when TABLE | BINTABLE =>
+					--	       	StateRec.State := COLLECT_TFORM_ARRAY;
+						--others =>
 							-- ERROR non standard Conforming Extension
-							null;
-				       end case;
+						--	null;
+				       -- end case;
+					if(Vals(1).Value = "'IMAGE   '") then
+						StateRec.State := WAIT_END;
+					else
+						StateRec.State := COLLECT_TFORM_ARRAY;
+					end if;
+
+									
 				end if;
 
-			others =>
+			--others =>
 				-- ERROR programming error - should not happen
-			null;
-		end case;
+			--null;
+		--end case;
 
 		return RefPos + 1;-- FIXME not used
 
@@ -131,17 +150,27 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 
 
 
+	function Extract_Index(Root : String; CardKey : String) return Positive
+	is
+		RootLen : Positive := Root'Length;
+	begin
+		return Positive'Value( CardKey(RootLen .. 8) );
+	end Extract_Index;
+
+
+
 	function In_COLLECT_NAXIS_ARRAY(RefPos : Positive; Card : Card_Type) return Positive
 	is
-		Ix : Positive := Extract_Index("NAXIS",Card(1..8));
+		Ix : Positive := Extract_Index("NAXIS",String(Card(1..8)));
 		LenCardPos : constant Positive := 3;-- NAXIS card pos
-		ArrLen     : constant Postive := Positive'Value(Vals(LenCardPos));-- NAXISn arr length
+		ArrLen     : constant Positive := Positive'Value(Vals(LenCardPos).Value);-- NAXISn arr length
 	begin
 		-- check root-name and position
 		if ( ("NAXIS" = Card(1..5)) AND 
 		     ((RefPos - LenCardPos) = Ix) )
 		then
-			NAXISn(Ix) := Card(11..30);
+			NAXISn(Ix).Value := String(Card(11..30));
+			NAXISn(Ix).Read  := True;
 		else
 			-- ERROR unexpected card
 			null;
@@ -166,15 +195,15 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 		
 	function In_COLLECT_TFORM_ARRAY(RefPos : Positive; Card : Card_Type) return Positive
 	is
-		Ix : Positive := Extract_Index("TFORM",Card(1..8));
+		Ix : Positive := Extract_Index("TFORM",String(Card(1..8)));
 		LenCardPos : constant Positive := 7;-- TFIELD card pos
-		ArrLen     : constant Postive := Positive'Value(Vals(LenCardPos));-- TFORMn arr length
+		ArrLen     : constant Positive := Positive'Value(Vals(LenCardPos).Value);-- TFORMn arr length
 	begin
 		-- check root-name and position
 		if ( ("TFORM" = Card(1..5)) AND 
 		     ((RefPos - NAXISCardPos - NAXISLength) = Ix) )
 		then
-			TFORMn(Ix) := Card(11..30);
+			TFORMn(Ix) := String(Card(11..30));
 		else
 			-- ERROR unexpected card
 			null;
@@ -183,7 +212,7 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 		-- if last array card read, change state
 		if(Ix = ArrLen) 
 		then
-			case(StateRec.ExtType)
+			case(StateRec.ExtType) is
 				when TABLE =>
 					StateRec.State := WAIT_END;
 				when BINTABLE =>
@@ -205,7 +234,7 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 	is
 		Ix : Positive := Extract_Index("TBCOL",Card(1..8));
 		LenCardPos : constant Positive := 7;-- TFIELD card pos
-		ArrLen     : constant Postive := Positive'Value(Vals(LenCardPos));-- TBCOLn arr length
+		ArrLen     : constant Postive := Positive'Value(Vals(LenCardPos).Value);-- TBCOLn arr length
 	begin
 		-- check root-name and position
 		if ( ("TBCOL" = Card(1..5)) AND 
@@ -236,7 +265,8 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
 	is
 	begin
 		if( ENDCard = Card ) then
-			CardsCount := Pos;
+			gCardsCount := Pos;
+			gENDCardSet := True;
 			return 0;
 		else
 			return 1;
@@ -321,6 +351,85 @@ StateRec : State_Rec := (State => INITIALIZED, Offset => 0);
                 end loop;
                 return Rc;
         end Next;
+
+
+	-- Get interface
+	
+-- type HDU_Type is
+  --      (PRIMARY_WITHOUT_DATA, PRIMARY_IMAGE, RANDOM_GROUPS,
+  --      EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, RANDOM_BLOCKS);
+
+
+        function To_HDU_Type(StateRec : in State_Rec) return HDU_Type
+        is
+        begin
+                if(StateRec.XTENSION = "'IMAGE   '") then
+                                return EXT_IMAGE;
+                elsif(StateRec.XTENSION = "'TABLE   '") then
+                                return EXT_ASCII_TABLE;
+
+                elsif(StateRec.XTENSION = "'BINTABLE'") then
+                                return EXT_BIN_TABLE;
+		end if;
+		-- FIXME RAND_BLOCKS ?
+
+        end To_HDU_Type;
+
+
+
+        function  Get return HDU_Size_Info_Type
+        is
+                HDUSizeInfo : HDU_Size_Info_Type;
+                NAXIS : Positive;
+        begin
+                HDUSizeInfo.HDUType    := To_HDU_Type(StateRec);
+                -- will raise exception if state not PRIMARY* or RAND Groups
+
+                if(gENDCardSet) then
+                        HDUSizeInfo.CardsCount := gCardsCount;
+                else
+                        null;
+                        -- ERROR raise exception No END card found
+                end if;
+
+                if(Vals(2).Read) then
+                        HDUSizeInfo.BITPIX := Integer'Value(Vals(2).Value);
+                else
+                        null;
+                        -- ERROR raise exception No BITPIX card found
+                end if;
+
+                if(Vals(3).Read) then
+                        NAXIS := Integer'Value(Vals(3).Value);
+                else
+                        null;
+                        -- ERROR raise exception No NAXIS card found
+                end if;
+
+                for I in 1 .. NAXIS
+                loop
+                        if(NAXISn(I).Read) then
+                                HDUSizeInfo.NAXISArr(I) := Positive'Value(NAXISn(I).Value);
+                        else
+                                null;
+                                -- ERROR raise exception No NAXIS(I) card found
+                        end if;
+
+                end loop;
+
+                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
+                for I in NAXIS+1 .. NAXIS_Last
+                loop
+                        HDUSizeInfo.NAXISArr(I) := 1;
+                end loop;
+
+
+                return HDUSizeInfo;
+        end Get;
+
+
+
+
 
 end Ext_Strict;
 

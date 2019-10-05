@@ -4,6 +4,8 @@ with Formulas;
 with Primary_Size_Info;
 use Primary_Size_Info;
 
+with Ext_Strict;
+
 separate(main)
 procedure Set_Index
            (File   : SIO.File_Type;
@@ -84,14 +86,14 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
---	Header.Ext_Reset_State;
+	Ext_Strict.Reset_State;
 
 	loop
---	 	Card_Block'Read(SIO.Stream(File), Blk);
+	 	Card_Block'Read(SIO.Stream(File), Blk);
 
---		BlkNum := To_Block_Count(ExtHeaderStart - SIO.Index(File));
+		BlkNum := Positive((ExtHeaderStart - SIO.Index(File))/ BlockSize_SIOunits);
 		
-		Rc := Stop;--Header.Ext_Next(BlkNum, HBlk);
+		Rc := Ext_Strict.Next(BlkNum, Blk);
 
 		case(Rc) is
 			when Continue =>
@@ -104,7 +106,7 @@ loop
 
 	end loop;
 
-	HDUSizeInfo := Get;
+	HDUSizeInfo := Ext_Strict.Get;
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
