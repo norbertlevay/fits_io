@@ -1,4 +1,5 @@
 
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Formulas;
 with Primary_Size_Info;
@@ -69,11 +70,11 @@ begin
 	-- DEBUG START
 	TIO.Put_Line("HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
 	
-	Card_Block'Read(SIO.Stream(File), Blk);
-	for I in Blk'Range
-	loop
-		TIO.Put_Line(String(Blk(I)));
-	end loop;
+--	Card_Block'Read(SIO.Stream(File), Blk);
+--	for I in Blk'Range
+--	loop
+--		TIO.Put_Line(String(Blk(I)));
+--	end loop;
 	-- DEBUG END 
 	-- FIXME REMOVE DEBUG before implementing Extension
 
@@ -91,7 +92,11 @@ loop
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
 
-		BlkNum := Positive((ExtHeaderStart - SIO.Index(File))/ BlockSize_SIOunits);
+		Put_Line("DBG> " & SIO.Positive_Count'Image(SIO.Index(File) - ExtHeaderStart));
+--		Put_Line("DBG> " & SIO.Positive_Count'Image(BlockSize_SIOunits));
+
+		BlkNum := Positive((SIO.Index(File) - ExtHeaderStart)/ BlockSize_SIOunits);
+		Put_Line("DBG> " & Positive'Image(BlkNum));
 		
 		Rc := Ext_Strict.Next(BlkNum, Blk);
 
