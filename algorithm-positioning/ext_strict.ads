@@ -8,6 +8,7 @@ use  Primary_Size_Info;
 
 package Ext_Strict is
 
+	procedure Configuration(Options : Options_Type) is null;
 	procedure Reset_State; 
         function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 	  
