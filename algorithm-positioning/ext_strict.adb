@@ -9,18 +9,6 @@ use  Primary_Size_Info;
 
 package body Ext_Strict is
 
-RefKeys : array (Positive range 1..9) of String(1..8) := (
-	"XTENSION", 
-	"BITPIX  ",
-	"NAXIS   ",
-	"NAXIS   ",
-	"PCOUNT  ",
-	"GCOUNT  ",
-	"TFIELDS ",
-	"TFORM   ",
-	"TBCOL   "
-		);
-
 EmptyVal : constant String(1..20) := (others => ' ');	
 type CardValue is
         record
@@ -29,7 +17,9 @@ type CardValue is
         end record;
 InitVal  : constant CardValue := (EmptyVal,False);
 
-Vals : array (Positive range 1..RefKeys'Last) of CardValue;
+-- 1..6: "XTENSION", "BITPIX  ","NAXIS   ","NAXISn  ","PCOUNT  ","GCOUNT  ",
+-- 7..9: "TFIELDS ","TFORMn  ","TBCOLn  "
+Vals : array (Positive range 1..9) of CardValue;
 
 TFIELDS_Max : constant Positive := 100;
 
@@ -113,7 +103,7 @@ end DBG_Print;
 		StateRec.State  := INITIALIZED;
 		StateRec.XTENSION  := EmptyVal;
 
-		for I in RefKeys'Range loop
+		for I in Vals'Range loop
 			Vals(I).Value := EmptyVal;
 		end loop;
 
@@ -133,10 +123,10 @@ end DBG_Print;
 			null;
 		end if;
 
-		if( RefKeys(Pos) = String(Card(1..8)) )
+		if( "XTENSION" = String(Card(1..8)) )
 		then
-			Vals(Pos).Value := String(Card(11..30));
-			Vals(Pos).Read  := True;
+			Vals(1).Value := String(Card(11..30));
+			Vals(1).Read  := True;
 			StateRec.State := CONFORMING_EXTENSION;
 		else
 			StateRec.State := SPECIAL_RECORDS;
@@ -152,36 +142,35 @@ end DBG_Print;
 
 
 
+
+
+
 	function In_CONFORMING_EXTENSION(Pos : Positive; Card : Card_Type) return Positive
 	is
-		RefPos : Positive := Pos;
 	begin
-		-- cards BITPIX NAXIS, PCOUNT GCOUNT
-
-		if(RefPos > 3) then
-			-- PCOUNT GCOUNT:
-			RefPos := RefPos - NAXIS_Val + 1;
-		end if;
-		-- else BITPIX NAXIS
-		
-		
-		if ( RefKeys(RefPos) = String(Card(1..8)) )
+		if    ( "BITPIX  " = String(Card(1..8)) AND (Pos = 2) )
 		then
-			Vals(RefPos).Value := String(Card(11..30));
-			Vals(RefPos).Read  := True;
-		else
-			-- ERROR unexpected card
-			null;
-		end if;
+			Vals(2).Value := String(Card(11..30));
+			Vals(2).Read  := True;
 
-		if(RefPos = 3) -- NAXIS
+		elsif ( "NAXIS   " = String(Card(1..8)) AND (Pos = 3) )
 		then
-			NAXIS_Val := Natural'Value(Vals(3).Value);
+			Vals(3).Value := String(Card(11..30));
+			Vals(3).Read  := True;
+
+			NAXIS_Val      := Natural'Value(Vals(3).Value);
 			StateRec.State := COLLECT_NAXIS_ARRAY;
-		end if;
-
-		if(RefPos = 6) -- GCOUNT
+	
+		elsif ( "PCOUNT  " = String(Card(1..8)) AND (Pos = 3 + NAXIS_Val + 1))
 		then
+			Vals(5).Value := String(Card(11..30));
+			Vals(5).Read  := True;
+
+		elsif ( "GCOUNT  " = String(Card(1..8)) AND (Pos = 3 + NAXIS_Val + 2))
+		then
+			Vals(6).Value := String(Card(11..30));
+			Vals(6).Read  := True;
+
 			if( (Vals(1).Value = "'TABLE   '          ") OR
 			    (Vals(1).Value = "'BINTABLE'          ") )
 			then
@@ -189,6 +178,10 @@ end DBG_Print;
 			else
 				StateRec.State := WAIT_END;
 			end if;
+	
+		else
+			-- ERROR unexpected card
+			null;
 		end if;
 
 		return Pos + 1;
@@ -305,14 +298,16 @@ end DBG_Print;
 
 
 
-
-	function Next (Pos : Positive;
+	--
+	-- FA interface
+	--
+	function Next
+		(Pos : Positive;
 		Card : Card_Type) return Natural
 	is
 		NextCardPos : Natural;
 		InState : State_Type := StateRec.State;
 	begin
-		
 
 		case(StateRec.State) is
 			when INITIALIZED => 
@@ -345,7 +340,7 @@ end DBG_Print;
 
 
         --
-        -- Interface : read by blocks
+        -- read by blocks FIXME move to Set_HDU
         --
         function  Next
                 (BlockNum  : in Positive;
@@ -357,7 +352,6 @@ end DBG_Print;
                 CardPos : Positive;
                 Card : Card_Type;
         begin
-
                 for I in CardBlock'Range
                 loop
                         Card := CardBlock(I);
@@ -366,7 +360,6 @@ end DBG_Print;
 			then
 
                                 CardPos := CardPosBase + I;
-                               
 			       	NextCardPos := Next(CardPos, Card);
 				-- currently ignored - we loop throu anyway
 				

@@ -244,7 +244,9 @@ end DBG_Print;
 
 
 
-
+	--
+	-- FA interface
+	--
 	function  Next
 		(Pos  : in Positive; 
 		 Card : in Card_Type) return Read_Control
@@ -291,14 +293,13 @@ end DBG_Print;
 
 
 	--
-	-- Interface
+	-- read by blocks FIXME move to Set_HDU
 	--
-
-
 	function  Next
 		(BlockNum  : in Positive; 
 		 CardBlock : in Card_Block) return Read_Control
 	is
+	
 		Rc : Read_Control;
 		CardPosBase : Natural := (BlockNum-1) * 36;
 		CardPos : Positive;
@@ -308,7 +309,8 @@ end DBG_Print;
 		loop
 			Card := CardBlock(I);
 			
-			if ( Card = ENDCard OR Value.Is_ValuedCard(Card) ) then
+			if ( Card = ENDCard OR Value.Is_ValuedCard(Card) )
+			then
 
 				CardPos := CardPosBase + I;
 				Rc := Next(CardPos, Card);
