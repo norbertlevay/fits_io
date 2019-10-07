@@ -9,12 +9,9 @@ use  Primary_Size_Info;
 package Ext_Strict is
 
 	procedure Reset_State; 
-        function  Next
-                (BlockNum  : in Positive;
-                 CardBlock : in Card_Block) return Read_Control;
-
-
-	  function  Get return HDU_Size_Info_Type;
+        function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
+	  
+	function  Get return HDU_Size_Info_Type;
 
 
 end Ext_Strict;

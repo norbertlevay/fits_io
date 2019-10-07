@@ -329,7 +329,7 @@ end DBG_Print;
 				NextCardPos := In_WAIT_END(Pos, Card);
 		end case;
 		
---		Put_Line("STATE "& State_Type'Image(InState) &"->"& State_Type'Image(StateRec.State) & " in: " & String(Card));
+		if(NextCardPos=0)then DBG_Print; end if;
 
 		-- ask for next card from this position
 		return NextCardPos;
@@ -339,46 +339,7 @@ end DBG_Print;
 
 
 
-        --
-        -- read by blocks FIXME move to Set_HDU
-        --
-        function  Next
-                (BlockNum  : in Positive;
-                 CardBlock : in Card_Block) return Read_Control
-        is
-		NextCardPos : Natural;
-		Rc : Read_Control := Continue;
-                CardPosBase : Natural := (BlockNum-1) * 36;
-                CardPos : Positive;
-                Card : Card_Type;
-        begin
-                for I in CardBlock'Range
-                loop
-                        Card := CardBlock(I);
-
-                        if ( Card = ENDCard OR Value.Is_ValuedCard(Card) ) 
-			then
-
-                                CardPos := CardPosBase + I;
-			       	NextCardPos := Next(CardPos, Card);
-				-- currently ignored - we loop throu anyway
-				
-				if(NextCardPos = 0)
-				then
-					Rc := Stop;
-					DBG_Print;
-					exit;
-				else
-					Rc := Continue;
-				end if;
-
-                        end if;
-
-                end loop;
-                return Rc;
-        end Next;
-
-
+   
 	-- Get interface
 	
 -- type HDU_Type is

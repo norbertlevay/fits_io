@@ -2,9 +2,8 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Formulas;
-with Primary_Size_Info;
-use Primary_Size_Info;
-
+with Value;
+with Primary_Size_Info; use Primary_Size_Info;
 with Ext_Strict;
 
 separate(main)
@@ -12,6 +11,53 @@ procedure Set_Index
            (File   : SIO.File_Type;
             HDUNum : Positive)
 is
+        --
+        -- read by blocks
+        --
+       function  Next
+                (HDUNum : in Positive;
+		 BlockNum  : in Positive;
+                 CardBlock : in Card_Block) return Read_Control
+        is
+                NextCardPos : Natural;
+                Rc : Read_Control := Continue;
+                CardPosBase : Natural := (BlockNum-1) * 36;
+                CardPos : Positive;
+                Card : Card_Type;
+        begin
+                for I in CardBlock'Range
+                loop
+                        Card := CardBlock(I);
+
+                        if ( Card = ENDCard OR Value.Is_ValuedCard(Card) )
+                        then
+
+                                CardPos := CardPosBase + I;
+
+				if(HDUNum = 1)
+				then
+					NextCardPos := Next(CardPos, Card);
+				else
+					NextCardPos := Ext_Strict.Next(CardPos, Card);
+				end if;
+				-- FIXME use generic instead HDUNum
+
+                                -- currently ignored - we loop throu anyway
+                                if(NextCardPos = 0)
+                                then
+                                        Rc := Stop;
+                                        exit;
+                                else
+                                        Rc := Continue;
+                                end if;
+
+                        end if;
+
+                end loop;
+                return Rc;
+        end Next;
+
+
 	CurHDUNum : Positive;
 	PrimaryHeaderStart : SIO.Positive_Count;
 	ExtHeaderStart : SIO.Positive_Count;
@@ -44,7 +90,7 @@ begin
 
 		BlkNum := Positive( SIO.Index(File) / BlockSize_SIOunits );
 
-		Rc := Next(BlkNum, Blk);
+		Rc := Next(CurHDUNum,BlkNum, Blk);
 
 		case(Rc) is
 			when Continue =>
@@ -84,7 +130,7 @@ loop
 
 		BlkNum := Positive((SIO.Index(File) - ExtHeaderStart)/ BlockSize_SIOunits);
 		
-		Rc := Ext_Strict.Next(BlkNum, Blk);
+		Rc := Next(CurHDUNum, BlkNum, Blk);
 
 		case(Rc) is
 			when Continue =>

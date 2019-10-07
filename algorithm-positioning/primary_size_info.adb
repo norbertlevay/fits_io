@@ -114,9 +114,9 @@ end DBG_Print;
 	-- State Transition functions
 	--
 
-	procedure In_INITIALIZED
+	function In_INITIALIZED
 		(Pos  : in Positive;
-		Card : in Card_Type) 
+		Card : in Card_Type) return Natural
 	is
 		CardVal : Boolean;
 	begin
@@ -139,14 +139,15 @@ end DBG_Print;
 			null;
 		end if;
 
+		return Pos + 1;
 	end In_INITIALIZED;
 
 
 
 
-	procedure In_PRIMARY_STANDARD
+	function In_PRIMARY_STANDARD
 		(Pos  : in Positive;
-		 Card : in Card_Type) 
+		 Card : in Card_Type) return Natural
 	is
 		CardVal : Integer;
 	begin
@@ -183,13 +184,14 @@ end DBG_Print;
 			null;
 		end if;
 		
+		return Pos + 1;
 	end In_PRIMARY_STANDARD;
 
 
 
-	procedure In_PRIMARY_IMAGE
+	function In_PRIMARY_IMAGE
 		(Pos  : in Positive;
-		 Card : in Card_Type) 
+		 Card : in Card_Type) return Natural
 	is
 		Idx : Positive;
 	begin
@@ -202,13 +204,14 @@ end DBG_Print;
 			null;
 		end if;
 
+		return Pos + 1;
 	end In_PRIMARY_IMAGE;
 
 
 
-	procedure In_RANDOM_GROUPS
+	function In_RANDOM_GROUPS
 		(Pos  : in Positive;
-		 Card : in Card_Type) 
+		 Card : in Card_Type) return Natural
 	is
 		Idx : Positive;
 	begin
@@ -236,6 +239,7 @@ end DBG_Print;
 			null;
 		end if;
 
+		return Pos + 1;
 	end In_RANDOM_GROUPS;
 
 
@@ -249,35 +253,33 @@ end DBG_Print;
 	--
 	function  Next
 		(Pos  : in Positive; 
-		 Card : in Card_Type) return Read_Control
+		 Card : in Card_Type) return Natural
 	is
-		Rc : Read_Control := Continue;
+		NextCardPos : Natural;
 	begin
-		if( (NOT(State = UNSPECIFIED)) 
-		     AND (Card = ENDCard) ) then
 
+		if( (NOT(State = UNSPECIFIED)) AND (Card = ENDCard) )
+		then
 		        MandVals.ENDCardPos := Pos;
 		        MandVals.ENDCardSet := True;
-			Rc := Stop;
-			
-			--DBG_Print;
-			
---			State := UNSPECIFIED;
+			NextCardPos := 0;-- no more cards
+			DBG_Print;
+			return NextCardPos;
 		end if;
 
 		case(State) is
 			when INITIALIZED =>
-			       In_INITIALIZED  (Pos, Card);
+			       NextCardPos := In_INITIALIZED  (Pos, Card);
 			when PRIMARY_NON_STANDARD =>
-				null;
+				NextCardPos := 0;-- no more cards
 			when PRIMARY_STANDARD => 
-			       In_PRIMARY_STANDARD(Pos, Card);
+			       NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
 			when PRIMARY_NO_DATA =>
-				null;
+				NextCardPos := 0;-- no more cards
 			when PRIMARY_IMAGE => 
-			       In_PRIMARY_IMAGE(Pos, Card);	
+			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
-			       In_RANDOM_GROUPS(Pos, Card);	
+			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);	
 			when others => 
 				-- including UNSPECIFIED
 				-- programming error: Reset_State 
@@ -285,51 +287,12 @@ end DBG_Print;
 				null;
 		end case;
 		
-		return Rc;
+		return NextCardPos;
 
 	end Next;
 	
 
 
-
-	--
-	-- read by blocks FIXME move to Set_HDU
-	--
-	function  Next
-		(BlockNum  : in Positive; 
-		 CardBlock : in Card_Block) return Read_Control
-	is
-	
-		Rc : Read_Control;
-		CardPosBase : Natural := (BlockNum-1) * 36;
-		CardPos : Positive;
-		Card : Card_Type;
-	begin
-		for I in CardBlock'Range 
-		loop
-			Card := CardBlock(I);
-			
-			if ( Card = ENDCard OR Value.Is_ValuedCard(Card) )
-			then
-
-				CardPos := CardPosBase + I;
-				Rc := Next(CardPos, Card);
-
-				case (Rc) is
-					when Stop => 
-						DBG_Print;
-						exit;
-					when StartFromBegining =>
-						exit;
-					when Continue =>
-						null;
-				end case;
-
-			end if;
-
-		end loop;
-		return Rc;
-	end Next;
 	
 
 

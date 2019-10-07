@@ -35,7 +35,7 @@ type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 
 	procedure Configuration(Options : Options_Type) is null;
 	procedure Reset_State;
-	function  Next(BlockNum : Positive; CardBlock : Card_Block) return Read_Control;
+	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 
 
