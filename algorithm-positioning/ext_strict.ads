@@ -1,12 +1,15 @@
 
-
-with Primary_Size_Info;
-use  Primary_Size_Info;
--- Card_Block, Read_Control &
--- HDU_Size_Info_Type needed
-
+with FITS;  use  FITS;
+-- Card_Type HDU_Size_Info_Type needed
 
 package Ext_Strict is
+
+type Options_Type is
+         (ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
+          ALGORITHM_TOLERANT);   -- parsing Headers fails only if: 
+                                 -- * essential key is missing
+                                 -- * essential key is duplicate with different values (ambiguity) 
+
 
 	procedure Configuration(Options : Options_Type) is null;
 	procedure Reset_State; 

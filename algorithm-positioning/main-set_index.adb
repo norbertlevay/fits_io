@@ -1,6 +1,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with FITS; use FITS;
 with Formulas;
 with Value;
 with Primary_Size_Info; use Primary_Size_Info;
@@ -11,6 +12,17 @@ procedure Set_Index
            (File   : SIO.File_Type;
             HDUNum : Positive)
 is
+type Card_Block is array(1..36) of Card_Type;
+
+
+type Read_Control is
+        (Continue,           -- continue calling Next() and supplying CardBlocks
+         StartFromBegining,  -- read again CardBlock from begining of Header
+         Stop);              -- do not provide more CardBlocks, usually after END-card found
+-- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
+
+
+
         --
         -- read by blocks
         --

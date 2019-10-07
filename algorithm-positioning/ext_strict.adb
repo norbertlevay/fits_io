@@ -1,15 +1,16 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
+with FITS; use FITS;
+-- Card_Type, NAXIS_Last, HDU_Size_Info_Type needed
+
 with Value;
-with Primary_Size_Info;
-use  Primary_Size_Info;
--- Card_Block, Read_Control, NAXIS_Last &
--- HDU_Size_Info_Type needed
+
 
 
 package body Ext_Strict is
 
-EmptyVal : constant String(1..20) := (others => ' ');	
+EmptyVal : constant String(1..20) := (others => ' ');
+
 type CardValue is
         record
                 Value : String(1..20);
@@ -17,82 +18,145 @@ type CardValue is
         end record;
 InitVal  : constant CardValue := (EmptyVal,False);
 
--- 1..6: "XTENSION", "BITPIX  ","NAXIS   ","NAXISn  ","PCOUNT  ","GCOUNT  ",
--- 7..9: "TFIELDS ","TFORMn  ","TBCOLn  "
-Vals : array (Positive range 1..9) of CardValue;
+--
+-- collected values
+--
+type NAXIS_Arr is array (1..NAXIS_Last) of CardValue;
+type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
+type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
+InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
+InitTFORMArrVal : constant TFORM_Arr := (others => InitVal);
+InitTBCOLArrVal : constant TBCOL_Arr := (others => InitVal);
 
-TFIELDS_Max : constant Positive := 100;
+type Extension_Mandatory_Card_Values is
+        record
+        XTENSION : CardValue;
+        BITPIX   : CardValue;
+        NAXIS    : CardValue;
+        NAXISn   : NAXIS_Arr;
+        PCOUNT   : CardValue;
+        GCOUNT   : CardValue;
+        TFIELDS  : CardValue;
+        TFORMn   : TFORM_Arr;
+        TBCOLn   : TBCOL_Arr;
+        ENDCardPos : Natural;
+        ENDCardSet : Boolean;
+        end record;
 
-NAXISn : array (Positive range 1.. NAXIS_Last) of CardValue;
-TFORMn : array (Positive range 1.. TFIELDS_Max) of CardValue;
-TBCOLn : array (Positive range 1.. TFIELDS_Max) of CardValue;
+InitMandVals : Extension_Mandatory_Card_Values := (InitVal,InitVal,InitVal,
+                                                 InitNAXISArrVal,
+                                                 InitVal,InitVal,InitVal,
+                                                 InitTFORMArrVal,
+                                                 InitTBCOLArrVal,
+                                                 0,False);
 
-NAXIS_Val : Natural := 0;
-TFIELDS_Val : Natural := 0;
+MandVals : Extension_Mandatory_Card_Values := InitMandVals;
 
-gCardsCount : Positive;
-gENDCardSet : Boolean := False;
 
-type State_Type is 
-	(INITIALIZED, SPECIAL_RECORDS, 
-	CONFORMING_EXTENSION,	COLLECT_NAXIS_ARRAY, 
+--
+-- state definition
+--
+type State_Name is 
+	(INITIALIZED, RANDOM_BLOCKS, 
+	CONFORMING_EXTENSION, COLLECT_NAXIS_ARRAY, 
 	COLLECT_TABLE_ARRAYS,
 	WAIT_END);
 
-type State_Rec is 
+type State_Type is 
 	record
-		State : State_Type;
-		XTENSION : String(1..20);
+		Name        : State_Name;
+		XTENSION    : HDU_Type;
+		NAXIS_Val   : Natural;
+		TFIELDS_Val : Natural;
 	end record;
+-- collects values used in state-change decisions
 
-StateRec : State_Rec := (State => INITIALIZED, XTENSION => EmptyVal);
+InitState : State_Type := (Name => INITIALIZED, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
+State : State_Type := InitState;
+
 ------------------------------------------------------------------
+-- utils
+--
 package TIO renames Ada.Text_IO;
 
 procedure DBG_Print
 is
 begin
-TIO.Put(Boolean'Image(Vals(1).Read) & " XTENSION ");
-TIO.Put_Line(Vals(1).Value);
-TIO.Put(Boolean'Image(Vals(2).Read) & " BITPIX ");
-TIO.Put_Line(Vals(2).Value);
-TIO.Put(Boolean'Image(Vals(3).Read) & " NAXIS ");
-TIO.Put_Line(Vals(3).Value);
+TIO.Put(Boolean'Image(MandVals.XTENSION.Read) & " XTENSION ");
+TIO.Put_Line(MandVals.XTENSION.Value);
+TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
+TIO.Put_Line(MandVals.BITPIX.Value);
+TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " NAXIS ");
+TIO.Put_Line(MandVals.NAXIS.Value);
 TIO.Put("NAXIS: ");
-for I in NAXISn'Range
+for I in MandVals.NAXISn'Range
 loop
 -- TIO.Put(Boolean'Image(NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
 -- TIO.Put_Line(NAXISn(I).Value);
- if(NAXISn(I).Read) then Put(Positive'Image(I) &":"& NAXISn(I).Value & " "); end if;
+ if(MandVals.NAXISn(I).Read) then Put(Positive'Image(I) &":"& MandVals.NAXISn(I).Value & " "); end if;
 end loop;
 New_Line;
-TIO.Put(Boolean'Image(Vals(5).Read) & " PCOUNT ");
-TIO.Put_Line(Vals(5).Value);
-TIO.Put(Boolean'Image(Vals(6).Read) & " GCOUNT ");
-TIO.Put_Line(Vals(6).Value);
-TIO.Put(Boolean'Image(Vals(7).Read) & " TFIELDS ");
-TIO.Put_Line(Vals(7).Value);
+TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " PCOUNT ");
+TIO.Put_Line(MandVals.PCOUNT.Value);
+TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " GCOUNT ");
+TIO.Put_Line(MandVals.GCOUNT.Value);
+TIO.Put(Boolean'Image(MandVals.TFIELDS.Read) & " TFIELDS ");
+TIO.Put_Line(MandVals.TFIELDS.Value);
 TIO.Put("TFORM: ");
-for I in TFORMn'Range
+for I in MandVals.TFORMn'Range
 loop
 -- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
 -- TIO.Put_Line(TFORMn(I).Value);
-	if(TFORMn(I).Read) then Put(Positive'Image(I) &":"& TFORMn(I).Value & " "); end if;
+	if(MandVals.TFORMn(I).Read) then Put(Positive'Image(I) &":"& MandVals.TFORMn(I).Value & " "); end if;
 end loop;
 New_Line;
 TIO.Put("TBCOL: ");
-for I in TBCOLn'Range
+for I in MandVals.TBCOLn'Range
 loop
 -- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
 -- TIO.Put_Line(TFORMn(I).Value);
-	if(TBCOLn(I).Read) then Put(Positive'Image(I) &":"& TBCOLn(I).Value & " "); end if;
+	if(MandVals.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& MandVals.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
 --TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
 --TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
-TIO.Put_Line(State_Type'Image(StateRec.State));
+TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
+
+
+-- type HDU_Type is
+  --      (PRIMARY_WITHOUT_DATA, PRIMARY_IMAGE, RANDOM_GROUPS,
+  --      EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, RANDOM_BLOCKS);
+        function To_HDU_Type(XTENSION_Value : in String) return HDU_Type
+        is
+		t : HDU_Type;
+        begin
+                if(XTENSION_Value    = "'IMAGE   '          ") then
+                                t := EXT_IMAGE;
+				
+                elsif(XTENSION_Value = "'TABLE   '          ") then
+                                t := EXT_ASCII_TABLE;
+
+                elsif(XTENSION_Value = "'BINTABLE'          ") then
+                                t := EXT_BIN_TABLE;
+		end if;
+		-- FIXME RAND_BLOCKS ?
+		
+		return t;
+
+        end To_HDU_Type;
+
+
+
+	function Extract_Index(Root : String; CardKey : String) return Positive
+	is
+		RootLen : Positive := Root'Length;
+	begin
+		return Positive'Value( CardKey(RootLen+1 .. 8) );
+	end Extract_Index;
+-- utils end
 -- -----------------------------------------------------------
+
 
 
 
@@ -100,13 +164,8 @@ end DBG_Print;
 	is
 	begin
 		TIO.New_Line;
-		StateRec.State  := INITIALIZED;
-		StateRec.XTENSION  := EmptyVal;
-
-		for I in Vals'Range loop
-			Vals(I).Value := EmptyVal;
-		end loop;
-
+		State    := InitState;
+		MandVals := InitMandVals; 	
 	end Reset_State;
 
 
@@ -125,11 +184,12 @@ end DBG_Print;
 
 		if( "XTENSION" = String(Card(1..8)) )
 		then
-			Vals(1).Value := String(Card(11..30));
-			Vals(1).Read  := True;
-			StateRec.State := CONFORMING_EXTENSION;
+			MandVals.XTENSION.Value := String(Card(11..30));
+			MandVals.XTENSION.Read  := True;
+			State.Name := CONFORMING_EXTENSION;
+			State.XTENSION := To_HDU_Type(MandVals.XTENSION.Value);
 		else
-			StateRec.State := SPECIAL_RECORDS;
+			State.Name := RANDOM_BLOCKS;
 		end if;
 
 		return Pos + 1;
@@ -141,44 +201,44 @@ end DBG_Print;
 
 
 
-
-
-
-
 	function In_CONFORMING_EXTENSION(Pos : Positive; Card : Card_Type) return Positive
 	is
 	begin
 		if    ( "BITPIX  " = String(Card(1..8)) AND (Pos = 2) )
 		then
-			Vals(2).Value := String(Card(11..30));
-			Vals(2).Read  := True;
+			MandVals.BITPIX.Value := String(Card(11..30));
+			MandVals.BITPIX.Read  := True;
 
 		elsif ( "NAXIS   " = String(Card(1..8)) AND (Pos = 3) )
 		then
-			Vals(3).Value := String(Card(11..30));
-			Vals(3).Read  := True;
+			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Read  := True;
 
-			NAXIS_Val      := Natural'Value(Vals(3).Value);
-			StateRec.State := COLLECT_NAXIS_ARRAY;
+			State.NAXIS_Val      := Natural'Value(MandVals.NAXIS.Value);
+			State.Name := COLLECT_NAXIS_ARRAY;
 	
-		elsif ( "PCOUNT  " = String(Card(1..8)) AND (Pos = 3 + NAXIS_Val + 1))
+		elsif ( "PCOUNT  " = String(Card(1..8)) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
-			Vals(5).Value := String(Card(11..30));
-			Vals(5).Read  := True;
+			MandVals.PCOUNT.Value := String(Card(11..30));
+			MandVals.PCOUNT.Read  := True;
 
-		elsif ( "GCOUNT  " = String(Card(1..8)) AND (Pos = 3 + NAXIS_Val + 2))
+		elsif ( "GCOUNT  " = String(Card(1..8)) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
-			Vals(6).Value := String(Card(11..30));
-			Vals(6).Read  := True;
+			MandVals.GCOUNT.Value := String(Card(11..30));
+			MandVals.GCOUNT.Read  := True;
 
-			if( (Vals(1).Value = "'TABLE   '          ") OR
-			    (Vals(1).Value = "'BINTABLE'          ") )
-			then
-				StateRec.State := COLLECT_TABLE_ARRAYS;
-			else
-				StateRec.State := WAIT_END;
-			end if;
-	
+			case(State.XTENSION) is
+				when EXT_ASCII_TABLE | EXT_BIN_TABLE =>
+					State.Name := COLLECT_TABLE_ARRAYS;
+
+				when EXT_IMAGE =>
+					State.Name := WAIT_END;
+					
+				when others =>
+					-- ERROR unknwon conforming extension
+					null;
+			end case;
+
 		else
 			-- ERROR unexpected card
 			null;
@@ -192,13 +252,6 @@ end DBG_Print;
 
 
 
-	function Extract_Index(Root : String; CardKey : String) return Positive
-	is
-		RootLen : Positive := Root'Length;
-	begin
-		return Positive'Value( CardKey(RootLen+1 .. 8) );
-	end Extract_Index;
-
 
 
 	function In_COLLECT_NAXIS_ARRAY(Pos : Positive; Card : Card_Type) return Positive
@@ -209,8 +262,8 @@ end DBG_Print;
 		if ( ("NAXIS" = Card(1..5)) AND 
 		     (Pos = 3 + Ix) )
 		then
-			NAXISn(Ix).Value := String(Card(11..30));
-			NAXISn(Ix).Read  := True;
+			MandVals.NAXISn(Ix).Value := String(Card(11..30));
+			MandVals.NAXISn(Ix).Read  := True;
 		else
 			-- ERROR unexpected card
 			null;
@@ -218,9 +271,9 @@ end DBG_Print;
 
 		-- if last array card read, change state
 		-- and read PCOUNT GCOUNT
-		if(Ix = NAXIS_Val) 
+		if(Ix = State.NAXIS_Val) 
 		then
-			StateRec.State := CONFORMING_EXTENSION;
+			State.Name := CONFORMING_EXTENSION;
 		end if;
 
 		return Pos + 1;
@@ -238,9 +291,9 @@ end DBG_Print;
 	begin
 		if ("TFIELDS " = String(Card(1..8)) )
                 then
-                	Vals(7).Value := String(Card(11..30));
-                        Vals(7).Read  := True;
-			TFIELDS_Val := Natural'Value(Vals(7).Value);
+	               	MandVals.TFIELDS.Value := String(Card(11..30));
+                        MandVals.TFIELDS.Read  := True;
+			State.TFIELDS_Val := Natural'Value(MandVals.TFIELDS.Value);
                 else
 			-- ERROR unexpected card
 			null;
@@ -250,21 +303,20 @@ end DBG_Print;
 		if ( ("TFORM" = Card(1..5)) )
 		then
 			Ix := Extract_Index("TFORM",String(Card(1..8)));
-			TFORMn(Ix).Value := String(Card(11..30));
-			TFORMn(Ix).Read := True;
+			MandVals.TFORMn(Ix).Value := String(Card(11..30));
+			MandVals.TFORMn(Ix).Read := True;
 		else
 			-- ERROR unexpected card
 			null;
 		end if;
 
-		-- if ASCII TABLE
-		if(Vals(1).Value = "'TABLE   '          ") 
+		if(State.XTENSION = EXT_ASCII_TABLE) 
 		then
 			if ( ("TBCOL" = Card(1..5)) )
 			then
 				Ix := Extract_Index("TBCOL",String(Card(1..8)));
-				TBCOLn(Ix).Value := String(Card(11..30));
-				TBCOLn(Ix).Read  := True;
+				MandVals.TBCOLn(Ix).Value := String(Card(11..30));
+				MandVals.TBCOLn(Ix).Read  := True;
 			else
 				-- ERROR unexpected card
 				null;
@@ -272,9 +324,9 @@ end DBG_Print;
 		end if;
 
 		-- if last array card read, change state
-		if(Ix = TFIELDS_Val) 
+		if(Ix = State.TFIELDS_Val) 
 		then
-			StateRec.State := WAIT_END;
+			State.Name := WAIT_END;
 		end if;
 
 		return Pos + 1;
@@ -287,8 +339,8 @@ end DBG_Print;
 	is
 	begin
 		if( ENDCard = Card ) then
-			gCardsCount := Pos;
-			gENDCardSet := True;
+			MandVals.ENDCardPos := Pos;
+			MandVals.ENDCardSet := True;
 			return 0; -- no more cards
 		else
 			return Pos + 1;
@@ -306,14 +358,14 @@ end DBG_Print;
 		Card : Card_Type) return Natural
 	is
 		NextCardPos : Natural;
-		InState : State_Type := StateRec.State;
+		InState : State_Name := State.Name;
 	begin
 
-		case(StateRec.State) is
+		case(State.Name) is
 			when INITIALIZED => 
 				NextCardPos := In_INITIALIZED(Pos, Card);
 
-			when SPECIAL_RECORDS =>
+			when RANDOM_BLOCKS =>
 				NextCardPos := 0; -- no more cards
 
 			when CONFORMING_EXTENSION =>
@@ -342,58 +394,31 @@ end DBG_Print;
    
 	-- Get interface
 	
--- type HDU_Type is
-  --      (PRIMARY_WITHOUT_DATA, PRIMARY_IMAGE, RANDOM_GROUPS,
-  --      EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, RANDOM_BLOCKS);
-
-
-        function To_HDU_Type(StateRec : in State_Rec) return HDU_Type
-        is
-		t : HDU_Type;
-        begin
-                if(StateRec.XTENSION = "'IMAGE   '") then
-                                t := EXT_IMAGE;
-				
-                elsif(StateRec.XTENSION = "'TABLE   '") then
-                                t := EXT_ASCII_TABLE;
-
-                elsif(StateRec.XTENSION = "'BINTABLE'") then
-                                t := EXT_BIN_TABLE;
-		end if;
-		-- FIXME RAND_BLOCKS ?
-		
-		return t;
-
-        end To_HDU_Type;
-
-
 
         function  Get return HDU_Size_Info_Type
         is
                 HDUSizeInfo : HDU_Size_Info_Type;
                 NAXIS : Positive;
         begin
---		DBG_Print;
-
-                HDUSizeInfo.HDUType    := To_HDU_Type(StateRec);
+                HDUSizeInfo.HDUType    := State.XTENSION;
                 -- will raise exception if state not PRIMARY* or RAND Groups
 
-                if(gENDCardSet) then
-                        HDUSizeInfo.CardsCount := gCardsCount;
+                if(MandVals.ENDCardSet) then
+                        HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
                 else
                         null;
                         -- ERROR raise exception No END card found
                 end if;
 
-                if(Vals(2).Read) then
-                        HDUSizeInfo.BITPIX := Integer'Value(Vals(2).Value);
+                if(MandVals.BITPIX.Read) then
+                        HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
                 else
                         null;
                         -- ERROR raise exception No BITPIX card found
                 end if;
 
-                if(Vals(3).Read) then
-                        NAXIS := Integer'Value(Vals(3).Value);
+                if(MandVals.NAXIS.Read) then
+                        NAXIS := Integer'Value(MandVals.NAXIS.Value);
                 else
                         null;
                         -- ERROR raise exception No NAXIS card found
@@ -401,8 +426,8 @@ end DBG_Print;
 
                 for I in 1 .. NAXIS
                 loop
-                        if(NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := Positive'Value(NAXISn(I).Value);
+                        if(MandVals.NAXISn(I).Read) then
+                                HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
                         else
                                 null;
                                 -- ERROR raise exception No NAXIS(I) card found
@@ -425,5 +450,6 @@ end DBG_Print;
 
 
 end Ext_Strict;
+
 
 

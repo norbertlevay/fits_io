@@ -1,7 +1,6 @@
 
 -- implementas FITSv3 Section 4.2 Fixed format variant
-with Primary_Size_Info; -- Card_Type needed
-use  Primary_Size_Info; -- Card_Type needed
+with FITS; use  FITS; -- Card_Type needed
 
 package Value is
 	

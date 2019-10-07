@@ -1,9 +1,8 @@
---
--- Collecting Mandatory keys needed to calculate Primary HDU size
---
+
+with FITS; use FITS;
+-- Card_Type HDU_Size_Info_Type needed
 
 package Primary_Size_Info is
-
 
 type Options_Type is 
 	(DONT_STORE_CARD_COMMENTS, 
@@ -14,32 +13,25 @@ type Options_Type is
 				-- * essential key is missing
 				-- * essential key is duplicate with different values (ambiguity) 
 
-type Read_Control is 
-	(Continue,           -- continue calling Next() and supplying CardBlocks
-	 StartFromBegining,  -- read again CardBlock from begining of Header
-	 Stop);              -- do not provide more CardBlocks, usually after END-card found
--- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
-
-type Card_Type is new String(1..80);
-type Card_Block is array(1..36) of Card_Type;
-ENDCard  : constant Card_Type := "END                                                                             ";
-
-NAXIS_Last : Positive := 9;
-type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
-
--- Lexar: 
--- from Heaeder cards select only those which 
--- are needed for HDU_Size_Info_Type e.g. size calculations:
--- such data structure is defined by standard and so can be
--- statically encoded beforehand
 
 	procedure Configuration(Options : Options_Type) is null;
 	procedure Reset_State;
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
+	function  Get return HDU_Size_Info_Type;
 
 
--- Grammar: 
+end Primary_Size_Info;
+
+-- NOTE
+--
+-- Lexar (Configuration/Reset_State/Next): 
+-- from Heaeder cards select only those which 
+-- are needed for HDU_Size_Info_Type e.g. size calculations:
+-- such data structure is defined by standard and so can be
+-- statically encoded beforehand
+--
+-- Grammar (Get HDU_Size_Info_Type): 
 	-- analogue to JSON or XML+DTD
 	-- In FITS header variables have implicit types: 
 	-- a variable name (Card.Key) implies type as defined in standard
@@ -49,24 +41,5 @@ type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 	-- * card-sets, -> like structs/records
 	-- * alternative sets -> like ??
 
-type HDU_Type is 
-	(PRIMARY_WITHOUT_DATA, PRIMARY_IMAGE, RANDOM_GROUPS, 
-	EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, RANDOM_BLOCKS);
-
---type Data_Type is 
---	(INT8, INT16, INT32, INT64, FLOAT32, FLOAT64);
-
-type HDU_Size_Info_Type is 
-	record
-		HDUType    : HDU_Type;   -- HDU info
-		CardsCount : Positive;   -- HDU info
-		BITPIX     : Integer; --Data_Type;  -- HDU info
-		NAXISArr   : NAXIS_Arr;  -- HDU info
-	end record;
-
-	function  Get return HDU_Size_Info_Type;
-
-
-end Primary_Size_Info;
 
 

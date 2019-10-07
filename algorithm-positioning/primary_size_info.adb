@@ -8,7 +8,6 @@ with Value;
 
 package body Primary_Size_Info is
 
-
 EmptyVal : constant String(1..20) := (others => ' ');
 
 type CardValue is
@@ -54,9 +53,6 @@ type State_Type is (
 	);
 
 State : State_Type := UNSPECIFIED;
-
-
-
 ------------------------------------------------------------------
 package TIO renames Ada.Text_IO;
 

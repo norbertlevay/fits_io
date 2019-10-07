@@ -1,6 +1,5 @@
 
-with Primary_Size_Info;
-use Primary_Size_Info;
+with FITS; use FITS;
 
 package Formulas is
 
