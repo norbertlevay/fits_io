@@ -1,6 +1,11 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Value;
+with Primary_Size_Info;
+use  Primary_Size_Info;
+-- Card_Block, Read_Control, NAXIS_Last &
+-- HDU_Size_Info_Type needed
+
 
 package body Ext_Strict is
 
@@ -99,6 +104,10 @@ end DBG_Print;
 		StateRec.State  := INITIALIZED;
 		StateRec.XTENSION  := EmptyVal;
 		--StateRec.Offset := 0;
+		for I in RefKeys'Range loop
+			Vals(I).Value := EmptyVal;
+		end loop;
+
 	end Reset_State;
 
 
@@ -139,8 +148,8 @@ end DBG_Print;
 	function In_CONFORMING_EXTENSION(RefPos : Positive; Card : Card_Type) return Positive
 	is
 		Pos : Positive := RefPos;
+		Match : Boolean := False;
 	begin
-		Put_Line("In_CONFORMING_EXTENSION " & Positive'Image(RefPos) & " " & String(Card));
 		-- cards BITPIX ... GCOUNT
 
 		--case(RefPos) is -- FIXME needed ? these funcs are setting Pos
@@ -154,6 +163,7 @@ end DBG_Print;
 					Pos := Pos - NAXIS_Val + 1;
 				end if;
 
+		Put_Line("In_CONFORMING_EXTENSION " & Positive'Image(RefPos) &"/"& Positive'Image(Pos) & " " & String(Card));
 				if ( RefKeys(Pos) = String(Card(1..8)) )
 				then
 					Vals(Pos).Value := String(Card(11..30));
@@ -180,7 +190,12 @@ end DBG_Print;
 							-- ERROR non standard Conforming Extension
 						--	null;
 				       -- end case;
-					if(Vals(1).Value = "'IMAGE   '") then
+
+					Match := (Vals(1).Value = "'TABLE   '          ");
+					Put_Line("In_CONFORMING_EXTENSION " &  Boolean'Image(Match)
+					& ": " & Vals(1).Value &"<->"&  "'IMAGE   '");
+
+					if(Vals(1).Value = "'TABLE   '          ") then
 						StateRec.State := WAIT_END;
 					else
 						StateRec.State := COLLECT_TFORM_ARRAY;

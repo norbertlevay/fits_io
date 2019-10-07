@@ -253,7 +253,7 @@ end DBG_Print;
 		        MandVals.ENDCardSet := True;
 			Rc := Stop;
 			
-			DBG_Print;
+			--DBG_Print;
 			
 --			State := UNSPECIFIED;
 		end if;
