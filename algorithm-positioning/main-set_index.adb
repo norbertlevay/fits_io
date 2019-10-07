@@ -67,20 +67,10 @@ begin
 
 	SIO.Set_Index(File,ExtHeaderStart);
 
-	-- DEBUG START
-	TIO.Put_Line("HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
+	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
 	
---	Card_Block'Read(SIO.Stream(File), Blk);
---	for I in Blk'Range
---	loop
---		TIO.Put_Line(String(Blk(I)));
---	end loop;
-	-- DEBUG END 
-	-- FIXME REMOVE DEBUG before implementing Extension
 
-
--- Read Extension HDU"s if exist, 
-	-- how to handle Unspecified Ext if exist at fits-file end ?
+-- Read Extension HDU's if exist, 
 
 CurHDUNum := CurHDUNum + 1;
 
@@ -92,11 +82,7 @@ loop
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
 
-		--Put_Line("DBG> " & SIO.Positive_Count'Image(SIO.Index(File) - ExtHeaderStart));
---		Put_Line("DBG> " & SIO.Positive_Count'Image(BlockSize_SIOunits));
-
 		BlkNum := Positive((SIO.Index(File) - ExtHeaderStart)/ BlockSize_SIOunits);
-		--Put_Line("DBG> " & Positive'Image(BlkNum));
 		
 		Rc := Ext_Strict.Next(BlkNum, Blk);
 
@@ -111,18 +97,20 @@ loop
 
 	end loop;
 
-	HDUSizeInfo := Ext_Strict.Get;
+	HDUSizeInfo    := Ext_Strict.Get;
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
-	Put_Line("New ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
+	Put_Line("DBG> New ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
 
 	SIO.Set_Index(File, ExtHeaderStart);
 
 CurHDUNum := CurHDUNum + 1;
 
 end loop;
+
+-- FIXME add handle Random Blocks if exist at fits-file end 
 
 end Set_Index;
 

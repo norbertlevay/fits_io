@@ -24,7 +24,7 @@ type Card_Type is new String(1..80);
 type Card_Block is array(1..36) of Card_Type;
 ENDCard  : constant Card_Type := "END                                                                             ";
 
-NAXIS_Last : Positive := 50;
+NAXIS_Last : Positive := 9;
 type NAXIS_Arr is array(1..NAXIS_Last) of Positive;
 
 -- Lexar: 
