@@ -92,11 +92,11 @@ loop
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
 
-		Put_Line("DBG> " & SIO.Positive_Count'Image(SIO.Index(File) - ExtHeaderStart));
+		--Put_Line("DBG> " & SIO.Positive_Count'Image(SIO.Index(File) - ExtHeaderStart));
 --		Put_Line("DBG> " & SIO.Positive_Count'Image(BlockSize_SIOunits));
 
 		BlkNum := Positive((SIO.Index(File) - ExtHeaderStart)/ BlockSize_SIOunits);
-		Put_Line("DBG> " & Positive'Image(BlkNum));
+		--Put_Line("DBG> " & Positive'Image(BlkNum));
 		
 		Rc := Ext_Strict.Next(BlkNum, Blk);
 

@@ -101,6 +101,7 @@ end DBG_Print;
 	procedure Reset_State 
 	is
 	begin
+		TIO.New_Line;
 		StateRec.State  := INITIALIZED;
 		StateRec.XTENSION  := EmptyVal;
 		--StateRec.Offset := 0;
@@ -117,7 +118,7 @@ end DBG_Print;
 	is
 	begin
 
-		Put_Line("In_INITIALIZED " & Positive'Image(RefPos));
+		--Put_Line("In_INITIALIZED " & Positive'Image(RefPos));
 
 		-- [FITS 3.5] The first 8 bytes of the special records 
 		-- must not contain the string “XTENSION”.
@@ -163,7 +164,7 @@ end DBG_Print;
 					Pos := Pos - NAXIS_Val + 1;
 				end if;
 
-		Put_Line("In_CONFORMING_EXTENSION " & Positive'Image(RefPos) &"/"& Positive'Image(Pos) & " " & String(Card));
+		--Put_Line("In_CONFORMING_EXTENSION " & Positive'Image(RefPos) &"/"& Positive'Image(Pos) & " " & String(Card));
 				if ( RefKeys(Pos) = String(Card(1..8)) )
 				then
 					Vals(Pos).Value := String(Card(11..30));
@@ -192,13 +193,13 @@ end DBG_Print;
 				       -- end case;
 
 					Match := (Vals(1).Value = "'TABLE   '          ");
-					Put_Line("In_CONFORMING_EXTENSION " &  Boolean'Image(Match)
-					& ": " & Vals(1).Value &"<->"&  "'IMAGE   '");
+--					Put_Line("In_CONFORMING_EXTENSION " &  Boolean'Image(Match)
+--					& ": " & Vals(1).Value &"<->"&  "'IMAGE   '");
 
 					if(Vals(1).Value = "'TABLE   '          ") then
-						StateRec.State := WAIT_END;
-					else
 						StateRec.State := COLLECT_TFORM_ARRAY;
+					else
+						StateRec.State := WAIT_END;
 					end if;
 
 									
@@ -232,7 +233,7 @@ end DBG_Print;
 		LenCardPos : constant Positive := 3;-- NAXIS card pos
 		ArrLen     : constant Positive := NAXIS_Val;--Positive'Value(Vals(LenCardPos).Value);-- NAXISn arr length
 	begin
-		Put_Line("In_COLLECT_NAXIS_ARRAY " & Positive'Image(RefPos));
+		--Put_Line("In_COLLECT_NAXIS_ARRAY " & Positive'Image(RefPos));
 		-- check root-name and position
 		if ( ("NAXIS" = Card(1..5)) AND 
 		     (RefPos = 3 + Ix) )
@@ -293,7 +294,7 @@ end DBG_Print;
 		end if;
 
 		-- if last array card read, change state
-		Put_Line("DBG> " & Natural'Image(Ix) &" vs "& Natural'Image(ArrLen));
+--	Put_Line("In_COLLECT_TFORM_ARRAY " & Natural'Image(Ix) &" vs "& Natural'Image(ArrLen));
 		if(Ix = ArrLen) 
 		then
 		--	case(StateRec.ExtType) is
@@ -303,14 +304,14 @@ end DBG_Print;
 		--			StateRec.State := COLLECT_TBCOL_ARRAY;
 		--	end case;
 
-			Put_Line("DBG> " & Vals(1).Value );
-			if(Vals(1).Value = "'TABLE   '") then
+--			Put_Line("DBG> " & Vals(1).Value );
+			if(Vals(1).Value = "'TABLE   '          ") then
 				StateRec.State := WAIT_END;
 			else
 				StateRec.State := COLLECT_TBCOL_ARRAY;
 			end if;
 			
-			Put_Line("DBG> " & State_Type'Image(StateRec.State));
+--			Put_Line("In_COLLECT_TFORM_ARRAY " & State_Type'Image(StateRec.State));
 		end if;
 
 		return RefPos + 1;-- FIXME not used
@@ -383,7 +384,10 @@ end DBG_Print;
 	begin
 		RefPos := Pos; -- offset not used:  - StateRec.Offset;
 
-	DBG_Print;
+--	DBG_Print;
+		
+	--	Put("Next card " & State_Type'Image(StateRec.State) &" -> "  );
+
 
 		case(StateRec.State) is
 			when INITIALIZED => 
@@ -408,6 +412,7 @@ end DBG_Print;
 				rc := In_WAIT_END(RefPos, Card);
 		end case;
 		
+	--	Put_Line( State_Type'Image(StateRec.State)  );
 		-- ask for next card
 		return rc;
 
@@ -440,7 +445,7 @@ end DBG_Print;
 
                                 CardPos := CardPosBase + I;
 				
-				Put_Line("Next " & Positive'Image(BlockNum) & " " & Positive'Image(CardPosBase) & " " & Positive'Image(I) );
+				--Put_Line("Next " & Positive'Image(BlockNum) & " " & Positive'Image(CardPosBase) & " " & Positive'Image(I) );
                                
 			       	rr := Next(CardPos, Card);
 				

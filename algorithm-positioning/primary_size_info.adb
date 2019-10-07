@@ -73,9 +73,13 @@ TIO.Put(Boolean'Image(MandVals.NAXIS1.Read) & " NAXIS1 ");
 TIO.Put_Line(MandVals.NAXIS1.Value);
 for I in MandVals.NAXISn'Range
 loop
- TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
- TIO.Put_Line(MandVals.NAXISn(I).Value);
+-- TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
+-- TIO.Put_Line(MandVals.NAXISn(I).Value);
+	if(MandVals.NAXISn(I).Read) then
+		TIO.Put(Integer'Image(I) &":"& MandVals.NAXISn(I).Value);
+	end if;
 end loop;
+TIO.New_Line;
 TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " PCOUNT ");
 TIO.Put_Line(MandVals.PCOUNT.Value);
 TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " GCOUNT ");
@@ -98,6 +102,7 @@ end DBG_Print;
 	procedure Reset_State 
 	is
 	begin
+		TIO.New_Line;
 		MandVals := InitMandVals;
 		State := INITIALIZED;
 	end Reset_State;
@@ -310,6 +315,7 @@ end DBG_Print;
 
 				case (Rc) is
 					when Stop => 
+						DBG_Print;
 						exit;
 					when StartFromBegining =>
 						exit;
