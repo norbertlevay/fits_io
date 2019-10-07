@@ -24,6 +24,7 @@ is
 
  InFileName : SU.Unbounded_String; 
  InFile     : SIO.File_Type;
+ CurHDU : Positive := 3;
 
 begin
  
@@ -39,7 +40,8 @@ begin
 
   SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
-  main.Set_Index(InFile,3);
+  Ada.Text_IO.Put_Line("Set curHDU: "& Positive'Image(CurHDU));
+  main.Set_Index(InFile,CurHDU);
 
   SIO.Close(InFile);
 

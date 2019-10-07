@@ -116,6 +116,8 @@ loop
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
+	Put_Line("New ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
+
 	SIO.Set_Index(File, ExtHeaderStart);
 
 CurHDUNum := CurHDUNum + 1;
