@@ -41,6 +41,7 @@ type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
 
 type Extension_Mandatory_Card_Values is
         record
+	RANDBLOCKS : Boolean;
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;

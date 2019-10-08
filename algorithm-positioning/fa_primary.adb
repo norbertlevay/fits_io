@@ -24,11 +24,9 @@ InitMandVals : Primary_Mandatory_Card_Values := (UNSPECIFIED,False,
 MandVals : Primary_Mandatory_Card_Values;
 
 type State_Name is (
-	UNSPECIFIED,   -- code default
-	INITIALIZED,   -- Reset_State was called, FA ready to accept cards
-	PRIMARY_NON_STANDARD, -- SIMPLE = F card found: can calculate Header size biut not DU size
+	NOT_ACCEPTING_CARDS, -- FA inactive
+	INITIALIZED,      -- Reset_State was called, FA ready to accept cards
 	PRIMARY_STANDARD, -- SIMPLE = T card found
-	PRIMARY_NO_DATA,  -- NAXIS = 0
 	PRIMARY_IMAGE,    -- NAXIS1 > 0
 	RANDOM_GROUPS,    -- NAXIS1 = 0
 	WAIT_END	  -- all mand cards read except END-card
@@ -42,7 +40,7 @@ type State_Type is
 -- collects values used in state-change 
 -- decisions in different states
 
-InitState : State_Type := (Name => UNSPECIFIED, NAXIS_Val => 0);
+InitState : State_Type := (Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0);
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
@@ -122,7 +120,10 @@ end DBG_Print;
 			then 
 				State.Name := PRIMARY_STANDARD;
 			else
-				State.Name := PRIMARY_NON_STANDARD;
+				State.Name := NOT_ACCEPTING_CARDS;
+				MandVals.HDUTypeVal := PRIMARY_NON_STANDARD;
+				MandVals.HDUTypeSet := True;
+				-- FIXME check this behaviour against Standard
 			end if;
 
 		else
@@ -156,9 +157,11 @@ end DBG_Print;
 			MandVals.NAXIS.Read := True;
 	
 			if (State.NAXIS_Val = 0) then
-				State.Name := PRIMARY_NO_DATA;
+				State.Name := WAIT_END;
 				MandVals.HDUTypeVal := PRIMARY_WITHOUT_DATA;
 				MandVals.HDUTypeSet := True;
+				-- FIXME check this behaviour against Standard
+				-- there is some talk that NAXISn() may also be zero
 			end if;
 
 		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
@@ -275,6 +278,7 @@ end DBG_Print;
                 if( ENDCard = Card ) then
                         MandVals.ENDCardPos := Pos;
                         MandVals.ENDCardSet := True;
+			State.Name := NOT_ACCEPTING_CARDS;
                         return 0; -- no more cards
                 else
                         return Pos + 1;
@@ -299,20 +303,16 @@ end DBG_Print;
 		case(State.Name) is
 			when INITIALIZED =>
 			       NextCardPos := In_INITIALIZED  (Pos, Card);
-			when PRIMARY_NON_STANDARD =>
-				NextCardPos := 0;-- no more cards
 			when PRIMARY_STANDARD => 
 			       NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
-			when PRIMARY_NO_DATA =>
-				NextCardPos := 0;-- no more cards
 			when PRIMARY_IMAGE => 
 			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
 			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);
 			when WAIT_END =>
 			       NextCardPos := In_WAIT_END(Pos, Card);
-			when UNSPECIFIED =>
-			       raise Programming_Error;	
+			when NOT_ACCEPTING_CARDS =>
+			       NextCardPos := 0;
 		end case;
 
 		 if(NextCardPos = 0) then DBG_Print; end if;

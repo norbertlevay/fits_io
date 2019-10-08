@@ -20,12 +20,13 @@ InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitTFORMArrVal : constant TFORM_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TBCOL_Arr := (others => InitVal);
 
-InitMandVals : Extension_Mandatory_Card_Values := (InitVal,InitVal,InitVal,
-                                                 InitNAXISArrVal,
-                                                 InitVal,InitVal,InitVal,
-                                                 InitTFORMArrVal,
-                                                 InitTBCOLArrVal,
-                                                 0,False);
+InitMandVals : Extension_Mandatory_Card_Values := (False,
+						InitVal,InitVal,InitVal,
+                                                InitNAXISArrVal,
+                                                InitVal,InitVal,InitVal,
+                                                InitTFORMArrVal,
+                                                InitTBCOLArrVal,
+                                                0,False);
 
 MandVals : Extension_Mandatory_Card_Values := InitMandVals;
 
@@ -34,9 +35,8 @@ MandVals : Extension_Mandatory_Card_Values := InitMandVals;
 -- state definition
 --
 type State_Name is 
-	(UNSPECIFIED,   -- code default
+	(NOT_ACCEPTING_CARDS,   -- FA inactive
 	 INITIALIZED,   -- Reset_State was callled, FA ready to accept cards
-	 RANDOM_BLOCKS, -- first 8 chars in block were not XTENSION
 	 CONFORMING_EXTENSION, -- collect scalar card values
 	 COLLECT_NAXIS_ARRAY,  -- collect NAXIS array values
 	 COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
@@ -56,7 +56,7 @@ type State_Type is
 -- decisions in different states
 
 InitState : State_Type := 
-	(Name => UNSPECIFIED, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
+	(Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
 
 State : State_Type := InitState;
 
@@ -69,6 +69,7 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
+TIO.Put("RANDBLOCKS found: "& Boolean'Image(MandVals.RANDBLOCKS));
 TIO.Put(Boolean'Image(MandVals.XTENSION.Read) & " XTENSION ");
 TIO.Put_Line(MandVals.XTENSION.Value);
 TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
@@ -167,7 +168,9 @@ end To_XT_Type;
 			State.Name := CONFORMING_EXTENSION;
 			State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
 		else
-			State.Name := RANDOM_BLOCKS;
+			State.Name := NOT_ACCEPTING_CARDS;
+			MandVals.RANDBLOCKS := True;
+			-- FIXME check this behaviour with Standard
 		end if;
 
 		return Pos + 1;
@@ -308,6 +311,7 @@ end To_XT_Type;
 		if( ENDCard = Card ) then
 			MandVals.ENDCardPos := Pos;
 			MandVals.ENDCardSet := True;
+			State.Name := NOT_ACCEPTING_CARDS;
 			return 0; -- no more cards
 		else
 			return Pos + 1;
@@ -331,8 +335,6 @@ end To_XT_Type;
 		case(State.Name) is
 			when INITIALIZED => 
 				NextCardPos := In_INITIALIZED(Pos, Card);
-			when RANDOM_BLOCKS =>
-				NextCardPos := 0; -- no more cards
 			when CONFORMING_EXTENSION =>
 				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
 			when COLLECT_NAXIS_ARRAY =>
@@ -341,8 +343,8 @@ end To_XT_Type;
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 			when WAIT_END =>
 				NextCardPos := In_WAIT_END(Pos, Card);
-			when UNSPECIFIED =>
-                               raise Programming_Error;
+			when NOT_ACCEPTING_CARDS =>
+				NextCardPos := 0;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
