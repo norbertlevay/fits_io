@@ -185,7 +185,7 @@ end To_XT_Type;
 			MandVals.NAXIS.Value := Card(11..30);
 			MandVals.NAXIS.Read  := True;
 
-			State.NAXIS_Val      := Natural'Value(MandVals.NAXIS.Value);
+			State.NAXIS_Val      := To_Integer(MandVals.NAXIS.Value);
 			State.Name := COLLECT_NAXIS_ARRAY;
 	
 		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
@@ -259,7 +259,7 @@ end To_XT_Type;
                 then
 	               	MandVals.TFIELDS.Value := Card(11..30);
                         MandVals.TFIELDS.Read  := True;
-			State.TFIELDS_Val := Natural'Value(MandVals.TFIELDS.Value);
+			State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
 		end if;
 
 		if ( ("TFORM" = Card(1..5)) )

@@ -22,6 +22,7 @@
 
 
 with FITS; use FITS;
+with Keyword_Record; use Keyword_Record;
 
 with FA_Primary;   use FA_Primary;
 with FA_Extension; use FA_Extension;
@@ -38,38 +39,33 @@ is
                         HDUSizeInfo.HDUType := MandVals.HDUTypeVal;
                 else
                         null;
-                        -- ERROR raise exception No END card found
+                        -- ERROR raise exception type undetermined
                 end if;
-                --HDUSizeInfo.HDUType := To_HDU_Type(State);
 
                 if(MandVals.ENDCardSet) then
                         HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
                 else
-                        null;
-                        -- ERROR raise exception No END card found
+			raise Card_Not_Found;
                 end if;
 
                 if(MandVals.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
+                        HDUSizeInfo.BITPIX := To_Integer(MandVals.BITPIX.Value);
                 else
-                        null;
-                        -- ERROR raise exception No BITPIX card found
+			raise Card_Not_Found;
                 end if;
 
                 if(MandVals.NAXIS.Read) then
-                        NAXIS := Integer'Value(MandVals.NAXIS.Value);
+                        NAXIS := To_Integer(MandVals.NAXIS.Value);
                 else
-                        null;
-                        -- ERROR raise exception No NAXIS card found
+			raise Card_Not_Found;
                 end if;
 
                 for I in 1 .. NAXIS
                 loop
                         if(MandVals.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
+                                HDUSizeInfo.NAXISArr(I) := To_Integer(MandVals.NAXISn(I).Value);
                         else
-                                null;
-                                -- ERROR raise exception No NAXIS(I) card found
+				raise Card_Not_Found;
                         end if;
 
                 end loop;
@@ -120,39 +116,33 @@ is
                 if(MandVals.XTENSION.Read) then
                         HDUSizeInfo.HDUType := To_HDU_Type(MandVals.XTENSION.Value);
                 else
-                        null;
-                        -- ERROR raise exception: XTENSION card not found 
+			raise Card_Not_Found;
                 end if;
-                --HDUSizeInfo.HDUType    := State.XTENSION;
 
                 if(MandVals.ENDCardSet) then
                         HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
                 else
-                        null;
-                        -- ERROR raise exception: END card found
+			raise Card_Not_Found;
                 end if;
 
                 if(MandVals.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
+                        HDUSizeInfo.BITPIX := To_Integer(MandVals.BITPIX.Value);
                 else
-                        null;
-                        -- ERROR raise exception No BITPIX card found
+			raise Card_Not_Found;
                 end if;
 
                 if(MandVals.NAXIS.Read) then
-                        NAXIS := Integer'Value(MandVals.NAXIS.Value);
+                        NAXIS := To_Integer(MandVals.NAXIS.Value);
                 else
-                        null;
-                        -- ERROR raise exception No NAXIS card found
+			raise Card_Not_Found;
                 end if;
 
                 for I in 1 .. NAXIS
                 loop
                         if(MandVals.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
+                                HDUSizeInfo.NAXISArr(I) := To_Integer(MandVals.NAXISn(I).Value);
                         else
-                                null;
-                                -- ERROR raise exception No NAXIS(I) card found
+				raise Card_Not_Found;
                         end if;
 
                 end loop;

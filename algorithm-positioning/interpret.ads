@@ -13,4 +13,6 @@ is
 
         function  Get(MandVals : in Extension_Mandatory_Card_Values) return HDU_Size_Info_Type;
 
+	Card_Not_Found : exception;
+
 end Interpret;
