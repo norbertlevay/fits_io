@@ -144,12 +144,12 @@ end Is_Array;
 
 
 
-  function Extract_Index(Root : String; CardKey : String) return Positive
-        is
-                RootLen : Positive := Root'Length;
-        begin
-                return Positive'Value( CardKey(RootLen+1 .. 8) );
-        end Extract_Index;
+function Extract_Index(Root : String; CardKey : String) return Positive
+is
+	RootLen : Positive := Root'Length;
+begin
+	return Positive'Value( CardKey( (CardKey'First+RootLen) .. (CardKey'First+7) ) );
+end Extract_Index;
 
 
 
