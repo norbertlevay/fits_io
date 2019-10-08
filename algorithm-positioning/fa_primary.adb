@@ -23,8 +23,8 @@ MandVals : Primary_Mandatory_Card_Values;
 
 
 type State_Type is (
-	UNSPECIFIED,   -- ?? Ada-code default
-	INITIALIZED,   -- Reset_State was called
+	UNSPECIFIED,   -- code default
+	INITIALIZED,   -- Reset_State was called, FA ready to accept cards
 	PRIMARY_NON_STANDARD, -- SIMPLE = F card found: can calculate Header size biut not DU size
 	PRIMARY_STANDARD, -- SIMPLE = T card found
 	PRIMARY_NO_DATA,  -- NAXIS = 0

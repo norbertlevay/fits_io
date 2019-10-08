@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with FITS; use FITS;
--- Card_Type, NAXIS_Max, HDU_Size_Info_Type needed
+-- Card_Type needed
 
 with Keyword_Record; use Keyword_Record;
 
@@ -33,10 +33,13 @@ MandVals : Extension_Mandatory_Card_Values := InitMandVals;
 -- state definition
 --
 type State_Name is 
-	(INITIALIZED, RANDOM_BLOCKS, 
-	CONFORMING_EXTENSION, COLLECT_NAXIS_ARRAY, 
-	COLLECT_TABLE_ARRAYS,
-	WAIT_END);
+	(UNSPECIFIED,   -- code default
+	 INITIALIZED,   -- Reset_State was callled, FA ready to accept cards
+	 RANDOM_BLOCKS, -- first 8 chars in block were not XTENSION
+	 CONFORMING_EXTENSION, -- collect scalar card values
+	 COLLECT_NAXIS_ARRAY,  -- collect NAXIS array values
+	 COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
+	 WAIT_END);     -- read cards until END card encoutered
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -51,7 +54,7 @@ type State_Type is
 -- collects values used in state-change decisions
 
 InitState : State_Type := 
-	(Name => INITIALIZED, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
+	(Name => UNSPECIFIED, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
 
 State : State_Type := InitState;
 
@@ -135,8 +138,9 @@ end To_XT_Type;
 	function Reset_State return Positive
 	is
 	begin
-		State    := InitState;
 		MandVals := InitMandVals; 
+		State    := InitState;
+		State.Name := INITIALIZED;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
 
@@ -206,7 +210,7 @@ end To_XT_Type;
 					State.Name := WAIT_END;
 					
 				when UNSPECIFIED =>
-					raise Unexpected_Card_Value;
+					raise Programming_Error;
 			end case;
 
 		else
@@ -319,21 +323,18 @@ end To_XT_Type;
 		case(State.Name) is
 			when INITIALIZED => 
 				NextCardPos := In_INITIALIZED(Pos, Card);
-
 			when RANDOM_BLOCKS =>
 				NextCardPos := 0; -- no more cards
-
 			when CONFORMING_EXTENSION =>
 				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
-
 			when COLLECT_NAXIS_ARRAY =>
 				NextCardPos := In_COLLECT_NAXIS_ARRAY(Pos, Card);
-
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
-
 			when WAIT_END =>
 				NextCardPos := In_WAIT_END(Pos, Card);
+			when UNSPECIFIED =>
+                               raise Programming_Error;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;

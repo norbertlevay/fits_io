@@ -1,5 +1,5 @@
 
-with FITS;  use  FITS; -- Card_Type needed
+with FITS;  use  FITS; -- Card_Type *_Max needed
 
 
 package FA_Extension is
@@ -22,6 +22,7 @@ type Options_Type is
 
 	Unexpected_Card       : exception;
 	Unexpected_Card_Value : exception;
+	Programming_Error     : exception;
 
 	--
 	-- collect results
