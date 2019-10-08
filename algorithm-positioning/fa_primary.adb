@@ -177,7 +177,7 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx)) then
 			MandVals.NAXISn(Idx).Value := Card(11..30);
 			MandVals.NAXISn(Idx).Read  := True;
 
@@ -197,7 +197,7 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx)) then
 			MandVals.NAXISn(Idx).Value := Card(11..30);
 			MandVals.NAXISn(Idx).Read  := True;
 

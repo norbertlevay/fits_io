@@ -65,7 +65,7 @@ is
                 end loop;
 
                 -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                for I in NAXIS+1 .. NAXIS_Last
+                for I in NAXIS+1 .. NAXIS_Max
                 loop
                         HDUSizeInfo.NAXISArr(I) := 1;
                 end loop;
@@ -148,7 +148,7 @@ is
                 end loop;
 
                 -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                for I in NAXIS+1 .. NAXIS_Last
+                for I in NAXIS+1 .. NAXIS_Max
                 loop
                         HDUSizeInfo.NAXISArr(I) := 1;
                 end loop;

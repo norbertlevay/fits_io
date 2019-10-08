@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with FITS; use FITS;
--- Card_Type, NAXIS_Last, HDU_Size_Info_Type needed
+-- Card_Type, NAXIS_Max, HDU_Size_Info_Type needed
 
 with Keyword_Record; use Keyword_Record;
 

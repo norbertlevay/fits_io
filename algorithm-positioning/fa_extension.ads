@@ -31,7 +31,7 @@ type CardValue is
                 Read  : Boolean;
         end record;
 
-type NAXIS_Arr is array (1..NAXIS_Last) of CardValue;
+type NAXIS_Arr is array (1..NAXIS_Max)   of CardValue;
 type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
 type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
 
