@@ -2,7 +2,7 @@
 with FITS; use FITS; -- Card_Type needed
 
 
-package Primary_Size_Info is
+package FA_Primary is
 
 type Options_Type is 
 	(DONT_STORE_CARD_COMMENTS, 
@@ -13,7 +13,7 @@ type Options_Type is
 				-- * essential key is missing
 				-- * essential key is duplicate with different values (ambiguity) 
 	--
-	-- state machine
+	-- finite automata
 	--
 
 	procedure Configuration(Options : Options_Type) is null;
@@ -51,7 +51,7 @@ type Primary_Mandatory_Card_Values is
 
 	function  Get return Primary_Mandatory_Card_Values;
 
-end Primary_Size_Info;
+end FA_Primary;
 
 -- NOTE
 --

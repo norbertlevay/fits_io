@@ -4,8 +4,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with FITS; use FITS;
 with Formulas;
 with Keyword_Record;    use Keyword_Record;
-with Primary_Size_Info; use Primary_Size_Info;
-with Ext_Strict;
+with FA_Primary;
+with FA_Extension;
 with Interpret;
 
 separate(main)
@@ -49,9 +49,9 @@ type Read_Control is
 
 				if(HDUNum = 1)
 				then
-					NextCardPos := Next(CardPos, Card);
+					NextCardPos := FA_Primary.Next(CardPos, Card);
 				else
-					NextCardPos := Ext_Strict.Next(CardPos, Card);
+					NextCardPos := FA_Extension.Next(CardPos, Card);
 				end if;
 				-- FIXME use generic instead HDUNum
 
@@ -96,7 +96,7 @@ begin
 
 -- Read Primary HDU
 	
-	Reset_State;
+	FA_Primary.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
@@ -119,7 +119,7 @@ begin
 
 	end loop;
 
-	HDUSizeInfo := Interpret.Get(Get);
+	HDUSizeInfo := Interpret.Get(FA_Primary.Get);
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
@@ -136,7 +136,7 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
-	Ext_Strict.Reset_State;
+	FA_Extension.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
@@ -156,7 +156,7 @@ loop
 
 	end loop;
 
-	HDUSizeInfo    := Interpret.Get(Ext_Strict.Get);
+	HDUSizeInfo    := Interpret.Get(FA_Extension.Get);
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;

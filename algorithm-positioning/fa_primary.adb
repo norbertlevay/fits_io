@@ -6,7 +6,7 @@
 with Ada.Text_IO; -- for debug only DBG_Print
 with Keyword_Record; use Keyword_Record;
 
-package body Primary_Size_Info is
+package body FA_Primary is
 
 EmptyVal : constant String(1..20) := (others => ' ');
 InitVal  : constant CardValue := (EmptyVal,False);
@@ -330,6 +330,6 @@ end DBG_Print;
 		end case;
 	end To_HDU_Type;
 
-end Primary_Size_Info;
+end FA_Primary;
 
 

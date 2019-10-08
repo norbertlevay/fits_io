@@ -7,7 +7,7 @@ with Keyword_Record; use Keyword_Record;
 
 
 
-package body Ext_Strict is
+package body FA_Extension is
 
 EmptyVal : constant String(1..20) := (others => ' ');
 InitVal  : constant CardValue := (EmptyVal,False);
@@ -366,7 +366,7 @@ end DBG_Print;
 		return MandVals; 
 	end Get;
 
-end Ext_Strict;
+end FA_Extension;
 
 
 

@@ -13,8 +13,8 @@
 
 with FITS; use FITS;
 
-with Primary_Size_Info; use Primary_Size_Info;
-with Ext_Strict;        use Ext_Strict;
+with FA_Primary;   use FA_Primary;
+with FA_Extension; use FA_Extension;
 
 
 package body Interpret 

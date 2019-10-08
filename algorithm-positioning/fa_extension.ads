@@ -2,7 +2,7 @@
 with FITS;  use  FITS; -- Card_Type needed
 
 
-package Ext_Strict is
+package FA_Extension is
 
 type Options_Type is
          (DONT_STORE_CARD_COMMENTS,
@@ -13,7 +13,7 @@ type Options_Type is
                                  -- * essential key is missing
                                  -- * essential key is duplicate with different values (ambiguity) 
 	--
-	-- state machine
+	-- finite automata
 	--
 
 	procedure Configuration(Options : Options_Type) is null;
@@ -53,5 +53,5 @@ type Extension_Mandatory_Card_Values is
 
 	function  Get return Extension_Mandatory_Card_Values;
 
-end Ext_Strict;
+end FA_Extension;
 
