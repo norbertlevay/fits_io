@@ -4,7 +4,7 @@
 
 
 with Ada.Text_IO; -- for debug only DBG_Print
-with Value;
+with Keyword_Record; use Keyword_Record;
 
 package body Primary_Size_Info is
 
@@ -118,9 +118,9 @@ end DBG_Print;
 	begin
 		if (Card(1..8) = "SIMPLE  ") then 
                        
-		        CardVal := Value.To_Boolean(String(Card(11..30)));
+		        CardVal := To_Boolean(Card(11..30));
 
-			MandVals.SIMPLE.Value := String(Card(11..30));
+			MandVals.SIMPLE.Value := Card(11..30);
 			MandVals.SIMPLE.Read  := True;
 		   
 			if(CardVal) 
@@ -153,9 +153,9 @@ end DBG_Print;
 		
 		elsif (Card(1..8) = "NAXIS   ") then
 
-			CardVal := Value.To_Integer(String(Card(11..30)));
+			CardVal := To_Integer(Card(11..30));
 
-			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Value := Card(11..30);
 			MandVals.NAXIS.Read := True;
 	
 			if (CardVal = 0) then
@@ -164,9 +164,9 @@ end DBG_Print;
 
 		elsif (Card(1..8) = "NAXIS1  ") then
 
-			CardVal := Value.To_Integer(String(Card(11..30)));
+			CardVal := To_Integer(Card(11..30));
 
-			MandVals.NAXISn(1).Value := String(Card(11..30));
+			MandVals.NAXISn(1).Value := Card(11..30);
 			MandVals.NAXISn(1).Read := True;
 	
 			if (CardVal = 0) then
@@ -191,8 +191,8 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Value.Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
-			MandVals.NAXISn(Idx).Value := String(Card(11..30));
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+			MandVals.NAXISn(Idx).Value := Card(11..30);
 			MandVals.NAXISn(Idx).Read  := True;
 
 		else
@@ -211,12 +211,12 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Value.Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
-			MandVals.NAXISn(Idx).Value := String(Card(11..30));
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Last,Idx)) then
+			MandVals.NAXISn(Idx).Value := Card(11..30);
 			MandVals.NAXISn(Idx).Read  := True;
 
 		elsif (Card(1..8) = "PCOUNT  ") then
-			MandVals.PCOUNT.Value := String(Card(11..30));
+			MandVals.PCOUNT.Value := Card(11..30);
 			MandVals.PCOUNT.Read  := True;
 
 		elsif (Card(1..8) = "GCOUNT  ") then

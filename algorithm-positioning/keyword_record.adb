@@ -47,7 +47,7 @@
  
 -- NOTE for Mandatory keys implement Fixed Format definition parsing
 
-package body Value is
+package body Keyword_Record is
 
 	function Is_ValuedCard (Card : Card_Type) return Boolean
 	is 
@@ -142,4 +142,17 @@ begin
         return IsArray;
 end Is_Array;
 
-end Value;
+
+
+  function Extract_Index(Root : String; CardKey : String) return Positive
+        is
+                RootLen : Positive := Root'Length;
+        begin
+                return Positive'Value( CardKey(RootLen+1 .. 8) );
+        end Extract_Index;
+
+
+
+
+
+end Keyword_Record;

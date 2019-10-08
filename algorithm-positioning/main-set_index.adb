@@ -3,7 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with FITS; use FITS;
 with Formulas;
-with Value;
+with Keyword_Record;    use Keyword_Record;
 with Primary_Size_Info; use Primary_Size_Info;
 with Ext_Strict;
 
@@ -41,7 +41,7 @@ type Read_Control is
                 loop
                         Card := CardBlock(I);
 
-                        if ( Card = ENDCard OR Value.Is_ValuedCard(Card) )
+                        if ( Card = ENDCard OR Is_ValuedCard(Card) )
                         then
 
                                 CardPos := CardPosBase + I;

@@ -3,7 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with FITS; use FITS;
 -- Card_Type, NAXIS_Last, HDU_Size_Info_Type needed
 
-with Value;
+with Keyword_Record; use Keyword_Record;
 
 
 
@@ -145,15 +145,6 @@ end DBG_Print;
 		return t;
 
         end To_HDU_Type;
-
-
-
-	function Extract_Index(Root : String; CardKey : String) return Positive
-	is
-		RootLen : Positive := Root'Length;
-	begin
-		return Positive'Value( CardKey(RootLen+1 .. 8) );
-	end Extract_Index;
 -- utils end
 -- -----------------------------------------------------------
 
@@ -182,9 +173,9 @@ end DBG_Print;
 			null;
 		end if;
 
-		if( "XTENSION" = String(Card(1..8)) )
+		if( "XTENSION" = Card(1..8) )
 		then
-			MandVals.XTENSION.Value := String(Card(11..30));
+			MandVals.XTENSION.Value := Card(11..30);
 			MandVals.XTENSION.Read  := True;
 			State.Name := CONFORMING_EXTENSION;
 			State.XTENSION := To_HDU_Type(MandVals.XTENSION.Value);
@@ -204,27 +195,27 @@ end DBG_Print;
 	function In_CONFORMING_EXTENSION(Pos : Positive; Card : Card_Type) return Positive
 	is
 	begin
-		if    ( "BITPIX  " = String(Card(1..8)) AND (Pos = 2) )
+		if    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
 		then
-			MandVals.BITPIX.Value := String(Card(11..30));
+			MandVals.BITPIX.Value := Card(11..30);
 			MandVals.BITPIX.Read  := True;
 
-		elsif ( "NAXIS   " = String(Card(1..8)) AND (Pos = 3) )
+		elsif ( "NAXIS   " = Card(1..8) AND (Pos = 3) )
 		then
-			MandVals.NAXIS.Value := String(Card(11..30));
+			MandVals.NAXIS.Value := Card(11..30);
 			MandVals.NAXIS.Read  := True;
 
 			State.NAXIS_Val      := Natural'Value(MandVals.NAXIS.Value);
 			State.Name := COLLECT_NAXIS_ARRAY;
 	
-		elsif ( "PCOUNT  " = String(Card(1..8)) AND (Pos = 3 + State.NAXIS_Val + 1))
+		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
-			MandVals.PCOUNT.Value := String(Card(11..30));
+			MandVals.PCOUNT.Value := Card(11..30);
 			MandVals.PCOUNT.Read  := True;
 
-		elsif ( "GCOUNT  " = String(Card(1..8)) AND (Pos = 3 + State.NAXIS_Val + 2))
+		elsif ( "GCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
-			MandVals.GCOUNT.Value := String(Card(11..30));
+			MandVals.GCOUNT.Value := Card(11..30);
 			MandVals.GCOUNT.Read  := True;
 
 			case(State.XTENSION) is
@@ -256,13 +247,13 @@ end DBG_Print;
 
 	function In_COLLECT_NAXIS_ARRAY(Pos : Positive; Card : Card_Type) return Positive
 	is
-		Ix : Positive := Extract_Index("NAXIS",String(Card(1..8)));
+		Ix : Positive := Extract_Index("NAXIS",Card(1..8));
 	begin
 		-- check root-name and position
 		if ( ("NAXIS" = Card(1..5)) AND 
 		     (Pos = 3 + Ix) )
 		then
-			MandVals.NAXISn(Ix).Value := String(Card(11..30));
+			MandVals.NAXISn(Ix).Value := Card(11..30);
 			MandVals.NAXISn(Ix).Read  := True;
 		else
 			-- ERROR unexpected card
@@ -289,9 +280,9 @@ end DBG_Print;
 	is
 		Ix : Positive := 1;
 	begin
-		if ("TFIELDS " = String(Card(1..8)) )
+		if ("TFIELDS " = Card(1..8) )
                 then
-	               	MandVals.TFIELDS.Value := String(Card(11..30));
+	               	MandVals.TFIELDS.Value := Card(11..30);
                         MandVals.TFIELDS.Read  := True;
 			State.TFIELDS_Val := Natural'Value(MandVals.TFIELDS.Value);
                 else
@@ -302,8 +293,8 @@ end DBG_Print;
 		-- check root-name
 		if ( ("TFORM" = Card(1..5)) )
 		then
-			Ix := Extract_Index("TFORM",String(Card(1..8)));
-			MandVals.TFORMn(Ix).Value := String(Card(11..30));
+			Ix := Extract_Index("TFORM",Card(1..8));
+			MandVals.TFORMn(Ix).Value := Card(11..30);
 			MandVals.TFORMn(Ix).Read := True;
 		else
 			-- ERROR unexpected card
@@ -314,8 +305,8 @@ end DBG_Print;
 		then
 			if ( ("TBCOL" = Card(1..5)) )
 			then
-				Ix := Extract_Index("TBCOL",String(Card(1..8)));
-				MandVals.TBCOLn(Ix).Value := String(Card(11..30));
+				Ix := Extract_Index("TBCOL",Card(1..8));
+				MandVals.TBCOLn(Ix).Value := Card(11..30);
 				MandVals.TBCOLn(Ix).Read  := True;
 			else
 				-- ERROR unexpected card

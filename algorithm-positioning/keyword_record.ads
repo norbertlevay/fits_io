@@ -2,7 +2,7 @@
 -- implementas FITSv3 Section 4.2 Fixed format variant
 with FITS; use  FITS; -- Card_Type needed
 
-package Value is
+package Keyword_Record is
 	
 	function Is_ValuedCard (Card : Card_Type) return Boolean;
 
@@ -25,5 +25,13 @@ package Value is
                   First : in Positive;
                   Last  : in Positive;
                   Idx  : out Positive) return Boolean;
+
+
+
+	--
+	-- ops on Keys
+	--
+	function Extract_Index(Root : String; CardKey : String) return Positive;
+
  
-end Value;
+end Keyword_Record;
