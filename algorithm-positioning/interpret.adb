@@ -21,6 +21,8 @@
 
 
 
+with Ada.Exceptions; use Ada.Exceptions;
+
 with FITS; use FITS;
 with Keyword_Record; use Keyword_Record;
 
@@ -38,26 +40,25 @@ is
                 if(MandVals.HDUTypeSet) then
                         HDUSizeInfo.HDUType := MandVals.HDUTypeVal;
                 else
-                        null;
-                        -- ERROR raise exception type undetermined
+			Raise_Exception(Programming_Error'Identity, "Primary HDU type undetermined.");
                 end if;
 
                 if(MandVals.ENDCardSet) then
                         HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "END");
                 end if;
 
                 if(MandVals.BITPIX.Read) then
                         HDUSizeInfo.BITPIX := To_Integer(MandVals.BITPIX.Value);
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "BITPIX");
                 end if;
 
                 if(MandVals.NAXIS.Read) then
                         NAXIS := To_Integer(MandVals.NAXIS.Value);
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "NAXIS");
                 end if;
 
                 for I in 1 .. NAXIS
@@ -65,7 +66,7 @@ is
                         if(MandVals.NAXISn(I).Read) then
                                 HDUSizeInfo.NAXISArr(I) := To_Integer(MandVals.NAXISn(I).Value);
                         else
-				raise Card_Not_Found;
+				Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
                         end if;
 
                 end loop;
@@ -116,25 +117,25 @@ is
                 if(MandVals.XTENSION.Read) then
                         HDUSizeInfo.HDUType := To_HDU_Type(MandVals.XTENSION.Value);
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "XTENSION");
                 end if;
 
                 if(MandVals.ENDCardSet) then
                         HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "END");
                 end if;
 
                 if(MandVals.BITPIX.Read) then
                         HDUSizeInfo.BITPIX := To_Integer(MandVals.BITPIX.Value);
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "BITPIX");
                 end if;
 
                 if(MandVals.NAXIS.Read) then
                         NAXIS := To_Integer(MandVals.NAXIS.Value);
                 else
-			raise Card_Not_Found;
+			Raise_Exception(Card_Not_Found'Identity, "NAXIS");
                 end if;
 
                 for I in 1 .. NAXIS
@@ -142,7 +143,7 @@ is
                         if(MandVals.NAXISn(I).Read) then
                                 HDUSizeInfo.NAXISArr(I) := To_Integer(MandVals.NAXISn(I).Value);
                         else
-				raise Card_Not_Found;
+				Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
                         end if;
 
                 end loop;

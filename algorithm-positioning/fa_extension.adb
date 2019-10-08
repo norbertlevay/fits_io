@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Exceptions; use Ada.Exceptions;
 
 with FITS; use FITS;
 -- Card_Type needed
@@ -123,7 +124,7 @@ begin
                 t := BIN_TABLE;
 
 	else
-		raise Unexpected_Card_Value;
+		Raise_Exception(Unexpected_Card_Value'Identity, "XTENSION: " & XTENSION_Value);
 	end if;
 		
 	return t;
@@ -154,7 +155,8 @@ end To_XT_Type;
 		-- must not contain the string “XTENSION”.
 
 		if(Pos /= 1) then
-			raise Unexpected_Card;
+			Raise_Exception(Programming_Error'Identity, 
+			"First card expected but card position is " & Integer'Image(Pos));
 		end if;
 
 		if( "XTENSION" = Card(1..8) )
@@ -210,11 +212,11 @@ end To_XT_Type;
 					State.Name := WAIT_END;
 					
 				when UNSPECIFIED =>
-					raise Programming_Error;
+					Raise_Exception(Programming_Error'Identity, "This should not hapen.");
 			end case;
 
 		else
-			raise Unexpected_Card;
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 
 		return Pos + 1;
@@ -237,7 +239,7 @@ end To_XT_Type;
 			MandVals.NAXISn(Ix).Value := Card(11..30);
 			MandVals.NAXISn(Ix).Read  := True;
 		else
-			raise Unexpected_Card;
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 
 		if(Ix = State.NAXIS_Val) 

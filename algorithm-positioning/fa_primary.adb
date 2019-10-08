@@ -4,6 +4,8 @@
 
 
 with Ada.Text_IO; -- for debug only DBG_Print
+with Ada.Exceptions; use Ada.Exceptions;
+
 with Keyword_Record; use Keyword_Record;
 
 package body FA_Primary is
@@ -112,7 +114,7 @@ end DBG_Print;
 			end if;
 
 		else
-			raise Unexpected_Card;
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 
 		return Pos + 1;
@@ -162,7 +164,7 @@ end DBG_Print;
 			end if;
 
 		else
-			raise Unexpected_Card;
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 		
 		return Pos + 1;
@@ -182,7 +184,6 @@ end DBG_Print;
 			MandVals.NAXISn(Idx).Read  := True;
 		else
 			null; -- FIXME this is final state: called until ENDCard found
-			-- raise Unexpected_Card;
 		end if;
 
 		return Pos + 1;
@@ -213,10 +214,9 @@ end DBG_Print;
 			MandVals.GROUPS.Read := True;
 
 			-- FIXME see table C.1 : GROUPS value must be set T
-			-- check for it. If not set raise error
 		
 		else
-			raise Unexpected_Card;
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 
 		return Pos + 1;

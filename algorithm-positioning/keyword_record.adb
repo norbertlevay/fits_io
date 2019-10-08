@@ -48,6 +48,7 @@
 -- NOTE for Mandatory keys implement Fixed Format definition parsing
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Exceptions; use Ada.Exceptions;
 
 package body Keyword_Record is
 
@@ -75,7 +76,7 @@ package body Keyword_Record is
 			when 'F' =>
 				return False;
 			when others =>
-				raise Invalid_Card_Value;
+				Raise_Exception(Invalid_Card_Value'Identity, "Expected Boolean but found " & Value);
 		end case;
 
 	end To_Boolean;
@@ -131,7 +132,6 @@ begin
         if(CardKey(1..Root'Length) = Root)
 	then
                 Idx := Positive'Value(CardKey(6..8));
-                -- will raise exception if not convertible
 
 		if ((Idx < First) OR (Idx > Last))
 		then
