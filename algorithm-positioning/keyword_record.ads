@@ -25,13 +25,13 @@ package Keyword_Record is
                   First : in Positive;
                   Last  : in Positive;
                   Idx  : out Positive) return Boolean;
-
-
-
+		  
 	--
 	-- ops on Keys
 	--
 	function Extract_Index(Root : String; CardKey : String) return Positive;
 
+
+	Invalid_Card_Value : exception;
  
 end Keyword_Record;

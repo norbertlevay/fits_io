@@ -17,9 +17,11 @@ type Options_Type is
 	--
 
 	procedure Configuration(Options : Options_Type) is null;
-	procedure Reset_State; 
+	function  Reset_State return Positive; 
         function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
+	Unexpected_Card       : exception;
+	Unexpected_Card_Value : exception;
 
 	--
 	-- collect results

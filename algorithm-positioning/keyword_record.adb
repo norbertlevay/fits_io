@@ -47,6 +47,8 @@
  
 -- NOTE for Mandatory keys implement Fixed Format definition parsing
 
+with Ada.Text_IO; use Ada.Text_IO;
+
 package body Keyword_Record is
 
 	function Is_ValuedCard (Card : Card_Type) return Boolean
@@ -73,8 +75,7 @@ package body Keyword_Record is
 			when 'F' =>
 				return False;
 			when others =>
-			-- ERROR invalid value
-			null;
+				raise Invalid_Card_Value;
 		end case;
 
 	end To_Boolean;
@@ -125,21 +126,27 @@ function Is_Array(Card : in  Card_Type;
                   Idx  : out Positive) return Boolean
 is
         IsArray : Boolean := False;
-        CardKey : String(1..8) := String(Card(1..8));
+        CardKey : String(1..8) := Card(1..8);
 begin
-        if(CardKey(1..Root'Length) = Root) then
-
+        if(CardKey(1..Root'Length) = Root)
+	then
                 Idx := Positive'Value(CardKey(6..8));
                 -- will raise exception if not convertible
 
-                if ((Idx < First) OR (Idx > Last)) then
+		if ((Idx < First) OR (Idx > Last))
+		then
                         IsArray := False;
                 else
                         IsArray := True;
                 end if;
 
+	else
+		IsArray := False;
+		-- not Root-based array
         end if;
+
         return IsArray;
+
 end Is_Array;
 
 

@@ -9,6 +9,16 @@
         -- * card-sets, -> like structs/records
         -- * alternative sets -> like ??
 
+-- This is not Lexar, rather grammar rules
+        --
+        -- it is here that we check whether all values were set and so results are valid
+        -- also interpret here syntax, like: 
+        --  * if NAXIS exist, also NAXIS1... array must exist
+        --  * if one card of a group present, all other cards of that group-type must be present
+        --  * recognize alternative calibration sets cccccA card set and cccccB card set
+        --  That all data for SizeClaculation was Read/Set
+        --  and all those data is valid/within the range
+
 
 
 with FITS; use FITS;

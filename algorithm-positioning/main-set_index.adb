@@ -83,6 +83,7 @@ type Read_Control is
 
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+	CardPos : Positive; 
 begin
 
 	PrimaryHeaderStart := 1;
@@ -96,7 +97,7 @@ begin
 
 -- Read Primary HDU
 	
-	FA_Primary.Reset_State;
+	CardPos := FA_Primary.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
@@ -136,7 +137,7 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
-	FA_Extension.Reset_State;
+	CardPos := FA_Extension.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);

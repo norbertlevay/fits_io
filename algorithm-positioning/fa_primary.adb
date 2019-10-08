@@ -39,6 +39,7 @@ package TIO renames Ada.Text_IO;
 procedure DBG_Print 
 is
 begin
+TIO.New_Line;
 TIO.Put(Boolean'Image(MandVals.SIMPLE.Read) & " SIMPLE ");
 TIO.Put_Line(MandVals.SIMPLE.Value);
 TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
@@ -75,12 +76,12 @@ end DBG_Print;
 
 
 
-	procedure Reset_State 
+	function Reset_State return Positive
 	is
 	begin
-		TIO.New_Line;
 		MandVals := InitMandVals;
 		State := INITIALIZED;
+		return 1; -- start FA from 1st card of HDU
 	end Reset_State;
 
 
@@ -111,8 +112,7 @@ end DBG_Print;
 			end if;
 
 		else
-			-- ERROR: unexpected card, non standard or broken Header
-			null;
+			raise Unexpected_Card;
 		end if;
 
 		return Pos + 1;
@@ -159,11 +159,10 @@ end DBG_Print;
 				State := PRIMARY_IMAGE;
 				MandVals.HDUTypeVal := PRIMARY_IMAGE;
 				MandVals.HDUTypeSet := True;
-		end if;
+			end if;
 
 		else
-			-- ERROR: unexpected card, non standard or broken Header
-			null;
+			raise Unexpected_Card;
 		end if;
 		
 		return Pos + 1;
@@ -177,13 +176,13 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx)) then
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
+		then
 			MandVals.NAXISn(Idx).Value := Card(11..30);
 			MandVals.NAXISn(Idx).Read  := True;
-
 		else
-			-- ERROR: unexpected card, non standard or broken Header
-			null;
+			null; -- FIXME this is final state: called until ENDCard found
+			-- raise Unexpected_Card;
 		end if;
 
 		return Pos + 1;
@@ -217,8 +216,7 @@ end DBG_Print;
 			-- check for it. If not set raise error
 		
 		else
-			-- ERROR: unexpected card, non standard or broken Header
-			null;
+			raise Unexpected_Card;
 		end if;
 
 		return Pos + 1;
@@ -262,25 +260,14 @@ end DBG_Print;
 			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
 			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);	
-			when others => 
-				-- including UNSPECIFIED
-				-- programming error: Reset_State 
-				-- must be called before New_Card
-				null;
+			when UNSPECIFIED =>
+			       raise Programming_Error;	
 		end case;
 		
 		return NextCardPos;
 
 	end Next;
 	
-
-
-	
-
-
-
-
-
 
 	
 	--
@@ -292,43 +279,6 @@ end DBG_Print;
        begin
 	       return MandVals;
        end Get;
-
-
-
-
-
-	-- This is not Lexar, rather grammar rules
-	--
-	-- it is here that we check whether all values were set and so results are valid
-	-- also interpret here semantics, like: 
-	--  * if NAXIS exist, also NAXIS1... array must exist
-	--  * if one card of a group present, all other cards of that group-type must be present
-	--  * recognize alternative calibration sets cccccA card set and cccccB card set
-	--  That all data for SizeClaculation was Read/Set
-	--  and all those data is valid/within the range
-
-
-	function To_HDU_Type(State : in State_Type) return HDU_Type
-	is
-	begin
-		case(State) is
-			when PRIMARY_NO_DATA => 
-				return PRIMARY_WITHOUT_DATA;
-
-			when PRIMARY_IMAGE => 
-				return PRIMARY_IMAGE;
-
-			when RANDOM_GROUPS => 
-				return RANDOM_GROUPS;
-
-				--return EXT_IMAGE;
-				--return EXT_ASCII_TABLE;
-				--return EXT_BIN_TABLE;
-			when others =>
-				null;
-				-- ERROR 
-		end case;
-	end To_HDU_Type;
 
 end FA_Primary;
 
