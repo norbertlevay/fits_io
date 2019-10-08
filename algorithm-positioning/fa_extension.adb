@@ -261,11 +261,16 @@ end To_XT_Type;
 	is
 		Ix : Positive := 1;
 	begin
-		if ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
+		if ("TFIELDS " = Card(1..8)  )
                 then
-	               	MandVals.TFIELDS.Value := Card(11..30);
-                        MandVals.TFIELDS.Read  := True;
-			State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
+			if (Pos = 3 + State.NAXIS_Val + 3)
+			then
+				MandVals.TFIELDS.Value := Card(11..30);
+				MandVals.TFIELDS.Read  := True;
+				State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
+			else
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
 		end if;
 
 		if ( ("TFORM" = Card(1..5)) )
