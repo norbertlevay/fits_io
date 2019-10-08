@@ -23,18 +23,28 @@ InitMandVals : Primary_Mandatory_Card_Values := (UNSPECIFIED,False,
 
 MandVals : Primary_Mandatory_Card_Values;
 
-
-type State_Type is (
+type State_Name is (
 	UNSPECIFIED,   -- code default
 	INITIALIZED,   -- Reset_State was called, FA ready to accept cards
 	PRIMARY_NON_STANDARD, -- SIMPLE = F card found: can calculate Header size biut not DU size
 	PRIMARY_STANDARD, -- SIMPLE = T card found
 	PRIMARY_NO_DATA,  -- NAXIS = 0
 	PRIMARY_IMAGE,    -- NAXIS1 > 0
-	RANDOM_GROUPS     -- NAXIS1 = 0
+	RANDOM_GROUPS,    -- NAXIS1 = 0
+	WAIT_END	  -- all mand cards read except END-card
 	);
 
-State : State_Type := UNSPECIFIED;
+type State_Type is
+	record
+		Name      : State_Name;
+		NAXIS_Val : Natural;
+	end record;
+-- collects values used in state-change 
+-- decisions in different states
+
+InitState : State_Type := (Name => UNSPECIFIED, NAXIS_Val => 0);
+
+State : State_Type := InitState;
 ------------------------------------------------------------------
 package TIO renames Ada.Text_IO;
 
@@ -67,7 +77,7 @@ TIO.Put(Boolean'Image(MandVals.GROUPS.Read) & " GROUPS ");
 TIO.Put_Line(MandVals.GROUPS.Value);
 TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
-TIO.Put_Line(State_Type'Image(State));
+TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 -- -----------------------------------------------------------
 
@@ -82,7 +92,8 @@ end DBG_Print;
 	is
 	begin
 		MandVals := InitMandVals;
-		State := INITIALIZED;
+		State    := InitState;
+		State.Name := INITIALIZED;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;
 
@@ -109,9 +120,9 @@ end DBG_Print;
 		   
 			if(CardVal) 
 			then 
-				State := PRIMARY_STANDARD;
+				State.Name := PRIMARY_STANDARD;
 			else
-				State := PRIMARY_NON_STANDARD;
+				State.Name := PRIMARY_NON_STANDARD;
 			end if;
 
 		else
@@ -139,13 +150,13 @@ end DBG_Print;
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
 		then
 
-			CardVal := To_Integer(Card(11..30));
+			State.NAXIS_Val := To_Integer(Card(11..30));
 
 			MandVals.NAXIS.Value := Card(11..30);
 			MandVals.NAXIS.Read := True;
 	
-			if (CardVal = 0) then
-				State := PRIMARY_NO_DATA;
+			if (State.NAXIS_Val = 0) then
+				State.Name := PRIMARY_NO_DATA;
 				MandVals.HDUTypeVal := PRIMARY_WITHOUT_DATA;
 				MandVals.HDUTypeSet := True;
 			end if;
@@ -159,11 +170,11 @@ end DBG_Print;
 			MandVals.NAXISn(1).Read := True;
 	
 			if (CardVal = 0) then
-				State := RANDOM_GROUPS;
+				State.Name := RANDOM_GROUPS;
 				MandVals.HDUTypeVal := RANDOM_GROUPS;
 				MandVals.HDUTypeSet := True;
 			else
-				State := PRIMARY_IMAGE;
+				State.Name := PRIMARY_IMAGE;
 				MandVals.HDUTypeVal := PRIMARY_IMAGE;
 				MandVals.HDUTypeSet := True;
 			end if;
@@ -195,9 +206,14 @@ end DBG_Print;
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
+			
+			if(Idx = State.NAXIS_Val)
+			then
+				State.Name := WAIT_END;
+			end if;
 
 		else
-			null; -- FIXME this is final state: called until ENDCard found
+			Raise_Exception(Unexpected_Card'Identity, Card);
 		end if;
 
 		return Pos + 1;
@@ -236,16 +252,34 @@ end DBG_Print;
 		elsif (Card(1..8) = "GCOUNT  ") then
 			MandVals.GCOUNT.Value := String(Card(11..30));
 			MandVals.GCOUNT.Read  := True;
-		
 	
-		else
-			null; -- FIXME this is final state: called until ENDCard found
+		end if;
+
+		if(MandVals.GROUPS.Read
+		   AND MandVals.PCOUNT.Read
+		   AND MandVals.GCOUNT.Read)
+		then
+			State.Name := WAIT_END;
 		end if;
 
 		return Pos + 1;
 
 	end In_RANDOM_GROUPS;
 
+
+
+
+        function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
+        is
+        begin
+                if( ENDCard = Card ) then
+                        MandVals.ENDCardPos := Pos;
+                        MandVals.ENDCardSet := True;
+                        return 0; -- no more cards
+                else
+                        return Pos + 1;
+                end if;
+        end In_WAIT_END;
 
 
 
@@ -262,16 +296,7 @@ end DBG_Print;
 		NextCardPos : Natural;
 	begin
 
-		if( (NOT(State = UNSPECIFIED)) AND (Card = ENDCard) )
-		then
-		        MandVals.ENDCardPos := Pos;
-		        MandVals.ENDCardSet := True;
-			NextCardPos := 0;-- no more cards
-			DBG_Print;
-			return NextCardPos;
-		end if;
-
-		case(State) is
+		case(State.Name) is
 			when INITIALIZED =>
 			       NextCardPos := In_INITIALIZED  (Pos, Card);
 			when PRIMARY_NON_STANDARD =>
@@ -284,9 +309,13 @@ end DBG_Print;
 			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
 			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);
+			when WAIT_END =>
+			       NextCardPos := In_WAIT_END(Pos, Card);
 			when UNSPECIFIED =>
 			       raise Programming_Error;	
 		end case;
+
+		 if(NextCardPos = 0) then DBG_Print; end if;
 		
 		return NextCardPos;
 

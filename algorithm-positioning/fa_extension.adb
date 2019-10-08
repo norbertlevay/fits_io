@@ -52,7 +52,8 @@ type State_Type is
 		NAXIS_Val   : Natural;
 		TFIELDS_Val : Natural;
 	end record;
--- collects values used in state-change decisions
+-- collects values used in state-change
+-- decisions in different states
 
 InitState : State_Type := 
 	(Name => UNSPECIFIED, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
