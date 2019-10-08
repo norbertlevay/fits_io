@@ -10,38 +10,14 @@ with Keyword_Record; use Keyword_Record;
 package body Ext_Strict is
 
 EmptyVal : constant String(1..20) := (others => ' ');
-
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
 InitVal  : constant CardValue := (EmptyVal,False);
 
 --
 -- collected values
 --
-type NAXIS_Arr is array (1..NAXIS_Last) of CardValue;
-type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
-type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitTFORMArrVal : constant TFORM_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TBCOL_Arr := (others => InitVal);
-
-type Extension_Mandatory_Card_Values is
-        record
-        XTENSION : CardValue;
-        BITPIX   : CardValue;
-        NAXIS    : CardValue;
-        NAXISn   : NAXIS_Arr;
-        PCOUNT   : CardValue;
-        GCOUNT   : CardValue;
-        TFIELDS  : CardValue;
-        TFORMn   : TFORM_Arr;
-        TBCOLn   : TBCOL_Arr;
-        ENDCardPos : Natural;
-        ENDCardSet : Boolean;
-        end record;
 
 InitMandVals : Extension_Mandatory_Card_Values := (InitVal,InitVal,InitVal,
                                                  InitNAXISArrVal,
@@ -384,6 +360,12 @@ end DBG_Print;
 
    
 	-- Get interface
+        function  Get return Extension_Mandatory_Card_Values
+	is
+	begin
+		return MandVals; 
+	end Get;
+
 	
 
         function  Get return HDU_Size_Info_Type

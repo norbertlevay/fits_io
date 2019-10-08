@@ -9,30 +9,9 @@ with Keyword_Record; use Keyword_Record;
 package body Primary_Size_Info is
 
 EmptyVal : constant String(1..20) := (others => ' ');
-
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
 InitVal  : constant CardValue := (EmptyVal,False);
 
-type NAXISn_Arr is array (1..NAXIS_Last) of CardValue;
-InitNAXISArrVal : constant NAXISn_Arr := (others => InitVal);
-
-type Primary_Mandatory_Card_Values is
-        record
-        SIMPLE : CardValue;
-        BITPIX : CardValue;
-        NAXIS  : CardValue;
-        NAXIS1 : CardValue;
-	NAXISn : NAXISn_Arr;
-        PCOUNT : CardValue;
-        GCOUNT : CardValue;
-        GROUPS : CardValue;
-	ENDCardPos : Natural;
-	ENDCardSet : Boolean;
-        end record;
+InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
 InitMandVals : Primary_Mandatory_Card_Values := (InitVal,InitVal,InitVal,InitVal,
                                                  InitNAXISArrVal,
@@ -300,7 +279,17 @@ end DBG_Print;
 	--
 	-- Collect Results
 	--
-	
+
+       function  Get return Primary_Mandatory_Card_Values
+       is
+       begin
+	       return MandVals;
+       end Get;
+
+
+
+
+
 	-- This is not Lexar, rather grammar rules
 	--
 	-- it is here that we check whether all values were set and so results are valid
@@ -333,8 +322,6 @@ end DBG_Print;
 				-- ERROR 
 		end case;
 	end To_HDU_Type;
-
-
 
 
 
