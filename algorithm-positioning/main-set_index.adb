@@ -6,6 +6,7 @@ with Formulas;
 with Keyword_Record;    use Keyword_Record;
 with Primary_Size_Info; use Primary_Size_Info;
 with Ext_Strict;
+with Interpret;
 
 separate(main)
 procedure Set_Index
@@ -118,7 +119,7 @@ begin
 
 	end loop;
 
-	HDUSizeInfo := Get;
+	HDUSizeInfo := Interpret.Get(Get);
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
@@ -155,7 +156,7 @@ loop
 
 	end loop;
 
-	HDUSizeInfo    := Ext_Strict.Get;
+	HDUSizeInfo    := Interpret.Get(Ext_Strict.Get);
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;

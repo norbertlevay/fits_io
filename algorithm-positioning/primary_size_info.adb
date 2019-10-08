@@ -13,7 +13,8 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
-InitMandVals : Primary_Mandatory_Card_Values := (InitVal,InitVal,InitVal,InitVal,
+InitMandVals : Primary_Mandatory_Card_Values := (UNSPECIFIED,False,
+						 InitVal,InitVal,InitVal,InitVal,
                                                  InitNAXISArrVal,
 						 InitVal,InitVal,InitVal,
 						 0,False);
@@ -139,6 +140,8 @@ end DBG_Print;
 	
 			if (CardVal = 0) then
 				State := PRIMARY_NO_DATA;
+				MandVals.HDUTypeVal := PRIMARY_WITHOUT_DATA;
+				MandVals.HDUTypeSet := True;
 			end if;
 
 		elsif (Card(1..8) = "NAXIS1  ") then
@@ -150,9 +153,13 @@ end DBG_Print;
 	
 			if (CardVal = 0) then
 				State := RANDOM_GROUPS;
+				MandVals.HDUTypeVal := RANDOM_GROUPS;
+				MandVals.HDUTypeSet := True;
 			else
 				State := PRIMARY_IMAGE;
-			end if;
+				MandVals.HDUTypeVal := PRIMARY_IMAGE;
+				MandVals.HDUTypeSet := True;
+		end if;
 
 		else
 			-- ERROR: unexpected card, non standard or broken Header
@@ -322,59 +329,6 @@ end DBG_Print;
 				-- ERROR 
 		end case;
 	end To_HDU_Type;
-
-
-
-	function  Get return HDU_Size_Info_Type
-	is
-		HDUSizeInfo : HDU_Size_Info_Type;
-		NAXIS : Positive;
-	begin
-		HDUSizeInfo.HDUType    := To_HDU_Type(State);
-		-- will raise exception if state not PRIMARY* or RAND Groups
-
-		if(MandVals.ENDCardSet) then
-			HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
-		else
-			null;
-			-- ERROR raise exception No END card found
-		end if;
-
-		if(MandVals.BITPIX.Read) then
-			HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
-		else
-			null;
-			-- ERROR raise exception No BITPIX card found
-		end if;
-
-		if(MandVals.NAXIS.Read) then
-			NAXIS := Integer'Value(MandVals.NAXIS.Value);
-		else
-			null;
-			-- ERROR raise exception No NAXIS card found
-		end if;
-
-		for I in 1 .. NAXIS 
-		loop
-			if(MandVals.NAXISn(I).Read) then
-				HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
-			else
-				null;
-				-- ERROR raise exception No NAXIS(I) card found
-			end if;
-
-		end loop;
-
-		-- FIXME dirty fix: should return NAXISArr only NAXIS-long
-		for I in NAXIS+1 .. NAXIS_Last 
-		loop
-			HDUSizeInfo.NAXISArr(I) := 1;
-		end loop;
-	
-
-		return HDUSizeInfo;
-	end Get;
-
 
 end Primary_Size_Info;
 

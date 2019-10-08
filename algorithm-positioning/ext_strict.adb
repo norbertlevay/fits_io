@@ -41,7 +41,7 @@ type State_Name is
 type State_Type is 
 	record
 		Name        : State_Name;
-		XTENSION    : HDU_Type;
+		XTENSION    : HDU_Type; -- FIXME use some local type ??
 		NAXIS_Val   : Natural;
 		TFIELDS_Val : Natural;
 	end record;
@@ -365,62 +365,6 @@ end DBG_Print;
 	begin
 		return MandVals; 
 	end Get;
-
-	
-
-        function  Get return HDU_Size_Info_Type
-        is
-                HDUSizeInfo : HDU_Size_Info_Type;
-                NAXIS : Positive;
-        begin
-                HDUSizeInfo.HDUType    := State.XTENSION;
-                -- will raise exception if state not PRIMARY* or RAND Groups
-
-                if(MandVals.ENDCardSet) then
-                        HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
-                else
-                        null;
-                        -- ERROR raise exception No END card found
-                end if;
-
-                if(MandVals.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := Integer'Value(MandVals.BITPIX.Value);
-                else
-                        null;
-                        -- ERROR raise exception No BITPIX card found
-                end if;
-
-                if(MandVals.NAXIS.Read) then
-                        NAXIS := Integer'Value(MandVals.NAXIS.Value);
-                else
-                        null;
-                        -- ERROR raise exception No NAXIS card found
-                end if;
-
-                for I in 1 .. NAXIS
-                loop
-                        if(MandVals.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := Positive'Value(MandVals.NAXISn(I).Value);
-                        else
-                                null;
-                                -- ERROR raise exception No NAXIS(I) card found
-                        end if;
-
-                end loop;
-
-                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                for I in NAXIS+1 .. NAXIS_Last
-                loop
-                        HDUSizeInfo.NAXISArr(I) := 1;
-                end loop;
-
-
-                return HDUSizeInfo;
-        end Get;
-
-
-
-
 
 end Ext_Strict;
 
