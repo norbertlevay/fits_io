@@ -99,7 +99,8 @@ end DBG_Print;
 	is
 		CardVal : Boolean;
 	begin
-		if (Card(1..8) = "SIMPLE  ") then 
+		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
+		then 
                        
 		        CardVal := To_Boolean(Card(11..30));
 
@@ -118,6 +119,7 @@ end DBG_Print;
 		end if;
 
 		return Pos + 1;
+
 	end In_INITIALIZED;
 
 
@@ -129,11 +131,13 @@ end DBG_Print;
 	is
 		CardVal : Integer;
 	begin
-		if (Card(1..8) = "BITPIX  ") then
+		if ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
+		then
 			MandVals.BITPIX.Value := String(Card(11..30));
 			MandVals.BITPIX.Read  := True;
 		
-		elsif (Card(1..8) = "NAXIS   ") then
+		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
+		then
 
 			CardVal := To_Integer(Card(11..30));
 
@@ -146,7 +150,8 @@ end DBG_Print;
 				MandVals.HDUTypeSet := True;
 			end if;
 
-		elsif (Card(1..8) = "NAXIS1  ") then
+		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
+		then
 
 			CardVal := To_Integer(Card(11..30));
 
@@ -168,7 +173,10 @@ end DBG_Print;
 		end if;
 		
 		return Pos + 1;
+
 	end In_PRIMARY_STANDARD;
+
+
 
 
 
@@ -180,14 +188,23 @@ end DBG_Print;
 	begin
 		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
 		then
-			MandVals.NAXISn(Idx).Value := Card(11..30);
-			MandVals.NAXISn(Idx).Read  := True;
+			if(Pos = 3 + Idx)
+			then
+				MandVals.NAXISn(Idx).Value := Card(11..30);
+				MandVals.NAXISn(Idx).Read  := True;
+			else
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
+
 		else
 			null; -- FIXME this is final state: called until ENDCard found
 		end if;
 
 		return Pos + 1;
+
 	end In_PRIMARY_IMAGE;
+
+
 
 
 
@@ -197,10 +214,21 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx)) then
-			MandVals.NAXISn(Idx).Value := Card(11..30);
-			MandVals.NAXISn(Idx).Read  := True;
+		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
+		then
+			if(Pos = 3 + Idx)
+                        then
+				MandVals.NAXISn(Idx).Value := Card(11..30);
+				MandVals.NAXISn(Idx).Read  := True;
+			else
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
 
+		elsif (Card(1..8) = "GROUPS  ") then
+			MandVals.GROUPS.Value := String(Card(11..30));
+			MandVals.GROUPS.Read := True;
+			-- FIXME see table C.1 : GROUPS value must be set T
+			
 		elsif (Card(1..8) = "PCOUNT  ") then
 			MandVals.PCOUNT.Value := Card(11..30);
 			MandVals.PCOUNT.Read  := True;
@@ -209,17 +237,13 @@ end DBG_Print;
 			MandVals.GCOUNT.Value := String(Card(11..30));
 			MandVals.GCOUNT.Read  := True;
 		
-		elsif (Card(1..8) = "GROUPS  ") then
-			MandVals.GROUPS.Value := String(Card(11..30));
-			MandVals.GROUPS.Read := True;
-
-			-- FIXME see table C.1 : GROUPS value must be set T
-		
+	
 		else
-			Raise_Exception(Unexpected_Card'Identity, Card);
+			null; -- FIXME this is final state: called until ENDCard found
 		end if;
 
 		return Pos + 1;
+
 	end In_RANDOM_GROUPS;
 
 
@@ -259,7 +283,7 @@ end DBG_Print;
 			when PRIMARY_IMAGE => 
 			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
-			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);	
+			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);
 			when UNSPECIFIED =>
 			       raise Programming_Error;	
 		end case;
