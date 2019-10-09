@@ -88,7 +88,7 @@ is
 
 -- type HDU_Type is
   --      (PRIMARY_WITHOUT_DATA, PRIMARY_IMAGE, RANDOM_GROUPS,
-  --      EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, RANDOM_BLOCKS);
+  --      EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE, SPECIAL_RECORDS);
         function To_HDU_Type(XTENSION_Value : in String) return HDU_Type
         is
                 t : HDU_Type;

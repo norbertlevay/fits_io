@@ -69,7 +69,7 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
-TIO.Put("RANDBLOCKS found: "& Boolean'Image(MandVals.RANDBLOCKS));
+TIO.Put("SPECRECORDS found: "& Boolean'Image(MandVals.SPECRECORDS));
 TIO.Put(Boolean'Image(MandVals.XTENSION.Read) & " XTENSION ");
 TIO.Put_Line(MandVals.XTENSION.Value);
 TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
@@ -169,7 +169,7 @@ end To_XT_Type;
 			State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
 		else
 			State.Name := NOT_ACCEPTING_CARDS;
-			MandVals.RANDBLOCKS := True;
+			MandVals.SPECRECORDS := True;
 			-- FIXME check this behaviour with Standard
 		end if;
 
