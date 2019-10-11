@@ -25,22 +25,21 @@ MandVals : Primary_Mandatory_Card_Values;
 
 type State_Name is (
 	NOT_ACCEPTING_CARDS, -- FA inactive
-	INITIALIZED,      -- Reset_State was called, FA ready to accept cards
-	PRIMARY_STANDARD, -- SIMPLE = T card found
-	PRIMARY_IMAGE,    -- NAXIS1 > 0
-	RANDOM_GROUPS,    -- NAXIS1 = 0
-	WAIT_END	  -- all mand cards read except END-card
+	PRIMARY_STANDARD, -- expect PrimStandard; check cardkey and position
+	RANDOM_GROUPS,    -- expect RandGroups;   check cardkey only
+	WAIT_END	  -- check END-card only
 	);
 
 type State_Type is
 	record
-		Name      : State_Name;
-		NAXIS_Val : Natural;
+		Name       : State_Name;
+		NAXIS_Val  : Natural;
+		NAXIS1_Val : Natural;
 	end record;
 -- collects values used in state-change 
 -- decisions in different states
 
-InitState : State_Type := (Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0);
+InitState : State_Type := (Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0, NAXIS1_Val => 0);
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
@@ -91,7 +90,7 @@ end DBG_Print;
 	begin
 		MandVals := InitMandVals;
 		State    := InitState;
-		State.Name := INITIALIZED;
+		State.Name := PRIMARY_STANDARD;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;
 
@@ -102,48 +101,30 @@ end DBG_Print;
 	-- State Transition functions
 	--
 
-	function In_INITIALIZED
-		(Pos  : in Positive;
-		Card : in Card_Type) return Natural
-	is
-		CardVal : Boolean;
-	begin
-		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
-		then 
-                       
-		        CardVal := To_Boolean(Card(11..30));
-
-			MandVals.SIMPLE.Value := Card(11..30);
-			MandVals.SIMPLE.Read  := True;
-		   
-			if(CardVal) 
-			then 
-				State.Name := PRIMARY_STANDARD;
-			else
-				State.Name := NOT_ACCEPTING_CARDS;
-				MandVals.HDUTypeVal := PRIMARY_NON_STANDARD;
-				MandVals.HDUTypeSet := True;
-				-- FIXME check this behaviour against Standard
-			end if;
-
-		else
-			Raise_Exception(Unexpected_Card'Identity, Card);
-		end if;
-
-		return Pos + 1;
-
-	end In_INITIALIZED;
-
-
-
-
 	function In_PRIMARY_STANDARD
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
-		CardVal : Integer;
+		Idx : Positive;
 	begin
-		if ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
+		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
+		then 
+        		MandVals.SIMPLE.Value := Card(11..30);
+			MandVals.SIMPLE.Read  := True;
+	
+			declare
+				CardVal : Boolean := To_Boolean(Card(11..30));
+			begin
+				if(CardVal = False) 
+				then 
+					State.Name := NOT_ACCEPTING_CARDS;
+					MandVals.HDUTypeVal := PRIMARY_NON_STANDARD;
+					MandVals.HDUTypeSet := True;
+				end if;
+			end;
+
+
+		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
 		then
 			MandVals.BITPIX.Value := String(Card(11..30));
 			MandVals.BITPIX.Read  := True;
@@ -167,19 +148,32 @@ end DBG_Print;
 		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
 		then
 
-			CardVal := To_Integer(Card(11..30));
+			State.NAXIS1_Val := To_Integer(Card(11..30));
 
 			MandVals.NAXISn(1).Value := Card(11..30);
 			MandVals.NAXISn(1).Read := True;
 	
-			if (CardVal = 0) then
-				State.Name := RANDOM_GROUPS;
-				MandVals.HDUTypeVal := RANDOM_GROUPS;
-				MandVals.HDUTypeSet := True;
+		elsif (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
+		then
+			if(Pos = 3 + Idx)
+			then
+				MandVals.NAXISn(Idx).Value := Card(11..30);
+				MandVals.NAXISn(Idx).Read  := True;
 			else
-				State.Name := PRIMARY_IMAGE;
-				MandVals.HDUTypeVal := PRIMARY_IMAGE;
-				MandVals.HDUTypeSet := True;
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
+			
+			if(Idx = State.NAXIS_Val)
+			then
+				if (State.NAXIS1_Val = 0) then
+					State.Name := RANDOM_GROUPS;
+					MandVals.HDUTypeVal := PRIMARY_NOT_IMAGE;
+					MandVals.HDUTypeSet := True;
+				else
+					State.Name := WAIT_END;
+					MandVals.HDUTypeVal := PRIMARY_IMAGE;
+					MandVals.HDUTypeSet := True;
+				end if;
 			end if;
 
 		else
@@ -194,36 +188,6 @@ end DBG_Print;
 
 
 
-	function In_PRIMARY_IMAGE
-		(Pos  : in Positive;
-		 Card : in Card_Type) return Natural
-	is
-		Idx : Positive;
-	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
-		then
-			if(Pos = 3 + Idx)
-			then
-				MandVals.NAXISn(Idx).Value := Card(11..30);
-				MandVals.NAXISn(Idx).Read  := True;
-			else
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			end if;
-			
-			if(Idx = State.NAXIS_Val)
-			then
-				State.Name := WAIT_END;
-			end if;
-
-		else
-			Raise_Exception(Unexpected_Card'Identity, Card);
-		end if;
-
-		return Pos + 1;
-
-	end In_PRIMARY_IMAGE;
-
-
 
 
 
@@ -231,22 +195,22 @@ end DBG_Print;
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
-		Idx : Positive;
 	begin
-		if (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
-		then
-			if(Pos = 3 + Idx)
-                        then
-				MandVals.NAXISn(Idx).Value := Card(11..30);
-				MandVals.NAXISn(Idx).Read  := True;
-			else
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			end if;
+		if (Card(1..8) = "GROUPS  ") then
 
-		elsif (Card(1..8) = "GROUPS  ") then
 			MandVals.GROUPS.Value := String(Card(11..30));
 			MandVals.GROUPS.Read := True;
-			-- FIXME see table C.1 : GROUPS value must be set T
+
+			declare
+				CardVal : Boolean := To_Boolean(Card(11..30));
+			begin
+				if(CardVal = True) then
+					MandVals.HDUTypeVal := RANDOM_GROUPS;
+					MandVals.HDUTypeSet := True;
+				else
+					Raise_Exception(Unexpected_Card_Value'Identity, Card);
+				end if;
+			end;
 			
 		elsif (Card(1..8) = "PCOUNT  ") then
 			MandVals.PCOUNT.Value := Card(11..30);
@@ -256,14 +220,23 @@ end DBG_Print;
 			MandVals.GCOUNT.Value := String(Card(11..30));
 			MandVals.GCOUNT.Read  := True;
 	
+
 		end if;
 
-		if(MandVals.GROUPS.Read
-		   AND MandVals.PCOUNT.Read
-		   AND MandVals.GCOUNT.Read)
-		then
-			State.Name := WAIT_END;
-		end if;
+
+		declare	
+			TripleComplete : Boolean := 
+				MandVals.GROUPS.Read AND MandVals.PCOUNT.Read AND MandVals.GCOUNT.Read;
+		begin
+			if(Card = ENDCard AND NOT TripleComplete) then
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
+
+			if(TripleComplete)
+			then
+				State.Name := WAIT_END;
+			end if;
+		end;
 
 		return Pos + 1;
 
@@ -301,12 +274,8 @@ end DBG_Print;
 	begin
 
 		case(State.Name) is
-			when INITIALIZED =>
-			       NextCardPos := In_INITIALIZED  (Pos, Card);
 			when PRIMARY_STANDARD => 
 			       NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
-			when PRIMARY_IMAGE => 
-			       NextCardPos := In_PRIMARY_IMAGE(Pos, Card);	
 			when RANDOM_GROUPS => 
 			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);
 			when WAIT_END =>

@@ -20,8 +20,9 @@ type Options_Type is
 	function  Reset_State return Positive;
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
-	Unexpected_Card   : exception;
-	Programming_Error : exception;
+	Unexpected_Card       : exception;
+	Unexpected_Card_Value : exception;
+	Programming_Error     : exception;
 
 	--
 	-- collect results
