@@ -107,6 +107,8 @@ end DBG_Print;
 	is
 		Idx : Positive;
 	begin
+		TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
 		then 
         		MandVals.SIMPLE.Value := Card(11..30);
@@ -201,6 +203,8 @@ end DBG_Print;
 			MandVals.GROUPS.Value := String(Card(11..30));
 			MandVals.GROUPS.Read := True;
 
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 			declare
 				CardVal : Boolean := To_Boolean(Card(11..30));
 			begin
@@ -215,10 +219,14 @@ end DBG_Print;
 		elsif (Card(1..8) = "PCOUNT  ") then
 			MandVals.PCOUNT.Value := Card(11..30);
 			MandVals.PCOUNT.Read  := True;
+			
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif (Card(1..8) = "GCOUNT  ") then
 			MandVals.GCOUNT.Value := String(Card(11..30));
 			MandVals.GCOUNT.Read  := True;
+			
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 	
 
 		end if;
@@ -251,6 +259,9 @@ end DBG_Print;
                 if( ENDCard = Card ) then
                         MandVals.ENDCardPos := Pos;
                         MandVals.ENDCardSet := True;
+  		
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+  
 			State.Name := NOT_ACCEPTING_CARDS;
                         return 0; -- no more cards
                 else

@@ -153,6 +153,7 @@ end To_XT_Type;
 	is
 		Idx : Positive;
 	begin
+		TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 		if(Pos = 1)
 		then
 			-- [FITS 3.5] The first 8 bytes of the special records 
@@ -251,6 +252,8 @@ end To_XT_Type;
 			Ix := Extract_Index("TFORM",Card(1..8));
 			MandVals.TFORMn(Ix).Value := Card(11..30);
 			MandVals.TFORMn(Ix).Read := True;
+			
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif ( "TBCOL" = Card(1..5) )
 		then
@@ -259,6 +262,8 @@ end To_XT_Type;
 				Ix := Extract_Index("TBCOL",Card(1..8));
 				MandVals.TBCOLn(Ix).Value := Card(11..30);
 				MandVals.TBCOLn(Ix).Read  := True;
+
+				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
@@ -306,6 +311,9 @@ end To_XT_Type;
 		if( ENDCard = Card ) then
 			MandVals.ENDCardPos := Pos;
 			MandVals.ENDCardSet := True;
+
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 			State.Name := NOT_ACCEPTING_CARDS;
 			return 0; -- no more cards
 		else
