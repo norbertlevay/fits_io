@@ -17,8 +17,8 @@ InitVal  : constant CardValue := (EmptyVal,False);
 -- collected values
 --
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
-InitTFORMArrVal : constant TFORM_Arr := (others => InitVal);
-InitTBCOLArrVal : constant TBCOL_Arr := (others => InitVal);
+InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 
 InitMandVals : Extension_Mandatory_Card_Values := (False,
 						InitVal,InitVal,InitVal,
@@ -36,9 +36,7 @@ MandVals : Extension_Mandatory_Card_Values := InitMandVals;
 --
 type State_Name is 
 	(NOT_ACCEPTING_CARDS,   -- FA inactive
-	 INITIALIZED,   -- Reset_State was callled, FA ready to accept cards
 	 CONFORMING_EXTENSION, -- collect scalar card values
-	 COLLECT_NAXIS_ARRAY,  -- collect NAXIS array values
 	 COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
 	 WAIT_END);     -- read cards until END card encoutered
 
@@ -59,7 +57,6 @@ InitState : State_Type :=
 	(Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
 
 State : State_Type := InitState;
-
 ------------------------------------------------------------------
 -- utils
 --
@@ -143,39 +140,9 @@ end To_XT_Type;
 	begin
 		MandVals := InitMandVals; 
 		State    := InitState;
-		State.Name := INITIALIZED;
+		State.Name := CONFORMING_EXTENSION;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
-
-
-
-
-	function In_INITIALIZED(Pos : Positive; Card : Card_Type) return Positive
-	is
-	begin
-		-- [FITS 3.5] The first 8 bytes of the special records 
-		-- must not contain the string “XTENSION”.
-
-		if(Pos /= 1) then
-			Raise_Exception(Programming_Error'Identity, 
-			"First card expected but card position is " & Integer'Image(Pos));
-		end if;
-
-		if( "XTENSION" = Card(1..8) )
-		then
-			MandVals.XTENSION.Value := Card(11..30);
-			MandVals.XTENSION.Read  := True;
-			State.Name := CONFORMING_EXTENSION;
-			State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
-		else
-			State.Name := NOT_ACCEPTING_CARDS;
-			MandVals.SPECRECORDS := True;
-			-- FIXME check this behaviour with Standard
-		end if;
-
-		return Pos + 1;
-
-	end In_INITIALIZED;
 
 
 
@@ -184,8 +151,23 @@ end To_XT_Type;
 
 	function In_CONFORMING_EXTENSION(Pos : Positive; Card : Card_Type) return Positive
 	is
+		Idx : Positive;
 	begin
-		if    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
+		if(Pos = 1)
+		then
+			-- [FITS 3.5] The first 8 bytes of the special records 
+			-- must not contain the string “XTENSION”.
+			if( "XTENSION" = Card(1..8) )
+			then
+				MandVals.XTENSION.Value := Card(11..30);
+				MandVals.XTENSION.Read  := True;
+				State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
+			else
+				State.Name := NOT_ACCEPTING_CARDS;
+				MandVals.SPECRECORDS := True;
+			end if;
+
+		elsif    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
 		then
 			MandVals.BITPIX.Value := Card(11..30);
 			MandVals.BITPIX.Read  := True;
@@ -196,7 +178,18 @@ end To_XT_Type;
 			MandVals.NAXIS.Read  := True;
 
 			State.NAXIS_Val      := To_Integer(MandVals.NAXIS.Value);
-			State.Name := COLLECT_NAXIS_ARRAY;
+
+		elsif ( Is_Array(Card,"NAXIS",1,NAXIS_Max,Idx) )
+			-- FIXME NAXIS_Max should be NAXIS_Val but how to 
+			-- guarantee it is read before used ? The same for Idx: nested if's !!
+		then
+			if(Pos = 3 + Idx)
+			then
+				MandVals.NAXISn(Idx).Value := Card(11..30);
+				MandVals.NAXISn(Idx).Read  := True;
+			else
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
 	
 		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
@@ -209,14 +202,20 @@ end To_XT_Type;
 			MandVals.GCOUNT.Read  := True;
 
 			case(State.XTENSION) is
-				when ASCII_TABLE | BIN_TABLE =>
-					State.Name := COLLECT_TABLE_ARRAYS;
+				when IMAGE => State.Name := WAIT_END;
+				when others => null;
+			end case;
 
-				when IMAGE =>
-					State.Name := WAIT_END;
-					
-				when UNSPECIFIED =>
-					Raise_Exception(Programming_Error'Identity, "This should not hapen.");
+		elsif ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
+		then
+			MandVals.TFIELDS.Value := Card(11..30);
+			MandVals.TFIELDS.Read  := True;
+
+			State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
+
+			case(State.XTENSION) is
+				when ASCII_TABLE | BIN_TABLE => State.Name := COLLECT_TABLE_ARRAYS;
+				when others => null;
 			end case;
 
 		else
@@ -228,75 +227,71 @@ end To_XT_Type;
 	end In_CONFORMING_EXTENSION;
 	
 
-
-
-
-
-
-	function In_COLLECT_NAXIS_ARRAY(Pos : Positive; Card : Card_Type) return Positive
+	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
+		return Boolean
 	is
-		Ix : Positive := Extract_Index("NAXIS",Card(1..8));
+		ArrComplete : Boolean := True;
 	begin
+		for Ix in 1 .. Length 
+		loop
+			ArrComplete := ArrComplete AND Arr(Ix).Read;
+		end loop;
+		return ArrComplete;
+	end Is_Array_Complete;
 
-		if ( ("NAXIS" = Card(1..5)) AND (Pos = 3 + Ix) )
-		then
-			MandVals.NAXISn(Ix).Value := Card(11..30);
-			MandVals.NAXISn(Ix).Read  := True;
-		else
-			Raise_Exception(Unexpected_Card'Identity, Card);
-		end if;
-
-		if(Ix = State.NAXIS_Val) 
-		then
-			State.Name := CONFORMING_EXTENSION;
-			-- return to read PCOUNT GCOUNT
-		end if;
-
-		return Pos + 1;
-
-	end In_COLLECT_NAXIS_ARRAY;
-	
-	
-	
-	
-	
 		
 	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Positive
 	is
 		Ix : Positive := 1;
+		TFORMnComplete : Boolean := False;
+		TBCOLnComplete : Boolean := False;
 	begin
-		if ("TFIELDS " = Card(1..8)  )
-                then
-			if (Pos = 3 + State.NAXIS_Val + 3)
-			then
-				MandVals.TFIELDS.Value := Card(11..30);
-				MandVals.TFIELDS.Read  := True;
-				State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
-			else
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			end if;
-		end if;
-
-		if ( ("TFORM" = Card(1..5)) )
+		if ( "TFORM" = Card(1..5) )
 		then
 			Ix := Extract_Index("TFORM",Card(1..8));
 			MandVals.TFORMn(Ix).Value := Card(11..30);
 			MandVals.TFORMn(Ix).Read := True;
-		end if;
 
-		if(State.XTENSION = ASCII_TABLE) 
+		elsif ( "TBCOL" = Card(1..5) )
 		then
-			if ( ("TBCOL" = Card(1..5)) )
+			if(State.XTENSION = ASCII_TABLE) 
 			then
 				Ix := Extract_Index("TBCOL",Card(1..8));
 				MandVals.TBCOLn(Ix).Value := Card(11..30);
 				MandVals.TBCOLn(Ix).Read  := True;
+			else
+				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
+
+		end if;
+		
+		
+		-- check if are arrays completely set 
+
+		TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TFORMn);
+
+		if(State.XTENSION = ASCII_TABLE) 
+		then
+			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TBCOLn);
 		end if;
 
-		if(Ix = State.TFIELDS_Val) 
+		if( Card = ENDCard )
 		then
-			State.Name := WAIT_END;
+			if (NOT TFORMnComplete OR 
+		           ((State.XTENSION = ASCII_TABLE) AND NOT TBCOLnComplete)) 
+			then
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			end if;
+		end if;
+	
+		if((State.XTENSION = ASCII_TABLE) AND 
+			(TFORMnComplete AND TBCOLnComplete))
+                then
+				State.Name := WAIT_END;
+
+		elsif((State.XTENSION = BIN_TABLE) AND TFORMnComplete)
+		then
+				State.Name := WAIT_END;
 		end if;
 
 		return Pos + 1;
@@ -333,12 +328,8 @@ end To_XT_Type;
 	begin
 
 		case(State.Name) is
-			when INITIALIZED => 
-				NextCardPos := In_INITIALIZED(Pos, Card);
 			when CONFORMING_EXTENSION =>
 				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
-			when COLLECT_NAXIS_ARRAY =>
-				NextCardPos := In_COLLECT_NAXIS_ARRAY(Pos, Card);
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 			when WAIT_END =>

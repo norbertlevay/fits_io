@@ -35,8 +35,9 @@ type CardValue is
         end record;
 
 type NAXIS_Arr is array (1..NAXIS_Max)   of CardValue;
-type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
-type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
+type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+--type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
+--type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
 
 
 type Extension_Mandatory_Card_Values is
@@ -49,8 +50,8 @@ type Extension_Mandatory_Card_Values is
         PCOUNT   : CardValue;
         GCOUNT   : CardValue;
         TFIELDS  : CardValue;
-        TFORMn   : TFORM_Arr;
-        TBCOLn   : TBCOL_Arr;
+        TFORMn   : TFIELDS_Arr;
+        TBCOLn   : TFIELDS_Arr;
         ENDCardPos : Natural;
         ENDCardSet : Boolean;
         end record;
