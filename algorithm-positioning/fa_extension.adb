@@ -38,7 +38,9 @@ type State_Name is
 	(NOT_ACCEPTING_CARDS,   -- FA inactive
 	 CONFORMING_EXTENSION, -- collect scalar card values
 	 COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
-	 WAIT_END);     -- read cards until END card encoutered
+	SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE,  -- Final States
+	WAIT_END);     -- read cards until END card encoutered
+
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -164,7 +166,7 @@ end To_XT_Type;
 				MandVals.XTENSION.Read  := True;
 				State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
 			else
-				State.Name := NOT_ACCEPTING_CARDS;
+				State.Name := SPECIAL_RECORDS;
 				MandVals.SPECRECORDS := True;
 			end if;
 
@@ -227,6 +229,30 @@ end To_XT_Type;
 
 	end In_CONFORMING_EXTENSION;
 	
+	
+	
+	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
+	is
+	begin
+		if( ENDCard = Card ) then
+			MandVals.ENDCardPos := Pos;
+			MandVals.ENDCardSet := True;
+
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+			State.Name := IMAGE;
+			return 0; -- no more cards
+		else
+			return Pos + 1;
+		end if;
+	end In_WAIT_END;
+
+
+
+
+
+
+
 
 	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
 		return Boolean
@@ -241,7 +267,7 @@ end To_XT_Type;
 	end Is_Array_Complete;
 
 		
-	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Positive
+	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
 	is
 		Ix : Positive := 1;
 		TFORMnComplete : Boolean := False;
@@ -268,35 +294,33 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 
-		end if;
-		
-		
-		-- check if are arrays completely set 
-
-		TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TFORMn);
-
-		if(State.XTENSION = ASCII_TABLE) 
+		elsif( Card = ENDCard )
 		then
-			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TBCOLn);
-		end if;
+			MandVals.ENDCardPos := Pos;
+			MandVals.ENDCardSet := True;
 
-		if( Card = ENDCard )
-		then
+			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TFORMn);
+
+			if(State.XTENSION = ASCII_TABLE) 
+			then
+				TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TBCOLn);
+			end if;
+
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)&" "&
+			Boolean'Image(TFORMnComplete)&" "&Boolean'Image(TBCOLnComplete));
+
 			if (NOT TFORMnComplete OR 
 		           ((State.XTENSION = ASCII_TABLE) AND NOT TBCOLnComplete)) 
 			then
 				Raise_Exception(Unexpected_Card'Identity, Card);
-			end if;
-		end if;
-	
-		if((State.XTENSION = ASCII_TABLE) AND 
-			(TFORMnComplete AND TBCOLnComplete))
-                then
-				State.Name := WAIT_END;
+			else
+	                        case(State.XTENSION) is
+                                	when ASCII_TABLE => State.Name := TABLE;    return 0;
+                                	when BIN_TABLE   => State.Name := BINTABLE; return 0;
+                                	when others => null;
+				end case;
+                        end if;
 
-		elsif((State.XTENSION = BIN_TABLE) AND TFORMnComplete)
-		then
-				State.Name := WAIT_END;
 		end if;
 
 		return Pos + 1;
@@ -304,22 +328,6 @@ end To_XT_Type;
 	end In_COLLECT_TABLE_ARRAYS;
 	
 
-
-	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
-	is
-	begin
-		if( ENDCard = Card ) then
-			MandVals.ENDCardPos := Pos;
-			MandVals.ENDCardSet := True;
-
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
-			State.Name := NOT_ACCEPTING_CARDS;
-			return 0; -- no more cards
-		else
-			return Pos + 1;
-		end if;
-	end In_WAIT_END;
 
 
 
@@ -338,10 +346,13 @@ end To_XT_Type;
 		case(State.Name) is
 			when CONFORMING_EXTENSION =>
 				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
-			when COLLECT_TABLE_ARRAYS =>
-				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 			when WAIT_END =>
 				NextCardPos := In_WAIT_END(Pos, Card);
+			when COLLECT_TABLE_ARRAYS =>
+				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
+
+			when SPECIAL_RECORDS | IMAGE | TABLE | BINTABLE =>
+				NextCardPos := 0;
 			when NOT_ACCEPTING_CARDS =>
 				NextCardPos := 0;
 		end case;
