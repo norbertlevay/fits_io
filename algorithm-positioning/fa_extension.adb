@@ -31,7 +31,6 @@ InitState : State_Type :=
 State : State_Type := InitState;
 ------------------------------------------------------------------
 -- utils
---
 package TIO renames Ada.Text_IO;
 
 procedure DBG_Print
@@ -48,8 +47,6 @@ TIO.Put_Line(State.NAXIS.Value);
 TIO.Put("NAXIS: ");
 for I in State.NAXISn'Range
 loop
--- TIO.Put(Boolean'Image(NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
--- TIO.Put_Line(NAXISn(I).Value);
  if(State.NAXISn(I).Read) then Put(Positive'Image(I) &":"& State.NAXISn(I).Value & " "); end if;
 end loop;
 New_Line;
@@ -62,21 +59,15 @@ TIO.Put_Line(State.TFIELDS.Value);
 TIO.Put("TFORM: ");
 for I in State.TFORMn'Range
 loop
--- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
--- TIO.Put_Line(TFORMn(I).Value);
 	if(State.TFORMn(I).Read) then Put(Positive'Image(I) &":"& State.TFORMn(I).Value & " "); end if;
 end loop;
 New_Line;
 TIO.Put("TBCOL: ");
 for I in State.TBCOLn'Range
 loop
--- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
--- TIO.Put_Line(TFORMn(I).Value);
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
---TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
---TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -110,8 +101,7 @@ end To_XT_Type;
 	function Reset_State return Positive
 	is
 	begin
---		MandVals := InitMandVals; 
-		State    := InitState;
+		State      := InitState;
 		State.Name := CONFORMING_EXTENSION;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
@@ -335,14 +325,11 @@ end To_XT_Type;
 	end Next;
 
 
-
-
    
-	-- Get interface
         function  Get return State_Type
 	is
 	begin
-		return State;--MandVals; 
+		return State; 
 	end Get;
 
 end FA_Extension;

@@ -49,10 +49,10 @@ type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
 
 type State_Type is
         record
-	Name        : State_Name;
-	XTENSION_Val    : XT_Type;
-	NAXIS_Val   : Natural;
-        TFIELDS_Val : Natural;
+	Name         : State_Name;
+	XTENSION_Val : XT_Type;
+	NAXIS_Val    : Natural;
+        TFIELDS_Val  : Natural;
 
   	SPECRECORDS : Boolean;
         XTENSION : CardValue;
