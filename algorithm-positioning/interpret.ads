@@ -11,7 +11,7 @@ package Interpret
 is
         function  Get(MandVals : in Primary_Mandatory_Card_Values) return HDU_Size_Info_Type;
 
-        function  Get(MandVals : in Extension_Mandatory_Card_Values) return HDU_Size_Info_Type;
+        function  Get(MandVals : in State_Type) return HDU_Size_Info_Type;
 
 	Card_Not_Found    : exception;
 	Programming_Error : exception;

@@ -25,8 +25,18 @@ type Options_Type is
 	Programming_Error     : exception;
 
 	--
-	-- collect results
+	-- definition of states
 	--
+
+type State_Name is
+        (NOT_ACCEPTING_CARDS,  -- FA inactive
+         CONFORMING_EXTENSION, -- Initial state: collect scalar card values
+         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
+         WAIT_END,             -- read cards until END card encoutered
+         SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE); -- Final states
+
+type XT_Type is
+        (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
 
 type CardValue is
         record
@@ -34,15 +44,17 @@ type CardValue is
                 Read  : Boolean;
         end record;
 
-type NAXIS_Arr is array (1..NAXIS_Max)   of CardValue;
+type NAXIS_Arr   is array (1..NAXIS_Max)   of CardValue;
 type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
---type TFORM_Arr is array (1..TFIELDS_Max) of CardValue;
---type TBCOL_Arr is array (1..TFIELDS_Max) of CardValue;
 
-
-type Extension_Mandatory_Card_Values is
+type State_Type is
         record
-	SPECRECORDS : Boolean;
+	Name        : State_Name;
+	XTENSION_Val    : XT_Type;
+	NAXIS_Val   : Natural;
+        TFIELDS_Val : Natural;
+
+  	SPECRECORDS : Boolean;
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;
@@ -56,7 +68,7 @@ type Extension_Mandatory_Card_Values is
         ENDCardSet : Boolean;
         end record;
 
-	function  Get return Extension_Mandatory_Card_Values;
+	function  Get return State_Type;
 
 end FA_Extension;
 

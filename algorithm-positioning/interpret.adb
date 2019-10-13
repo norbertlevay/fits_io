@@ -109,7 +109,7 @@ is
         end To_HDU_Type;
 
 
-        function  Get(MandVals : in Extension_Mandatory_Card_Values) return HDU_Size_Info_Type
+        function  Get(MandVals : in State_Type) return HDU_Size_Info_Type
         is
                 HDUSizeInfo : HDU_Size_Info_Type;
                 NAXIS : Positive;

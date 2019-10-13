@@ -13,50 +13,20 @@ package body FA_Extension is
 EmptyVal : constant String(1..20) := (others => ' ');
 InitVal  : constant CardValue := (EmptyVal,False);
 
---
--- collected values
---
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 
-InitMandVals : Extension_Mandatory_Card_Values := (False,
-						InitVal,InitVal,InitVal,
-                                                InitNAXISArrVal,
-                                                InitVal,InitVal,InitVal,
-                                                InitTFORMArrVal,
-                                                InitTBCOLArrVal,
-                                                0,False);
-
-MandVals : Extension_Mandatory_Card_Values := InitMandVals;
-
-
---
--- state definition
---
-type State_Name is 
-	(NOT_ACCEPTING_CARDS,   -- FA inactive
-	 CONFORMING_EXTENSION, -- collect scalar card values
-	 COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
-	SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE,  -- Final States
-	WAIT_END);     -- read cards until END card encoutered
-
-
-type XT_Type is
-        (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
-
-type State_Type is 
-	record
-		Name        : State_Name;
-		XTENSION    : XT_Type;
-		NAXIS_Val   : Natural;
-		TFIELDS_Val : Natural;
-	end record;
--- collects values used in state-change
--- decisions in different states
-
 InitState : State_Type := 
-	(Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0, TFIELDS_Val => 0, XTENSION => UNSPECIFIED);
+	(NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
+	
+	False,
+	InitVal,InitVal,InitVal,
+        InitNAXISArrVal,
+        InitVal,InitVal,InitVal,
+        InitTFORMArrVal,
+        InitTBCOLArrVal,
+        0,False);
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
@@ -68,45 +38,45 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
-TIO.Put_Line("SPECRECORDS found: "& Boolean'Image(MandVals.SPECRECORDS));
-TIO.Put(Boolean'Image(MandVals.XTENSION.Read) & " XTENSION ");
-TIO.Put_Line(MandVals.XTENSION.Value);
-TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
-TIO.Put_Line(MandVals.BITPIX.Value);
-TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " NAXIS ");
-TIO.Put_Line(MandVals.NAXIS.Value);
+TIO.Put_Line("SPECRECORDS found: "& Boolean'Image(State.SPECRECORDS));
+TIO.Put(Boolean'Image(State.XTENSION.Read) & " XTENSION ");
+TIO.Put_Line(State.XTENSION.Value);
+TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
+TIO.Put_Line(State.BITPIX.Value);
+TIO.Put(Boolean'Image(State.NAXIS.Read) & " NAXIS ");
+TIO.Put_Line(State.NAXIS.Value);
 TIO.Put("NAXIS: ");
-for I in MandVals.NAXISn'Range
+for I in State.NAXISn'Range
 loop
 -- TIO.Put(Boolean'Image(NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
 -- TIO.Put_Line(NAXISn(I).Value);
- if(MandVals.NAXISn(I).Read) then Put(Positive'Image(I) &":"& MandVals.NAXISn(I).Value & " "); end if;
+ if(State.NAXISn(I).Read) then Put(Positive'Image(I) &":"& State.NAXISn(I).Value & " "); end if;
 end loop;
 New_Line;
-TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " PCOUNT ");
-TIO.Put_Line(MandVals.PCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " GCOUNT ");
-TIO.Put_Line(MandVals.GCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.TFIELDS.Read) & " TFIELDS ");
-TIO.Put_Line(MandVals.TFIELDS.Value);
+TIO.Put(Boolean'Image(State.PCOUNT.Read) & " PCOUNT ");
+TIO.Put_Line(State.PCOUNT.Value);
+TIO.Put(Boolean'Image(State.GCOUNT.Read) & " GCOUNT ");
+TIO.Put_Line(State.GCOUNT.Value);
+TIO.Put(Boolean'Image(State.TFIELDS.Read) & " TFIELDS ");
+TIO.Put_Line(State.TFIELDS.Value);
 TIO.Put("TFORM: ");
-for I in MandVals.TFORMn'Range
+for I in State.TFORMn'Range
 loop
 -- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
 -- TIO.Put_Line(TFORMn(I).Value);
-	if(MandVals.TFORMn(I).Read) then Put(Positive'Image(I) &":"& MandVals.TFORMn(I).Value & " "); end if;
+	if(State.TFORMn(I).Read) then Put(Positive'Image(I) &":"& State.TFORMn(I).Value & " "); end if;
 end loop;
 New_Line;
 TIO.Put("TBCOL: ");
-for I in MandVals.TBCOLn'Range
+for I in State.TBCOLn'Range
 loop
 -- TIO.Put(Boolean'Image(TFORMn(I).Read) & " TFORM" & Integer'Image(I)&" ");
 -- TIO.Put_Line(TFORMn(I).Value);
-	if(MandVals.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& MandVals.TBCOLn(I).Value & " "); end if;
+	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
---TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
---TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
+--TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
+--TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -140,7 +110,7 @@ end To_XT_Type;
 	function Reset_State return Positive
 	is
 	begin
-		MandVals := InitMandVals; 
+--		MandVals := InitMandVals; 
 		State    := InitState;
 		State.Name := CONFORMING_EXTENSION;
 		return 1; -- start FA from Header's 1st card	
@@ -162,25 +132,25 @@ end To_XT_Type;
 			-- must not contain the string “XTENSION”.
 			if( "XTENSION" = Card(1..8) )
 			then
-				MandVals.XTENSION.Value := Card(11..30);
-				MandVals.XTENSION.Read  := True;
-				State.XTENSION := To_XT_Type(MandVals.XTENSION.Value);
+				State.XTENSION.Value := Card(11..30);
+				State.XTENSION.Read  := True;
+				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value);
 			else
 				State.Name := SPECIAL_RECORDS;
-				MandVals.SPECRECORDS := True;
+				State.SPECRECORDS := True;
 			end if;
 
 		elsif    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
 		then
-			MandVals.BITPIX.Value := Card(11..30);
-			MandVals.BITPIX.Read  := True;
+			State.BITPIX.Value := Card(11..30);
+			State.BITPIX.Read  := True;
 
 		elsif ( "NAXIS   " = Card(1..8) AND (Pos = 3) )
 		then
-			MandVals.NAXIS.Value := Card(11..30);
-			MandVals.NAXIS.Read  := True;
+			State.NAXIS.Value := Card(11..30);
+			State.NAXIS.Read  := True;
 
-			State.NAXIS_Val      := To_Integer(MandVals.NAXIS.Value);
+			State.NAXIS_Val      := To_Integer(State.NAXIS.Value);
 
 		elsif ( Is_Array(Card,"NAXIS",1,NAXIS_Max,Idx) )
 			-- FIXME NAXIS_Max should be NAXIS_Val but how to 
@@ -188,35 +158,35 @@ end To_XT_Type;
 		then
 			if(Pos = 3 + Idx)
 			then
-				MandVals.NAXISn(Idx).Value := Card(11..30);
-				MandVals.NAXISn(Idx).Read  := True;
+				State.NAXISn(Idx).Value := Card(11..30);
+				State.NAXISn(Idx).Read  := True;
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 	
 		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
-			MandVals.PCOUNT.Value := Card(11..30);
-			MandVals.PCOUNT.Read  := True;
+			State.PCOUNT.Value := Card(11..30);
+			State.PCOUNT.Read  := True;
 
 		elsif ( "GCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
-			MandVals.GCOUNT.Value := Card(11..30);
-			MandVals.GCOUNT.Read  := True;
+			State.GCOUNT.Value := Card(11..30);
+			State.GCOUNT.Read  := True;
 
-			case(State.XTENSION) is
+			case(State.XTENSION_Val) is
 				when IMAGE => State.Name := WAIT_END;
 				when others => null;
 			end case;
 
 		elsif ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
 		then
-			MandVals.TFIELDS.Value := Card(11..30);
-			MandVals.TFIELDS.Read  := True;
+			State.TFIELDS.Value := Card(11..30);
+			State.TFIELDS.Read  := True;
 
-			State.TFIELDS_Val := To_Integer(MandVals.TFIELDS.Value);
+			State.TFIELDS_Val := To_Integer(State.TFIELDS.Value);
 
-			case(State.XTENSION) is
+			case(State.XTENSION_Val) is
 				when ASCII_TABLE | BIN_TABLE => State.Name := COLLECT_TABLE_ARRAYS;
 				when others => null;
 			end case;
@@ -235,8 +205,8 @@ end To_XT_Type;
 	is
 	begin
 		if( ENDCard = Card ) then
-			MandVals.ENDCardPos := Pos;
-			MandVals.ENDCardSet := True;
+			State.ENDCardPos := Pos;
+			State.ENDCardSet := True;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -276,18 +246,18 @@ end To_XT_Type;
 		if ( "TFORM" = Card(1..5) )
 		then
 			Ix := Extract_Index("TFORM",Card(1..8));
-			MandVals.TFORMn(Ix).Value := Card(11..30);
-			MandVals.TFORMn(Ix).Read := True;
+			State.TFORMn(Ix).Value := Card(11..30);
+			State.TFORMn(Ix).Read := True;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif ( "TBCOL" = Card(1..5) )
 		then
-			if(State.XTENSION = ASCII_TABLE) 
+			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
 				Ix := Extract_Index("TBCOL",Card(1..8));
-				MandVals.TBCOLn(Ix).Value := Card(11..30);
-				MandVals.TBCOLn(Ix).Read  := True;
+				State.TBCOLn(Ix).Value := Card(11..30);
+				State.TBCOLn(Ix).Read  := True;
 
 				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			else
@@ -296,25 +266,25 @@ end To_XT_Type;
 
 		elsif( Card = ENDCard )
 		then
-			MandVals.ENDCardPos := Pos;
-			MandVals.ENDCardSet := True;
+			State.ENDCardPos := Pos;
+			State.ENDCardSet := True;
 
-			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TFORMn);
+			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
 
-			if(State.XTENSION = ASCII_TABLE) 
+			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
-				TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,MandVals.TBCOLn);
+				TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
 			end if;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)&" "&
 			Boolean'Image(TFORMnComplete)&" "&Boolean'Image(TBCOLnComplete));
 
 			if (NOT TFORMnComplete OR 
-		           ((State.XTENSION = ASCII_TABLE) AND NOT TBCOLnComplete)) 
+		           ((State.XTENSION_Val = ASCII_TABLE) AND NOT TBCOLnComplete)) 
 			then
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			else
-	                        case(State.XTENSION) is
+	                        case(State.XTENSION_Val) is
                                 	when ASCII_TABLE => State.Name := TABLE;    return 0;
                                 	when BIN_TABLE   => State.Name := BINTABLE; return 0;
                                 	when others => null;
@@ -369,10 +339,10 @@ end To_XT_Type;
 
    
 	-- Get interface
-        function  Get return Extension_Mandatory_Card_Values
+        function  Get return State_Type
 	is
 	begin
-		return MandVals; 
+		return State;--MandVals; 
 	end Get;
 
 end FA_Extension;
