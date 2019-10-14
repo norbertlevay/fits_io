@@ -32,39 +32,39 @@ with FA_Extension; use FA_Extension;
 
 package body Interpret 
 is
-        function  Get(MandVals : in Primary_Mandatory_Card_Values) return HDU_Size_Info_Type
+        function  Get(State : in FA_Primary.State_Type) return HDU_Size_Info_Type
         is
                 HDUSizeInfo : HDU_Size_Info_Type;
                 NAXIS : Positive;
         begin
-                if(MandVals.HDUTypeSet) then
-                        HDUSizeInfo.HDUType := MandVals.HDUTypeVal;
+                if(State.HDUTypeSet) then
+                        HDUSizeInfo.HDUType := State.HDUTypeVal;
                 else
 			Raise_Exception(Programming_Error'Identity, "Primary HDU type undetermined.");
                 end if;
 
-                if(MandVals.ENDCardSet) then
-                        HDUSizeInfo.CardsCount := MandVals.ENDCardPos;
+                if(State.ENDCardSet) then
+                        HDUSizeInfo.CardsCount := State.ENDCardPos;
                 else
 			Raise_Exception(Card_Not_Found'Identity, "END");
                 end if;
 
-                if(MandVals.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := To_Integer(MandVals.BITPIX.Value);
+                if(State.BITPIX.Read) then
+                        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
                 else
 			Raise_Exception(Card_Not_Found'Identity, "BITPIX");
                 end if;
 
-                if(MandVals.NAXIS.Read) then
-                        NAXIS := To_Integer(MandVals.NAXIS.Value);
+                if(State.NAXIS.Read) then
+                        NAXIS := To_Integer(State.NAXIS.Value);
                 else
 			Raise_Exception(Card_Not_Found'Identity, "NAXIS");
                 end if;
 
                 for I in 1 .. NAXIS
                 loop
-                        if(MandVals.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := To_Integer(MandVals.NAXISn(I).Value);
+                        if(State.NAXISn(I).Read) then
+                                HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
                         else
 				Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
                         end if;
@@ -109,7 +109,7 @@ is
         end To_HDU_Type;
 
 
-        function  Get(State : in State_Type) return HDU_Size_Info_Type
+        function  Get(State : in FA_Extension.State_Type) return HDU_Size_Info_Type
         is
                 HDUSizeInfo : HDU_Size_Info_Type;
                 NAXIS : Positive;

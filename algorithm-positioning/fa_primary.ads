@@ -36,9 +36,21 @@ type CardValue is
 
 type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
 
-type Primary_Mandatory_Card_Values is
+type State_Name is (
+        NOT_ACCEPTING_CARDS, -- FA inactive
+        PRIMARY_STANDARD, -- expect PrimStandard; check cardkey and position
+        RANDOM_GROUPS,    -- expect RandGroups;   check cardkey only
+        WAIT_END          -- check END-card only
+        );
+
+
+type State_Type is
         record
-	HDUTypeVal : HDU_Type;
+        Name       : State_Name;
+        NAXIS_Val  : Natural;
+        NAXIS1_Val : Natural;
+		
+ 	HDUTypeVal : HDU_Type;
 	HDUTypeSet : Boolean;
         SIMPLE : CardValue;
         BITPIX : CardValue;
@@ -52,7 +64,7 @@ type Primary_Mandatory_Card_Values is
         ENDCardSet : Boolean;
         end record;
 
-	function  Get return Primary_Mandatory_Card_Values;
+	function  Get return State_Type;
 
 end FA_Primary;
 

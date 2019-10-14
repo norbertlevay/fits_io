@@ -15,31 +15,15 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
-InitMandVals : Primary_Mandatory_Card_Values := (UNSPECIFIED,False,
-						 InitVal,InitVal,InitVal,InitVal,
-                                                 InitNAXISArrVal,
-						 InitVal,InitVal,InitVal,
-						 0,False);
+-- MandVals : Primary_Mandatory_Card_Values;
 
-MandVals : Primary_Mandatory_Card_Values;
 
-type State_Name is (
-	NOT_ACCEPTING_CARDS, -- FA inactive
-	PRIMARY_STANDARD, -- expect PrimStandard; check cardkey and position
-	RANDOM_GROUPS,    -- expect RandGroups;   check cardkey only
-	WAIT_END	  -- check END-card only
-	);
-
-type State_Type is
-	record
-		Name       : State_Name;
-		NAXIS_Val  : Natural;
-		NAXIS1_Val : Natural;
-	end record;
--- collects values used in state-change 
--- decisions in different states
-
-InitState : State_Type := (Name => NOT_ACCEPTING_CARDS, NAXIS_Val => 0, NAXIS1_Val => 0);
+InitState : State_Type := (NOT_ACCEPTING_CARDS, 0, 0,
+			UNSPECIFIED,False,
+                        InitVal,InitVal,InitVal,InitVal,
+                        InitNAXISArrVal,
+                        InitVal,InitVal,InitVal,
+                        0,False);
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
@@ -49,31 +33,31 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
-TIO.Put(Boolean'Image(MandVals.SIMPLE.Read) & " SIMPLE ");
-TIO.Put_Line(MandVals.SIMPLE.Value);
-TIO.Put(Boolean'Image(MandVals.BITPIX.Read) & " BITPIX ");
-TIO.Put_Line(MandVals.BITPIX.Value);
-TIO.Put(Boolean'Image(MandVals.NAXIS.Read) & " NAXIS ");
-TIO.Put_Line(MandVals.NAXIS.Value);
-TIO.Put(Boolean'Image(MandVals.NAXIS1.Read) & " NAXIS1 ");
-TIO.Put_Line(MandVals.NAXIS1.Value);
-for I in MandVals.NAXISn'Range
+TIO.Put(Boolean'Image(State.SIMPLE.Read) & " SIMPLE ");
+TIO.Put_Line(State.SIMPLE.Value);
+TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
+TIO.Put_Line(State.BITPIX.Value);
+TIO.Put(Boolean'Image(State.NAXIS.Read) & " NAXIS ");
+TIO.Put_Line(State.NAXIS.Value);
+TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 ");
+TIO.Put_Line(State.NAXIS1.Value);
+for I in State.NAXISn'Range
 loop
--- TIO.Put(Boolean'Image(MandVals.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
--- TIO.Put_Line(MandVals.NAXISn(I).Value);
-	if(MandVals.NAXISn(I).Read) then
-		TIO.Put(Integer'Image(I) &":"& MandVals.NAXISn(I).Value);
+-- TIO.Put(Boolean'Image(State.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
+-- TIO.Put_Line(State.NAXISn(I).Value);
+	if(State.NAXISn(I).Read) then
+		TIO.Put(Integer'Image(I) &":"& State.NAXISn(I).Value);
 	end if;
 end loop;
 TIO.New_Line;
-TIO.Put(Boolean'Image(MandVals.PCOUNT.Read) & " PCOUNT ");
-TIO.Put_Line(MandVals.PCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.GCOUNT.Read) & " GCOUNT ");
-TIO.Put_Line(MandVals.GCOUNT.Value);
-TIO.Put(Boolean'Image(MandVals.GROUPS.Read) & " GROUPS ");
-TIO.Put_Line(MandVals.GROUPS.Value);
-TIO.Put(Boolean'Image(MandVals.ENDCardSet) & " END ");
-TIO.Put_Line(Positive'Image(MandVals.ENDCardPos));
+TIO.Put(Boolean'Image(State.PCOUNT.Read) & " PCOUNT ");
+TIO.Put_Line(State.PCOUNT.Value);
+TIO.Put(Boolean'Image(State.GCOUNT.Read) & " GCOUNT ");
+TIO.Put_Line(State.GCOUNT.Value);
+TIO.Put(Boolean'Image(State.GROUPS.Read) & " GROUPS ");
+TIO.Put_Line(State.GROUPS.Value);
+TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
+TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 -- -----------------------------------------------------------
@@ -88,7 +72,7 @@ end DBG_Print;
 	function Reset_State return Positive
 	is
 	begin
-		MandVals := InitMandVals;
+		--MandVals := InitMandVals;
 		State    := InitState;
 		State.Name := PRIMARY_STANDARD;
 		return 1; -- start FA from 1st card of HDU
@@ -111,8 +95,8 @@ end DBG_Print;
 
 		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
 		then 
-        		MandVals.SIMPLE.Value := Card(11..30);
-			MandVals.SIMPLE.Read  := True;
+        		State.SIMPLE.Value := Card(11..30);
+			State.SIMPLE.Read  := True;
 	
 			declare
 				CardVal : Boolean := To_Boolean(Card(11..30));
@@ -120,29 +104,29 @@ end DBG_Print;
 				if(CardVal = False) 
 				then 
 					State.Name := NOT_ACCEPTING_CARDS;
-					MandVals.HDUTypeVal := PRIMARY_NON_STANDARD;
-					MandVals.HDUTypeSet := True;
+					State.HDUTypeVal := PRIMARY_NON_STANDARD;
+					State.HDUTypeSet := True;
 				end if;
 			end;
 
 
 		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
 		then
-			MandVals.BITPIX.Value := String(Card(11..30));
-			MandVals.BITPIX.Read  := True;
+			State.BITPIX.Value := String(Card(11..30));
+			State.BITPIX.Read  := True;
 		
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
 		then
 
 			State.NAXIS_Val := To_Integer(Card(11..30));
 
-			MandVals.NAXIS.Value := Card(11..30);
-			MandVals.NAXIS.Read := True;
+			State.NAXIS.Value := Card(11..30);
+			State.NAXIS.Read := True;
 	
 			if (State.NAXIS_Val = 0) then
 				State.Name := WAIT_END;
-				MandVals.HDUTypeVal := PRIMARY_WITHOUT_DATA;
-				MandVals.HDUTypeSet := True;
+				State.HDUTypeVal := PRIMARY_WITHOUT_DATA;
+				State.HDUTypeSet := True;
 				-- FIXME check this behaviour against Standard
 				-- there is some talk that NAXISn() may also be zero
 			end if;
@@ -152,15 +136,15 @@ end DBG_Print;
 
 			State.NAXIS1_Val := To_Integer(Card(11..30));
 
-			MandVals.NAXISn(1).Value := Card(11..30);
-			MandVals.NAXISn(1).Read := True;
+			State.NAXISn(1).Value := Card(11..30);
+			State.NAXISn(1).Read := True;
 	
 		elsif (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
 		then
 			if(Pos = 3 + Idx)
 			then
-				MandVals.NAXISn(Idx).Value := Card(11..30);
-				MandVals.NAXISn(Idx).Read  := True;
+				State.NAXISn(Idx).Value := Card(11..30);
+				State.NAXISn(Idx).Read  := True;
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
@@ -169,12 +153,12 @@ end DBG_Print;
 			then
 				if (State.NAXIS1_Val = 0) then
 					State.Name := RANDOM_GROUPS;
-					MandVals.HDUTypeVal := PRIMARY_NOT_IMAGE;
-					MandVals.HDUTypeSet := True;
+					State.HDUTypeVal := PRIMARY_NOT_IMAGE;
+					State.HDUTypeSet := True;
 				else
 					State.Name := WAIT_END;
-					MandVals.HDUTypeVal := PRIMARY_IMAGE;
-					MandVals.HDUTypeSet := True;
+					State.HDUTypeVal := PRIMARY_IMAGE;
+					State.HDUTypeSet := True;
 				end if;
 			end if;
 
@@ -200,8 +184,8 @@ end DBG_Print;
 	begin
 		if (Card(1..8) = "GROUPS  ") then
 
-			MandVals.GROUPS.Value := String(Card(11..30));
-			MandVals.GROUPS.Read := True;
+			State.GROUPS.Value := String(Card(11..30));
+			State.GROUPS.Read := True;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -209,22 +193,22 @@ end DBG_Print;
 				CardVal : Boolean := To_Boolean(Card(11..30));
 			begin
 				if(CardVal = True) then
-					MandVals.HDUTypeVal := RANDOM_GROUPS;
-					MandVals.HDUTypeSet := True;
+					State.HDUTypeVal := RANDOM_GROUPS;
+					State.HDUTypeSet := True;
 				else
 					Raise_Exception(Unexpected_Card_Value'Identity, Card);
 				end if;
 			end;
 			
 		elsif (Card(1..8) = "PCOUNT  ") then
-			MandVals.PCOUNT.Value := Card(11..30);
-			MandVals.PCOUNT.Read  := True;
+			State.PCOUNT.Value := Card(11..30);
+			State.PCOUNT.Read  := True;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif (Card(1..8) = "GCOUNT  ") then
-			MandVals.GCOUNT.Value := String(Card(11..30));
-			MandVals.GCOUNT.Read  := True;
+			State.GCOUNT.Value := String(Card(11..30));
+			State.GCOUNT.Read  := True;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 	
@@ -234,7 +218,7 @@ end DBG_Print;
 
 		declare	
 			TripleComplete : Boolean := 
-				MandVals.GROUPS.Read AND MandVals.PCOUNT.Read AND MandVals.GCOUNT.Read;
+				State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
 		begin
 			if(Card = ENDCard AND NOT TripleComplete) then
 				Raise_Exception(Unexpected_Card'Identity, Card);
@@ -257,8 +241,8 @@ end DBG_Print;
         is
         begin
                 if( ENDCard = Card ) then
-                        MandVals.ENDCardPos := Pos;
-                        MandVals.ENDCardSet := True;
+                        State.ENDCardPos := Pos;
+                        State.ENDCardSet := True;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
   
@@ -307,10 +291,10 @@ end DBG_Print;
 	-- Collect Results
 	--
 
-       function  Get return Primary_Mandatory_Card_Values
+       function  Get return State_Type
        is
        begin
-	       return MandVals;
+	       return State;
        end Get;
 
 end FA_Primary;
