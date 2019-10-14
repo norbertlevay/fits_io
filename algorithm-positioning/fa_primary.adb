@@ -1,12 +1,10 @@
+with Ada.Text_IO; -- for debug only DBG_Print, Trace_State
 
--- Mandiatory keywords have values in Fixed format. No complex parsing is needed.
--- Simple string comparison is enough to make decisions.
-
-
-with Ada.Text_IO; -- for debug only DBG_Print
 with Ada.Exceptions; use Ada.Exceptions;
 
 with Keyword_Record; use Keyword_Record;
+
+
 
 package body FA_Primary is
 
@@ -15,15 +13,14 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
--- MandVals : Primary_Mandatory_Card_Values;
+InitState : State_Type := 
+	(NOT_ACCEPTING_CARDS, 0, 0,
 
-
-InitState : State_Type := (NOT_ACCEPTING_CARDS, 0, 0,
-			UNSPECIFIED,False,
-                        InitVal,InitVal,InitVal,InitVal,
-                        InitNAXISArrVal,
-                        InitVal,InitVal,InitVal,
-                        0,False);
+	UNSPECIFIED,False,
+        InitVal,InitVal,InitVal,InitVal,
+        InitNAXISArrVal,
+        InitVal,InitVal,InitVal,
+        0,False);
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
@@ -43,8 +40,6 @@ TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 ");
 TIO.Put_Line(State.NAXIS1.Value);
 for I in State.NAXISn'Range
 loop
--- TIO.Put(Boolean'Image(State.NAXISn(I).Read) & " NAXIS" & Integer'Image(I)&" ");
--- TIO.Put_Line(State.NAXISn(I).Value);
 	if(State.NAXISn(I).Read) then
 		TIO.Put(Integer'Image(I) &":"& State.NAXISn(I).Value);
 	end if;
@@ -65,14 +60,9 @@ end DBG_Print;
 
 
 
-
-
-
-
 	function Reset_State return Positive
 	is
 	begin
-		--MandVals := InitMandVals;
 		State    := InitState;
 		State.Name := PRIMARY_STANDARD;
 		return 1; -- start FA from 1st card of HDU
@@ -81,9 +71,6 @@ end DBG_Print;
 
 
 
-	--
-	-- State Transition functions
-	--
 
 	function In_PRIMARY_STANDARD
 		(Pos  : in Positive;
@@ -285,11 +272,7 @@ end DBG_Print;
 
 	end Next;
 	
-
 	
-	--
-	-- Collect Results
-	--
 
        function  Get return State_Type
        is

@@ -1,9 +1,8 @@
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO; -- for debug only DBG_Print, Trace_State
+
 with Ada.Exceptions; use Ada.Exceptions;
 
-with FITS; use FITS;
--- Card_Type needed
-
+with FITS; use FITS; -- Card_Type needed
 with Keyword_Record; use Keyword_Record;
 
 
@@ -30,7 +29,6 @@ InitState : State_Type :=
 
 State : State_Type := InitState;
 ------------------------------------------------------------------
--- utils
 package TIO renames Ada.Text_IO;
 
 procedure DBG_Print
@@ -92,7 +90,6 @@ begin
 	return t;
 
 end To_XT_Type;
--- utils end
 -- -----------------------------------------------------------
 
 
@@ -319,7 +316,6 @@ end To_XT_Type;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
 
-		-- ask for next card from this position
 		return NextCardPos;
 
 	end Next;

@@ -25,16 +25,8 @@ type Options_Type is
 	Programming_Error     : exception;
 
 	--
-	-- collect results
+	-- definition of states
 	--
-	
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
-
-type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
 
 type State_Name is (
         NOT_ACCEPTING_CARDS, -- FA inactive
@@ -44,13 +36,22 @@ type State_Name is (
         );
 
 
+type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+
+type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
+
+
 type State_Type is
         record
         Name       : State_Name;
         NAXIS_Val  : Natural;
         NAXIS1_Val : Natural;
 		
- 	HDUTypeVal : HDU_Type;
+ 	HDUTypeVal : HDU_Type; -- FIXME not needed, State.Name gives HDU_Type; remove HDU_Type it is part of HDU_Size_Info_Type and so returned by Get(State) return HDU_Size_Info_Type
 	HDUTypeSet : Boolean;
         SIMPLE : CardValue;
         BITPIX : CardValue;
