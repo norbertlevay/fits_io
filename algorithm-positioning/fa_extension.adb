@@ -299,7 +299,7 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
-			-- FIXME checks on completeness move to Interpret.adb
+			-- FIXME checks on completeness move to Get
 			-- here simply set END card found
 			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
 
@@ -387,9 +387,9 @@ end To_XT_Type;
         end To_HDU_Type;
 
  
-	function  Get return HDU_Size_Info_Type
+	function  Get return HDU_Size_Rec
         is
-                HDUSizeInfo : HDU_Size_Info_Type;
+                HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
         begin
 

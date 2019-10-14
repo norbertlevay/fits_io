@@ -6,7 +6,6 @@ with Formulas;
 with Keyword_Record;    use Keyword_Record;
 with FA_Primary;
 with FA_Extension;
-with Interpret;
 
 separate(main)
 procedure Set_Index
@@ -78,7 +77,7 @@ type Read_Control is
 	Blk : Card_Block;
 	Rc  : Read_Control;
 	Stoped : Boolean;
-	HDUSizeInfo : HDU_Size_Info_Type;
+	HDUSizeInfo : HDU_Size_Rec;
 	HDUSize_blocks : Formulas.Positive_Count;
 
 
@@ -120,7 +119,7 @@ begin
 
 	end loop;
 
-	HDUSizeInfo := Interpret.Get(FA_Primary.Get);
+	HDUSizeInfo    := FA_Primary.Get;
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;

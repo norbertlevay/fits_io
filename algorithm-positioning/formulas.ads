@@ -8,7 +8,7 @@ package Formulas is
 	-- Calc size
 
 	function  Calc_HDU_Size_blocks
-		(HDUSizeInfo : in HDU_Size_Info_Type) return Positive_Count;
+		(HDUSizeInfo : in HDU_Size_Rec) return Positive_Count;
 
 
 	function  Calc_HeaderUnit_Size_blocks

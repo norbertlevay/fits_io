@@ -9,9 +9,49 @@ with Keyword_Record; use Keyword_Record;
 package body FA_Primary is
 
 EmptyVal : constant String(1..20) := (others => ' ');
+
+        --
+        -- definition of states
+        --
+
+type State_Name is (
+        NOT_ACCEPTING_CARDS, -- FA inactive
+        PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
+        DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
+        WAIT_END,            -- ignore all cards except END-card
+        NO_DATA,IMAGE,RANDOM_GROUPS -- Final states
+        );
+
+
+type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+
 InitVal  : constant CardValue := (EmptyVal,False);
 
+type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
+
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
+
+type State_Type is
+        record
+        Name       : State_Name;
+        NAXIS_Val  : Natural;
+        NAXIS1_Val : Natural;
+
+        SIMPLE : CardValue;
+        BITPIX : CardValue;
+        NAXIS  : CardValue;
+        NAXIS1 : CardValue;
+        NAXISn : NAXIS_Arr;
+        PCOUNT : CardValue;
+        GCOUNT : CardValue;
+        GROUPS : CardValue;
+        ENDCardPos : Natural;
+        ENDCardSet : Boolean;
+        end record;
 
 InitState : State_Type := 
 	(NOT_ACCEPTING_CARDS, 0, 0,
@@ -217,17 +257,17 @@ end DBG_Print;
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
 			
-		        -- FIXME check on completeness move to Interpret.adb
+			-- FIXME check on completeness move to Get
 			-- here simply set END card found
 			TripleComplete :=
-                                State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+				State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
 
-               		if (NOT TripleComplete)
-                        then
-                                Raise_Exception(Unexpected_Card'Identity, Card);
-                        else
+			if (NOT TripleComplete)
+			then
+				Raise_Exception(Unexpected_Card'Identity, Card);
+			else
 				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)
-				                              &" "&Boolean'Image(TripleComplete) );
+				&" "&Boolean'Image(TripleComplete) );
 				State.Name := RANDOM_GROUPS;
 			end if;
 
@@ -252,39 +292,103 @@ end DBG_Print;
 	--
 	function  Next
 		(Pos  : in Positive; 
-		 Card : in Card_Type) return Natural
+		Card : in Card_Type) return Natural
 	is
 		NextCardPos : Natural;
 	begin
 
 		case(State.Name) is
 			when NOT_ACCEPTING_CARDS =>
-			       NextCardPos := 0;
-			
+				NextCardPos := 0;
+
 			when PRIMARY_STANDARD => 
-			       NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
+				NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
 			when WAIT_END =>
-			       NextCardPos := In_WAIT_END(Pos, Card);
+				NextCardPos := In_WAIT_END(Pos, Card);
 			when DATA_NOT_IMAGE => 
-			       NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
+				NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
 
 			when NO_DATA | IMAGE | RANDOM_GROUPS =>
-			       NextCardPos := 0;
+				NextCardPos := 0;
 		end case;
 
-		 if(NextCardPos = 0) then DBG_Print; end if;
-		
+		if(NextCardPos = 0) then DBG_Print; end if;
+
 		return NextCardPos;
 
 	end Next;
-	
-	
 
-       function  Get return State_Type
-       is
-       begin
-	       return State;
-       end Get;
+
+
+
+	function To_HDU_Type(StateName : in FA_Primary.State_Name) return HDU_Type
+	is
+		t : HDU_Type;
+	begin
+		case(StateName) is
+			when NO_DATA       => t := PRIMARY_WITHOUT_DATA;
+			when IMAGE         => t := PRIMARY_IMAGE;
+			when RANDOM_GROUPS => t := RANDOM_GROUPS;
+			when others =>
+				Raise_Exception(Programming_Error'Identity,
+				"Not all cards read. State "&
+				FA_Primary.State_Name'Image(StateName) );
+		end case;
+
+		return t;
+
+	end To_HDU_Type;
+
+
+	function  Get return HDU_Size_Rec
+	is
+		HDUSizeInfo : HDU_Size_Rec;
+                NAXIS : Positive;
+        begin
+
+                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+
+                if(State.ENDCardSet) then
+                        HDUSizeInfo.CardsCount := State.ENDCardPos;
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "END");
+                end if;
+
+                -- FIXME how about SIMPLE value, should we check it was set ?
+
+                if(State.BITPIX.Read) then
+                        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "BITPIX");
+                end if;
+
+                if(State.NAXIS.Read) then
+                        NAXIS := To_Integer(State.NAXIS.Value);
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "NAXIS");
+                end if;
+
+                for I in 1 .. NAXIS
+                loop
+                        if(State.NAXISn(I).Read) then
+                                HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                        else
+                                Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                        end if;
+
+                end loop;
+
+                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
+                for I in NAXIS+1 .. NAXIS_Max
+                loop
+                        HDUSizeInfo.NAXISArr(I) := 1;
+                end loop;
+
+
+                return HDUSizeInfo;
+        end Get;
+
+
 
 end FA_Primary;
 
