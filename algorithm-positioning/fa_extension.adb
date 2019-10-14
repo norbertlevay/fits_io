@@ -256,6 +256,8 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
+			-- FIXME checks on completeness move to Interpret.adb
+			-- here simply set END card found
 			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
 
 			if(State.XTENSION_Val = ASCII_TABLE) 
@@ -301,6 +303,9 @@ end To_XT_Type;
 	begin
 
 		case(State.Name) is
+			when NOT_ACCEPTING_CARDS =>
+				NextCardPos := 0;
+
 			when CONFORMING_EXTENSION =>
 				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
 			when WAIT_END =>
@@ -309,8 +314,6 @@ end To_XT_Type;
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 
 			when SPECIAL_RECORDS | IMAGE | TABLE | BINTABLE =>
-				NextCardPos := 0;
-			when NOT_ACCEPTING_CARDS =>
 				NextCardPos := 0;
 		end case;
 		

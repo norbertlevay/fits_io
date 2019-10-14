@@ -30,9 +30,10 @@ type Options_Type is
 
 type State_Name is (
         NOT_ACCEPTING_CARDS, -- FA inactive
-        PRIMARY_STANDARD, -- expect PrimStandard; check cardkey and position
-        RANDOM_GROUPS,    -- expect RandGroups;   check cardkey only
-        WAIT_END          -- check END-card only
+        PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
+        DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
+        WAIT_END,            -- ignore all cards except END-card
+	NO_DATA,IMAGE,RANDOM_GROUPS -- Final states
         );
 
 

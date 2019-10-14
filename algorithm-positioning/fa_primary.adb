@@ -84,17 +84,13 @@ end DBG_Print;
 		then 
         		State.SIMPLE.Value := Card(11..30);
 			State.SIMPLE.Read  := True;
-	
-			declare
-				CardVal : Boolean := To_Boolean(Card(11..30));
-			begin
-				if(CardVal = False) 
-				then 
-					State.Name := NOT_ACCEPTING_CARDS;
-					State.HDUTypeVal := PRIMARY_NON_STANDARD;
-					State.HDUTypeSet := True;
-				end if;
-			end;
+			
+			-- SIMPLE = F 
+			-- non-standard primary HDU: don't know what to do -> exit.	
+			if(To_Boolean(Card(11..30)) = False)
+			then
+				Raise_Exception(Unexpected_Card_Value'Identity, Card);
+			end if;
 
 
 		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
@@ -139,7 +135,7 @@ end DBG_Print;
 			if(Idx = State.NAXIS_Val)
 			then
 				if (State.NAXIS1_Val = 0) then
-					State.Name := RANDOM_GROUPS;
+					State.Name := DATA_NOT_IMAGE;
 					State.HDUTypeVal := PRIMARY_NOT_IMAGE;
 					State.HDUTypeSet := True;
 				else
@@ -164,10 +160,40 @@ end DBG_Print;
 
 
 
-	function In_RANDOM_GROUPS
+        function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
+        is
+        begin
+                if( ENDCard = Card ) then
+                        State.ENDCardPos := Pos;
+                        State.ENDCardSet := True;
+  		
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+			case(State.HDUTypeVal) is
+				when PRIMARY_WITHOUT_DATA => State.Name := NO_DATA;	
+				when PRIMARY_IMAGE => 	     State.Name := IMAGE;
+				when others =>
+				null; -- FIXME check if correct
+			end case;
+
+                        return 0; -- no more cards
+                else
+                        return Pos + 1;
+                end if;
+        end In_WAIT_END;
+
+
+
+
+
+
+
+
+	function In_DATA_NOT_IMAGE
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
+		TripleComplete : Boolean := False;
 	begin
 		if (Card(1..8) = "GROUPS  ") then
 
@@ -176,16 +202,15 @@ end DBG_Print;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			declare
-				CardVal : Boolean := To_Boolean(Card(11..30));
-			begin
-				if(CardVal = True) then
-					State.HDUTypeVal := RANDOM_GROUPS;
-					State.HDUTypeSet := True;
-				else
-					Raise_Exception(Unexpected_Card_Value'Identity, Card);
-				end if;
-			end;
+			if(To_Boolean(Card(11..30)))
+			then
+				-- GROUPS = T
+				State.HDUTypeVal := RANDOM_GROUPS;
+				State.HDUTypeSet := True;
+			else
+				-- GROUPS = F
+				Raise_Exception(Unexpected_Card_Value'Identity, Card);
+			end if;
 			
 		elsif (Card(1..8) = "PCOUNT  ") then
 			State.PCOUNT.Value := Card(11..30);
@@ -199,46 +224,34 @@ end DBG_Print;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 	
+		elsif (Card = ENDCard) then
+			State.ENDCardPos := Pos;
+                        State.ENDCardSet := True;
+			
+		        -- FIXME check on completeness move to Interpret.adb
+			-- here simply set END card found
+			TripleComplete :=
+                                State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+
+               		if (NOT TripleComplete)
+                        then
+                                Raise_Exception(Unexpected_Card'Identity, Card);
+                        else
+				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)
+				                              &" "&Boolean'Image(TripleComplete) );
+				State.Name := RANDOM_GROUPS;
+			end if;
+
+
 
 		end if;
 
-
-		declare	
-			TripleComplete : Boolean := 
-				State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
-		begin
-			if(Card = ENDCard AND NOT TripleComplete) then
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			end if;
-
-			if(TripleComplete)
-			then
-				State.Name := WAIT_END;
-			end if;
-		end;
-
 		return Pos + 1;
 
-	end In_RANDOM_GROUPS;
+	end In_DATA_NOT_IMAGE;
 
 
 
-
-        function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
-        is
-        begin
-                if( ENDCard = Card ) then
-                        State.ENDCardPos := Pos;
-                        State.ENDCardSet := True;
-  		
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-  
-			State.Name := NOT_ACCEPTING_CARDS;
-                        return 0; -- no more cards
-                else
-                        return Pos + 1;
-                end if;
-        end In_WAIT_END;
 
 
 
@@ -256,13 +269,17 @@ end DBG_Print;
 	begin
 
 		case(State.Name) is
+			when NOT_ACCEPTING_CARDS =>
+			       NextCardPos := 0;
+			
 			when PRIMARY_STANDARD => 
 			       NextCardPos := In_PRIMARY_STANDARD(Pos, Card);
-			when RANDOM_GROUPS => 
-			       NextCardPos := In_RANDOM_GROUPS(Pos, Card);
 			when WAIT_END =>
 			       NextCardPos := In_WAIT_END(Pos, Card);
-			when NOT_ACCEPTING_CARDS =>
+			when DATA_NOT_IMAGE => 
+			       NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
+
+			when NO_DATA | IMAGE | RANDOM_GROUPS =>
 			       NextCardPos := 0;
 		end case;
 

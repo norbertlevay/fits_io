@@ -30,9 +30,9 @@ type Options_Type is
 
 type State_Name is
         (NOT_ACCEPTING_CARDS,  -- FA inactive
-         CONFORMING_EXTENSION, -- Initial state: collect scalar card values
-         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL array values
-         WAIT_END,             -- read cards until END card encoutered
+         CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
+         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
+         WAIT_END,             -- ignore all cards except END-card
          SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE); -- Final states
 
 type XT_Type is
