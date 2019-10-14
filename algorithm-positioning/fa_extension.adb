@@ -253,24 +253,10 @@ end To_XT_Type;
 
 
 
-	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
-		return Boolean
-	is
-		ArrComplete : Boolean := True;
-	begin
-		for Ix in 1 .. Length 
-		loop
-			ArrComplete := ArrComplete AND Arr(Ix).Read;
-		end loop;
-		return ArrComplete;
-	end Is_Array_Complete;
-
 		
 	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
 	is
 		Ix : Positive := 1;
-		TFORMnComplete : Boolean := False;
-		TBCOLnComplete : Boolean := False;
 	begin
 		if ( "TFORM" = Card(1..5) )
 		then
@@ -298,29 +284,13 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
-			-- FIXME checks on completeness move to Get
-			-- here simply set END card found
-			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if(State.XTENSION_Val = ASCII_TABLE) 
-			then
-				TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
-			end if;
-
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)&" "&
-			Boolean'Image(TFORMnComplete)&" "&Boolean'Image(TBCOLnComplete));
-
-			if (NOT TFORMnComplete OR 
-		           ((State.XTENSION_Val = ASCII_TABLE) AND NOT TBCOLnComplete)) 
-			then
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			else
-	                        case(State.XTENSION_Val) is
-                                	when ASCII_TABLE => State.Name := TABLE;    return 0;
-                                	when BIN_TABLE   => State.Name := BINTABLE; return 0;
-                                	when others => null;
-				end case;
-                        end if;
+                        case(State.XTENSION_Val) is
+                               	when ASCII_TABLE => State.Name := TABLE;    return 0;
+                               	when BIN_TABLE   => State.Name := BINTABLE; return 0;
+                               	when others => null;
+			end case;
 
 		end if;
 
@@ -366,6 +336,8 @@ end To_XT_Type;
 	end Next;
 
 
+
+
         function To_HDU_Type(StateName : in FA_Extension.State_Name) return HDU_Type
         is
                 t : HDU_Type;
@@ -385,14 +357,46 @@ end To_XT_Type;
 
         end To_HDU_Type;
 
- 
+
+ 	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
+		return Boolean
+	is
+		ArrComplete : Boolean := True;
+	begin
+		for Ix in 1 .. Length 
+		loop
+			ArrComplete := ArrComplete AND Arr(Ix).Read;
+		end loop;
+		return ArrComplete;
+	end Is_Array_Complete;
+
+
 	function  Get return HDU_Size_Rec
         is
                 HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
-        begin
-
+        	TFORMnComplete : Boolean := False;
+		TBCOLnComplete : Boolean := False;
+	begin
                 HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+
+		if((State.XTENSION_Val = ASCII_TABLE) OR (State.XTENSION_Val = BIN_TABLE)) 
+		then
+			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
+		end if;
+
+		if(State.XTENSION_Val = ASCII_TABLE) 
+		then
+			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
+		end if;
+
+		if ( ((State.XTENSION_Val = BIN_TABLE)   AND NOT TFORMnComplete) OR 
+	             ((State.XTENSION_Val = ASCII_TABLE) AND NOT TBCOLnComplete) ) 
+		then
+			Raise_Exception(Card_Not_Found'Identity, 
+					"Some of TFORMn and/or TBCOLn cards missing.");
+		end if;
+
 
                 if(State.ENDCardSet) then
                         HDUSizeInfo.CardsCount := State.ENDCardPos;

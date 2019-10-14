@@ -226,7 +226,6 @@ end DBG_Print;
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
-		TripleComplete : Boolean := False;
 	begin
 		if (Card(1..8) = "GROUPS  ") then
 
@@ -256,21 +255,10 @@ end DBG_Print;
 		elsif (Card = ENDCard) then
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
-			
-			-- FIXME check on completeness move to Get
-			-- here simply set END card found
-			TripleComplete :=
-				State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+	
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if (NOT TripleComplete)
-			then
-				Raise_Exception(Unexpected_Card'Identity, Card);
-			else
-				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8)
-				&" "&Boolean'Image(TripleComplete) );
-				State.Name := RANDOM_GROUPS;
-			end if;
-
+			State.Name := RANDOM_GROUPS;		
 
 
 		end if;
@@ -344,9 +332,18 @@ end DBG_Print;
 	is
 		HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
+		TripleComplete : Boolean := 
+			State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+			-- FIXME needed only if RANDOM_GROUPS
         begin
 
                 HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+
+		if ((NOT TripleComplete) AND State.Name = RANDOM_GROUPS)
+		then
+			Raise_Exception(Card_Not_Found'Identity, "GROUPS PCOUNT or GCOUNT not found.");
+		end if;
+
 
                 if(State.ENDCardSet) then
                         HDUSizeInfo.CardsCount := State.ENDCardPos;
