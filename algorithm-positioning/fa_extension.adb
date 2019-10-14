@@ -11,6 +11,18 @@ package body FA_Extension is
 
 EmptyVal : constant String(1..20) := (others => ' ');
 
+	--
+        -- definition of states
+        --
+
+type State_Name is
+        (NOT_ACCEPTING_CARDS,  -- FA inactive
+         CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
+         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
+         WAIT_END,             -- ignore all cards except END-card
+         IMAGE,TABLE,BINTABLE,SPECIAL_RECORDS); -- Final states
+
+
 type CardValue is
         record
                 Value : String(1..20);
@@ -27,17 +39,6 @@ InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 
-
-	--
-        -- definition of states
-        --
-
-type State_Name is
-        (NOT_ACCEPTING_CARDS,  -- FA inactive
-         CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
-         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
-         WAIT_END,             -- ignore all cards except END-card
-         SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE); -- Final states
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -146,8 +147,6 @@ end To_XT_Type;
 		State.Name := CONFORMING_EXTENSION;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
-
-
 
 
 

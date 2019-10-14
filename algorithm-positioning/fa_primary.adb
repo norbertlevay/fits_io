@@ -14,8 +14,8 @@ EmptyVal : constant String(1..20) := (others => ' ');
         -- definition of states
         --
 
-type State_Name is (
-        NOT_ACCEPTING_CARDS, -- FA inactive
+type State_Name is 
+       (NOT_ACCEPTING_CARDS, -- FA inactive
         PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
         DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
         WAIT_END,            -- ignore all cards except END-card
@@ -102,7 +102,7 @@ end DBG_Print;
 	function Reset_State return Positive
 	is
 	begin
-		State    := InitState;
+		State      := InitState;
 		State.Name := PRIMARY_STANDARD;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;

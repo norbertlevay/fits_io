@@ -1,5 +1,5 @@
 
-with FITS;  use  FITS; 
+with FITS; use FITS; 
 -- Card_Type HDU_Size_Info needed
 
 
