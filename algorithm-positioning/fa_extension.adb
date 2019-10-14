@@ -19,7 +19,6 @@ InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitState : State_Type := 
 	(NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
 	
-	False,
 	InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
@@ -35,7 +34,6 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
-TIO.Put_Line("SPECRECORDS found: "& Boolean'Image(State.SPECRECORDS));
 TIO.Put(Boolean'Image(State.XTENSION.Read) & " XTENSION ");
 TIO.Put_Line(State.XTENSION.Value);
 TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
@@ -124,7 +122,6 @@ end To_XT_Type;
 				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value);
 			else
 				State.Name := SPECIAL_RECORDS;
-				State.SPECRECORDS := True;
 			end if;
 
 		elsif    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )

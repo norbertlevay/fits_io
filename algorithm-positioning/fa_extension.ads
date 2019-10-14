@@ -54,7 +54,6 @@ type State_Type is
 	NAXIS_Val    : Natural;
         TFIELDS_Val  : Natural;
 
-  	SPECRECORDS : Boolean;
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;
