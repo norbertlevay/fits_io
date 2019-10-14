@@ -16,7 +16,6 @@ InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitState : State_Type := 
 	(NOT_ACCEPTING_CARDS, 0, 0,
 
-	UNSPECIFIED,False,
         InitVal,InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
@@ -108,8 +107,6 @@ end DBG_Print;
 	
 			if (State.NAXIS_Val = 0) then
 				State.Name := WAIT_END;
-				State.HDUTypeVal := PRIMARY_WITHOUT_DATA;
-				State.HDUTypeSet := True;
 				-- FIXME check this behaviour against Standard
 				-- there is some talk that NAXISn() may also be zero
 			end if;
@@ -136,12 +133,8 @@ end DBG_Print;
 			then
 				if (State.NAXIS1_Val = 0) then
 					State.Name := DATA_NOT_IMAGE;
-					State.HDUTypeVal := PRIMARY_NOT_IMAGE;
-					State.HDUTypeSet := True;
 				else
 					State.Name := WAIT_END;
-					State.HDUTypeVal := PRIMARY_IMAGE;
-					State.HDUTypeSet := True;
 				end if;
 			end if;
 
@@ -169,12 +162,12 @@ end DBG_Print;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			case(State.HDUTypeVal) is
-				when PRIMARY_WITHOUT_DATA => State.Name := NO_DATA;	
-				when PRIMARY_IMAGE => 	     State.Name := IMAGE;
-				when others =>
-				null; -- FIXME check if correct
-			end case;
+			if(State.NAXIS_Val = 0)
+			then
+				State.Name := NO_DATA;
+			else
+				State.Name := IMAGE;
+			end if;
 
                         return 0; -- no more cards
                 else
@@ -202,13 +195,9 @@ end DBG_Print;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if(To_Boolean(Card(11..30)))
+			-- GROUPS = F
+			if(To_Boolean(Card(11..30)) = False)
 			then
-				-- GROUPS = T
-				State.HDUTypeVal := RANDOM_GROUPS;
-				State.HDUTypeSet := True;
-			else
-				-- GROUPS = F
 				Raise_Exception(Unexpected_Card_Value'Identity, Card);
 			end if;
 			

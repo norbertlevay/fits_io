@@ -52,8 +52,6 @@ type State_Type is
         NAXIS_Val  : Natural;
         NAXIS1_Val : Natural;
 		
- 	HDUTypeVal : HDU_Type; -- FIXME not needed, State.Name gives HDU_Type; remove HDU_Type it is part of HDU_Size_Info_Type and so returned by Get(State) return HDU_Size_Info_Type
-	HDUTypeSet : Boolean;
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
