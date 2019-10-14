@@ -12,9 +12,10 @@ Leave out all implementation issues like:
 
 
 
-FITS standard seen as describing 2 algorithms:
-- positioning within the FITS file
+FITS standard seen as describing 2+ algorithms:
+- positioning within the FITS file (Mandatory keys)
 - WCS coordinate system (positioning for data access)
+- biblio info, observation info... (Reserved keys)
 
 
 

@@ -129,7 +129,7 @@ end DBG_Print;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 			
-			if(Idx = State.NAXIS_Val)
+			if(Idx >= State.NAXIS_Val)
 			then
 				if (State.NAXIS1_Val = 0) then
 					State.Name := DATA_NOT_IMAGE;
