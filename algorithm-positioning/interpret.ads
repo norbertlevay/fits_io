@@ -11,8 +11,6 @@ package Interpret
 is
         function  Get(State : in FA_Primary.State_Type) return HDU_Size_Info_Type;
 
-        function  Get(State : in FA_Extension.State_Type) return HDU_Size_Info_Type;
-
 	Card_Not_Found    : exception;
 	Programming_Error : exception;
 

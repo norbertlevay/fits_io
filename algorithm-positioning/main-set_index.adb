@@ -157,7 +157,7 @@ loop
 
 	end loop;
 
-	HDUSizeInfo    := Interpret.Get(FA_Extension.Get);
+	HDUSizeInfo    := FA_Extension.Get;
 	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;

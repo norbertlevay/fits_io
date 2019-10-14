@@ -10,11 +10,57 @@ with Keyword_Record; use Keyword_Record;
 package body FA_Extension is
 
 EmptyVal : constant String(1..20) := (others => ' ');
+
+type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+
 InitVal  : constant CardValue := (EmptyVal,False);
 
-InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
+type NAXIS_Arr   is array (1..NAXIS_Max)   of CardValue;
+type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+
+
+InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
+
+
+	--
+        -- definition of states
+        --
+
+type State_Name is
+        (NOT_ACCEPTING_CARDS,  -- FA inactive
+         CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
+         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
+         WAIT_END,             -- ignore all cards except END-card
+         SPECIAL_RECORDS,IMAGE,TABLE,BINTABLE); -- Final states
+
+type XT_Type is
+        (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
+
+type State_Type is
+        record
+        Name         : State_Name;
+        XTENSION_Val : XT_Type;
+        NAXIS_Val    : Natural;
+        TFIELDS_Val  : Natural;
+
+        XTENSION : CardValue;
+        BITPIX   : CardValue;
+        NAXIS    : CardValue;
+        NAXISn   : NAXIS_Arr;
+        PCOUNT   : CardValue;
+        GCOUNT   : CardValue;
+        TFIELDS  : CardValue;
+        TFORMn   : TFIELDS_Arr;
+        TBCOLn   : TFIELDS_Arr;
+        ENDCardPos : Natural;
+        ENDCardSet : Boolean;
+        end record;
 
 InitState : State_Type := 
 	(NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
@@ -321,12 +367,74 @@ end To_XT_Type;
 	end Next;
 
 
-   
-        function  Get return State_Type
-	is
-	begin
-		return State; 
-	end Get;
+        function To_HDU_Type(StateName : in FA_Extension.State_Name) return HDU_Type
+        is
+                t : HDU_Type;
+        begin
+                case(StateName) is
+                        when SPECIAL_RECORDS => t := SPECIAL_RECORDS;
+                        when IMAGE           => t := EXT_IMAGE;
+                        when TABLE           => t := EXT_ASCII_TABLE;
+                        when BINTABLE        => t := EXT_BIN_TABLE;
+                        when others =>
+                                Raise_Exception(Programming_Error'Identity,
+                                "Not all cards read. State "&
+                                FA_Extension.State_Name'Image(StateName) );
+                end case;
+
+                return t;
+
+        end To_HDU_Type;
+
+ 
+	function  Get return HDU_Size_Info_Type
+        is
+                HDUSizeInfo : HDU_Size_Info_Type;
+                NAXIS : Positive;
+        begin
+
+                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+
+                if(State.ENDCardSet) then
+                        HDUSizeInfo.CardsCount := State.ENDCardPos;
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "END");
+                end if;
+
+                -- FIXME how about XTENSION value, shoule we check it was set ?
+
+                if(State.BITPIX.Read) then
+                        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "BITPIX");
+                end if;
+
+                if(State.NAXIS.Read) then
+                        NAXIS := To_Integer(State.NAXIS.Value);
+                else
+                        Raise_Exception(Card_Not_Found'Identity, "NAXIS");
+                end if;
+
+                for I in 1 .. NAXIS
+                loop
+                        if(State.NAXISn(I).Read) then
+                                HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                        else
+                                Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                        end if;
+
+                end loop;
+
+                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
+                for I in NAXIS+1 .. NAXIS_Max
+                loop
+                        HDUSizeInfo.NAXISArr(I) := 1;
+                end loop;
+
+
+                return HDUSizeInfo;
+        end Get;
+
 
 end FA_Extension;
 
