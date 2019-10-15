@@ -248,8 +248,45 @@ end To_XT_Type;
 
 
 
+ 	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
+		return Boolean
+	is
+		ArrComplete : Boolean := True;
+	begin
+		for Ix in 1 .. Length 
+		loop
+			ArrComplete := ArrComplete AND Arr(Ix).Read;
+		end loop;
+		return ArrComplete;
+	end Is_Array_Complete;
 
 
+
+	function Is_TFORM_TBCOL_Complete return Boolean
+	is
+        	TFORMnComplete : Boolean := False;
+		TBCOLnComplete : Boolean := False;
+	begin
+		if(State.XTENSION_Val = ASCII_TABLE) 
+		then
+			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
+			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
+
+			return TBCOLnComplete AND TFORMnComplete;
+		end if;
+
+		if(State.XTENSION_Val = BIN_TABLE)
+		then
+			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
+
+			return TFORMnComplete;
+		end if;
+
+		Raise_Exception(Programming_Error'Identity, 
+				"Function called for incorrect XTENSION type.");
+		-- FIXME this is not nice/logical
+
+	end Is_TFORM_TBCOL_Complete;
 
 
 
@@ -294,7 +331,18 @@ end To_XT_Type;
 
 		end if;
 
-		return Pos + 1;
+                if(State.ENDCardSet)
+                then
+			if(NOT Is_TFORM_TBCOL_Complete)
+			then
+                                Raise_Exception(Card_Not_Found'Identity,
+                                                "Some elements of TFORM or TBCOL array not found.");
+			end if;
+
+                        return 0;
+                else
+                        return Pos + 1;
+                end if;
 
 	end In_COLLECT_TABLE_ARRAYS;
 	
@@ -358,53 +406,34 @@ end To_XT_Type;
         end To_HDU_Type;
 
 
- 	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
-		return Boolean
-	is
-		ArrComplete : Boolean := True;
-	begin
-		for Ix in 1 .. Length 
-		loop
-			ArrComplete := ArrComplete AND Arr(Ix).Read;
-		end loop;
-		return ArrComplete;
-	end Is_Array_Complete;
-
 
 	function  Get return HDU_Size_Rec
         is
                 HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
-        	TFORMnComplete : Boolean := False;
-		TBCOLnComplete : Boolean := False;
 	begin
-                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
-		if((State.XTENSION_Val = ASCII_TABLE) OR (State.XTENSION_Val = BIN_TABLE)) 
-		then
-			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
-		end if;
-
-		if(State.XTENSION_Val = ASCII_TABLE) 
-		then
-			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
-		end if;
-
-		if ( ((State.XTENSION_Val = BIN_TABLE)   AND NOT TFORMnComplete) OR 
-	             ((State.XTENSION_Val = ASCII_TABLE) AND NOT TBCOLnComplete) ) 
-		then
-			Raise_Exception(Card_Not_Found'Identity, 
-					"Some of TFORMn and/or TBCOLn cards missing.");
-		end if;
-
-
+		-- unlogical: code could not reach this point if ENDcard would not be found...
+		-- NOT True: user can call this func without reading cards first: Programming_Error
                 if(State.ENDCardSet) then
                         HDUSizeInfo.CardsCount := State.ENDCardPos;
                 else
                         Raise_Exception(Card_Not_Found'Identity, "END");
                 end if;
 
+		-- until here handle together (??)
+
+
+
+
+
+        	--
+                -- conversion HDU_Size_Rec
+                --
+
                 -- FIXME how about XTENSION value, shoule we check it was set ?
+
+                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
                 if(State.BITPIX.Read) then
                         HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);

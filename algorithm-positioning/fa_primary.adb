@@ -220,6 +220,13 @@ end DBG_Print;
 
 
 
+	function Is_GROUPS_PCOUNT_GCOUNT_Found return Boolean
+	is
+	begin
+		return State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+
+	end Is_GROUPS_PCOUNT_GCOUNT_Found;
+
 
 
 	function In_DATA_NOT_IMAGE
@@ -263,7 +270,19 @@ end DBG_Print;
 
 		end if;
 
-		return Pos + 1;
+
+                if(State.ENDCardSet)
+                then
+			if(NOT Is_GROUPS_PCOUNT_GCOUNT_Found)
+			then
+				Raise_Exception(Card_Not_Found'Identity,
+						"Some of GROUPS PCOUNT GCOUNT not found.");
+			end if;
+
+                        return 0;
+                else
+                        return Pos + 1;
+                end if;
 
 	end In_DATA_NOT_IMAGE;
 
@@ -328,30 +347,49 @@ end DBG_Print;
 	end To_HDU_Type;
 
 
+
 	function  Get return HDU_Size_Rec
 	is
 		HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
-		TripleComplete : Boolean := 
-			State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
+--		TripleComplete : Boolean := 
+--			State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
 			-- FIXME needed only if RANDOM_GROUPS
         begin
 
-                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
-		if ((NOT TripleComplete) AND State.Name = RANDOM_GROUPS)
-		then
-			Raise_Exception(Card_Not_Found'Identity, "GROUPS PCOUNT or GCOUNT not found.");
-		end if;
+		-- from here
+
+--		if ((NOT TripleComplete) AND State.Name = RANDOM_GROUPS)
+--		then
+--			Raise_Exception(Card_Not_Found'Identity, "GROUPS PCOUNT or GCOUNT not found.");
+--		end if;
 
 
+
+		-- unlogical: code could not reach this point if ENDcard would not be found....
+		-- NOT True: user can simply call Get() without running the FA -> programming error
+		-- OR Header was read, but is broken (without END card) so we read through all file
+		--  reaching EOF <- but this should raise exception: trying to read behind file end??
                 if(State.ENDCardSet) then
                         HDUSizeInfo.CardsCount := State.ENDCardPos;
                 else
-                        Raise_Exception(Card_Not_Found'Identity, "END");
+                        Raise_Exception(Programming_Error'Identity, 
+					"Header was not read ? END card not found.");
                 end if;
 
+		-- until here to be hanled together (??)
+
+
+
+
+		--
+		-- conversion HDU_Size_Rec
+		--
+
                 -- FIXME how about SIMPLE value, should we check it was set ?
+		
+                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
                 if(State.BITPIX.Read) then
                         HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
