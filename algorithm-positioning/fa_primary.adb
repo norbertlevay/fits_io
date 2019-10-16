@@ -19,7 +19,9 @@ type State_Name is
         PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
         DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
         WAIT_END,            -- ignore all cards except END-card
-        NO_DATA,IMAGE,RANDOM_GROUPS -- Final states
+        NO_DATA, 	NO_DATA_WITH_U,		-- Final states
+	IMAGE,   	IMAGE_WITH_U,		-- Final states
+	RANDOM_GROUPS, RANDOM_GROUPS_WITH_U 	-- Final states
         );
 
 
@@ -37,6 +39,8 @@ InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
 type State_Type is
         record
+	PrevPos : Natural;
+
         Name       : State_Name;
         NAXIS_Val  : Natural;
         NAXIS1_Val : Natural;
@@ -49,16 +53,20 @@ type State_Type is
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
+	UnknownCount : Natural;
+
         ENDCardPos : Natural;
         ENDCardSet : Boolean;
         end record;
 
 InitState : State_Type := 
-	(NOT_ACCEPTING_CARDS, 0, 0,
+	(0,
+	NOT_ACCEPTING_CARDS, 0, 0,
 
         InitVal,InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
+	0,
         0,False);
 
 State : State_Type := InitState;
@@ -190,6 +198,22 @@ end DBG_Print;
 
 
 
+	
+	function Is_Fixed_Position(Card : in Card_Type) return Boolean
+	is
+	begin
+		-- FIXME to be implemented
+		return False;
+	end Is_Fixed_Position;
+
+
+	function Is_Valid(Card : in Card_Type) return Boolean
+	is
+	begin
+		-- FIXME to be implemented
+		return True;
+	end Is_Valid;
+
 
 
 
@@ -202,17 +226,44 @@ end DBG_Print;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if(State.NAXIS_Val = 0)
+			if( (State.NAXIS_Val = 0) AND (State.UnknownCount = 0) )
 			then
 				State.Name := NO_DATA;
-			else
+
+			elsif( (State.NAXIS_Val = 0) AND (State.UnknownCount > 0) )
+			then
+				State.Name := NO_DATA_WITH_U;
+
+			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount = 0) )
+			then
 				State.Name := IMAGE;
+			
+			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount > 0) )
+			then
+				State.Name := IMAGE_WITH_U;
+
 			end if;
 
-                        return 0; -- no more cards
-                else
-                        return Pos + 1;
+                        return 0;
+			-- no more cards
+        
+		elsif(Is_Fixed_Position(Card)) then
+			-- one of PRIMARY_STANDARD cards: may appear only once in header
+			Raise_Exception(Duplicate_Card'Identity, Card);
+
+		elsif(Is_Valid(Card)) then
+			-- defined by [FITS Appendix A] BNF syntax
+			State.UnknownCount := State.UnknownCount + 1;
+			-- valid but unknown to this FA-implementation
+
+		else
+			Raise_Exception(Invalid_Card'Identity, Card);
+			-- found card which does not confirm [FITS Addendix A] BNF syntax
+			-- FIXME consider configurable whether to raise excpetion here or ignore
                 end if;
+	
+		return Pos + 1;
+
         end In_WAIT_END;
 
 
@@ -224,9 +275,7 @@ end DBG_Print;
 	is
 	begin
 		return State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
-
 	end Is_GROUPS_PCOUNT_GCOUNT_Found;
-
 
 
 	function In_DATA_NOT_IMAGE
@@ -234,7 +283,10 @@ end DBG_Print;
 		 Card : in Card_Type) return Natural
 	is
 	begin
-		if (Card(1..8) = "GROUPS  ") then
+		-- always check State.xxx.Read flag to avoid duplicates
+		-- FIXME consider configurable how to react to duplicates (with the same card value)
+
+		if ( (Card(1..8) = "GROUPS  ") AND (NOT State.GROUPS.Read) ) then
 
 			State.GROUPS.Value := String(Card(11..30));
 			State.GROUPS.Read := True;
@@ -247,13 +299,13 @@ end DBG_Print;
 				Raise_Exception(Unexpected_Card_Value'Identity, Card);
 			end if;
 			
-		elsif (Card(1..8) = "PCOUNT  ") then
+		elsif ( (Card(1..8) = "PCOUNT  ") AND (NOT State.PCOUNT.Read) ) then
 			State.PCOUNT.Value := Card(11..30);
 			State.PCOUNT.Read  := True;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-		elsif (Card(1..8) = "GCOUNT  ") then
+		elsif ( (Card(1..8) = "GCOUNT  ") AND (NOT State.GCOUNT.Read) ) then
 			State.GCOUNT.Value := String(Card(11..30));
 			State.GCOUNT.Read  := True;
 			
@@ -265,24 +317,39 @@ end DBG_Print;
 	
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			State.Name := RANDOM_GROUPS;		
-
-
-		end if;
-
-
-                if(State.ENDCardSet)
-                then
 			if(NOT Is_GROUPS_PCOUNT_GCOUNT_Found)
 			then
 				Raise_Exception(Card_Not_Found'Identity,
 						"Some of GROUPS PCOUNT GCOUNT not found.");
 			end if;
+ 
+			if(State.UnknownCount = 0)
+			then
+				State.Name := RANDOM_GROUPS;
+			else
+				State.Name := RANDOM_GROUPS_WITH_U;
+			end if;
 
                         return 0;
-                else
-                        return Pos + 1;
-                end if;
+			-- no more cards
+
+
+		elsif(Is_Fixed_Position(Card)) then
+			
+			Raise_Exception(Duplicate_Card'Identity, Card);
+			-- one of PRIMARY_STANDARD cards: may appear only once in header
+
+		elsif(Is_Valid(Card)) then
+			-- valid card defined by [FITS Appendix A] BNF syntax
+			State.UnknownCount := State.UnknownCount + 1;
+			-- valid but unknown to this FA-implementation
+		else
+			Raise_Exception(Invalid_Card'Identity, Card);
+			-- found card which does not confirm [FITS Addendix A] BNF syntax
+		end if;
+		
+	
+		return Pos + 1;
 
 	end In_DATA_NOT_IMAGE;
 
@@ -303,6 +370,17 @@ end DBG_Print;
 	is
 		NextCardPos : Natural;
 	begin
+		-- this FA-algorithm requires that cards are sequentually
+		-- this check also guarantees that Fixed Pos cards cannot be skipped
+		if(Pos /= State.PrevPos + 1)
+		then
+	                 Raise_Exception(Programming_Error'Identity, 
+			   "Card in position returned from previous Next()-call must be supplied."
+			   &" However: "&Integer'Image(Pos) &" prev: "&Integer'Image(State.PrevPos));
+		else
+			State.PrevPos := Pos;
+		end if;
+
 
 		case(State.Name) is
 			when NOT_ACCEPTING_CARDS =>
@@ -315,10 +393,13 @@ end DBG_Print;
 			when DATA_NOT_IMAGE => 
 				NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
 
-			when NO_DATA | IMAGE | RANDOM_GROUPS =>
+			when NO_DATA | NO_DATA_WITH_U | 
+			     IMAGE   | IMAGE_WITH_U   | 
+			     RANDOM_GROUPS | RANDOM_GROUPS_WITH_U =>
 				NextCardPos := 0;
 		end case;
-
+		
+		-- TIO.Put_Line("DBG> "&Integer'Image(NextCardPos) & Card);
 		if(NextCardPos = 0) then DBG_Print; end if;
 
 		return NextCardPos;
@@ -333,9 +414,9 @@ end DBG_Print;
 		t : HDU_Type;
 	begin
 		case(StateName) is
-			when NO_DATA       => t := PRIMARY_WITHOUT_DATA;
-			when IMAGE         => t := PRIMARY_IMAGE;
-			when RANDOM_GROUPS => t := RANDOM_GROUPS;
+			when NO_DATA | NO_DATA_WITH_U => t := PRIMARY_WITHOUT_DATA;
+			when IMAGE   | IMAGE_WITH_U   => t := PRIMARY_IMAGE;
+			when RANDOM_GROUPS | RANDOM_GROUPS_WITH_U => t := RANDOM_GROUPS;
 			when others =>
 				Raise_Exception(Programming_Error'Identity,
 				"Not all cards read. State "&

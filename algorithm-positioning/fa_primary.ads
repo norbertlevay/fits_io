@@ -23,7 +23,9 @@ type Options_Type is
 
 	Unexpected_Card       : exception;
  	Unexpected_Card_Value : exception;
+	Duplicate_Card        : exception;
 	Card_Not_Found        : exception;
+	Invalid_Card	      : exception;
 	Programming_Error     : exception;
 
 end FA_Primary;

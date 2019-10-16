@@ -41,8 +41,8 @@ type Read_Control is
                 loop
                         Card := CardBlock(I);
 
-                        if ( Card = ENDCard OR Is_ValuedCard(Card) )
-                        then
+                        --if ( Card = ENDCard OR Is_ValuedCard(Card) )
+                        --then
 
                                 CardPos := CardPosBase + I;
 
@@ -63,7 +63,7 @@ type Read_Control is
                                         Rc := Continue;
                                 end if;
 
-                        end if;
+                        --end if;
 
                 end loop;
                 return Rc;
