@@ -41,29 +41,24 @@ type Read_Control is
                 loop
                         Card := CardBlock(I);
 
-                        --if ( Card = ENDCard OR Is_ValuedCard(Card) )
-                        --then
+                        CardPos := CardPosBase + I;
 
-                                CardPos := CardPosBase + I;
+			if(HDUNum = 1)
+			then
+				NextCardPos := FA_Primary.Next(CardPos, Card);
+			else
+				NextCardPos := FA_Extension.Next(CardPos, Card);
+			end if;
+			-- FIXME use generic instead HDUNum
 
-				if(HDUNum = 1)
-				then
-					NextCardPos := FA_Primary.Next(CardPos, Card);
-				else
-					NextCardPos := FA_Extension.Next(CardPos, Card);
-				end if;
-				-- FIXME use generic instead HDUNum
-
-                                -- currently ignored - we loop throu anyway
-                                if(NextCardPos = 0)
-                                then
-                                        Rc := Stop;
-                                        exit;
-                                else
-                                        Rc := Continue;
-                                end if;
-
-                        --end if;
+                        -- currently ignored - we loop throu anyway
+                        if(NextCardPos = 0)
+			then
+				Rc := Stop;
+				exit;
+			else
+				Rc := Continue;
+			end if;
 
                 end loop;
                 return Rc;
