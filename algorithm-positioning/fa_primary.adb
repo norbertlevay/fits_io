@@ -271,11 +271,23 @@ end DBG_Print;
 
 
 
-	function Is_GROUPS_PCOUNT_GCOUNT_Found return Boolean
+	procedure Assert_GROUPS_PCOUNT_GCOUNT_Found
 	is
 	begin
-		return State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
-	end Is_GROUPS_PCOUNT_GCOUNT_Found;
+		if(NOT State.GROUPS.Read) 
+		then 
+			Raise_Exception(Card_Not_Found'Identity, "GROUPS not found.");
+		end if;
+		if(NOT State.PCOUNT.Read) 
+		then 
+			Raise_Exception(Card_Not_Found'Identity, "PCOUNT not found.");
+		end if;
+		if(NOT State.GCOUNT.Read) 
+		then 
+			Raise_Exception(Card_Not_Found'Identity, "GCOUNT not found.");
+		end if;
+	end Assert_GROUPS_PCOUNT_GCOUNT_Found;
+
 
 
 	function In_DATA_NOT_IMAGE
@@ -317,11 +329,7 @@ end DBG_Print;
 	
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if(NOT Is_GROUPS_PCOUNT_GCOUNT_Found)
-			then
-				Raise_Exception(Card_Not_Found'Identity,
-						"Some of GROUPS PCOUNT GCOUNT not found.");
-			end if;
+			Assert_GROUPS_PCOUNT_GCOUNT_Found;
  
 			if(State.UnknownCount = 0)
 			then

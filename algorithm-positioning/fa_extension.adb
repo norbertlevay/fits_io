@@ -247,50 +247,23 @@ end To_XT_Type;
 	end In_WAIT_END;
 
 
-
- 	function Is_Array_Complete(Length : Positive; Arr : TFIELDS_Arr )
-		return Boolean
+	-- NOTE Ada2005 has package Ada.Assertions; and also 'pragma Assert()'
+  	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_Arr )
 	is
 		ArrComplete : Boolean := True;
 	begin
 		for Ix in 1 .. Length 
 		loop
-			ArrComplete := ArrComplete AND Arr(Ix).Read;
+			if(Arr(Ix).Read)
+			then
+				null;
+			else
+				Raise_Exception(Card_Not_Found'Identity, ArrName&Integer'Image(Ix));
+			end if;
 		end loop;
-		return ArrComplete;
-	end Is_Array_Complete;
+	end Assert_Array_Complete;
 
 
-
-	function Is_TFORM_TBCOL_Complete return Boolean
-	is
-        	TFORMnComplete : Boolean := False;
-		TBCOLnComplete : Boolean := False;
-	begin
-		if(State.XTENSION_Val = ASCII_TABLE) 
-		then
-			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
-			TBCOLnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TBCOLn);
-
-			return TBCOLnComplete AND TFORMnComplete;
-		end if;
-
-		if(State.XTENSION_Val = BIN_TABLE)
-		then
-			TFORMnComplete := Is_Array_Complete(State.TFIELDS_Val,State.TFORMn);
-
-			return TFORMnComplete;
-		end if;
-
-		Raise_Exception(Programming_Error'Identity, 
-				"Function called for incorrect XTENSION type.");
-		-- FIXME this is not nice/logical
-
-	end Is_TFORM_TBCOL_Complete;
-
-
-
-		
 	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
 	is
 		Ix : Positive := 1;
@@ -324,25 +297,23 @@ end To_XT_Type;
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
                         case(State.XTENSION_Val) is
-                               	when ASCII_TABLE => State.Name := TABLE;    return 0;
-                               	when BIN_TABLE   => State.Name := BINTABLE; return 0;
+                               	when ASCII_TABLE => 
+  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
+  					Assert_Array_Complete("TBCOL",State.TFIELDS_Val, State.TBCOLn);
+					State.Name := TABLE;
+					return 0;
+
+                               	when BIN_TABLE   => 
+  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
+					State.Name := BINTABLE; 
+					return 0;
+
                                	when others => null;
 			end case;
 
 		end if;
 
-                if(State.ENDCardSet)
-                then
-			if(NOT Is_TFORM_TBCOL_Complete)
-			then
-                                Raise_Exception(Card_Not_Found'Identity,
-                                                "Some elements of TFORM or TBCOL array not found.");
-			end if;
-
-                        return 0;
-                else
-                        return Pos + 1;
-                end if;
+                return Pos + 1;
 
 	end In_COLLECT_TABLE_ARRAYS;
 	
