@@ -20,7 +20,17 @@ type State_Name is
          CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
          COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
          WAIT_END,             -- ignore all cards except END-card
-         IMAGE,TABLE,BINTABLE,SPECIAL_RECORDS); -- Final states
+         IMAGE, TABLE, BINTABLE,	-- Final states
+	 IMAGE_U, TABLE_U, BINTABLE_U, 	-- Final states
+	 SPECIAL_RECORDS		-- Final states
+	 );	
+-- Final states naming: 
+-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+-- IMAGE_U : header has mandatory IMAGE cards and
+-- some extra cards Unknown to this software implementation.
+-- Other codes will refer to Reserved key groups, like B for biblio related keys:
+-- IMAGE_BW : has only mandatory keys and at least one of biblio related 
+-- reserved keys, and some WCS keys.
 
 
 type CardValue is
@@ -45,6 +55,8 @@ type XT_Type is
 
 type State_Type is
         record
+	PrevPos : Natural;
+
         Name         : State_Name;
         XTENSION_Val : XT_Type;
         NAXIS_Val    : Natural;
@@ -59,18 +71,22 @@ type State_Type is
         TFIELDS  : CardValue;
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
+        UnknownCount : Natural;
+
         ENDCardPos : Natural;
         ENDCardSet : Boolean;
         end record;
 
 InitState : State_Type := 
-	(NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
+	(0,
+	NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
 	
 	InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
+	0,
         0,False);
 
 State : State_Type := InitState;
@@ -227,7 +243,24 @@ end To_XT_Type;
 		return Pos + 1;
 
 	end In_CONFORMING_EXTENSION;
-	
+
+
+
+
+        function Is_Fixed_Position(Card : in Card_Type) return Boolean
+        is
+        begin
+                -- FIXME to be implemented
+                return False;
+        end Is_Fixed_Position;
+
+
+        function Is_Valid(Card : in Card_Type) return Boolean
+        is
+        begin
+                -- FIXME to be implemented
+                return True;
+        end Is_Valid;
 	
 	
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
@@ -238,12 +271,34 @@ end To_XT_Type;
 			State.ENDCardSet := True;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			
+		       	if(State.UnknownCount = 0)
+                        then
+				State.Name := IMAGE;
+			else
+				State.Name := IMAGE_U;
+			end if;
+			return 0;
+			-- no more cards
 
-			State.Name := IMAGE;
-			return 0; -- no more cards
-		else
-			return Pos + 1;
+
+                elsif(Is_Fixed_Position(Card)) then
+                        -- one of CONFORMING_EXTENSION cards: may appear only once in header
+                        Raise_Exception(Duplicate_Card'Identity, Card);
+
+                elsif(Is_Valid(Card)) then
+                        -- defined by [FITS Appendix A] BNF syntax
+                        State.UnknownCount := State.UnknownCount + 1;
+                        -- valid but unknown to this FA-implementation
+
+                else
+                        Raise_Exception(Invalid_Card'Identity, Card);
+                        -- found card which does not confirm [FITS Addendix A] BNF syntax
+                        -- FIXME consider configurable whether to raise excpetion here or ignore
 		end if;
+
+		return Pos + 1;
+
 	end In_WAIT_END;
 
 
@@ -271,8 +326,15 @@ end To_XT_Type;
 		if ( "TFORM" = Card(1..5) )
 		then
 			Ix := Extract_Index("TFORM",Card(1..8));
-			State.TFORMn(Ix).Value := Card(11..30);
-			State.TFORMn(Ix).Read := True;
+			if(NOT State.TFORMn(Ix).Read)
+			then
+				State.TFORMn(Ix).Value := Card(11..30);
+				State.TFORMn(Ix).Read := True;
+			else
+				-- FIXME only duplicates with diff values raises exception
+				-- duplicate with equal values: make configurable what to do...
+				Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -281,8 +343,13 @@ end To_XT_Type;
 			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
 				Ix := Extract_Index("TBCOL",Card(1..8));
-				State.TBCOLn(Ix).Value := Card(11..30);
-				State.TBCOLn(Ix).Read  := True;
+				if(NOT State.TBCOLn(Ix).Read)
+				then
+					State.TBCOLn(Ix).Value := Card(11..30);
+					State.TBCOLn(Ix).Read  := True;
+				else
+	                                Raise_Exception(Duplicate_Card'Identity, Card);
+                	        end if;
 
 				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			else
@@ -300,17 +367,42 @@ end To_XT_Type;
                                	when ASCII_TABLE => 
   					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
   					Assert_Array_Complete("TBCOL",State.TFIELDS_Val, State.TBCOLn);
-					State.Name := TABLE;
+				       	if(State.UnknownCount = 0)
+                        		then
+						State.Name := TABLE;
+					else
+						State.Name := TABLE_U;
+					end if;
 					return 0;
+					-- no more cards
 
                                	when BIN_TABLE   => 
   					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
-					State.Name := BINTABLE; 
+				       	if(State.UnknownCount = 0)
+                        		then
+						State.Name := BINTABLE;
+					else
+						State.Name := BINTABLE_U;
+					end if;
 					return 0;
+					-- no more cards
 
                                	when others => null;
 			end case;
 
+
+		elsif(Is_Fixed_Position(Card))
+		then
+                        Raise_Exception(Duplicate_Card'Identity, Card);
+                        -- one of CONFORMING_EXTENSION cards: may appear only once in header
+
+                elsif(Is_Valid(Card)) then
+                        -- valid card defined by [FITS Appendix A] BNF syntax
+                        State.UnknownCount := State.UnknownCount + 1;
+                        -- valid but unknown to this FA-implementation
+                else
+                        Raise_Exception(Invalid_Card'Identity, Card);
+                        -- found card which does not confirm [FITS Addendix A] BNF syntax
 		end if;
 
                 return Pos + 1;
@@ -332,6 +424,17 @@ end To_XT_Type;
 		NextCardPos : Natural;
 		InState : State_Name := State.Name;
 	begin
+                -- this FA-algorithm requires that cards are sequentially
+                -- this check also guarantees that Fixed Pos cards cannot be skipped
+                if(Pos /= State.PrevPos + 1)
+                then
+                         Raise_Exception(Programming_Error'Identity,
+                           "Card in position returned from previous Next()-call must be supplied."
+                           &" However: "&Integer'Image(Pos) &" prev: "&Integer'Image(State.PrevPos));
+                else
+                        State.PrevPos := Pos;
+                end if;
+
 
 		case(State.Name) is
 			when NOT_ACCEPTING_CARDS =>
@@ -344,7 +447,10 @@ end To_XT_Type;
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 
-			when SPECIAL_RECORDS | IMAGE | TABLE | BINTABLE =>
+			when SPECIAL_RECORDS | 
+				IMAGE | IMAGE_U | 
+				TABLE | TABLE_U | 
+				BINTABLE | BINTABLE_U =>
 				NextCardPos := 0;
 		end case;
 		
@@ -362,10 +468,10 @@ end To_XT_Type;
                 t : HDU_Type;
         begin
                 case(StateName) is
-                        when SPECIAL_RECORDS => t := SPECIAL_RECORDS;
-                        when IMAGE           => t := EXT_IMAGE;
-                        when TABLE           => t := EXT_ASCII_TABLE;
-                        when BINTABLE        => t := EXT_BIN_TABLE;
+                        when SPECIAL_RECORDS       => t := SPECIAL_RECORDS;
+                        when IMAGE | 	IMAGE_U    => t := EXT_IMAGE;
+                        when TABLE | 	TABLE_U    => t := EXT_ASCII_TABLE;
+                        when BINTABLE | BINTABLE_U => t := EXT_BIN_TABLE;
                         when others =>
                                 Raise_Exception(Programming_Error'Identity,
                                 "Not all cards read. State "&

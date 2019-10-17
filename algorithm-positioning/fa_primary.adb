@@ -19,10 +19,17 @@ type State_Name is
         PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
         DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
         WAIT_END,            -- ignore all cards except END-card
-        NO_DATA, 	NO_DATA_WITH_U,		-- Final states
-	IMAGE,   	IMAGE_WITH_U,		-- Final states
-	RANDOM_GROUPS, RANDOM_GROUPS_WITH_U 	-- Final states
+        NO_DATA, IMAGE, RANDOM_GROUPS, 	    -- Final states
+	NO_DATA_U, IMAGE_U, RANDOM_GROUPS_U -- Final states
         );
+-- Final states naming: 
+-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+-- IMAGE_U : header has mandatory IMAGE cards and
+-- some extra cards Unknown to this software implementation.
+-- Other codes will refer to Reserved key groups, like B for biblio related keys:
+-- IMAGE_BW : has only mandatory keys and at least one of biblio related 
+-- reserved keys, and some WCS keys.
+
 
 
 type CardValue is
@@ -232,7 +239,7 @@ end DBG_Print;
 
 			elsif( (State.NAXIS_Val = 0) AND (State.UnknownCount > 0) )
 			then
-				State.Name := NO_DATA_WITH_U;
+				State.Name := NO_DATA_U;
 
 			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount = 0) )
 			then
@@ -240,7 +247,7 @@ end DBG_Print;
 			
 			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount > 0) )
 			then
-				State.Name := IMAGE_WITH_U;
+				State.Name := IMAGE_U;
 
 			end if;
 
@@ -289,6 +296,16 @@ end DBG_Print;
 	end Assert_GROUPS_PCOUNT_GCOUNT_Found;
 
 
+	procedure Assert_GROUPS_T_Found(Card : in Card_Type)
+	is
+	begin
+	-- GROUPS = F
+		if(To_Boolean(Card(11..30)) = False)
+		then
+			Raise_Exception(Unexpected_Card_Value'Identity, Card);
+		end if;
+	end Assert_GROUPS_T_Found;
+
 
 	function In_DATA_NOT_IMAGE
 		(Pos  : in Positive;
@@ -298,28 +315,43 @@ end DBG_Print;
 		-- always check State.xxx.Read flag to avoid duplicates
 		-- FIXME consider configurable how to react to duplicates (with the same card value)
 
-		if ( (Card(1..8) = "GROUPS  ") AND (NOT State.GROUPS.Read) ) then
-
-			State.GROUPS.Value := String(Card(11..30));
-			State.GROUPS.Read := True;
+		if ( Card(1..8) = "GROUPS  " ) then
+			
+			if (NOT State.GROUPS.Read)
+			then
+				State.GROUPS.Value := String(Card(11..30));
+				State.GROUPS.Read := True;
+			else
+                                -- FIXME only duplicates with diff values raises exception
+                                -- duplicate with equal values: make configurable what to do...
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			-- GROUPS = F
-			if(To_Boolean(Card(11..30)) = False)
+			Assert_GROUPS_T_Found(Card);
+
+		elsif (Card(1..8) = "PCOUNT  ") then
+			
+			if (NOT State.PCOUNT.Read)
 			then
-				Raise_Exception(Unexpected_Card_Value'Identity, Card);
+				State.PCOUNT.Value := Card(11..30);
+				State.PCOUNT.Read  := True;
+			else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 			
-		elsif ( (Card(1..8) = "PCOUNT  ") AND (NOT State.PCOUNT.Read) ) then
-			State.PCOUNT.Value := Card(11..30);
-			State.PCOUNT.Read  := True;
-			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-		elsif ( (Card(1..8) = "GCOUNT  ") AND (NOT State.GCOUNT.Read) ) then
-			State.GCOUNT.Value := String(Card(11..30));
-			State.GCOUNT.Read  := True;
+		elsif (Card(1..8) = "GCOUNT  ") then
+			
+			if (NOT State.GCOUNT.Read)
+			then
+				State.GCOUNT.Value := String(Card(11..30));
+				State.GCOUNT.Read  := True;
+			else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 	
@@ -335,7 +367,7 @@ end DBG_Print;
 			then
 				State.Name := RANDOM_GROUPS;
 			else
-				State.Name := RANDOM_GROUPS_WITH_U;
+				State.Name := RANDOM_GROUPS_U;
 			end if;
 
                         return 0;
@@ -378,7 +410,7 @@ end DBG_Print;
 	is
 		NextCardPos : Natural;
 	begin
-		-- this FA-algorithm requires that cards are sequentually
+		-- this FA-algorithm requires that cards are sequentially
 		-- this check also guarantees that Fixed Pos cards cannot be skipped
 		if(Pos /= State.PrevPos + 1)
 		then
@@ -401,9 +433,9 @@ end DBG_Print;
 			when DATA_NOT_IMAGE => 
 				NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
 
-			when NO_DATA | NO_DATA_WITH_U | 
-			     IMAGE   | IMAGE_WITH_U   | 
-			     RANDOM_GROUPS | RANDOM_GROUPS_WITH_U =>
+			when NO_DATA | NO_DATA_U | 
+			     IMAGE   | IMAGE_U   | 
+			     RANDOM_GROUPS | RANDOM_GROUPS_U =>
 				NextCardPos := 0;
 		end case;
 		
@@ -422,9 +454,9 @@ end DBG_Print;
 		t : HDU_Type;
 	begin
 		case(StateName) is
-			when NO_DATA | NO_DATA_WITH_U => t := PRIMARY_WITHOUT_DATA;
-			when IMAGE   | IMAGE_WITH_U   => t := PRIMARY_IMAGE;
-			when RANDOM_GROUPS | RANDOM_GROUPS_WITH_U => t := RANDOM_GROUPS;
+			when NO_DATA | NO_DATA_U => t := PRIMARY_WITHOUT_DATA;
+			when IMAGE   | IMAGE_U   => t := PRIMARY_IMAGE;
+			when RANDOM_GROUPS | RANDOM_GROUPS_U => t := RANDOM_GROUPS;
 			when others =>
 				Raise_Exception(Programming_Error'Identity,
 				"Not all cards read. State "&
