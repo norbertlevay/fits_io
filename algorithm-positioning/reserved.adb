@@ -17,16 +17,11 @@ package TIO renames Ada.Text_IO;
 procedure DBG_Print(Obs : in Obs_Type)
 is
 begin
-TIO.Put("Obs "&Boolean'Image(Obs.DATEOBS.Read) & " DATE-OBS ");
-TIO.Put_Line(Obs.DATEOBS.Value);
-TIO.Put("Obs "&Boolean'Image(Obs.TELESCOP.Read) & " TELESCOP ");
-TIO.Put_Line(Obs.TELESCOP.Value);
-TIO.Put("Obs "&Boolean'Image(Obs.INSTRUME.Read) & " INSTRUME ");
-TIO.Put_Line(Obs.INSTRUME.Value);
-TIO.Put("Obs "&Boolean'Image(Obs.OBSERVER.Read) & " OBSERVER ");
-TIO.Put_Line(Obs.OBSERVER.Value);
-TIO.Put("Obs "&Boolean'Image(Obs.OBJECT.Read) & " OBJECT ");
-TIO.Put_Line(Obs.OBJECT.Value);
+if(Obs.DATEOBS.Read)  then TIO.Put_Line("Obs DATE-OBS "&Obs.DATEOBS.Value);  end if;
+if(Obs.TELESCOP.Read) then TIO.Put_Line("Obs TELESCOP "&Obs.TELESCOP.Value); end if;
+if(Obs.INSTRUME.Read) then TIO.Put_Line("Obs INSTRUME "&Obs.INSTRUME.Value); end if;
+if(Obs.OBSERVER.Read) then TIO.Put_Line("Obs OBSERVER "&Obs.OBSERVER.Value); end if;
+if(Obs.OBJECT.Read)   then TIO.Put_Line("Obs OBJECT   "&Obs.OBJECT.Value);   end if;
 end DBG_Print;
 
 

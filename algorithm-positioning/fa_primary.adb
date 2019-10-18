@@ -87,12 +87,9 @@ is
 begin
 TIO.New_Line;
 --TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
-TIO.Put(Boolean'Image(State.SIMPLE.Read) & " SIMPLE ");
-TIO.Put_Line(State.SIMPLE.Value);
-TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
-TIO.Put_Line(State.BITPIX.Value);
-TIO.Put(Boolean'Image(State.NAXIS.Read) & " NAXIS ");
-TIO.Put_Line(State.NAXIS.Value);
+if(State.SIMPLE.Read) then TIO.Put_Line("SIMPLE  "&State.SIMPLE.Value); end if;
+if(State.BITPIX.Read) then TIO.Put_Line("BITPITX "&State.BITPIX.Value); end if;
+if(State.NAXIS.Read)  then TIO.Put_Line("NAXIS   "&State.NAXIS.Value);  end if;
 TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 ");
 TIO.Put_Line(State.NAXIS1.Value);
 for I in State.NAXISn'Range
@@ -102,12 +99,9 @@ loop
 	end if;
 end loop;
 TIO.New_Line;
-TIO.Put(Boolean'Image(State.PCOUNT.Read) & " PCOUNT ");
-TIO.Put_Line(State.PCOUNT.Value);
-TIO.Put(Boolean'Image(State.GCOUNT.Read) & " GCOUNT ");
-TIO.Put_Line(State.GCOUNT.Value);
-TIO.Put(Boolean'Image(State.GROUPS.Read) & " GROUPS ");
-TIO.Put_Line(State.GROUPS.Value);
+if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
+if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
+if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
 Reserved.DBG_Print(State.Obs);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));

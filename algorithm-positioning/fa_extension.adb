@@ -115,24 +115,18 @@ is
 begin
 TIO.New_Line;
 -- TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
-TIO.Put(Boolean'Image(State.XTENSION.Read) & " XTENSION ");
-TIO.Put_Line(State.XTENSION.Value);
-TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
-TIO.Put_Line(State.BITPIX.Value);
-TIO.Put(Boolean'Image(State.NAXIS.Read) & " NAXIS ");
-TIO.Put_Line(State.NAXIS.Value);
+if(State.XTENSION.Read) then TIO.Put_Line("XTENSION "&State.XTENSION.Value); end if;
+if(State.BITPIX.Read)   then TIO.Put_Line("BITPITX  "&State.BITPIX.Value);   end if;
+if(State.NAXIS.Read)    then TIO.Put_Line("NAXIS    "&State.NAXIS.Value);    end if;
 TIO.Put("NAXIS: ");
 for I in State.NAXISn'Range
 loop
  if(State.NAXISn(I).Read) then Put(Positive'Image(I) &":"& State.NAXISn(I).Value & " "); end if;
 end loop;
 New_Line;
-TIO.Put(Boolean'Image(State.PCOUNT.Read) & " PCOUNT ");
-TIO.Put_Line(State.PCOUNT.Value);
-TIO.Put(Boolean'Image(State.GCOUNT.Read) & " GCOUNT ");
-TIO.Put_Line(State.GCOUNT.Value);
-TIO.Put(Boolean'Image(State.TFIELDS.Read) & " TFIELDS ");
-TIO.Put_Line(State.TFIELDS.Value);
+if(State.PCOUNT.Read)  then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value);  end if;
+if(State.GCOUNT.Read)  then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value);  end if;
+if(State.TFIELDS.Read) then TIO.Put_Line("TFIELDS "&State.TFIELDS.Value); end if;
 TIO.Put("TFORM: ");
 for I in State.TFORMn'Range
 loop
@@ -145,21 +139,18 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
-
 TIO.Put("TTYPE: ");
 for I in State.Tab.TTYPEn'Range
 loop
 	if(State.Tab.TTYPEn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TTYPEn(I).Value & " "); end if;
 end loop;
 New_Line;
-
 TIO.Put("TUNIT: ");
 for I in State.Tab.TUNITn'Range
 loop
 	if(State.Tab.TUNITn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TUNITn(I).Value & " "); end if;
 end loop;
 New_Line;
-
 Reserved.DBG_Print(State.Obs);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
