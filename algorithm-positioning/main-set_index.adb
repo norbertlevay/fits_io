@@ -25,11 +25,18 @@ type Read_Control is
 	function To_Prim_Options_Type(Opt : String) return FA_Primary.Options_Type
 	is
 	begin
+		-- FIXME no exclusive
 		if(Options = "SIZE")
 		then
-			return (True,False);
+			return (True,False,False);
 		end if;
-		return (False,False);
+
+		if(Options = "OBS")
+		then
+			return (True,False,True);
+		end if;
+
+		return (False,False,False);
 	end To_Prim_Options_Type;
 	
 	function To_Ext_Options_Type(Opt : String) return FA_Extension.Options_Type
@@ -37,9 +44,15 @@ type Read_Control is
 	begin
 		if(Options = "SIZE")
 		then
-			return (True,False);
+			return (True,False,False);
 		end if;
-		return (False,False);
+
+		if(Options = "OBS")
+		then
+			return (True,False,False);
+		end if;
+
+		return (False,False,False);
 	end To_Ext_Options_Type;
 
         --

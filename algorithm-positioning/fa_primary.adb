@@ -4,12 +4,13 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 with Keyword_Record; use Keyword_Record;
 
+with Reserved; 
 
 
 package body FA_Primary is
 
 
-m_Options : Options_Type := (False, False);
+m_Options : Options_Type := (False, False, False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -39,6 +40,7 @@ type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 
+
 type State_Type is
         record
 	PrevPos : Natural;
@@ -55,6 +57,9 @@ type State_Type is
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
+	
+	Obs : Reserved.Obs_Type;
+
 	OtherCount : Natural;
 
         ENDCardPos : Natural;
@@ -69,6 +74,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
+	Reserved.InitObs,
 	0,
         0,False);
 
@@ -102,6 +108,7 @@ TIO.Put(Boolean'Image(State.GCOUNT.Read) & " GCOUNT ");
 TIO.Put_Line(State.GCOUNT.Value);
 TIO.Put(Boolean'Image(State.GROUPS.Read) & " GROUPS ");
 TIO.Put_Line(State.GROUPS.Value);
+Reserved.DBG_Print(State.Obs);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
@@ -132,10 +139,16 @@ end DBG_Print;
 		if(m_Options.Mand) 
 		then
 			State.Name := PRIMARY_STANDARD;
+
 		elsif(m_Options.Biblio)
 		then
 			Raise_Exception(Programming_Error'Identity, 
 				"Option Biblie not implemented.");	
+
+		elsif(m_Options.Obs)
+		then
+			State.Name := WAIT_END;
+
 		else
 			State.Name := WAIT_END;
 		end if;
@@ -244,12 +257,19 @@ end DBG_Print;
 
 
 
+
+
+
+
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
-                if( ENDCard = Card ) then
-                        State.ENDCardPos := Pos;
-                        State.ENDCardSet := True;
+                if( m_Options.Obs AND Reserved.Match_Any_Obs(Card,State.Obs)) then
+			null;
+
+		elsif( ENDCard = Card ) then
+                        	State.ENDCardPos := Pos;
+                        	State.ENDCardSet := True;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -260,13 +280,14 @@ end DBG_Print;
 			elsif( m_Options.Mand AND State.NAXIS_Val > 0 )
 			then
 				State.Name := IMAGE;
+		
 			else
 				null;-- FIXME State.Name := NOT_DETERMINED;
 			end if;
 
                         return 0;
 			-- no more cards
-        
+
 		elsif(Is_Fixed_Position(Card)) then
 			-- one of PRIMARY_STANDARD cards: may appear only once in header
 			Raise_Exception(Duplicate_Card'Identity, Card);

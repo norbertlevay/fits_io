@@ -4,13 +4,13 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 with FITS; use FITS; -- Card_Type needed
 with Keyword_Record; use Keyword_Record;
-
+with Reserved;
 
 
 package body FA_Extension is
 
 
-m_Options : Options_Type := (False, False);
+m_Options : Options_Type := (False, False, False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -66,6 +66,9 @@ type State_Type is
         TFIELDS  : CardValue;
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
+	
+	Obs : Reserved.Obs_Type;
+
         OtherCount : Natural;
 
         ENDCardPos : Natural;
@@ -82,6 +85,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
+	Reserved.InitObs,
 	0,
         0,False);
 
@@ -124,6 +128,7 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
+Reserved.DBG_Print(State.Obs);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -179,7 +184,12 @@ end To_XT_Type;
                 then
                         Raise_Exception(Programming_Error'Identity,
                                 "Option Biblie not implemented.");
-                else
+
+                elsif(m_Options.Obs)
+                then
+                        State.Name := WAIT_END;
+
+		else
                         State.Name := WAIT_END;
                 end if;
 		return 1; -- start FA from Header's 1st card	
@@ -287,7 +297,10 @@ end To_XT_Type;
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
 	is
 	begin
-		if( ENDCard = Card ) then
+                if( m_Options.Obs AND Reserved.Match_Any_Obs(Card,State.Obs)) then
+                        null;
+
+		elsif( ENDCard = Card ) then
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
