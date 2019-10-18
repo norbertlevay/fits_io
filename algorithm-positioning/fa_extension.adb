@@ -21,17 +21,8 @@ type State_Name is
          COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
          WAIT_END,             -- ignore all cards except END-card
          IMAGE, TABLE, BINTABLE,	-- Final states
-	 IMAGE_U, TABLE_U, BINTABLE_U, 	-- Final states
 	 SPECIAL_RECORDS		-- Final states
 	 );	
--- Final states naming: 
--- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
--- IMAGE_U : header has mandatory IMAGE cards and
--- some extra cards Unknown to this software implementation.
--- Other codes will refer to Reserved key groups, like B for biblio related keys:
--- IMAGE_BW : has only mandatory keys and at least one of biblio related 
--- reserved keys, and some WCS keys.
-
 
 type CardValue is
         record
@@ -71,7 +62,7 @@ type State_Type is
         TFIELDS  : CardValue;
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
-        UnknownCount : Natural;
+        OtherCount : Natural;
 
         ENDCardPos : Natural;
         ENDCardSet : Boolean;
@@ -272,12 +263,7 @@ end To_XT_Type;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			
-		       	if(State.UnknownCount = 0)
-                        then
-				State.Name := IMAGE;
-			else
-				State.Name := IMAGE_U;
-			end if;
+			State.Name := IMAGE;
 			return 0;
 			-- no more cards
 
@@ -288,7 +274,7 @@ end To_XT_Type;
 
                 elsif(Is_Valid(Card)) then
                         -- defined by [FITS Appendix A] BNF syntax
-                        State.UnknownCount := State.UnknownCount + 1;
+                        State.OtherCount := State.OtherCount + 1;
                         -- valid but unknown to this FA-implementation
 
                 else
@@ -367,23 +353,13 @@ end To_XT_Type;
                                	when ASCII_TABLE => 
   					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
   					Assert_Array_Complete("TBCOL",State.TFIELDS_Val, State.TBCOLn);
-				       	if(State.UnknownCount = 0)
-                        		then
-						State.Name := TABLE;
-					else
-						State.Name := TABLE_U;
-					end if;
+					State.Name := TABLE;
 					return 0;
 					-- no more cards
 
                                	when BIN_TABLE   => 
   					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
-				       	if(State.UnknownCount = 0)
-                        		then
-						State.Name := BINTABLE;
-					else
-						State.Name := BINTABLE_U;
-					end if;
+					State.Name := BINTABLE;
 					return 0;
 					-- no more cards
 
@@ -398,7 +374,7 @@ end To_XT_Type;
 
                 elsif(Is_Valid(Card)) then
                         -- valid card defined by [FITS Appendix A] BNF syntax
-                        State.UnknownCount := State.UnknownCount + 1;
+                        State.OtherCount := State.OtherCount + 1;
                         -- valid but unknown to this FA-implementation
                 else
                         Raise_Exception(Invalid_Card'Identity, Card);
@@ -447,10 +423,7 @@ end To_XT_Type;
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 
-			when SPECIAL_RECORDS | 
-				IMAGE | IMAGE_U | 
-				TABLE | TABLE_U | 
-				BINTABLE | BINTABLE_U =>
+			when SPECIAL_RECORDS | IMAGE | TABLE |	BINTABLE =>
 				NextCardPos := 0;
 		end case;
 		
@@ -468,10 +441,10 @@ end To_XT_Type;
                 t : HDU_Type;
         begin
                 case(StateName) is
-                        when SPECIAL_RECORDS       => t := SPECIAL_RECORDS;
-                        when IMAGE | 	IMAGE_U    => t := EXT_IMAGE;
-                        when TABLE | 	TABLE_U    => t := EXT_ASCII_TABLE;
-                        when BINTABLE | BINTABLE_U => t := EXT_BIN_TABLE;
+                        when SPECIAL_RECORDS 	=> t := SPECIAL_RECORDS;
+                        when IMAGE		=> t := EXT_IMAGE;
+                        when TABLE		=> t := EXT_ASCII_TABLE;
+                        when BINTABLE		=> t := EXT_BIN_TABLE;
                         when others =>
                                 Raise_Exception(Programming_Error'Identity,
                                 "Not all cards read. State "&
@@ -489,6 +462,18 @@ end To_XT_Type;
                 HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
 	begin
+	-- Final states naming: 
+	-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+	-- IMAGE_U : header has mandatory IMAGE cards and
+	-- some extra cards Unknown to this software implementation.
+	-- Other codes will refer to Reserved key groups, like B for biblio related keys:
+	-- IMAGE_BW : has only mandatory keys and at least one of biblio related 
+	-- reserved keys, and some WCS keys.
+                TIO.Put(State_Name'Image(State.Name));
+                if(State.OtherCount > 0)
+                then
+                        TIO.Put_Line(" with Other("& Integer'Image(State.OtherCount) &")");
+                end if;
 
 		-- unlogical: code could not reach this point if ENDcard would not be found...
 		-- NOT True: user can call this func without reading cards first: Programming_Error

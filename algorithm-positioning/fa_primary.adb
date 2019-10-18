@@ -19,17 +19,8 @@ type State_Name is
         PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
         DATA_NOT_IMAGE,      -- collect GROUPS PCOUNT GCOUNT and END-card
         WAIT_END,            -- ignore all cards except END-card
-        NO_DATA, IMAGE, RANDOM_GROUPS, 	    -- Final states
-	NO_DATA_U, IMAGE_U, RANDOM_GROUPS_U -- Final states
+        NO_DATA, IMAGE, RANDOM_GROUPS -- Final states
         );
--- Final states naming: 
--- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
--- IMAGE_U : header has mandatory IMAGE cards and
--- some extra cards Unknown to this software implementation.
--- Other codes will refer to Reserved key groups, like B for biblio related keys:
--- IMAGE_BW : has only mandatory keys and at least one of biblio related 
--- reserved keys, and some WCS keys.
-
 
 
 type CardValue is
@@ -60,7 +51,7 @@ type State_Type is
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
-	UnknownCount : Natural;
+	OtherCount : Natural;
 
         ENDCardPos : Natural;
         ENDCardSet : Boolean;
@@ -233,22 +224,11 @@ end DBG_Print;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if( (State.NAXIS_Val = 0) AND (State.UnknownCount = 0) )
+			if( State.NAXIS_Val = 0 )
 			then
 				State.Name := NO_DATA;
-
-			elsif( (State.NAXIS_Val = 0) AND (State.UnknownCount > 0) )
-			then
-				State.Name := NO_DATA_U;
-
-			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount = 0) )
-			then
+			else
 				State.Name := IMAGE;
-			
-			elsif( (State.NAXIS_Val > 0) AND (State.UnknownCount > 0) )
-			then
-				State.Name := IMAGE_U;
-
 			end if;
 
                         return 0;
@@ -260,7 +240,7 @@ end DBG_Print;
 
 		elsif(Is_Valid(Card)) then
 			-- defined by [FITS Appendix A] BNF syntax
-			State.UnknownCount := State.UnknownCount + 1;
+			State.OtherCount := State.OtherCount + 1;
 			-- valid but unknown to this FA-implementation
 
 		else
@@ -363,13 +343,7 @@ end DBG_Print;
 
 			Assert_GROUPS_PCOUNT_GCOUNT_Found;
  
-			if(State.UnknownCount = 0)
-			then
-				State.Name := RANDOM_GROUPS;
-			else
-				State.Name := RANDOM_GROUPS_U;
-			end if;
-
+			State.Name := RANDOM_GROUPS;
                         return 0;
 			-- no more cards
 
@@ -381,7 +355,7 @@ end DBG_Print;
 
 		elsif(Is_Valid(Card)) then
 			-- valid card defined by [FITS Appendix A] BNF syntax
-			State.UnknownCount := State.UnknownCount + 1;
+			State.OtherCount := State.OtherCount + 1;
 			-- valid but unknown to this FA-implementation
 		else
 			Raise_Exception(Invalid_Card'Identity, Card);
@@ -433,9 +407,7 @@ end DBG_Print;
 			when DATA_NOT_IMAGE => 
 				NextCardPos := In_DATA_NOT_IMAGE(Pos, Card);
 
-			when NO_DATA | NO_DATA_U | 
-			     IMAGE   | IMAGE_U   | 
-			     RANDOM_GROUPS | RANDOM_GROUPS_U =>
+			when NO_DATA | IMAGE | RANDOM_GROUPS =>
 				NextCardPos := 0;
 		end case;
 		
@@ -454,9 +426,9 @@ end DBG_Print;
 		t : HDU_Type;
 	begin
 		case(StateName) is
-			when NO_DATA | NO_DATA_U => t := PRIMARY_WITHOUT_DATA;
-			when IMAGE   | IMAGE_U   => t := PRIMARY_IMAGE;
-			when RANDOM_GROUPS | RANDOM_GROUPS_U => t := RANDOM_GROUPS;
+			when NO_DATA 	   => t := PRIMARY_WITHOUT_DATA;
+			when IMAGE   	   => t := PRIMARY_IMAGE;
+			when RANDOM_GROUPS => t := RANDOM_GROUPS;
 			when others =>
 				Raise_Exception(Programming_Error'Identity,
 				"Not all cards read. State "&
@@ -477,6 +449,18 @@ end DBG_Print;
 --			State.GROUPS.Read AND State.PCOUNT.Read AND State.GCOUNT.Read;
 			-- FIXME needed only if RANDOM_GROUPS
         begin
+-- Final states naming: 
+-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+-- IMAGE_U : header has mandatory IMAGE cards and
+-- some extra cards Unknown to this software implementation.
+-- Other codes will refer to Reserved key groups, like B for biblio related keys:
+-- IMAGE_BW : has only mandatory keys and at least one of biblio related 
+-- reserved keys, and some WCS keys.
+		TIO.Put(State_Name'Image(State.Name));
+		if(State.OtherCount > 0)
+		then
+			TIO.Put_Line(" with Other("& Integer'Image(State.OtherCount) &")");
+		end if;
 
 
 		-- from here
