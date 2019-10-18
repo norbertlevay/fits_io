@@ -13,11 +13,13 @@ type Algorithm_Type is
 	); -- FIXME not implemented
 
 
-type Options_Type is 
-	(
-	NONE, -- no card-group specified: only count valid cards (see [FITS] App. A)
-	SIZE  -- parse size-related (a.k.a. 'mandatory') cards
-	);
+type Options_Type is
+	record
+		Mand   : Boolean;
+		Biblio : Boolean;
+	end record;
+
+
 
 	--
 	-- finite automaton

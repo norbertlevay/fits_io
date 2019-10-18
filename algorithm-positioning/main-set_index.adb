@@ -27,9 +27,9 @@ type Read_Control is
 	begin
 		if(Options = "SIZE")
 		then
-			return FA_Primary.SIZE;
+			return (True,False);
 		end if;
-		return FA_Primary.NONE;
+		return (False,False);
 	end To_Prim_Options_Type;
 	
 	function To_Ext_Options_Type(Opt : String) return FA_Extension.Options_Type
@@ -37,9 +37,9 @@ type Read_Control is
 	begin
 		if(Options = "SIZE")
 		then
-			return FA_Extension.SIZE;
+			return (True,False);
 		end if;
-		return FA_Extension.NONE;
+		return (False,False);
 	end To_Ext_Options_Type;
 
         --

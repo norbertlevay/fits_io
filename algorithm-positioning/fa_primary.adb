@@ -9,7 +9,7 @@ with Keyword_Record; use Keyword_Record;
 package body FA_Primary is
 
 
-m_Options : Options_Type := NONE;
+m_Options : Options_Type := (False, False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -80,7 +80,7 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
-TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
+--TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
 TIO.Put(Boolean'Image(State.SIMPLE.Read) & " SIMPLE ");
 TIO.Put_Line(State.SIMPLE.Value);
 TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
@@ -129,10 +129,16 @@ end DBG_Print;
 	is
 	begin
 		State := InitState;
-		case(m_Options) is
-			when SIZE   => State.Name := PRIMARY_STANDARD;
-			when others => State.Name := WAIT_END;
-		end case;
+		if(m_Options.Mand) 
+		then
+			State.Name := PRIMARY_STANDARD;
+		elsif(m_Options.Biblio)
+		then
+			Raise_Exception(Programming_Error'Identity, 
+				"Option Biblie not implemented.");	
+		else
+			State.Name := WAIT_END;
+		end if;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;
 
@@ -247,11 +253,11 @@ end DBG_Print;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if( m_Options = SIZE AND State.NAXIS_Val = 0 )
+			if( m_Options.Mand AND State.NAXIS_Val = 0 )
 			then
 				State.Name := NO_DATA;
 
-			elsif( m_Options = SIZE AND State.NAXIS_Val > 0 )
+			elsif( m_Options.Mand AND State.NAXIS_Val > 0 )
 			then
 				State.Name := IMAGE;
 			else
