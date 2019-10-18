@@ -3,6 +3,25 @@ with Ada.Text_IO;
 with FITS; use FITS; -- Card_Type needed
 
 
+-- Notes on Reserved optional keys:
+--          Generic      Specific
+-- Prim IMG   x             none
+-- Prim RG    x	            yes
+-- Ext  IMG   x             none
+-- Ext  TAB   x             Tab
+-- Ext BTAB   x             Tab+more
+
+-- Generic key groups:
+-- 1 general descriptive
+-- 2 observations
+-- 3 bibliographic
+-- 4 commentary (COMMENT HISTORY <blank>)
+-- 5 array value related
+-- 6 WCS related
+-- 7 extension keywords
+
+
+
 package body Reserved is
 
 -- Biblioghapic keys
