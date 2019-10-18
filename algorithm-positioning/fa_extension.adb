@@ -487,6 +487,11 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 
+
+                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		then
+                        null;
+
 		elsif ( Match_Any_Tab(Card, State.Tab) )
 		then
 			null;
