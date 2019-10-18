@@ -9,6 +9,10 @@ with Keyword_Record; use Keyword_Record;
 
 package body FA_Extension is
 
+
+m_Options : Options_Type := NONE;
+
+
 EmptyVal : constant String(1..20) := (others => ' ');
 
 	--
@@ -69,7 +73,8 @@ type State_Type is
         end record;
 
 InitState : State_Type := 
-	(0,
+	(
+	0,
 	NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
 	
 	InitVal,InitVal,InitVal,
@@ -144,6 +149,21 @@ begin
 end To_XT_Type;
 -- -----------------------------------------------------------
 
+        procedure Configure(Options : Options_Type)
+        is
+        begin
+                m_Options := Options;
+        end Configure;
+
+
+
+
+
+
+--
+-- state transitions
+--
+
 
 
 
@@ -151,7 +171,10 @@ end To_XT_Type;
 	is
 	begin
 		State      := InitState;
-		State.Name := CONFORMING_EXTENSION;
+		case(m_Options) is
+			when NONE => State.Name := WAIT_END;
+			when SIZE => State.Name := CONFORMING_EXTENSION;
+		end case;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
 
@@ -263,7 +286,12 @@ end To_XT_Type;
 
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			
-			State.Name := IMAGE;
+                        if( m_Options = SIZE )
+                        then
+                                State.Name := IMAGE;
+                        else
+                                null;-- FIXME State.Name := NOT_DETERMINED;
+		        end if;
 			return 0;
 			-- no more cards
 

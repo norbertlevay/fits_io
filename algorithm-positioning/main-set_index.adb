@@ -10,6 +10,7 @@ with FA_Extension;
 separate(main)
 procedure Set_Index
            (File   : SIO.File_Type;
+	    Options : String;
             HDUNum : Positive)
 is
 type Card_Block is array(1..36) of Card_Type;
@@ -21,7 +22,25 @@ type Read_Control is
          Stop);              -- do not provide more CardBlocks, usually after END-card found
 -- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
 
-
+	function To_Prim_Options_Type(Opt : String) return FA_Primary.Options_Type
+	is
+	begin
+		if(Options = "SIZE")
+		then
+			return FA_Primary.SIZE;
+		end if;
+		return FA_Primary.NONE;
+	end To_Prim_Options_Type;
+	
+	function To_Ext_Options_Type(Opt : String) return FA_Extension.Options_Type
+	is
+	begin
+		if(Options = "SIZE")
+		then
+			return FA_Extension.SIZE;
+		end if;
+		return FA_Extension.NONE;
+	end To_Ext_Options_Type;
 
         --
         -- read by blocks
@@ -77,7 +96,10 @@ type Read_Control is
 
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-	CardPos : Positive; 
+	CardPos : Positive;
+
+	FA_Prim_Options : constant FA_Primary.Options_Type   := To_Prim_Options_Type(Options);	
+	FA_Ext_Options  : constant FA_Extension.Options_Type := To_Ext_Options_Type(Options);	
 begin
 
 	PrimaryHeaderStart := 1;
@@ -90,7 +112,10 @@ begin
 	end if;
 
 -- Read Primary HDU
-	
+
+	FA_Primary.Configure(FA_Prim_Options);
+	-- parse for size-related cards (a.k.a. mandatory cards)
+
 	CardPos := FA_Primary.Reset_State;
 
 	loop
@@ -130,6 +155,9 @@ CurHDUNum := CurHDUNum + 1;
 
 while ( CurHDUNum < HDUNum )
 loop
+
+	FA_Extension.Configure(FA_Ext_Options);
+	-- parse for size-related cards (a.k.a. mandatory cards)
 
 	CardPos := FA_Extension.Reset_State;
 
