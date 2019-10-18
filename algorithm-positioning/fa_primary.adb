@@ -130,8 +130,8 @@ end DBG_Print;
 	begin
 		State := InitState;
 		case(m_Options) is
-			when NONE => State.Name := WAIT_END;
-			when SIZE => State.Name := PRIMARY_STANDARD;
+			when SIZE   => State.Name := PRIMARY_STANDARD;
+			when others => State.Name := WAIT_END;
 		end case;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;

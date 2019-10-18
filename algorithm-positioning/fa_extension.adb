@@ -93,6 +93,7 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
+TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
 TIO.Put(Boolean'Image(State.XTENSION.Read) & " XTENSION ");
 TIO.Put_Line(State.XTENSION.Value);
 TIO.Put(Boolean'Image(State.BITPIX.Read) & " BITPIX ");
@@ -172,8 +173,8 @@ end To_XT_Type;
 	begin
 		State      := InitState;
 		case(m_Options) is
-			when NONE => State.Name := WAIT_END;
-			when SIZE => State.Name := CONFORMING_EXTENSION;
+			when SIZE   => State.Name := CONFORMING_EXTENSION;
+			when others => State.Name := WAIT_END;
 		end case;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
