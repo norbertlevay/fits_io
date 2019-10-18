@@ -56,14 +56,9 @@ type Tab_Type is
         end record;
 
 InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
-InitTUNITArrVal : constant TFIELDS_Arr := (others => InitVal);
-InitTSCALArrVal : constant TFIELDS_Arr := (others => InitVal);
-InitTZEROArrVal : constant TFIELDS_Arr := (others => InitVal);
-InitTNULLArrVal : constant TFIELDS_Arr := (others => InitVal);
-InitTDISPArrVal : constant TFIELDS_Arr := (others => InitVal);
 
 InitTab : Tab_Type := (TTYPEn => InitTFIELDSArr, TUNITn => InitTFIELDSArr, TSCALn => InitTFIELDSArr,
-			TZEROn => InitTFIELDSArr, TNULLn => InitTFIELDSArr, TDISPn => InitTFIELDSArr);
+		       TZEROn => InitTFIELDSArr, TNULLn => InitTFIELDSArr, TDISPn => InitTFIELDSArr);
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
