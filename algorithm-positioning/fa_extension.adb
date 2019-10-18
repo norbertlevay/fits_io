@@ -10,7 +10,7 @@ with Reserved;
 package body FA_Extension is
 
 
-m_Options : Options_Type := (False, False, False);
+m_Options : Options_Type := (False, False, False,False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -44,6 +44,26 @@ InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 
+-- Reserved (optional) keys related to TABLEs
+type Tab_Type is
+        record
+                TTYPEn : TFIELDS_Arr;
+                TUNITn : TFIELDS_Arr;
+                TSCALn : TFIELDS_Arr;
+                TZEROn : TFIELDS_Arr;
+                TNULLn : TFIELDS_Arr;
+                TDISPn : TFIELDS_Arr;
+        end record;
+
+InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
+InitTUNITArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitTSCALArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitTZEROArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitTNULLArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitTDISPArrVal : constant TFIELDS_Arr := (others => InitVal);
+
+InitTab : Tab_Type := (TTYPEn => InitTFIELDSArr, TUNITn => InitTFIELDSArr, TSCALn => InitTFIELDSArr,
+			TZEROn => InitTFIELDSArr, TNULLn => InitTFIELDSArr, TDISPn => InitTFIELDSArr);
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -67,6 +87,7 @@ type State_Type is
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
 	
+	Tab : Tab_Type;
 	Obs : Reserved.Obs_Type;
 
         OtherCount : Natural;
@@ -85,6 +106,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
+	InitTab,
 	Reserved.InitObs,
 	0,
         0,False);
@@ -128,6 +150,21 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
+
+TIO.Put("TTYPE: ");
+for I in State.Tab.TTYPEn'Range
+loop
+	if(State.Tab.TTYPEn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TTYPEn(I).Value & " "); end if;
+end loop;
+New_Line;
+
+TIO.Put("TUNIT: ");
+for I in State.Tab.TUNITn'Range
+loop
+	if(State.Tab.TUNITn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TUNITn(I).Value & " "); end if;
+end loop;
+New_Line;
+
 Reserved.DBG_Print(State.Obs);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
@@ -177,13 +214,19 @@ end To_XT_Type;
 	is
 	begin
 		State      := InitState;
+		-- FIXME m_Options is incorrect
                 if(m_Options.Mand)
                 then
                         State.Name := CONFORMING_EXTENSION;
+
                 elsif(m_Options.Biblio)
                 then
                         Raise_Exception(Programming_Error'Identity,
                                 "Option Biblie not implemented.");
+
+		elsif(m_Options.Tab)
+                then
+                        State.Name := COLLECT_TABLE_ARRAYS;
 
                 elsif(m_Options.Obs)
                 then
@@ -353,6 +396,45 @@ end To_XT_Type;
 	end Assert_Array_Complete;
 
 
+
+	function Match_Any_Tab(Card : in Card_Type;
+				Tab : in out Tab_Type) return Boolean
+	is
+		Ix : Positive;
+	begin
+                if ( "TTYPE" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TTYPE",Card(1..8));
+                        if(NOT Tab.TTYPEn(Ix).Read)
+                        then
+                                Tab.TTYPEn(Ix).Value := Card(11..30);
+                                Tab.TTYPEn(Ix).Read := True;
+        		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
+		elsif ( "TUNIT" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TUNIT",Card(1..8));
+                        if(NOT Tab.TUNITn(Ix).Read)
+                        then
+                                Tab.TUNITn(Ix).Value := Card(11..30);
+                                Tab.TUNITn(Ix).Read := True;
+	       		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
+
+		else
+			return False;
+		end if;
+
+		return True;
+   
+	end Match_Any_Tab;
+
+
+
 	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
 	is
 		Ix : Positive := 1;
@@ -390,6 +472,10 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 
+		elsif ( m_Options.Tab AND Match_Any_Tab(Card, State.Tab) )
+		then
+			null;
+	
 		elsif( Card = ENDCard )
 		then
 			State.ENDCardPos := Pos;

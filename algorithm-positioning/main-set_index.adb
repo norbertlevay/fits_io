@@ -26,7 +26,7 @@ type Read_Control is
 	is
 	begin
 		-- FIXME no exclusive
-		if(Options = "SIZE")
+		if(Options = "SIZE" OR Options = "TAB")
 		then
 			return (True,False,False);
 		end if;
@@ -44,15 +44,20 @@ type Read_Control is
 	begin
 		if(Options = "SIZE")
 		then
-			return (True,False,False);
+			return (True,False,False,False);
 		end if;
 
 		if(Options = "OBS")
 		then
-			return (True,False,False);
+			return (True,False,True,False);
 		end if;
 
-		return (False,False,False);
+		if(Options = "TAB")
+		then
+			return (True,False,False,True);
+		end if;
+
+		return (False,False,False,False);
 	end To_Ext_Options_Type;
 
         --

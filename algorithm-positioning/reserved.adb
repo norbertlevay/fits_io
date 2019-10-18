@@ -36,6 +36,9 @@ end DBG_Print;
                                 Obs : in out Obs_Type) return Boolean
         is
         begin
+
+		-- FIXME missing check duplicate card
+
                 if(Card(1..8) = "DATE-OBS")
                 then
                         Obs.DATEOBS.Value :=  Card(11..30);

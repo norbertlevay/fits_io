@@ -18,6 +18,7 @@ type Options_Type is
                 Mand   : Boolean;
                 Biblio : Boolean;
                 Obs    : Boolean;
+                Tab    : Boolean;
         end record;
 
 
