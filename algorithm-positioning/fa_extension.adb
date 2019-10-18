@@ -491,30 +491,29 @@ end To_XT_Type;
                 HDUSizeInfo : HDU_Size_Rec;
                 NAXIS : Positive;
 	begin
-	-- Final states naming: 
-	-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
-	-- IMAGE_U : header has mandatory IMAGE cards and
-	-- some extra cards Unknown to this software implementation.
-	-- Other codes will refer to Reserved key groups, like B for biblio related keys:
-	-- IMAGE_BW : has only mandatory keys and at least one of biblio related 
-	-- reserved keys, and some WCS keys.
-                TIO.Put(State_Name'Image(State.Name));
+-- Final FA states naming: 
+-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+-- IMAGE with other(n) : header has mandatory IMAGE cards and n extra cards 
+-- not spec'd by Options or unknown to this implementation.
+-- Other cases refer to Reserved key groups, like biblio, related to bibligraphic keys:
+-- IMAGE with biblo wcs : has only mandatory keys and at least one of biblio related 
+-- reserved keys, and some WCS keys.
+	        TIO.Put(State_Name'Image(State.Name));
                 if(State.OtherCount > 0)
                 then
                         TIO.Put_Line(" with Other("& Integer'Image(State.OtherCount) &")");
                 end if;
 
-		-- unlogical: code could not reach this point if ENDcard would not be found...
-		-- NOT True: user can call this func without reading cards first: Programming_Error
+                -- NOTE: user can simply call Get() without running the FA -> programming error
+                -- OR Header was read, but is broken (without END card) so we read through all file
+                --  reaching EOF <- but this should raise exception: trying to read behind file end??
+                --  OR user called FA on non FITS file and so probably scans through until EOF
                 if(State.ENDCardSet) then
                         HDUSizeInfo.CardsCount := State.ENDCardPos;
                 else
-                        Raise_Exception(Card_Not_Found'Identity, "END");
+                        Raise_Exception(Card_Not_Found'Identity,   
+                                        "END card not found, not a valid FITS file.");
                 end if;
-
-		-- until here handle together (??)
-
-
 
 
 
