@@ -389,7 +389,11 @@ end DBG_Print;
 			end if;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-	
+
+
+                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
+			null;
+
 		elsif (Card = ENDCard) then
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
