@@ -136,6 +136,13 @@ end DBG_Print;
 	is
 	begin
 		State := InitState;
+
+		TIO.Put_Line("Opts: "
+		&" "&Boolean'Image(m_Options.Mand)
+		&" "&Boolean'Image(m_Options.Biblio)
+		&" "&Boolean'Image(m_Options.Obs)
+		);
+
 		if(m_Options.Mand) 
 		then
 			State.Name := PRIMARY_STANDARD;
@@ -264,7 +271,7 @@ end DBG_Print;
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
-                if( m_Options.Obs AND Reserved.Match_Any_Obs(Card,State.Obs)) then
+                if( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
 			null;
 
 		elsif( ENDCard = Card ) then
@@ -273,11 +280,11 @@ end DBG_Print;
   		
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-			if( m_Options.Mand AND State.NAXIS_Val = 0 )
+			if( State.NAXIS_Val = 0 )
 			then
 				State.Name := NO_DATA;
 
-			elsif( m_Options.Mand AND State.NAXIS_Val > 0 )
+			elsif( State.NAXIS_Val > 0 )
 			then
 				State.Name := IMAGE;
 		
@@ -529,39 +536,42 @@ end DBG_Print;
 		--
 		-- conversion HDU_Size_Rec
 		--
-
-                -- FIXME how about SIMPLE value, should we check it was set ?
 		
-                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+		if(m_Options.Mand)
+		then
 
-                if(State.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
-                else
-                        Raise_Exception(Card_Not_Found'Identity, "BITPIX");
-                end if;
+                	-- FIXME how about SIMPLE value, should we check it was set ?
+		
+                	HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
-                if(State.NAXIS.Read) then
-                        NAXIS := To_Integer(State.NAXIS.Value);
-                else
-                        Raise_Exception(Card_Not_Found'Identity, "NAXIS");
-                end if;
+                	if(State.BITPIX.Read) then
+                        	HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+                	else
+                        	Raise_Exception(Card_Not_Found'Identity, "BITPIX");
+                	end if;
 
-                for I in 1 .. NAXIS
-                loop
-                        if(State.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
-                        else
-                                Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
-                        end if;
+                	if(State.NAXIS.Read) then
+                        	NAXIS := To_Integer(State.NAXIS.Value);
+                	else
+                        	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
+                	end if;
 
-                end loop;
+                	for I in 1 .. NAXIS
+                	loop
+                        	if(State.NAXISn(I).Read) then
+                               		HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                        	else
+                                	Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                        	end if;
 
-                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                for I in NAXIS+1 .. NAXIS_Max
-                loop
-                        HDUSizeInfo.NAXISArr(I) := 1;
-                end loop;
+                	end loop;
 
+                	-- FIXME dirty fix: should return NAXISArr only NAXIS-long
+                	for I in NAXIS+1 .. NAXIS_Max
+                	loop
+                        	HDUSizeInfo.NAXISArr(I) := 1;
+                	end loop;
+		end if;
 
                 return HDUSizeInfo;
         end Get;

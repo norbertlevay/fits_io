@@ -40,7 +40,8 @@ InitObs : Obs_Type := (InitVal,   InitVal,InitVal,InitVal,InitVal);
 
 procedure DBG_Print(Obs : in Obs_Type);
 
-function Match_Any_Obs(Card : in Card_Type;
+function Match_Any_Obs(Flag : Boolean; 
+			Card : in Card_Type;
                        Obs  : in out Obs_Type) return Boolean;
 
 

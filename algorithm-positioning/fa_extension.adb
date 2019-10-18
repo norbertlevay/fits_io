@@ -215,6 +215,16 @@ end To_XT_Type;
 	begin
 		State      := InitState;
 		-- FIXME m_Options is incorrect
+		
+                TIO.Put_Line("Opts: "
+                &" "&Boolean'Image(m_Options.Mand) 
+                &" "&Boolean'Image(m_Options.Biblio)
+                &" "&Boolean'Image(m_Options.Obs)
+                &" "&Boolean'Image(m_Options.Tab)
+                );
+
+		
+		
                 if(m_Options.Mand)
                 then
                         State.Name := CONFORMING_EXTENSION;
@@ -340,7 +350,7 @@ end To_XT_Type;
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
 	is
 	begin
-                if( m_Options.Obs AND Reserved.Match_Any_Obs(Card,State.Obs)) then
+                if(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
                         null;
 
 		elsif( ENDCard = Card ) then
@@ -402,6 +412,11 @@ end To_XT_Type;
 	is
 		Ix : Positive;
 	begin
+		if(NOT m_Options.Tab) 
+		then
+			return False;
+		end if;
+
                 if ( "TTYPE" = Card(1..5) )
                 then
                         Ix := Extract_Index("TTYPE",Card(1..8));
@@ -472,7 +487,7 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 
-		elsif ( m_Options.Tab AND Match_Any_Tab(Card, State.Tab) )
+		elsif ( Match_Any_Tab(Card, State.Tab) )
 		then
 			null;
 	
@@ -625,39 +640,43 @@ end To_XT_Type;
         	--
                 -- conversion HDU_Size_Rec
                 --
+		
+		if(m_Options.Mand)
+		then
+                
+			-- FIXME how about XTENSION value, shoule we check it was set ?
 
-                -- FIXME how about XTENSION value, shoule we check it was set ?
+	                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
-                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+        	        if(State.BITPIX.Read) then
+                	        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+	                else
+        	                Raise_Exception(Card_Not_Found'Identity, "BITPIX");
+                	end if;
 
-                if(State.BITPIX.Read) then
-                        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
-                else
-                        Raise_Exception(Card_Not_Found'Identity, "BITPIX");
-                end if;
+	                if(State.NAXIS.Read) then
+        	                NAXIS := To_Integer(State.NAXIS.Value);
+               		else
+                        	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
+	                end if;
 
-                if(State.NAXIS.Read) then
-                        NAXIS := To_Integer(State.NAXIS.Value);
-                else
-                        Raise_Exception(Card_Not_Found'Identity, "NAXIS");
-                end if;
+        	        for I in 1 .. NAXIS
+                	loop
+                        	if(State.NAXISn(I).Read) then
+                                	HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+	                        else
+        	                        Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                	        end if;
 
-                for I in 1 .. NAXIS
-                loop
-                        if(State.NAXISn(I).Read) then
-                                HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
-                        else
-                                Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
-                        end if;
+	                end loop;
 
-                end loop;
+        	        -- FIXME dirty fix: should return NAXISArr only NAXIS-long
+	                for I in NAXIS+1 .. NAXIS_Max
+        	        loop
+                	        HDUSizeInfo.NAXISArr(I) := 1;
+	                end loop;
 
-                -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                for I in NAXIS+1 .. NAXIS_Max
-                loop
-                        HDUSizeInfo.NAXISArr(I) := 1;
-                end loop;
-
+		end if;
 
                 return HDUSizeInfo;
         end Get;

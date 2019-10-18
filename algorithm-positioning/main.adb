@@ -32,7 +32,7 @@ begin
  
  if (CLI.Argument_Count /= 2) then
    TIO.Put_Line("Usage  " & CLI.Command_Name & " <file name> <options>");
-   TIO.Put_Line("         options : NONE | SIZE");
+   TIO.Put_Line("         options : NONE | SIZE | OBS | POBS | EOBS | TAB");
    return;
  else
    InFileName := SU.To_Unbounded_String (CLI.Argument (1));

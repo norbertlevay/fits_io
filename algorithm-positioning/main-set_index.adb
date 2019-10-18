@@ -36,6 +36,16 @@ type Read_Control is
 			return (True,False,True);
 		end if;
 
+		if(Options = "POBS")
+		then
+			return (False,False,True);
+		end if;
+		
+		if(Options = "EOBS")
+		then
+			return (True,False,False);
+		end if;
+
 		return (False,False,False);
 	end To_Prim_Options_Type;
 	
@@ -50,6 +60,11 @@ type Read_Control is
 		if(Options = "OBS")
 		then
 			return (True,False,True,False);
+		end if;
+		
+		if(Options = "EOBS")
+		then
+			return (False,False,True,False);
 		end if;
 
 		if(Options = "TAB")
