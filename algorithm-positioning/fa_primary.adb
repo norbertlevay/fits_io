@@ -7,6 +7,9 @@ with Keyword_Record; use Keyword_Record;
 with Reserved; 
 
 
+-- FIXME consider configurable how to react to duplicates (with the same card value)
+
+
 package body FA_Primary is
 
 
@@ -37,8 +40,10 @@ type CardValue is
 InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
+type RANDG_Arr is array (1..RANDG_Max) of CardValue;
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
+InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
 
 
 type State_Type is
@@ -57,7 +62,11 @@ type State_Type is
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
-	
+
+	PTYPEn : RANDG_Arr;
+	PSCALn : RANDG_Arr;
+	PZEROn : RANDG_Arr;
+
 	Obs : Reserved.Obs_Type;
 
 	OtherCount : Natural;
@@ -74,6 +83,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
+	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
 	Reserved.InitObs,
 	0,
         0,False);
@@ -346,9 +356,10 @@ end DBG_Print;
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
+		Idx : Positive;
 	begin
-		-- always check State.xxx.Read flag to avoid duplicates
-		-- FIXME consider configurable how to react to duplicates (with the same card value)
+
+		-- Mandatory keys
 
 		if ( Card(1..8) = "GROUPS  " ) then
 			
@@ -390,9 +401,47 @@ end DBG_Print;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
+		-- Reserved keys (specific to RANDOM GROUPS)
+
+                elsif (Is_Array(Card,"PTYPE",1,RANDG_Max,Idx))
+                then
+                        if(NOT State.PTYPEn(Idx).Read)
+                        then
+                                State.PTYPEn(Idx).Value := Card(11..30);
+                                State.PTYPEn(Idx).Read  := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+
+                 elsif (Is_Array(Card,"PSCAL",1,RANDG_Max,Idx))
+                 then
+                        if(NOT State.PSCALn(Idx).Read)
+                        then
+                                State.PSCALn(Idx).Value := Card(11..30);
+                                State.PSCALn(Idx).Read  := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+
+                 elsif (Is_Array(Card,"PZERO",1,RANDG_Max,Idx))
+                 then
+                        if(NOT State.PZEROn(Idx).Read)
+                        then
+                                State.PZEROn(Idx).Value := Card(11..30);
+                                State.PZEROn(Idx).Read  := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+
+		-- Reserved keys (generic)
 
                 elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
 			null;
+
+
 
 		elsif (Card = ENDCard) then
 			State.ENDCardPos := Pos;
