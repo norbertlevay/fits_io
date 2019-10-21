@@ -20,8 +20,19 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 
 -- Biblioghapic keys
-	-- FIXME not implemented
+type Biblio_Type is
+        record
+                AUTHOR   : CardValue;
+                REFERENC : CardValue;
+        end record;
 
+InitBiblio : constant Biblio_Type := (InitVal,InitVal);
+
+procedure DBG_Print(Biblio : in Biblio_Type);
+
+function Match_Any_Biblio(Flag   : Boolean; 
+			  Card   : in Card_Type;
+                          Biblio : in out Biblio_Type) return Boolean;
 
 
 
@@ -29,14 +40,14 @@ InitVal  : constant CardValue := (EmptyVal,False);
 type Obs_Type is
         record
                 DATEOBS : CardValue;
-                --DATExxxx : CardValue; -- FIXME what to do ?
+                --DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
                 TELESCOP : CardValue;
                 INSTRUME : CardValue;
                 OBSERVER : CardValue;
                 OBJECT   : CardValue;
         end record;
 
-InitObs : Obs_Type := (InitVal,   InitVal,InitVal,InitVal,InitVal);
+InitObs : constant Obs_Type := (InitVal,   InitVal,InitVal,InitVal,InitVal);
 
 procedure DBG_Print(Obs : in Obs_Type);
 

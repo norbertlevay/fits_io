@@ -67,7 +67,8 @@ type State_Type is
 	PSCALn : RANDG_Arr;
 	PZEROn : RANDG_Arr;
 
-	Obs : Reserved.Obs_Type;
+	Biblio : Reserved.Biblio_Type;
+	Obs    : Reserved.Obs_Type;
 
 	OtherCount : Natural;
 
@@ -84,6 +85,7 @@ InitState : State_Type :=
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
 	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
+	Reserved.InitBiblio,
 	Reserved.InitObs,
 	0,
         0,False);
@@ -275,7 +277,13 @@ end DBG_Print;
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
-                if( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		-- Reserved (generic)
+
+                if( Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+		then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -440,9 +448,14 @@ end DBG_Print;
 
 		-- Reserved keys (generic)
 
-                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
-			null;
+                elsif( Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+		then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
+
+                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 
 		elsif (Card = ENDCard) then

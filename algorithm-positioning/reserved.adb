@@ -24,14 +24,54 @@ with FITS; use FITS; -- Card_Type needed
 
 package body Reserved is
 
+package TIO renames Ada.Text_IO;
+
 -- Biblioghapic keys
-	-- FIXME not implemented
+
+procedure DBG_Print(Biblio : in Biblio_Type)
+is
+begin
+if(Biblio.AUTHOR.Read)   then TIO.Put_Line("Biblio AUTHOR   "&Biblio.AUTHOR.Value);   end if;
+if(Biblio.REFERENC.Read) then TIO.Put_Line("Biblio REFERENC "&Biblio.REFERENC.Value); end if;
+end DBG_Print;
+
+
+        function Match_Any_Biblio(Flag   : Boolean;
+				  Card   : in Card_Type;
+                                  Biblio : in out Biblio_Type) return Boolean
+        is
+        begin
+		if(NOT Flag) then
+			return False;
+		end if;
+
+		-- FIXME missing check duplicate card
+
+                if(Card(1..8) = "AUTHOR  ")
+                then
+                        Biblio.AUTHOR.Value :=  Card(11..30);
+                        Biblio.AUTHOR.Read  := True;
+
+
+                elsif(Card(1..8) = "REFERENC")
+                then
+                        Biblio.REFERENC.Value :=  Card(11..30);
+                        Biblio.REFERENC.Read  := True;
+
+                else
+                        return False;
+                end if;
+
+                return True;
+
+        end Match_Any_Biblio;
+
+
 
 
 
 
 -- Observation related keys
-package TIO renames Ada.Text_IO;
 
 procedure DBG_Print(Obs : in Obs_Type)
 is

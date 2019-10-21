@@ -105,7 +105,8 @@ type State_Type is
 	Tab     : Tab_Type;
 	BinTab  : BinTab_Type;
 
-	Obs : Reserved.Obs_Type;
+	Biblio : Reserved.Biblio_Type;
+	Obs    : Reserved.Obs_Type;
 
         OtherCount : Natural;
 
@@ -125,6 +126,7 @@ InitState : State_Type :=
         InitTBCOLArrVal,
 	InitConfExt,
 	InitTab, InitBinTab,
+	Reserved.InitBiblio,
 	Reserved.InitObs,
 	0,
         0,False);
@@ -420,6 +422,10 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
+		elsif(Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
                 elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
@@ -659,6 +665,10 @@ end To_XT_Type;
 
 
 		-- Reserved (generic)
+
+                elsif(Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
                 elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
 		then

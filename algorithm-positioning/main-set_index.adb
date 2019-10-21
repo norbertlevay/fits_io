@@ -31,7 +31,7 @@ type Read_Control is
 
 		elsif(Options = "RES")
 		then
-			return (True,False,True);
+			return (True,True,True);
 		else
 			return (False,False,False);
 		end if;
@@ -47,7 +47,7 @@ type Read_Control is
 
 		elsif(Options = "RES")
 		then
-			return (True,False,True,True,True);
+			return (True,True,True,True,True);
 
 		else
 			return (False,False,False,False,False);
