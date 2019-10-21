@@ -8,12 +8,12 @@ with Reserved;
 
 
 -- FIXME consider configurable how to react to duplicates (with the same card value)
-
+-- FIXME Reserved (optional) keys are not fixed-format, but free-format -> Value NOT Card(11..30) !!
 
 package body FA_Primary is
 
 
-m_Options : Options_Type := (False, False, False);
+m_Options : Options_Type := (others => False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -54,6 +54,7 @@ type State_Type is
         NAXIS_Val  : Natural;
         NAXIS1_Val : Natural;
 
+	-- Mandatory
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
@@ -63,13 +64,18 @@ type State_Type is
         GCOUNT : CardValue;
         GROUPS : CardValue;
 
+	-- Reserved (Primary only)
+	EXTEND : CardValue;-- FIXME should we check: extension HDU must not have this ?
+	-- Reserved (RANDOM GROUPS specific)
 	PTYPEn : RANDG_Arr;
 	PSCALn : RANDG_Arr;
 	PZEROn : RANDG_Arr;
+	-- Reserved (generic, data-arrays only, like IMAGE)
+	Arr : Reserved.Arr_Type;
+	-- Reserved (generic)
+	GenRes : Reserved.Reserved_Type;
 
-	Biblio : Reserved.Biblio_Type;
-	Obs    : Reserved.Obs_Type;
-
+	-- other cards not recognized by this FA	
 	OtherCount : Natural;
 
         ENDCardPos : Natural;
@@ -84,9 +90,10 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
+	InitVal,
 	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
-	Reserved.InitBiblio,
-	Reserved.InitObs,
+	Reserved.InitArr,
+	Reserved.Init,
 	0,
         0,False);
 
@@ -98,7 +105,6 @@ procedure DBG_Print
 is
 begin
 TIO.New_Line;
---TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
 if(State.SIMPLE.Read) then TIO.Put_Line("SIMPLE  "&State.SIMPLE.Value); end if;
 if(State.BITPIX.Read) then TIO.Put_Line("BITPITX "&State.BITPIX.Value); end if;
 if(State.NAXIS.Read)  then TIO.Put_Line("NAXIS   "&State.NAXIS.Value);  end if;
@@ -114,7 +120,9 @@ TIO.New_Line;
 if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
 if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
 if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
-Reserved.DBG_Print(State.Obs);
+if(State.EXTEND.Read) then TIO.Put_Line("EXTEND  "&State.EXTEND.Value); end if;
+Reserved.DBG_Print(State.GenRes);
+Reserved.DBG_Print(State.Arr);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
@@ -145,20 +153,14 @@ end DBG_Print;
 
 		TIO.Put_Line("Opts: "
 		&" "&Boolean'Image(m_Options.Mand)
-		&" "&Boolean'Image(m_Options.Biblio)
-		&" "&Boolean'Image(m_Options.Obs)
+		&" "&Boolean'Image(m_Options.Reserved)
 		);
 
 		if(m_Options.Mand) 
 		then
 			State.Name := PRIMARY_STANDARD;
 
-		elsif(m_Options.Biblio)
-		then
-			Raise_Exception(Programming_Error'Identity, 
-				"Option Biblie not implemented.");	
-
-		elsif(m_Options.Obs)
+		elsif(m_Options.Reserved)
 		then
 			State.Name := WAIT_END;
 
@@ -277,13 +279,29 @@ end DBG_Print;
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
+		-- Reserved (Primary only)
+
+                if (Card(1..8) = "EXTEND  ") then
+
+                        if (NOT State.EXTEND.Read)
+                        then
+                                State.EXTEND.Value := String(Card(11..30));
+                                State.EXTEND.Read  := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+                        TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 		-- Reserved (generic)
 
-                if( Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		-- Reserved (generic, image-like only)
+
+                elsif( Reserved.Match_Any_Arr(m_Options.Reserved,Card,State.Arr))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -445,17 +463,34 @@ end DBG_Print;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
                         end if;
 
+		-- Reserved (Primary only)
+
+                elsif (Card(1..8) = "EXTEND  ") then
+
+                        if (NOT State.EXTEND.Read)
+                        then
+                                State.EXTEND.Value := String(Card(11..30));
+                                State.EXTEND.Read  := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+                        TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 
 		-- Reserved keys (generic)
 
-                elsif( Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
+		-- Reserved (generic, data-arryas only)
 
-                elsif( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+      		-- FIXME Arr possible in RandGroups ? see [FITS Table C.2 comment2 ]
+                elsif( Reserved.Match_Any_Arr(m_Options.Reserved,Card,State.Arr))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 
 
 		elsif (Card = ENDCard) then

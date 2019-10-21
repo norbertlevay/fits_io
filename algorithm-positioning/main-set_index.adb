@@ -27,13 +27,13 @@ type Read_Control is
 	begin
 		if(Options = "MAND")
 		then
-			return (True,False,False);
+			return (True,False);
 
 		elsif(Options = "RES")
 		then
-			return (True,True,True);
+			return (True,True);
 		else
-			return (False,False,False);
+			return (False,False);
 		end if;
 
 	end To_Prim_Options_Type;
@@ -43,14 +43,14 @@ type Read_Control is
 	begin
 		if(Options = "MAND")
 		then
-			return (True,False,False,False,False);
+			return (True,False,False,False);
 
 		elsif(Options = "RES")
 		then
-			return (True,True,True,True,True);
+			return (True,True,True,True);
 
 		else
-			return (False,False,False,False,False);
+			return (False,False,False,False);
 		end if;
 
 	end To_Ext_Options_Type;

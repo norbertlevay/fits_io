@@ -10,7 +10,7 @@ with Reserved;
 package body FA_Extension is
 
 
-m_Options : Options_Type := (False, False, False,False,False);
+m_Options : Options_Type := (others => False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -91,6 +91,7 @@ type State_Type is
         NAXIS_Val    : Natural;
         TFIELDS_Val  : Natural;
 
+	-- Mandatory
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;
@@ -101,12 +102,15 @@ type State_Type is
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
 	
+	-- Reserved (Conf ext only)
 	ConfExt : ConfExt_Type;
+	-- Reserved (Tables only)
 	Tab     : Tab_Type;
 	BinTab  : BinTab_Type;
-
-	Biblio : Reserved.Biblio_Type;
-	Obs    : Reserved.Obs_Type;
+        -- Reserved (generic, IMAGE-like only)
+        Arr : Reserved.Arr_Type;
+	-- Reserved (generic)
+	GenRes : Reserved.Reserved_Type;
 
         OtherCount : Natural;
 
@@ -126,8 +130,8 @@ InitState : State_Type :=
         InitTBCOLArrVal,
 	InitConfExt,
 	InitTab, InitBinTab,
-	Reserved.InitBiblio,
-	Reserved.InitObs,
+	Reserved.InitArr,
+	Reserved.Init,
 	0,
         0,False);
 
@@ -135,11 +139,66 @@ State : State_Type := InitState;
 ------------------------------------------------------------------
 package TIO renames Ada.Text_IO;
 
+procedure DBG_Print(BinTab : BinTab_Type) 
+is
+begin
+
+TIO.Put("TDIM: ");
+for I in BinTab.TDIMn'Range
+loop
+	if(BinTab.TDIMn(I).Read) then Put(Positive'Image(I) &":"& BinTab.TDIMn(I).Value & " "); end if;
+end loop;
+New_Line;
+if(BinTab.THEAP.Read) then TIO.Put_Line("BinTab THEAP "&BinTab.THEAP.Value); end if;
+end DBG_Print;
+
+procedure DBG_Print(Tab : Tab_Type) 
+is
+begin
+TIO.Put("TSCAL: ");
+for I in Tab.TSCALn'Range
+loop
+	if(Tab.TSCALn(I).Read) then Put(Positive'Image(I) &":"& Tab.TSCALn(I).Value & " "); end if;
+end loop;
+New_Line;
+TIO.Put("TZERO: ");
+for I in Tab.TZEROn'Range
+loop
+	if(Tab.TZEROn(I).Read) then Put(Positive'Image(I) &":"& Tab.TZEROn(I).Value & " "); end if;
+end loop;
+New_Line;
+TIO.Put("TNULL: ");
+for I in Tab.TNULLn'Range
+loop
+	if(Tab.TNULLn(I).Read) then Put(Positive'Image(I) &":"& Tab.TNULLn(I).Value & " "); end if;
+end loop;
+New_Line;
+TIO.Put("TTYPE: ");
+for I in Tab.TTYPEn'Range
+loop
+	if(Tab.TTYPEn(I).Read) then Put(Positive'Image(I) &":"& Tab.TTYPEn(I).Value & " "); end if;
+end loop;
+New_Line;
+TIO.Put("TUNIT: ");
+for I in Tab.TUNITn'Range
+loop
+	if(Tab.TUNITn(I).Read) then Put(Positive'Image(I) &":"& Tab.TUNITn(I).Value & " "); end if;
+end loop;
+New_Line;
+TIO.Put("TDISP: ");
+for I in Tab.TDISPn'Range
+loop
+	if(Tab.TDISPn(I).Read) then Put(Positive'Image(I) &":"& Tab.TDISPn(I).Value & " "); end if;
+end loop;
+New_Line;
+end DBG_Print;
+
+
+
 procedure DBG_Print
 is
 begin
 TIO.New_Line;
--- TIO.Put_Line("Config:Options: " & Options_Type'Image(m_Options));
 if(State.XTENSION.Read) then TIO.Put_Line("XTENSION "&State.XTENSION.Value); end if;
 if(State.BITPIX.Read)   then TIO.Put_Line("BITPITX  "&State.BITPIX.Value);   end if;
 if(State.NAXIS.Read)    then TIO.Put_Line("NAXIS    "&State.NAXIS.Value);    end if;
@@ -164,19 +223,13 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
-TIO.Put("TTYPE: ");
-for I in State.Tab.TTYPEn'Range
-loop
-	if(State.Tab.TTYPEn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TTYPEn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TUNIT: ");
-for I in State.Tab.TUNITn'Range
-loop
-	if(State.Tab.TUNITn(I).Read) then Put(Positive'Image(I) &":"& State.Tab.TUNITn(I).Value & " "); end if;
-end loop;
-New_Line;
-Reserved.DBG_Print(State.Obs);
+if(State.ConfExt.EXTNAME.Read)  then TIO.Put_Line("EXTNAME  "&State.ConfExt.EXTNAME.Value);  end if;
+if(State.ConfExt.EXTVER.Read)   then TIO.Put_Line("EXTVER   "&State.ConfExt.EXTVER.Value);   end if;
+if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTLEVEL.Value); end if;
+DBG_Print(State.Tab);
+DBG_Print(State.BinTab);
+Reserved.DBG_Print(State.GenRes);
+Reserved.DBG_Print(State.Arr);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -229,29 +282,16 @@ end To_XT_Type;
 		
                 TIO.Put_Line("Opts: "
                 &" "&Boolean'Image(m_Options.Mand) 
-                &" "&Boolean'Image(m_Options.Biblio)
-                &" "&Boolean'Image(m_Options.Obs)
                 &" "&Boolean'Image(m_Options.Tab)
                 );
-
-		
 		
                 if(m_Options.Mand)
                 then
                         State.Name := CONFORMING_EXTENSION;
 
-                elsif(m_Options.Biblio)
-                then
-                        Raise_Exception(Programming_Error'Identity,
-                                "Option Biblie not implemented.");
-
 		elsif(m_Options.Tab)
                 then
                         State.Name := COLLECT_TABLE_ARRAYS;
-
-                elsif(m_Options.Obs)
-                then
-                        State.Name := WAIT_END;
 
 		else
                         State.Name := WAIT_END;
@@ -422,13 +462,16 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-		elsif(Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
-		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+                then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
-		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+                -- Reserved (generic, image-like only)
+
+                elsif( Reserved.Match_Any_Arr(m_Options.Reserved,Card,State.Arr))
+                then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 
 
 		elsif( ENDCard = Card ) then
@@ -666,15 +709,11 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-                elsif(Reserved.Match_Any_Biblio(m_Options.Biblio,Card,State.Biblio))
-		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+		elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+                then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
-		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
-	
 		elsif( Card = ENDCard )
 		then
 			State.ENDCardPos := Pos;
