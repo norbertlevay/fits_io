@@ -138,6 +138,87 @@ end DBG_Print;
 
         end Match_Any_Biblio;
 
+-- Comments
+
+procedure DBG_Print(Comments : in Comment_Type)
+is
+begin
+TIO.New_Line;
+for I in 1 .. Comments.COMMENT.Last
+loop
+	TIO.Put_Line("C"&Integer'Image(Comments.COMMENT.Value(I).Pos)
+	                        &"> "& Comments.COMMENT.Value(I).Str);
+end loop;
+for I in 1 .. Comments.HISTORY.Last
+loop
+	TIO.Put_Line("H"&Integer'Image(Comments.HISTORY.Value(I).Pos)
+	                        &"> "& Comments.HISTORY.Value(I).Str);
+end loop;
+for I in 1 .. Comments.empty_key.Last
+loop
+	TIO.Put_Line(" "&Integer'Image(Comments.empty_key.Value(I).Pos)
+	                        &"> "& Comments.empty_key.Value(I).Str);
+end loop;
+TIO.New_Line;
+end DBG_Print;
+
+
+        function Match_Any_Comment(Flag    : Boolean;
+				   Pos     : in Positive;
+				   Card    : in Card_Type;
+                                   Comment : in out Comment_Type) return Boolean
+        is
+		Ix : Positive;
+        begin
+		if(NOT Flag) then
+			return False;
+		end if;
+
+
+		if ( Card(1..8) = "COMMENT " )
+                then
+                        Ix := Comment.COMMENT.Last + 1;
+			if(Comment.COMMENT.Last < Comments_Max)
+                        then
+                                Comment.COMMENT.Value(Ix) := (Pos,Card(9..80));
+                        	Comment.COMMENT.Last := Comment.COMMENT.Last + 1;
+                        else
+                                Raise_Exception(Constraint_Error'Identity, "COMMENT array full.");
+                        end if;
+
+		elsif ( Card(1..8) = "HISTORY " )
+                then
+                        Ix := Comment.HISTORY.Last + 1;
+			if(Comment.HISTORY.Last < Comments_Max)
+                        then
+                                Comment.HISTORY.Value(Ix) := (Pos,Card(9..80));
+                        	Comment.HISTORY.Last := Comment.HISTORY.Last + 1;
+                        else
+                                Raise_Exception(Constraint_Error'Identity, "HISTORY array full.");
+                        end if;
+
+		elsif ( Card(1..8) = "        " )
+                then
+                        Ix := Comment.empty_key.Last + 1;
+			if(Comment.empty_key.Last < Comments_Max)
+                        then
+                                Comment.empty_key.Value(Ix) := (Pos,Card(9..80));
+                        	Comment.empty_key.Last := Comment.empty_key.Last + 1;
+                        else
+                                Raise_Exception(Constraint_Error'Identity, "empty_key array full.");
+                        end if;
+
+                else
+                        return False;
+                end if;
+
+                return True;
+
+        end Match_Any_Comment;
+
+
+
+
 
 
 
@@ -239,12 +320,14 @@ is
 begin
 	DBG_Print(Res.Prod);
 	DBG_Print(Res.Biblio);
+	DBG_Print(Res.Comments);
 	DBG_Print(Res.Obs);
 end DBG_Print;
 
 
 
         function Match_Any(Flag : Boolean;
+			   Pos  : in Positive;
 			   Card : in Card_Type;
                            Reserved : in out Reserved_Type) return Boolean
         is
@@ -254,6 +337,10 @@ end DBG_Print;
 			null;
 
 		elsif(Match_Any_Biblio(Flag, Card, Reserved.Biblio))
+		then
+			null;
+
+		elsif(Match_Any_Comment(Flag, Pos, Card, Reserved.Comments))
 		then
 			null;
 

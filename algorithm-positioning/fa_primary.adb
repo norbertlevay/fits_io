@@ -295,7 +295,7 @@ end DBG_Print;
 
 		-- Reserved (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -480,7 +480,7 @@ end DBG_Print;
 
 		-- Reserved keys (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 

@@ -461,7 +461,7 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -708,7 +708,7 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-		elsif( Reserved.Match_Any(m_Options.Reserved,Card,State.GenRes))
+		elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 

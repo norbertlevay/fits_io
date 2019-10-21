@@ -52,6 +52,43 @@ function Match_Any_Biblio(Flag   : Boolean;
                           Biblio : in out Biblio_Type) return Boolean;
 
 
+-- Commentary keys
+subtype Comment_Str is String(1..72);
+NullCommStr : constant Comment_Str := (others => ' ');
+
+type Comment_Rec is
+	record
+		Pos : Natural;
+		Str : Comment_Str;
+	end record;
+InitCommentRec : constant Comment_Rec := (0,NullCommStr);
+
+type Comm_Arr is array (1 .. Comments_Max) of Comment_Rec;
+type Comment_Arr is 
+	record
+		Last  : Natural;
+		Value : Comm_Arr; 
+	end record;
+
+InitCommentArr : constant Comment_Arr := (Last => 0, Value => (others => InitCommentRec) );
+
+type Comment_Type is
+        record
+                COMMENT   : Comment_Arr;
+                HISTORY   : Comment_Arr;
+		empty_key : Comment_Arr;
+        end record;
+
+InitComments : constant Comment_Type := (others => InitCommentArr);
+
+procedure DBG_Print(Comments : in Comment_Type);
+
+function Match_Any_Comment(Flag    : Boolean;
+       			   Pos     : in Positive;	
+			   Card    : in Card_Type;
+                           Comment : in out Comment_Type) return Boolean;
+
+
 
 -- Observation related keys
 type Obs_Type is
@@ -79,14 +116,16 @@ type Reserved_Type is
         record
                 Prod   : Prod_Type;
 		Biblio : Biblio_Type;
+		Comments : Comment_Type;
                 Obs    : Obs_Type;
         end record;
 
-Init : constant Reserved_Type := (InitProd,InitBiblio,InitObs);
+Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitObs);
 
 procedure DBG_Print(Res : in Reserved_Type);
 
-function Match_Any(Flag   : Boolean; 
+function Match_Any(Flag   : Boolean;
+       		   Pos    : in Positive;	
 		   Card   : in Card_Type;
                    Reserved : in out Reserved_Type) return Boolean;
 
