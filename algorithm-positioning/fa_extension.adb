@@ -67,8 +67,7 @@ type Tab_Type is
 
 InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
 
-InitTab : Tab_Type := (TTYPEn => InitTFIELDSArr, TUNITn => InitTFIELDSArr, TSCALn => InitTFIELDSArr,
-		       TZEROn => InitTFIELDSArr, TNULLn => InitTFIELDSArr, TDISPn => InitTFIELDSArr);
+InitTab : Tab_Type := (others => InitTFIELDSArr);
 
 type BinTab_Type is
 	record
