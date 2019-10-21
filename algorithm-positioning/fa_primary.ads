@@ -32,6 +32,21 @@ type Options_Type is
 
 	function  Get return HDU_Size_Rec;
 
+type Res_Arr_Keys is (BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN);
+type Card_Data is 
+	record
+		Key   : Res_Arr_Keys;
+		Value : String(1..20);
+	end record;
+type ImData_Arr is
+	array (Positive range <>) of Card_Data;
+
+	function Get return ImData_Arr;
+
+
+
+
+
 	Unexpected_Card       : exception;
  	Unexpected_Card_Value : exception;
 	Duplicate_Card        : exception;

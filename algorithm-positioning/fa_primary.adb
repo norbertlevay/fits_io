@@ -125,6 +125,20 @@ TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
+
+
+procedure DBG_Print_Reserved
+is
+	ImData : ImData_Arr := Get;
+begin
+	for I in ImData'Range
+	loop
+		TIO.Put("RES> "&Res_Arr_Keys'Image(ImData(I).Key));
+		TIO.Put(" : "&ImData(I).Value);
+		TIO.New_Line;
+	end loop;
+end DBG_Print_reserved;
+
 -- -----------------------------------------------------------
 
         procedure Configure(Options : Options_Type)
@@ -559,6 +573,7 @@ end DBG_Print;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
+		if(NextCardPos = 0) then DBG_Print_Reserved; end if;
 
 		return NextCardPos;
 
@@ -650,15 +665,76 @@ end DBG_Print;
 
                 	end loop;
 
-                	-- FIXME dirty fix: should return NAXISArr only NAXIS-long
---                	for I in NAXIS+1 .. NAXIS_Max
-  --              	loop
-    --                    	HDUSizeInfo.NAXISArr(I) := 1;
-      --          	end loop;
 		end if;
 
                 return HDUSizeInfo;
         end Get;
+
+
+
+
+
+
+
+	function Needed_Length(Arr : Reserved.Arr_Type) return Natural
+	is
+		ArrLen : Natural := 0;
+	begin
+		if(Arr.BSCALE.Read) then ArrLen := ArrLen + 1; end if;
+		if(Arr.BZERO.Read)  then ArrLen := ArrLen + 1; end if;
+		if(Arr.BUNIT.Read)  then ArrLen := ArrLen + 1; end if;
+		if(Arr.BLANK.Read)  then ArrLen := ArrLen + 1; end if;
+		if(Arr.DATAMAX.Read)  then ArrLen := ArrLen + 1; end if;
+		if(Arr.DATAMIN.Read)  then ArrLen := ArrLen + 1; end if;
+		return ArrLen;
+	end Needed_Length;
+
+	function Get return ImData_Arr
+	is
+		ArrLen : Natural := Needed_Length(State.Arr);
+		ImData : ImData_Arr(1 .. ArrLen);
+		Idx : Natural := 0;
+	begin
+		if(State.Arr.BSCALE.Read) 
+		then
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := BSCALE; 
+			ImData(Idx).Value := State.Arr.BSCALE.Value; 
+		end if;
+		if(State.Arr.BZERO.Read)
+		then 
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := BZERO; 
+			ImData(Idx).Value := State.Arr.BZERO.Value; 
+		end if;
+		if(State.Arr.BUNIT.Read)
+		then
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := BUNIT; 
+			ImData(Idx).Value := State.Arr.BUNIT.Value; 
+		end if;
+		if(State.Arr.BLANK.Read)
+		then
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := BLANK;
+			ImData(Idx).Value := State.Arr.BLANK.Value; 
+		end if;
+		if(State.Arr.DATAMAX.Read)
+		then 
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := DATAMAX; 
+			ImData(Idx).Value := State.Arr.DATAMAX.Value; 
+		end if;
+		if(State.Arr.DATAMIN.Read)
+		then
+		       Idx := Idx + 1;	
+			ImData(Idx).Key   := DATAMIN; 
+			ImData(Idx).Value := State.Arr.DATAMIN.Value; 
+		end if;
+
+		return ImData;
+	end Get;
+
 
 
 
