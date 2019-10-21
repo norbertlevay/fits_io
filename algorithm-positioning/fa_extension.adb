@@ -10,7 +10,7 @@ with Reserved;
 package body FA_Extension is
 
 
-m_Options : Options_Type := (False, False, False,False);
+m_Options : Options_Type := (False, False, False,False,False);
 
 
 EmptyVal : constant String(1..20) := (others => ' ');
@@ -44,6 +44,16 @@ InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
 
+-- Reserved (optional) keys in any Conforming Extension
+type ConfExt_Type is
+        record
+                EXTNAME  : CardValue;
+                EXTVER   : CardValue;
+                EXTLEVEL : CardValue;
+        end record;
+
+InitConfExt : ConfExt_Type := (InitVal, InitVal, InitVal);
+
 -- Reserved (optional) keys related to TABLEs
 type Tab_Type is
         record
@@ -59,6 +69,15 @@ InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
 
 InitTab : Tab_Type := (TTYPEn => InitTFIELDSArr, TUNITn => InitTFIELDSArr, TSCALn => InitTFIELDSArr,
 		       TZEROn => InitTFIELDSArr, TNULLn => InitTFIELDSArr, TDISPn => InitTFIELDSArr);
+
+type BinTab_Type is
+	record
+		TDIMn : TFIELDS_Arr;
+		THEAP : CardValue;
+	end record;
+
+InitBinTab : BinTab_Type := (InitTFIELDSArr, InitVal);
+
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -82,7 +101,10 @@ type State_Type is
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
 	
-	Tab : Tab_Type;
+	ConfExt : ConfExt_Type;
+	Tab     : Tab_Type;
+	BinTab  : BinTab_Type;
+
 	Obs : Reserved.Obs_Type;
 
         OtherCount : Natural;
@@ -101,7 +123,8 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
-	InitTab,
+	InitConfExt,
+	InitTab, InitBinTab,
 	Reserved.InitObs,
 	0,
         0,False);
@@ -303,7 +326,8 @@ end To_XT_Type;
 
 			case(State.XTENSION_Val) is
 				when ASCII_TABLE | BIN_TABLE => State.Name := COLLECT_TABLE_ARRAYS;
-				when others => null;
+				when others => 
+					Raise_Exception(Unexpected_Card'Identity, Card);
 			end case;
 
 		else
@@ -331,13 +355,75 @@ end To_XT_Type;
                 -- FIXME to be implemented
                 return True;
         end Is_Valid;
+
+
+	function Match_ConfExt(Card : in Card_Type;
+				ConfExt : in out ConfExt_Type) return Boolean
+	is
+	begin
+		if(NOT m_Options.ConfExt) 
+		then
+			return False;
+		end if;
+
+
+		if ( "EXTNAME " = Card(1..8) )
+                then
+                        if(NOT ConfExt.EXTNAME.Read)
+                        then
+                                ConfExt.EXTNAME.Value := Card(11..30);
+                                ConfExt.EXTNAME.Read := True;
+        		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
+        	elsif ( "EXTVER  " = Card(1..8) )
+                then
+        		if(NOT ConfExt.EXTVER.Read)
+                        then
+                                ConfExt.EXTVER.Value := Card(11..30);
+                                ConfExt.EXTVER.Read := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
 	
+		elsif ( "EXTLEVEL" = Card(1..8) )
+                then
+ 
+			if(NOT ConfExt.EXTLEVEL.Read)
+                        then
+                                ConfExt.EXTLEVEL.Value := Card(11..30);
+                                ConfExt.EXTLEVEL.Read := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+
+		else
+			return False;
+		end if;
+
+		return True;
+
+	end Match_ConfExt;
+
+
 	
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
 	is
 	begin
-                if(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
-                        null;
+		-- Reserved (all Conforming Extensions)
+
+		if ( Match_ConfExt(Card, State.ConfExt) )
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+		-- Reserved (generic)
+
+                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 
 		elsif( ENDCard = Card ) then
 			State.ENDCardPos := Pos;
@@ -403,7 +489,41 @@ end To_XT_Type;
 			return False;
 		end if;
 
-                if ( "TTYPE" = Card(1..5) )
+
+		if ( "TSCAL" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TSCAL",Card(1..8));
+                        if(NOT Tab.TSCALn(Ix).Read)
+                        then
+                                Tab.TSCALn(Ix).Value := Card(11..30);
+                                Tab.TSCALn(Ix).Read := True;
+        		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
+		elsif ( "TZERO" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TZERO",Card(1..8));
+                        if(NOT Tab.TZEROn(Ix).Read)
+                        then
+                                Tab.TZEROn(Ix).Value := Card(11..30);
+                                Tab.TZEROn(Ix).Read := True;
+        		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+		
+		elsif ( "TNULL" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TNULL",Card(1..8));
+                        if(NOT Tab.TNULLn(Ix).Read)
+                        then
+                                Tab.TNULLn(Ix).Value := Card(11..30);
+                                Tab.TNULLn(Ix).Read := True;
+        		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
+                elsif ( "TTYPE" = Card(1..5) )
                 then
                         Ix := Extract_Index("TTYPE",Card(1..8));
                         if(NOT Tab.TTYPEn(Ix).Read)
@@ -425,6 +545,17 @@ end To_XT_Type;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 
+		elsif ( "TDISP" = Card(1..5) )
+                then
+                        Ix := Extract_Index("TDISP",Card(1..8));
+                        if(NOT Tab.TDISPn(Ix).Read)
+                        then
+                                Tab.TDISPn(Ix).Value := Card(11..30);
+                                Tab.TDISPn(Ix).Read := True;
+	       		else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+			end if;
+
 
 		else
 			return False;
@@ -440,6 +571,9 @@ end To_XT_Type;
 	is
 		Ix : Positive := 1;
 	begin
+
+ 		-- Mandatory cards
+
 		if ( "TFORM" = Card(1..5) )
 		then
 			Ix := Extract_Index("TFORM",Card(1..8));
@@ -473,14 +607,63 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 
+		-- Reserved (all Conforming Extensions)
 
-                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		elsif ( Match_ConfExt(Card, State.ConfExt) )
 		then
-                        null;
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+		-- Reserved (TABLE or BINTABLE specific)
 
 		elsif ( Match_Any_Tab(Card, State.Tab) )
 		then
-			null;
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+		-- Reserved (BINTABLE only)
+
+                elsif ( "TDIM" = Card(1..4) )
+                then
+                        if(State.XTENSION_Val = BIN_TABLE)
+                        then
+                                Ix := Extract_Index("TDIM",Card(1..8));
+                                if(NOT State.BinTab.TDIMn(Ix).Read)
+                                then
+                                        State.BinTab.TDIMn(Ix).Value := Card(11..30);
+                                        State.BinTab.TDIMn(Ix).Read  := True;
+                                else
+                                        Raise_Exception(Duplicate_Card'Identity, Card);
+                                end if;
+
+				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+                        else
+                                Raise_Exception(Unexpected_Card'Identity, Card);
+                        end if;
+
+
+                elsif ( "THEAP   " = Card(1..8) )
+                then
+                        if(State.XTENSION_Val = BIN_TABLE)
+                        then
+                                if(NOT State.BinTab.THEAP.Read)
+                                then
+                                        State.BinTab.THEAP.Value := Card(11..30);
+                                        State.BinTab.THEAP.Read  := True;
+                                else
+                                        Raise_Exception(Duplicate_Card'Identity, Card);
+                                end if;
+
+				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+                        else
+                                Raise_Exception(Unexpected_Card'Identity, Card);
+                        end if;
+
+
+		-- Reserved (generic)
+
+                elsif(Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 	
 		elsif( Card = ENDCard )
 		then

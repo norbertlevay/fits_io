@@ -15,10 +15,11 @@ type Algorithm_Type is
 
 type Options_Type is
         record
-                Mand   : Boolean;
-                Biblio : Boolean;
-                Obs    : Boolean;
-                Tab    : Boolean;
+                Mand    : Boolean;
+                Biblio  : Boolean;
+                Obs     : Boolean;
+                Tab     : Boolean;
+		ConfExt : Boolean;
         end record;
 
 

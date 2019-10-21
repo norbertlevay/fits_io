@@ -275,8 +275,10 @@ end DBG_Print;
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
-                if( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs)) then
-			null;
+                if( Reserved.Match_Any_Obs(m_Options.Obs,Card,State.Obs))
+		then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
 
 		elsif( ENDCard = Card ) then
                         	State.ENDCardPos := Pos;

@@ -25,54 +25,34 @@ type Read_Control is
 	function To_Prim_Options_Type(Opt : String) return FA_Primary.Options_Type
 	is
 	begin
-		-- FIXME no exclusive
-		if(Options = "SIZE" OR Options = "TAB")
+		if(Options = "MAND")
 		then
 			return (True,False,False);
-		end if;
 
-		if(Options = "OBS")
+		elsif(Options = "RES")
 		then
 			return (True,False,True);
+		else
+			return (False,False,False);
 		end if;
 
-		if(Options = "POBS")
-		then
-			return (False,False,True);
-		end if;
-		
-		if(Options = "EOBS")
-		then
-			return (True,False,False);
-		end if;
-
-		return (False,False,False);
 	end To_Prim_Options_Type;
 	
 	function To_Ext_Options_Type(Opt : String) return FA_Extension.Options_Type
 	is
 	begin
-		if(Options = "SIZE")
+		if(Options = "MAND")
 		then
-			return (True,False,False,False);
+			return (True,False,False,False,False);
+
+		elsif(Options = "RES")
+		then
+			return (True,False,True,True,True);
+
+		else
+			return (False,False,False,False,False);
 		end if;
 
-		if(Options = "OBS")
-		then
-			return (True,False,True,False);
-		end if;
-		
-		if(Options = "EOBS")
-		then
-			return (False,False,True,False);
-		end if;
-
-		if(Options = "TAB")
-		then
-			return (True,False,False,True);
-		end if;
-
-		return (False,False,False,False);
 	end To_Ext_Options_Type;
 
         --
