@@ -830,7 +830,7 @@ end To_XT_Type;
 
 	function  Get return HDU_Size_Rec
         is
-                HDUSizeInfo : HDU_Size_Rec;
+                HDUSizeInfo : HDU_Size_Rec(State.NAXIS_Val);
                 NAXIS : Positive;
 	begin
 -- Final FA states naming: 
@@ -893,10 +893,10 @@ end To_XT_Type;
 	                end loop;
 
         	        -- FIXME dirty fix: should return NAXISArr only NAXIS-long
-	                for I in NAXIS+1 .. NAXIS_Max
-        	        loop
-                	        HDUSizeInfo.NAXISArr(I) := 1;
-	                end loop;
+--	                for I in NAXIS+1 .. NAXIS_Max
+  --      	        loop
+    --            	        HDUSizeInfo.NAXISArr(I) := 1;
+--	                end loop;
 
 		end if;
 

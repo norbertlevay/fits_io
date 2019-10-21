@@ -104,7 +104,7 @@ type Read_Control is
 	Blk : Card_Block;
 	Rc  : Read_Control;
 	Stoped : Boolean;
-	HDUSizeInfo : HDU_Size_Rec;
+--	HDUSizeInfo : HDU_Size_Rec;
 	HDUSize_blocks : Formulas.Positive_Count;
 
 
@@ -151,9 +151,12 @@ begin
 		exit when Stoped;
 
 	end loop;
-
-	HDUSizeInfo    := FA_Primary.Get;
-	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+	
+	declare
+		HDUSizeInfo : HDU_Size_Rec := FA_Primary.Get;
+	begin
+		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+	end;
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
@@ -192,8 +195,12 @@ loop
 
 	end loop;
 
-	HDUSizeInfo    := FA_Extension.Get;
-	HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+	declare
+		HDUSizeInfo : HDU_Size_Rec := FA_Extension.Get;
+	begin
+		--HDUSizeInfo    := FA_Extension.Get;
+		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+	end;
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 

@@ -134,10 +134,6 @@ end DBG_Print;
 	end Configure;
 
 
-
-
-
-
 --
 -- state transitions
 --
@@ -313,13 +309,8 @@ end DBG_Print;
 			if( State.NAXIS_Val = 0 )
 			then
 				State.Name := NO_DATA;
-
-			elsif( State.NAXIS_Val > 0 )
-			then
+			else  
 				State.Name := IMAGE;
-		
-			else
-				null;-- FIXME State.Name := NOT_DETERMINED;
 			end if;
 
                         return 0;
@@ -567,7 +558,6 @@ end DBG_Print;
 				NextCardPos := 0;
 		end case;
 		
-		-- TIO.Put_Line("DBG> "&Integer'Image(NextCardPos) & Card);
 		if(NextCardPos = 0) then DBG_Print; end if;
 
 		return NextCardPos;
@@ -599,7 +589,7 @@ end DBG_Print;
 
 	function  Get return HDU_Size_Rec
 	is
-		HDUSizeInfo : HDU_Size_Rec;
+		HDUSizeInfo : HDU_Size_Rec(State.NAXIS_Val);
                 NAXIS : Positive;
         begin
 -- Final FA states naming: 
@@ -636,7 +626,6 @@ end DBG_Print;
 		then
 
                 	-- FIXME how about SIMPLE value, should we check it was set ?
-		
                 	HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
 
                 	if(State.BITPIX.Read) then
@@ -662,10 +651,10 @@ end DBG_Print;
                 	end loop;
 
                 	-- FIXME dirty fix: should return NAXISArr only NAXIS-long
-                	for I in NAXIS+1 .. NAXIS_Max
-                	loop
-                        	HDUSizeInfo.NAXISArr(I) := 1;
-                	end loop;
+--                	for I in NAXIS+1 .. NAXIS_Max
+  --              	loop
+    --                    	HDUSizeInfo.NAXISArr(I) := 1;
+      --          	end loop;
 		end if;
 
                 return HDUSizeInfo;
