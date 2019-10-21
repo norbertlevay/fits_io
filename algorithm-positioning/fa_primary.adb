@@ -58,7 +58,6 @@ type State_Type is
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
-        NAXIS1 : CardValue;
         NAXISn : NAXIS_Arr;
         PCOUNT : CardValue;
         GCOUNT : CardValue;
@@ -87,7 +86,7 @@ InitState : State_Type :=
 	0,
 	NOT_ACCEPTING_CARDS, 0, 0,
 
-        InitVal,InitVal,InitVal,InitVal,
+        InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
 	InitVal,
@@ -108,8 +107,7 @@ TIO.New_Line;
 if(State.SIMPLE.Read) then TIO.Put_Line("SIMPLE  "&State.SIMPLE.Value); end if;
 if(State.BITPIX.Read) then TIO.Put_Line("BITPITX "&State.BITPIX.Value); end if;
 if(State.NAXIS.Read)  then TIO.Put_Line("NAXIS   "&State.NAXIS.Value);  end if;
-TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 ");
-TIO.Put_Line(State.NAXIS1.Value);
+--TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 "); TIO.Put_Line(State.NAXIS1.Value);
 for I in State.NAXISn'Range
 loop
 	if(State.NAXISn(I).Read) then
