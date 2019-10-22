@@ -340,51 +340,5 @@ end DBG_Print;
 
         end Match_Any_DataArr;
 
--- try reserved arrays, RAND GROUP specific
-type RANDG_Arr is array (1..RANDG_Max) of CardValue;
-InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
-
-type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
-type RG_Type is array (RG_KeyRoot) of RANDG_Arr;
-InitRG : constant RG_Type := (others => InitRANDGArrVal);
-
-
-
-	function Match_Any_RG(Flag : Boolean;
-		           Card    : in Card_Type;
-                           RGArr   : in out RG_Type) return Boolean
-        is
-		Idx : Positive;
-        begin
-		if(NOT Flag) then
-			return False;
-		end if;
-
-		for I in RG_Type'Range
-		loop
-			if(Is_Array(Card,  RG_KeyRoot'Image(I),1,RANDG_Max,Idx ) )
-			then 
-	                        if (NOT RGArr(I)(Idx).Read)
-         	               	then
-					RGArr(I)(Idx).Value :=  Card(11..30);
-                        		RGArr(I)(Idx).Read  := True;
-
-					return True;
-		       		else
-                        	        Raise_Exception(Duplicate_Card'Identity, Card);
-                       		end if;
-			end if;
-		end loop;
-
-		return False;
-
-        end Match_Any_RG;
-
-
-
-
-
-
-
 end Reserved;
 

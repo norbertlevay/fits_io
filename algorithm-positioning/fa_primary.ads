@@ -99,6 +99,19 @@ type DataArr_Arr is
 
 	function Get return DataArr_Arr;
 
+	-- Reserved keys: RANDOM GROUPS releated
+type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
+type RANDG_Arr is array (1..RANDG_Max) of CardValue;
+type RG_Card_Data is 
+	record
+		Key   : RG_KeyRoot;
+		Value : RANDG_Arr;
+	end record;
+type RG_Arr is
+	array (Positive range <>) of RG_Card_Data;
+
+	function Get return RG_Arr;
+
 
 
 	Unexpected_Card       : exception;

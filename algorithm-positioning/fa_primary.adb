@@ -34,19 +34,24 @@ type State_Name is
         );
 
 
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
+--type CardValue is
+  --      record
+    --            Value : String(1..20);
+      --          Read  : Boolean;
+       -- end record;
 
-InitVal  : constant CardValue := (EmptyVal,False);
+--InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
-type RANDG_Arr is array (1..RANDG_Max) of CardValue;
+--type RANDG_Arr is array (1..RANDG_Max) of CardValue;
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
+
+-- reserved arrays, RAND GROUP specific
+type ResRG_Type is array (RG_KeyRoot) of RANDG_Arr;
+InitResRG : constant ResRg_Type := (others => InitRANDGArrVal);
+
 
 
 type State_Type is
@@ -67,9 +72,7 @@ type State_Type is
         GROUPS : CardValue;
 
 	-- Reserved (RANDOM GROUPS specific)
-	PTYPEn : RANDG_Arr;
-	PSCALn : RANDG_Arr;
-	PZEROn : RANDG_Arr;
+	ResRG  : ResRG_Type;
 	-- Reserved (generic, data-arrays only, like IMAGE)
 	DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
@@ -90,7 +93,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
-	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
+	InitResRG,
 	Reserved.InitDataArr,
 	Reserved.Init,
 	0,
@@ -164,6 +167,46 @@ begin
 end DBG_Print_reserved;
 
 -- -----------------------------------------------------------
+
+
+
+        function Match_Any_ResRG(Flag : Boolean;
+                           Card    : in Card_Type;
+                           RGArr   : in out ResRG_Type) return Boolean
+        is
+                Idx : Positive;
+        begin
+                if(NOT Flag) then
+                        return False;
+                end if;
+
+                for I in ResRG_Type'Range
+                loop
+                        if(Is_Array(Card,  RG_KeyRoot'Image(I),1,RANDG_Max,Idx ) )
+                        then
+                                if (NOT RGArr(I)(Idx).Read)
+                                then
+                                        RGArr(I)(Idx).Value :=  Card(11..30);
+                                        RGArr(I)(Idx).Read  := True;
+
+                                        return True;
+                                else
+                                        Raise_Exception(Duplicate_Card'Identity, Card);
+                                end if;
+                        end if;
+                end loop;
+
+                return False;
+
+        end Match_Any_ResRG;
+
+
+
+
+
+
+
+
 
         procedure Configure(Options : Options_Type)
 	is
@@ -397,7 +440,6 @@ end DBG_Print_reserved;
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
 	is
-		Idx : Positive;
 	begin
 
 		-- Mandatory keys
@@ -442,40 +484,13 @@ end DBG_Print_reserved;
 			
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
+
 		-- Reserved keys (specific to RANDOM GROUPS)
 
-                elsif (Is_Array(Card,"PTYPE",1,RANDG_Max,Idx))
-                then
-                        if(NOT State.PTYPEn(Idx).Read)
-                        then
-                                State.PTYPEn(Idx).Value := Card(11..30);
-                                State.PTYPEn(Idx).Read  := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-
-                 elsif (Is_Array(Card,"PSCAL",1,RANDG_Max,Idx))
-                 then
-                        if(NOT State.PSCALn(Idx).Read)
-                        then
-                                State.PSCALn(Idx).Value := Card(11..30);
-                                State.PSCALn(Idx).Read  := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-
-                 elsif (Is_Array(Card,"PZERO",1,RANDG_Max,Idx))
-                 then
-                        if(NOT State.PZEROn(Idx).Read)
-                        then
-                                State.PZEROn(Idx).Value := Card(11..30);
-                                State.PZEROn(Idx).Read  := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
+		elsif(Match_Any_ResRG(m_Options.Reserved, Card, State.ResRG))
+		then
+                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+ 
 
 		-- Reserved keys (generic)
 
@@ -864,6 +879,41 @@ end DBG_Print_reserved;
 
 		return Arr;
 	end Get;
+
+-- data is RandGroup reserved key arrays
+
+        function Needed_Length(RGArr : ResRG_Type) return Natural
+        is
+                ArrLen : Natural := 0;
+        begin
+--                for I in ResRG_Type'Range
+  --              loop
+    --                    if(RGArr(I).Read) then ArrLen := ArrLen + 1; end if;
+      --          end loop;
+-- FIXME not implemented
+                return ArrLen;
+        end Needed_Length;
+
+
+        function Get return RG_Arr
+        is
+                ArrLen : Natural := Needed_Length(State.DataArr);
+                Arr    : RG_Arr(1 .. ArrLen);
+                Idx    : Natural := 0;
+        begin
+
+--                for I in Reserved.DataArr_Type'Range
+  --              loop
+    --                    if(State.DataArr(I).Read)
+       --                 then
+         --                       Idx := Idx + 1;
+           --                     Arr(Idx).Key   := I;
+             --                   Arr(Idx).Value := State.DataArr(I).Value;
+               --         end if;
+                --end loop;
+
+                return Arr;
+        end Get;
 
 
 
