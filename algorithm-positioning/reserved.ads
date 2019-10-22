@@ -92,46 +92,17 @@ function Match_Any_Comment(Flag    : Boolean;
 
 -- Observation related keys
 
-------------------------------------			  
--- BEGIN new array-based implementa
-
-
+--DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
 type Key_Type is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
---type Card_Rec is
---	record
---		Key   : Key_Type;
---		Value : String(1..20);
---	end record;
-type newObs_Type is array (Key_Type) of CardValue;
-InitnewObs : newObs_Type := (others => InitVal);
-
-function Match_Any_Obs(Flag : Boolean;
-                        Card : in Card_Type;
-                       Obs  : in out newObs_Type) return Boolean;
-
-
-
-
--- END
------------------------------------------
-
-type Obs_Type is
-        record
-                DATEOBS : CardValue;
-                --DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
-                TELESCOP : CardValue;
-                INSTRUME : CardValue;
-                OBSERVER : CardValue;
-                OBJECT   : CardValue;
-        end record;
-
-InitObs : constant Obs_Type := (InitVal,   InitVal,InitVal,InitVal,InitVal);
+type Obs_Type is array (Key_Type) of CardValue;
+InitObs : Obs_Type := (others => InitVal);
 
 procedure DBG_Print(Obs : in Obs_Type);
 
-function Match_Any_Obs(Flag : Boolean; 
-			Card : in Card_Type;
+function Match_Any_Obs(Flag : Boolean;
+                       Card : in Card_Type;
                        Obs  : in out Obs_Type) return Boolean;
+
 
 
 -- all generic Reserved keys [FITS Table C.2]
@@ -141,10 +112,10 @@ type Reserved_Type is
                 Prod   : Prod_Type;
 		Biblio : Biblio_Type;
 		Comments : Comment_Type;
-                Obs    : newObs_Type;
+                Obs    : Obs_Type;
         end record;
 
-Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitnewObs);
+Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitObs);
 
 procedure DBG_Print(Res : in Reserved_Type);
 
