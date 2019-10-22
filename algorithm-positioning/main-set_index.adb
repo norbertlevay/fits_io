@@ -153,9 +153,9 @@ begin
 	end loop;
 	
 	declare
-		HDUSizeInfo : HDU_Size_Rec := FA_Primary.Get;
+		PSize : FA_Primary.Primary_Size_Rec := FA_Primary.Get;
 	begin
-		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
 	end;
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;

@@ -30,7 +30,29 @@ type Options_Type is
 	function  Reset_State return Positive;
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
-	function  Get return HDU_Size_Rec;
+--	function  Get return HDU_Size_Rec;
+
+
+	-- Mandatory
+type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
+--type NAXISn_Arr is array (Positive range <>) of Positive;
+type Primary_Size_Rec(Last : Natural;
+                HDUType    : Primary_HDU) is
+        record
+                CardsCount : Positive;
+                BITPIX     : Integer;
+                NAXISArr   : NAXIS_Arr(1 .. Last);
+		case HDUType is
+			when RANDOM_GROUPS =>
+				PCOUNT : Natural;
+				GCOUNT : Positive;
+			when others =>
+				null;
+		end case;
+        end record;
+
+	function  Get return Primary_Size_Rec;
+
 
 
 	-- Reserved keys: production

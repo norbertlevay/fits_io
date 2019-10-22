@@ -1,11 +1,17 @@
 
 with FITS; use FITS;
+with FA_Primary;
+
 
 package Formulas is
 
 	type Positive_Count is new Positive;
 
 	-- Calc size
+
+	function  Calc_HDU_Size_blocks
+		(PrimSize : in FA_Primary.Primary_Size_Rec) return Positive_Count;
+-- FIXME PCOUNT GCOUNT not implemented yet
 
 	function  Calc_HDU_Size_blocks
 		(HDUSizeInfo : in HDU_Size_Rec) return Positive_Count;

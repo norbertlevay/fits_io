@@ -1,6 +1,25 @@
 
 package body Formulas is
 
+	 function  Calc_HDU_Size_blocks
+                (PrimSize : in FA_Primary.Primary_Size_Rec) return Positive_Count
+	 is
+                HDUSize : Positive_Count;
+	 begin
+                HDUSize :=
+                        Calc_HeaderUnit_Size_blocks(PrimSize.CardsCount)
+                        +
+                        Calc_DataUnit_Size_blocks(PrimSize.BITPIX, PrimSize.NAXISArr);
+
+                return HDUSize;
+		 
+	 end Calc_HDU_Size_blocks;
+
+
+
+
+
+
 	function  Calc_HDU_Size_blocks
 		(HDUSizeInfo : in HDU_Size_Rec) return Positive_Count
 	is

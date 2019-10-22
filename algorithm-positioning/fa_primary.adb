@@ -665,6 +665,58 @@ end DBG_Print_reserved;
                 return HDUSizeInfo;
         end Get;
 
+	function To_Primary_HDU(S : State_Name) return Primary_HDU
+	is
+	begin
+		case(S) is
+			when NO_DATA => return NO_DATA;
+			when IMAGE   => return IMAGE;
+			when RANDOM_GROUPS => return RANDOM_GROUPS;
+			when others =>
+				Raise_Exception(Programming_Error'Identity, "Get called but header not read or only partially read.");
+		end case;
+	end To_Primary_HDU;
+
+
+	function  Get return Primary_Size_Rec
+	is
+		PrimSize : Primary_Size_Rec(State.NAXIS_Val,
+						To_Primary_HDU(State.Name));
+                NAXIS : Positive;
+        begin
+                if(State.ENDCardSet) then
+                        PrimSize.CardsCount := State.ENDCardPos;
+                else
+                        Raise_Exception(Card_Not_Found'Identity, 
+					"END card not found, not a valid FITS file.");
+                end if;
+
+
+                PrimSize.BITPIX := To_Integer(State.BITPIX.Value);
+
+                NAXIS := To_Integer(State.NAXIS.Value);
+               	for I in 1 .. NAXIS
+               	loop
+                       	if(State.NAXISn(I).Read) then
+                         		PrimSize.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                       	else
+                               	Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                       	end if;
+
+               	end loop;
+
+		case(PrimSize.HDUType) is
+			when RANDOM_GROUPS =>
+				PrimSize.PCOUNT := To_Integer(State.PCOUNT.Value);
+				PrimSize.GCOUNT := To_Integer(State.GCOUNT.Value);
+			when others =>
+				null;
+		end case;
+
+ 		return PrimSize;
+        end Get;
+
+
 
 
 
