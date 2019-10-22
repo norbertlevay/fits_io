@@ -91,6 +91,30 @@ function Match_Any_Comment(Flag    : Boolean;
 
 
 -- Observation related keys
+
+------------------------------------			  
+-- BEGIN new array-based implementa
+
+
+type Key_Type is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
+--type Card_Rec is
+--	record
+--		Key   : Key_Type;
+--		Value : String(1..20);
+--	end record;
+type newObs_Type is array (Key_Type) of CardValue;
+InitnewObs : newObs_Type := (others => InitVal);
+
+function Match_Any_Obs(Flag : Boolean;
+                        Card : in Card_Type;
+                       Obs  : in out newObs_Type) return Boolean;
+
+
+
+
+-- END
+-----------------------------------------
+
 type Obs_Type is
         record
                 DATEOBS : CardValue;
@@ -117,10 +141,10 @@ type Reserved_Type is
                 Prod   : Prod_Type;
 		Biblio : Biblio_Type;
 		Comments : Comment_Type;
-                Obs    : Obs_Type;
+                Obs    : newObs_Type;
         end record;
 
-Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitObs);
+Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitnewObs);
 
 procedure DBG_Print(Res : in Reserved_Type);
 

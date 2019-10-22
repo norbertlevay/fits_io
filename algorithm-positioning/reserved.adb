@@ -1,6 +1,7 @@
 with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with FITS; use FITS; -- Card_Type needed
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
 
 
 -- Notes on Reserved optional keys:
@@ -236,9 +237,6 @@ if(Obs.OBSERVER.Read) then TIO.Put_Line("Obs OBSERVER "&Obs.OBSERVER.Value); end
 if(Obs.OBJECT.Read)   then TIO.Put_Line("Obs OBJECT   "&Obs.OBJECT.Value);   end if;
 end DBG_Print;
 
-
-
-
         function Match_Any_Obs(Flag : Boolean;
 				Card : in Card_Type;
                                 Obs : in out Obs_Type) return Boolean
@@ -307,6 +305,47 @@ end DBG_Print;
                 end if;
 
                 return True;
+
+        end Match_Any_Obs;
+
+
+procedure DBG_Print(Obs : in newObs_Type)
+is
+begin
+for I in Key_Type
+loop
+	if(Obs(I).Read)  then TIO.Put_Line("newObs "&Key_Type'Image(I)&" "&Obs(I).Value);  end if;
+end loop;
+end DBG_Print;
+
+
+        function Match_Any_Obs(Flag : Boolean;
+				Card : in Card_Type;
+                                Obs : in out newObs_Type) return Boolean
+        is
+        begin
+		if(NOT Flag) then
+			return False;
+		end if;
+
+		for I in Key_Type
+		loop
+			if(Trim(Card(1..8), Ada.Strings.Both) = Key_Type'Image(I))
+			then
+	         		if (NOT Obs(I).Read)
+                	        then
+					Obs(I).Value := Card(11..30);
+					Obs(I).Read  := True;
+
+					return True;
+				else
+                                	Raise_Exception(Duplicate_Card'Identity, Card);
+                        	end if;
+			end if;
+
+		end loop;
+
+		return False;
 
         end Match_Any_Obs;
 
