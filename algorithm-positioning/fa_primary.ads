@@ -4,38 +4,9 @@ with Reserved; use Reserved; -- Obs_Key needed
 
 package FA_Primary is
 
-type Algorithm_Type is 
-	(
-	ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
-	ALGORITHM_TOLERANT   -- parsing Headers fails only if: 
-				-- * essential key is missing
-				-- * essential key is duplicate with different values (ambiguity)
-	); -- FIXME not implemented
+	-- Mandatory keys
 
-
-type Options_Type is
-	record
-		Mand   : Boolean;
-		Reserved : Boolean;
-	end record;
-
-
-
-	--
-	-- finite automaton
-	--
-
-	procedure Configure(Options : Options_Type);
-
-	function  Reset_State return Positive;
-	function  Next(Pos : Positive; Card : Card_Type) return Natural;
-
---	function  Get return HDU_Size_Rec;
-
-
-	-- Mandatory
 type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
---type NAXISn_Arr is array (Positive range <>) of Positive;
 type Primary_Size_Rec(Last : Natural;
                 HDUType    : Primary_HDU) is
         record
@@ -51,11 +22,10 @@ type Primary_Size_Rec(Last : Natural;
 		end case;
         end record;
 
-	function  Get return Primary_Size_Rec;
 
+	-- Reserved keys
 
-
-	-- Reserved keys: production
+-- production related
 type Prod_Card_Data is 
 	record
 		Key   : Prod_Key;
@@ -64,9 +34,8 @@ type Prod_Card_Data is
 type Prod_Arr is
 	array (Positive range <>) of Prod_Card_Data;
 
-	function Get return Prod_Arr;
-
-	-- Reserved keys: bibliographic
+	
+-- bibliographic
 type Biblio_Card_Data is 
 	record
 		Key   : Biblio_Key;
@@ -75,9 +44,8 @@ type Biblio_Card_Data is
 type Biblio_Arr is
 	array (Positive range <>) of Biblio_Card_Data;
 
-	function Get return Biblio_Arr;
 
-	-- Reserved keys: observation related
+-- observation related
 type Obs_Card_Data is 
 	record
 		Key   : Obs_Key;
@@ -86,9 +54,8 @@ type Obs_Card_Data is
 type Obs_Arr is
 	array (Positive range <>) of Obs_Card_Data;
 
-	function Get return Obs_Arr;
 
-	-- Reserved keys: data array (IMAGE) related
+-- data array (IMAGE) related
 type DataArr_Card_Data is 
 	record
 		Key   : DataArr_Key;
@@ -97,9 +64,8 @@ type DataArr_Card_Data is
 type DataArr_Arr is
 	array (Positive range <>) of DataArr_Card_Data;
 
-	function Get return DataArr_Arr;
 
-	-- Reserved keys: RANDOM GROUPS releated
+-- RANDOM GROUPS releated
 type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
 type RANDG_Arr is array (1..RANDG_Max) of CardValue;
 type RG_Card_Data is 
@@ -110,8 +76,37 @@ type RG_Card_Data is
 type RG_Arr is
 	array (Positive range <>) of RG_Card_Data;
 
-	function Get return RG_Arr;
 
+-- FA configuration
+type Algorithm_Type is 
+	(
+	ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
+	ALGORITHM_TOLERANT   -- parsing Headers fails only if: 
+				-- * essential key is missing
+				-- * essential key is duplicate with different values (ambiguity)
+	); -- FIXME not implemented
+
+type Options_Type is
+	record
+		Mand   : Boolean;
+		Reserved : Boolean;
+	end record;
+
+	--
+	-- finite automaton
+	--
+
+	procedure Configure(Options : Options_Type);
+
+	function  Reset_State return Positive;
+	function  Next(Pos : Positive; Card : Card_Type) return Natural;
+
+	function Get return Primary_Size_Rec;
+	function Get return Prod_Arr;
+	function Get return Biblio_Arr;
+	function Get return Obs_Arr;
+	function Get return DataArr_Arr;
+	function Get return RG_Arr;
 
 
 	Unexpected_Card       : exception;
