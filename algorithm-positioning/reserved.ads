@@ -21,7 +21,9 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 
 -- Production keys
-type Prod_Key is (DATE, ORIGIN, BLOCKED);
+type Prod_Key is (DATE, ORIGIN, BLOCKED, EXTEND);
+-- BLOCKED & EXTEND only in Primary (BLOCKED only within 1st 36 cards) 
+-- check in Extension that not present, otherwise raise exception(?)
 type Prod_Type is array (Prod_Key) of CardValue;
 InitProd : constant Prod_Type := (others => InitVal);
 

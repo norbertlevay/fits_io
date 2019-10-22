@@ -9,6 +9,9 @@ with Reserved;
 
 -- FIXME consider configurable how to react to duplicates (with the same card value)
 -- FIXME Reserved (optional) keys are not fixed-format, but free-format -> Value NOT Card(11..30) !!
+-- FIXME some keys may appear only in Primery (EXTEND,BLOCKED...?) and MUST NOT appear in extensions: should we check in extensions that they are not there ?
+
+
 
 package body FA_Primary is
 
@@ -63,8 +66,6 @@ type State_Type is
         GCOUNT : CardValue;
         GROUPS : CardValue;
 
-	-- Reserved (Primary only)
-	EXTEND : CardValue;-- FIXME should we check: extension HDU must not have this ?
 	-- Reserved (RANDOM GROUPS specific)
 	PTYPEn : RANDG_Arr;
 	PSCALn : RANDG_Arr;
@@ -89,7 +90,6 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
-	InitVal,
 	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
 	Reserved.InitDataArr,
 	Reserved.Init,
@@ -118,7 +118,6 @@ TIO.New_Line;
 if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
 if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
 if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
-if(State.EXTEND.Read) then TIO.Put_Line("EXTEND  "&State.EXTEND.Value); end if;
 Reserved.DBG_Print(State.GenRes);
 Reserved.DBG_Print(State.DataArr);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
@@ -312,23 +311,9 @@ end DBG_Print_reserved;
         function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
         is
         begin
-		-- Reserved (Primary only)
-
-                if (Card(1..8) = "EXTEND  ") then
-
-                        if (NOT State.EXTEND.Read)
-                        then
-                                State.EXTEND.Value := String(Card(11..30));
-                                State.EXTEND.Read  := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                        TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
 		-- Reserved (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
+                if( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -490,20 +475,6 @@ end DBG_Print_reserved;
                         else
                                 Raise_Exception(Duplicate_Card'Identity, Card);
                         end if;
-
-		-- Reserved (Primary only)
-
-                elsif (Card(1..8) = "EXTEND  ") then
-
-                        if (NOT State.EXTEND.Read)
-                        then
-                                State.EXTEND.Value := String(Card(11..30));
-                                State.EXTEND.Read  := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                        TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 
 		-- Reserved keys (generic)
