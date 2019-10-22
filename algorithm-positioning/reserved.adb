@@ -32,9 +32,13 @@ package TIO renames Ada.Text_IO;
 procedure DBG_Print(Prod : in Prod_Type)
 is
 begin
-if(Prod.DATE.Read)    then TIO.Put_Line("Prod DATE    "&Prod.DATE.Value);   end if;
-if(Prod.ORIGIN.Read)  then TIO.Put_Line("Prod ORIGIN  "&Prod.ORIGIN.Value); end if;
-if(Prod.BLOCKED.Read) then TIO.Put_Line("Prod BLOCKED "&Prod.BLOCKED.Value); end if;
+	for I in Prod_Key'Range
+	loop
+		if(Prod(I).Read)
+		then 
+			TIO.Put_Line("Prod "&Prod_Key'Image(I) &" "&Prod(I).Value);
+		end if;
+	end loop;
 end DBG_Print;
 
 
@@ -47,45 +51,23 @@ end DBG_Print;
 			return False;
 		end if;
 
+		for I in Prod_Key'Range
+		loop
+			if(Trim(Card(1..8), Ada.Strings.Right) = Prod_Key'Image(I))
+			then
+				if (NOT Prod(I).Read)
+        	        	then
+	        	       		Prod(I).Value :=  Card(11..30);
+                  		      	Prod(I).Read  := True;
 
-                if(Card(1..8) = "DATE    ")
-                then
-                        if (NOT Prod.DATE.Read)
-                        then
-				Prod.DATE.Value :=  Card(11..30);
-                        	Prod.DATE.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
+					return True;
+		       		else
+                               		Raise_Exception(Duplicate_Card'Identity, Card);
+                        	end if;
+			end if;
+		end loop;
 
-
-                elsif(Card(1..8) = "ORIGIN  ")
-                then
-                        --if (NOT Prod.ORIGIN.Read) FIXME note: this card appears twice in some FITS files
-                        if (True)
-                        then
-	                	Prod.ORIGIN.Value :=  Card(11..30);
-                        	Prod.ORIGIN.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                elsif(Card(1..8) = "BLOCKED ")
-                then
-                        if (NOT Prod.BLOCKED.Read)
-                        then
-	                	Prod.BLOCKED.Value :=  Card(11..30);
-                        	Prod.BLOCKED.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-
-                else
-                        return False;
-                end if;
-
-                return True;
+		return False;
 
         end Match_Any_Prod;
 
@@ -96,8 +78,13 @@ end DBG_Print;
 procedure DBG_Print(Biblio : in Biblio_Type)
 is
 begin
-if(Biblio.AUTHOR.Read)   then TIO.Put_Line("Biblio AUTHOR   "&Biblio.AUTHOR.Value);   end if;
-if(Biblio.REFERENC.Read) then TIO.Put_Line("Biblio REFERENC "&Biblio.REFERENC.Value); end if;
+	for I in Biblio_Key'Range
+	loop
+		if(Biblio(I).Read)
+		then 
+			TIO.Put_Line("Biblio "&Biblio_Key'Image(I) &" "&Biblio(I).Value);
+		end if;
+	end loop;
 end DBG_Print;
 
 
@@ -110,32 +97,23 @@ end DBG_Print;
 			return False;
 		end if;
 
+		for I in Biblio_Key'Range
+		loop
+			if(Trim(Card(1..8), Ada.Strings.Right) = Biblio_Key'Image(I))
+			then
+				if (NOT Biblio(I).Read)
+        	        	then
+	        	       		Biblio(I).Value :=  Card(11..30);
+                        		Biblio(I).Read  := True;
 
-                if(Card(1..8) = "AUTHOR  ")
-                then
-			if (NOT Biblio.AUTHOR.Read)
-                        then
-	                	Biblio.AUTHOR.Value :=  Card(11..30);
-                        	Biblio.AUTHOR.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
+					return True;
+		       		else
+                               		Raise_Exception(Duplicate_Card'Identity, Card);
+                        	end if;
+			end if;
+		end loop;
 
-                elsif(Card(1..8) = "REFERENC")
-                then
-        		if (NOT Biblio.REFERENC.Read)
-                        then
-		                Biblio.REFERENC.Value :=  Card(11..30);
-                	        Biblio.REFERENC.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                else
-                        return False;
-                end if;
-
-                return True;
+		return False;
 
         end Match_Any_Biblio;
 

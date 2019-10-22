@@ -31,19 +31,29 @@ type Options_Type is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function  Get return HDU_Size_Rec;
-	
-	-- Reserved keys: data array (IMAGE) related
-type Card_Data is 
+
+
+	-- Reserved keys: production
+type Prod_Card_Data is 
 	record
-		Key   : DataArr_Key;
+		Key   : Prod_Key;
 		Value : String(1..20);
 	end record;
-type DataArr_Arr is
-	array (Positive range <>) of Card_Data;
+type Prod_Arr is
+	array (Positive range <>) of Prod_Card_Data;
 
-	function Get return DataArr_Arr;
+	function Get return Prod_Arr;
 
+	-- Reserved keys: bibliographic
+type Biblio_Card_Data is 
+	record
+		Key   : Biblio_Key;
+		Value : String(1..20);
+	end record;
+type Biblio_Arr is
+	array (Positive range <>) of Biblio_Card_Data;
 
+	function Get return Biblio_Arr;
 
 	-- Reserved keys: observation related
 type Obs_Card_Data is 
@@ -56,7 +66,16 @@ type Obs_Arr is
 
 	function Get return Obs_Arr;
 
+	-- Reserved keys: data array (IMAGE) related
+type DataArr_Card_Data is 
+	record
+		Key   : DataArr_Key;
+		Value : String(1..20);
+	end record;
+type DataArr_Arr is
+	array (Positive range <>) of DataArr_Card_Data;
 
+	function Get return DataArr_Arr;
 
 
 

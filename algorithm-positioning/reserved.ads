@@ -18,15 +18,12 @@ InitVal  : constant CardValue := (EmptyVal,False);
 -- FIXME these above, we want hidden, but needed in 3 packs: here and FA_Primary (also FA_Ext)
 
 
--- Production keys
-type Prod_Type is
-        record
-                DATE    : CardValue;
-                ORIGIN  : CardValue;
-                BLOCKED : CardValue;
-        end record;
 
-InitProd : constant Prod_Type := (InitVal,InitVal,InitVal);
+
+-- Production keys
+type Prod_Key is (DATE, ORIGIN, BLOCKED);
+type Prod_Type is array (Prod_Key) of CardValue;
+InitProd : constant Prod_Type := (others => InitVal);
 
 procedure DBG_Print(Prod : in Prod_Type);
 
@@ -36,20 +33,18 @@ function Match_Any_Prod(Flag : Boolean;
 
 
 
--- Biblioghapic keys
-type Biblio_Type is
-        record
-                AUTHOR   : CardValue;
-                REFERENC : CardValue;
-        end record;
-
-InitBiblio : constant Biblio_Type := (InitVal,InitVal);
+-- Bibliographic keys
+type Biblio_Key is (AUTHOR, REFERENC);
+type Biblio_Type is array (Biblio_Key) of CardValue;
+InitBiblio : constant Biblio_Type := (others => InitVal);
 
 procedure DBG_Print(Biblio : in Biblio_Type);
 
 function Match_Any_Biblio(Flag   : Boolean; 
 			  Card   : in Card_Type;
                           Biblio : in out Biblio_Type) return Boolean;
+
+
 
 
 -- Commentary keys
@@ -95,7 +90,7 @@ function Match_Any_Comment(Flag    : Boolean;
 --DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
 type Obs_Key is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
 type Obs_Type is array (Obs_Key) of CardValue;
-InitObs : Obs_Type := (others => InitVal);
+InitObs : constant Obs_Type := (others => InitVal);
 
 procedure DBG_Print(Obs : in Obs_Type);
 

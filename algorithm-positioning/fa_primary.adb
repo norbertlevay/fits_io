@@ -129,13 +129,22 @@ end DBG_Print;
 
 procedure DBG_Print_Reserved
 is
+	Prod    : Prod_Arr    := Get;
+	Biblio  : Biblio_Arr  := Get;
+	Obs     : Obs_Arr     := Get;
 	DataArr : DataArr_Arr := Get;
-	Obs     : Obs_Arr := Get;
 begin
-	for I in DataArr'Range
+	for I in Prod'Range
 	loop
-		TIO.Put("Get DataArr> "&DataArr_Key'Image(DataArr(I).Key));
-		TIO.Put(" : "&DataArr(I).Value);
+		TIO.Put("Get Prod> "&Prod_Key'Image(Prod(I).Key));
+		TIO.Put(" : "&Prod(I).Value);
+		TIO.New_Line;
+	end loop;
+
+	for I in Biblio'Range
+	loop
+		TIO.Put("Get Biblio> "&Biblio_Key'Image(Biblio(I).Key));
+		TIO.Put(" : "&Biblio(I).Value);
 		TIO.New_Line;
 	end loop;
 
@@ -143,6 +152,13 @@ begin
 	loop
 		TIO.Put("Get Obs> "&Obs_Key'Image(Obs(I).Key));
 		TIO.Put(" : "&Obs(I).Value);
+		TIO.New_Line;
+	end loop;
+
+	for I in DataArr'Range
+	loop
+		TIO.Put("Get DataArr> "&DataArr_Key'Image(DataArr(I).Key));
+		TIO.Put(" : "&DataArr(I).Value);
 		TIO.New_Line;
 	end loop;
 
@@ -681,42 +697,83 @@ end DBG_Print_reserved;
 
 
 
+-- Priduction keys
+
+
+  function Needed_Length(Arr : in Prod_Type) return Natural
+  is
+	  Count : Natural := 0;
+  begin
+	  for I in Prod_Type'Range
+	  loop
+		  if(Arr(I).Read) then Count := Count + 1; end if;
+	  end loop;
+
+	  return Count;
+  end Needed_Length;
+
+  function Get return Prod_Arr
+  is
+	ArrLen : Natural := Needed_Length(State.GenRes.Prod);
+	Arr    : Prod_Arr(1 .. ArrLen);
+	Idx : Natural := 1; -- FIXME use Prod_Type'First
+  begin
+	  for I in Prod_Type'Range
+	  loop
+		  if(State.GenRes.Prod(I).Read) 
+		  then
+			 Arr(Idx).Key   := I; 
+			 Arr(Idx).Value := State.GenRes.Prod(I).Value; 
+			  Idx := Idx + 1; 
+		  end if;
+	  end loop;
+
+	 return Arr;
+  end Get;
+
+
+	
+-- Biblio
+
+
+  function Needed_Length(Biblio : in Biblio_Type) return Natural
+  is
+	  Count : Natural := 0;
+  begin
+	  for I in Biblio_Type'Range
+	  loop
+		  if(Biblio(I).Read) then Count := Count + 1; end if;
+	  end loop;
+
+	  return Count;
+  end Needed_Length;
+
+  function Get return Biblio_Arr
+  is
+	ArrLen : Natural := Needed_Length(State.GenRes.Biblio);
+	Arr    : Biblio_Arr(1 .. ArrLen);
+	Idx : Natural := 1; -- FIXME use Biblio_Type'First
+  begin
+	  for I in Biblio_Type'Range
+	  loop
+		  if(State.GenRes.Biblio(I).Read) 
+		  then
+			 Arr(Idx).Key   := I; 
+			 Arr(Idx).Value := State.GenRes.Biblio(I).Value; 
+			  Idx := Idx + 1; 
+		  end if;
+	  end loop;
+
+	 return Arr;
+  end Get;
 
 
 
-	function Needed_Length(DataArr : Reserved.DataArr_Type) return Natural
-	is
-		ArrLen : Natural := 0;
-	begin
-		for I in Reserved.DataArr_Type'Range
-		loop
-			if(DataArr(I).Read) then ArrLen := ArrLen + 1; end if;
-		end loop;
-
-		return ArrLen;
-	end Needed_Length;
-
-	function Get return DataArr_Arr
-	is
-		ArrLen  : Natural := Needed_Length(State.DataArr);
-		DataArr : DataArr_Arr(1 .. ArrLen);
-		Idx     : Natural := 0;
-	begin
-
-		for I in Reserved.DataArr_Type'Range
-		loop
-			if(State.DataArr(I).Read)
-			then 
-		       		Idx := Idx + 1;	
-				DataArr(Idx).Key   := I; 
-				DataArr(Idx).Value := State.DataArr(I).Value; 
-			end if;
-		end loop;
-
-		return DataArr;
-	end Get;
 
 
+
+
+-- Observational
 
 
   function Needed_Length(Obs : in Obs_Type) return Natural
@@ -734,21 +791,57 @@ end DBG_Print_reserved;
   function Get return Obs_Arr
   is
 	ArrLen : Natural := Needed_Length(State.GenRes.Obs);
-	Obs    : Obs_Arr(1 .. ArrLen);
+	Arr    : Obs_Arr(1 .. ArrLen);
 	Idx : Natural := 1; -- FIXME use Obs_Type'First
   begin
 	  for I in Obs_Type'Range
 	  loop
 		  if(State.GenRes.Obs(I).Read) 
 		  then
-			 Obs(Idx).Key   := I; 
-			 Obs(Idx).Value := State.GenRes.Obs(I).Value; 
+			 Arr(Idx).Key   := I; 
+			 Arr(Idx).Value := State.GenRes.Obs(I).Value; 
 			  Idx := Idx + 1; 
 		  end if;
 	  end loop;
 
-	 return Obs;
+	 return Arr;
   end Get;
+
+
+-- data is Array structure (like IMAGE)
+
+	function Needed_Length(DataArr : Reserved.DataArr_Type) return Natural
+	is
+		ArrLen : Natural := 0;
+	begin
+		for I in Reserved.DataArr_Type'Range
+		loop
+			if(DataArr(I).Read) then ArrLen := ArrLen + 1; end if;
+		end loop;
+
+		return ArrLen;
+	end Needed_Length;
+
+	function Get return DataArr_Arr
+	is
+		ArrLen : Natural := Needed_Length(State.DataArr);
+		Arr    : DataArr_Arr(1 .. ArrLen);
+		Idx    : Natural := 0;
+	begin
+
+		for I in Reserved.DataArr_Type'Range
+		loop
+			if(State.DataArr(I).Read)
+			then 
+		       		Idx := Idx + 1;	
+				Arr(Idx).Key   := I; 
+				Arr(Idx).Value := State.DataArr(I).Value; 
+			end if;
+		end loop;
+
+		return Arr;
+	end Get;
+
 
 
 
