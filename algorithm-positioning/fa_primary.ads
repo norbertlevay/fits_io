@@ -1,6 +1,6 @@
 
 with FITS; use FITS; -- Card_Type needed
-
+with Reserved; use Reserved; -- Obs_Key needed
 
 package FA_Primary is
 
@@ -31,7 +31,8 @@ type Options_Type is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function  Get return HDU_Size_Rec;
-
+	
+	-- Reserved keys: data array (IMAGE) related
 type Res_Arr_Keys is (BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN);
 type Card_Data is 
 	record
@@ -42,6 +43,19 @@ type ImData_Arr is
 	array (Positive range <>) of Card_Data;
 
 	function Get return ImData_Arr;
+
+
+
+	-- Reserved keys: observation related
+type Obs_Card_Data is 
+	record
+		Key   : Obs_Key;
+		Value : String(1..20);
+	end record;
+type Obs_Arr is
+	array (Positive range <>) of Obs_Card_Data;
+
+	function Get return Obs_Arr;
 
 
 

@@ -230,9 +230,9 @@ end DBG_Print;
 procedure DBG_Print(Obs : in Obs_Type)
 is
 begin
-for I in Key_Type
+for I in Obs_Key
 loop
-	if(Obs(I).Read)  then TIO.Put_Line("Obs "&Key_Type'Image(I)&" "&Obs(I).Value);  end if;
+	if(Obs(I).Read)  then TIO.Put_Line("Obs "&Obs_Key'Image(I)&" "&Obs(I).Value);  end if;
 end loop;
 end DBG_Print;
 
@@ -250,9 +250,9 @@ end DBG_Print;
 --              then
 
 
-		for I in Key_Type
+		for I in Obs_Key
 		loop
-			if(Trim(Card(1..8), Ada.Strings.Both) = Key_Type'Image(I))
+			if(Trim(Card(1..8), Ada.Strings.Both) = Obs_Key'Image(I))
 			then
 	         		if (NOT Obs(I).Read)
                 	        then

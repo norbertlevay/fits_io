@@ -93,8 +93,8 @@ function Match_Any_Comment(Flag    : Boolean;
 -- Observation related keys
 
 --DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
-type Key_Type is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
-type Obs_Type is array (Key_Type) of CardValue;
+type Obs_Key is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
+type Obs_Type is array (Obs_Key) of CardValue;
 InitObs : Obs_Type := (others => InitVal);
 
 procedure DBG_Print(Obs : in Obs_Type);

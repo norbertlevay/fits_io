@@ -130,13 +130,22 @@ end DBG_Print;
 procedure DBG_Print_Reserved
 is
 	ImData : ImData_Arr := Get;
+	Obs    : Obs_Arr := Get;
 begin
 	for I in ImData'Range
 	loop
-		TIO.Put("RES> "&Res_Arr_Keys'Image(ImData(I).Key));
+		TIO.Put("Get Arr> "&Res_Arr_Keys'Image(ImData(I).Key));
 		TIO.Put(" : "&ImData(I).Value);
 		TIO.New_Line;
 	end loop;
+
+	for I in Obs'Range
+	loop
+		TIO.Put("Get Obs> "&Obs_Key'Image(Obs(I).Key));
+		TIO.Put(" : "&Obs(I).Value);
+		TIO.New_Line;
+	end loop;
+
 end DBG_Print_reserved;
 
 -- -----------------------------------------------------------
@@ -735,6 +744,39 @@ end DBG_Print_reserved;
 		return ImData;
 	end Get;
 
+
+
+
+  function Needed_Length(Obs : in Obs_Type) return Natural
+  is
+	  Count : Natural := 0;
+  begin
+	  for I in Obs_Type'Range
+	  loop
+		  if(Obs(I).Read) then Count := Count + 1; end if;
+	  end loop;
+
+	  return Count;
+  end Needed_Length;
+
+  function Get return Obs_Arr
+  is
+	ArrLen : Natural := Needed_Length(State.GenRes.Obs);
+	Obs    : Obs_Arr(1 .. ArrLen);
+	Idx : Natural := 1; -- FIXME use Obs_Type'First
+  begin
+	  for I in Obs_Type'Range
+	  loop
+		  if(State.GenRes.Obs(I).Read) 
+		  then
+			 Obs(Idx).Key   := I; 
+			 Obs(Idx).Value := State.GenRes.Obs(I).Value; 
+			  Idx := Idx + 1; 
+		  end if;
+	  end loop;
+
+	 return Obs;
+  end Get;
 
 
 
