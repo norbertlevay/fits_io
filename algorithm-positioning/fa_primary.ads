@@ -33,16 +33,15 @@ type Options_Type is
 	function  Get return HDU_Size_Rec;
 	
 	-- Reserved keys: data array (IMAGE) related
-type Res_Arr_Keys is (BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN);
 type Card_Data is 
 	record
-		Key   : Res_Arr_Keys;
+		Key   : DataArr_Key;
 		Value : String(1..20);
 	end record;
-type ImData_Arr is
+type DataArr_Arr is
 	array (Positive range <>) of Card_Data;
 
-	function Get return ImData_Arr;
+	function Get return DataArr_Arr;
 
 
 

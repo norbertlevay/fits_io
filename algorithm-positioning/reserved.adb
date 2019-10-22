@@ -252,7 +252,7 @@ end DBG_Print;
 
 		for I in Obs_Key
 		loop
-			if(Trim(Card(1..8), Ada.Strings.Both) = Obs_Key'Image(I))
+			if(Trim(Card(1..8), Ada.Strings.Right) = Obs_Key'Image(I))
 			then
 	         		if (NOT Obs(I).Read)
                 	        then
@@ -319,97 +319,47 @@ end DBG_Print;
 ----------------------------------------------------------	
 -- Array structure (a.k.a. IMAGEs) keys
 
-procedure DBG_Print(Arr : in Arr_Type)
+procedure DBG_Print(DataArr : in DataArr_Type)
 is
 begin
-if(Arr.BSCALE.Read)  then TIO.Put_Line("Arr BSCALE  "&Arr.BSCALE.Value);  end if;
-if(Arr.BZERO.Read)   then TIO.Put_Line("Arr BZERO   "&Arr.BZERO.Value);   end if;
-if(Arr.BUNIT.Read)   then TIO.Put_Line("Arr BUNIT   "&Arr.BUNIT.Value);   end if;
-if(Arr.BLANK.Read)   then TIO.Put_Line("Arr BLANK   "&Arr.BLANK.Value);   end if;
-if(Arr.DATAMAX.Read) then TIO.Put_Line("Arr DATAMAX "&Arr.DATAMAX.Value); end if;
-if(Arr.DATAMIN.Read) then TIO.Put_Line("Arr DATAMIN "&Arr.DATAMIN.Value); end if;
+	for I in DataArr_Key'Range
+	loop
+		if(DataArr(I).Read)
+		then 
+			TIO.Put_Line("DataArr "&DataArr_Key'Image(I)&" "&DataArr(I).Value);
+		end if;
+	end loop;
 end DBG_Print;
 
 
-        function Match_Any_Arr(Flag : Boolean;
-			        Card : in Card_Type;
-                                Arr  : in out Arr_Type) return Boolean
+        function Match_Any_DataArr(Flag : Boolean;
+			           Card    : in Card_Type;
+                                   DataArr : in out DataArr_Type) return Boolean
         is
         begin
 		if(NOT Flag) then
 			return False;
 		end if;
 
+		for I in DataArr_Type'Range
+		loop
+			if(Trim(Card(1..8),Ada.Strings.Right) = DataArr_Key'Image(I))
+			then 
+	                        if (NOT DataArr(I).Read)
+         	               	then
+					DataArr(I).Value :=  Card(11..30);
+                        		DataArr(I).Read  := True;
 
-                if(Card(1..8) = "BSCALE  ")
-                then
-                        if (NOT Arr.BSCALE.Read)
-                        then
-				Arr.BSCALE.Value :=  Card(11..30);
-                        	Arr.BSCALE.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
+					return True;
+		       		else
+                        	        Raise_Exception(Duplicate_Card'Identity, Card);
+                       		end if;
+			end if;
+		end loop;
 
+		return False;
 
-                elsif(Card(1..8) = "BZERO   ")
-                then
-                        if (NOT Arr.BZERO.Read) 
-                        then
-	                	Arr.BZERO.Value :=  Card(11..30);
-                        	Arr.BZERO.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                elsif(Card(1..8) = "BUNIT   ")
-                then
-                        if (NOT Arr.BUNIT.Read)
-                        then
-	                	Arr.BUNIT.Value :=  Card(11..30);
-                        	Arr.BUNIT.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                elsif(Card(1..8) = "BLANK   ")
-                then
-                        if (NOT Arr.BLANK.Read)
-                        then
-	                	Arr.BLANK.Value :=  Card(11..30);
-                        	Arr.BLANK.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-                elsif(Card(1..8) = "DATAMAX ")
-                then
-                        if (NOT Arr.DATAMAX.Read)
-                        then
-	                	Arr.DATAMAX.Value :=  Card(11..30);
-                        	Arr.DATAMAX.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-               elsif(Card(1..8) = "DATAMIN ")
-                then
-                        if (NOT Arr.DATAMIN.Read)
-                        then
-	                	Arr.DATAMIN.Value :=  Card(11..30);
-                        	Arr.DATAMIN.Read  := True;
-		       	else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-
-                else
-                        return False;
-                end if;
-
-                return True;
-
-        end Match_Any_Arr;
+        end Match_Any_DataArr;
 
 
 

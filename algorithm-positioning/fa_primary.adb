@@ -70,7 +70,7 @@ type State_Type is
 	PSCALn : RANDG_Arr;
 	PZEROn : RANDG_Arr;
 	-- Reserved (generic, data-arrays only, like IMAGE)
-	Arr : Reserved.Arr_Type;
+	DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
 
@@ -91,7 +91,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
 	InitVal,
 	InitRANDGArrVal,InitRANDGArrVal,InitRANDGArrVal,
-	Reserved.InitArr,
+	Reserved.InitDataArr,
 	Reserved.Init,
 	0,
         0,False);
@@ -120,7 +120,7 @@ if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
 if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
 if(State.EXTEND.Read) then TIO.Put_Line("EXTEND  "&State.EXTEND.Value); end if;
 Reserved.DBG_Print(State.GenRes);
-Reserved.DBG_Print(State.Arr);
+Reserved.DBG_Print(State.DataArr);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
@@ -129,13 +129,13 @@ end DBG_Print;
 
 procedure DBG_Print_Reserved
 is
-	ImData : ImData_Arr := Get;
-	Obs    : Obs_Arr := Get;
+	DataArr : DataArr_Arr := Get;
+	Obs     : Obs_Arr := Get;
 begin
-	for I in ImData'Range
+	for I in DataArr'Range
 	loop
-		TIO.Put("Get Arr> "&Res_Arr_Keys'Image(ImData(I).Key));
-		TIO.Put(" : "&ImData(I).Value);
+		TIO.Put("Get DataArr> "&DataArr_Key'Image(DataArr(I).Key));
+		TIO.Put(" : "&DataArr(I).Value);
 		TIO.New_Line;
 	end loop;
 
@@ -318,7 +318,7 @@ end DBG_Print_reserved;
 
 		-- Reserved (generic, image-like only)
 
-                elsif( Reserved.Match_Any_Arr(m_Options.Reserved,Card,State.Arr))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.DataArr))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -498,8 +498,7 @@ end DBG_Print_reserved;
 
 		-- Reserved (generic, data-arryas only)
 
-      		-- FIXME Arr possible in RandGroups ? see [FITS Table C.2 comment2 ]
-                elsif( Reserved.Match_Any_Arr(m_Options.Reserved,Card,State.Arr))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.DataArr))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -685,63 +684,36 @@ end DBG_Print_reserved;
 
 
 
-	function Needed_Length(Arr : Reserved.Arr_Type) return Natural
+	function Needed_Length(DataArr : Reserved.DataArr_Type) return Natural
 	is
 		ArrLen : Natural := 0;
 	begin
-		if(Arr.BSCALE.Read) then ArrLen := ArrLen + 1; end if;
-		if(Arr.BZERO.Read)  then ArrLen := ArrLen + 1; end if;
-		if(Arr.BUNIT.Read)  then ArrLen := ArrLen + 1; end if;
-		if(Arr.BLANK.Read)  then ArrLen := ArrLen + 1; end if;
-		if(Arr.DATAMAX.Read)  then ArrLen := ArrLen + 1; end if;
-		if(Arr.DATAMIN.Read)  then ArrLen := ArrLen + 1; end if;
+		for I in Reserved.DataArr_Type'Range
+		loop
+			if(DataArr(I).Read) then ArrLen := ArrLen + 1; end if;
+		end loop;
+
 		return ArrLen;
 	end Needed_Length;
 
-	function Get return ImData_Arr
+	function Get return DataArr_Arr
 	is
-		ArrLen : Natural := Needed_Length(State.Arr);
-		ImData : ImData_Arr(1 .. ArrLen);
-		Idx : Natural := 0;
+		ArrLen  : Natural := Needed_Length(State.DataArr);
+		DataArr : DataArr_Arr(1 .. ArrLen);
+		Idx     : Natural := 0;
 	begin
-		if(State.Arr.BSCALE.Read) 
-		then
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := BSCALE; 
-			ImData(Idx).Value := State.Arr.BSCALE.Value; 
-		end if;
-		if(State.Arr.BZERO.Read)
-		then 
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := BZERO; 
-			ImData(Idx).Value := State.Arr.BZERO.Value; 
-		end if;
-		if(State.Arr.BUNIT.Read)
-		then
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := BUNIT; 
-			ImData(Idx).Value := State.Arr.BUNIT.Value; 
-		end if;
-		if(State.Arr.BLANK.Read)
-		then
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := BLANK;
-			ImData(Idx).Value := State.Arr.BLANK.Value; 
-		end if;
-		if(State.Arr.DATAMAX.Read)
-		then 
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := DATAMAX; 
-			ImData(Idx).Value := State.Arr.DATAMAX.Value; 
-		end if;
-		if(State.Arr.DATAMIN.Read)
-		then
-		       Idx := Idx + 1;	
-			ImData(Idx).Key   := DATAMIN; 
-			ImData(Idx).Value := State.Arr.DATAMIN.Value; 
-		end if;
 
-		return ImData;
+		for I in Reserved.DataArr_Type'Range
+		loop
+			if(State.DataArr(I).Read)
+			then 
+		       		Idx := Idx + 1;	
+				DataArr(Idx).Key   := I; 
+				DataArr(Idx).Value := State.DataArr(I).Value; 
+			end if;
+		end loop;
+
+		return DataArr;
 	end Get;
 
 

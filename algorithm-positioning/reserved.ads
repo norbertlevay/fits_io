@@ -130,24 +130,15 @@ function Match_Any(Flag   : Boolean;
 ----------------------------------------------------------------------------------------
 
 -- Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
+type DataArr_Key is (BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN);
+type DataArr_Type is array (DataArr_Key) of CardValue;
+InitDataArr : constant DataArr_Type := (others => InitVal);
 
-type Arr_Type is
-	record
-		BSCALE : CardValue;
-		BZERO  : CardValue;
-		BUNIT  : CardValue;
-		BLANK  : CardValue;
-		DATAMAX : CardValue;
-		DATAMIN : CardValue;
-	end record;
+procedure DBG_Print(DataArr : DataArr_Type);
 
-InitArr : constant Arr_Type := (others => InitVal);
-
-procedure DBG_Print(Arr : Arr_Type);
-
-function Match_Any_Arr(Flag : Boolean;
+function Match_Any_DataArr(Flag : Boolean;
                        Card : in Card_Type;
-                       Arr  : in out Arr_Type) return Boolean;
+                       DataArr  : in out DataArr_Type) return Boolean;
 
 
 
