@@ -102,6 +102,24 @@ type Options_Type is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function Get return Primary_Size_Rec;
+
+	type Reserved_Key is (
+		DATE, ORIGIN, BLOCKED, EXTEND, 			-- production related
+		AUTHOR, REFERENC, 				-- bibliographic
+		DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT 	-- observation
+		);
+	type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
+
+	type Key_Rec is 
+		record
+			Key   : Reserved_Key;
+			Value : String(1..20);
+		end record;
+	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+	function Get(Keys     : in Res_Key_Arr) return Key_Rec_Arr;
+--	function Get(KeyRoots : in Res_Key_Arr) return Reserved_Arrays_Arr;
+
+
 	function Get return Prod_Arr;
 	function Get return Biblio_Arr;
 	function Get return Obs_Arr;

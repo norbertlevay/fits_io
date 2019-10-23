@@ -135,7 +135,15 @@ is
 	Biblio  : Biblio_Arr  := Get;
 	Obs     : Obs_Arr     := Get;
 	DataArr : DataArr_Arr := Get;
+	Res : Key_Rec_Arr := Get((INSTRUME,TELESCOP));
 begin
+	for I in Res'Range
+	loop
+		TIO.Put("Get Res> "&Reserved_Key'Image(Res(I).Key));
+		TIO.Put(" : "&Res(I).Value);
+		TIO.New_Line;
+	end loop;
+
 	for I in Prod'Range
 	loop
 		TIO.Put("Get Prod> "&Prod_Key'Image(Prod(I).Key));
@@ -915,6 +923,65 @@ end DBG_Print_reserved;
                 return Arr;
         end Get;
 
+
+
+
+
+
+
+-- read reserved scalar keys
+
+ function Needed_Count(Keys : in Res_Key_Arr) return Natural
+ is
+	 Count : Natural := 0;
+ begin
+	--	State.GenRes.Prod
+	--	State.GenRes.Biblio
+	--	FIXME above two and other Reserved from State.XX are not done yet...
+	for K in Obs_Type'Range
+	loop
+		for I in Keys'Range
+		loop
+			if(Reserved_Key'Image(Keys(I)) = Obs_Key'Image(K))
+			then
+				Count := Count + 1;
+			end if;
+		end loop;
+	end loop;
+
+	return Count;
+
+ end Needed_Count;
+
+
+ function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
+ is
+	 FoundCount : Natural := Needed_Count(Keys);
+	 OutKeys : Key_Rec_Arr(1..FoundCount);
+	 Idx : Positive := 1; 
+ begin
+	--	State.GenRes.Prod
+	--	State.GenRes.Biblio
+	--	FIXME above two and other Reserved from State.XX are not done yet...
+	for K in State.GenRes.Obs'Range
+	loop
+		if(State.GenRes.Obs(K).Read)
+		then
+			for I in Keys'Range
+			loop
+				if(Reserved_Key'Image(Keys(I)) = Obs_Key'Image(K))
+				then
+					OutKeys(Idx).Key   := Keys(I);
+					OutKeys(Idx).Value := State.GenRes.Obs(K).Value;
+					exit when (Idx = FoundCount);
+					Idx := Idx + 1;
+				end if;
+			end loop;
+		end if;
+	end loop;
+
+	return OutKeys;
+ end Get;
 
 
 
