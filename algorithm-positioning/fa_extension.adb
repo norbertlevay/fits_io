@@ -28,16 +28,16 @@ type State_Name is
 	 SPECIAL_RECORDS		-- Final states
 	 );	
 
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
+--type CardValue is
+  --      record
+    --            Value : String(1..20);
+      --          Read  : Boolean;
+       -- end record;
 
 InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXIS_Arr   is array (1..NAXIS_Max)   of CardValue;
-type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+-- type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
 
 
 InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
@@ -192,6 +192,21 @@ end loop;
 New_Line;
 end DBG_Print;
 
+	
+procedure DBG_Print(IdxKeys : IdxKey_Rec_Arr)
+is
+begin
+	TIO.Put_Line("DBG_Print IdxKeys");
+	for I in IdxKeys'Range
+	loop
+		TIO.Put("Get ResArr "& Root_Type'Image(IdxKeys(I).Root)&" ");
+		for Idx in IdxKeys(I).Arr'Range
+		loop
+			TIO.Put(Integer'Image(Idx) &":"& IdxKeys(I).Arr(Idx).Value);
+		end loop;
+		TIO.New_Line;
+	end loop;
+end DBG_Print;
 
 
 procedure DBG_Print
@@ -799,6 +814,7 @@ end To_XT_Type;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
+		if(NextCardPos = 0) then DBG_Print(Get((TSCAL,TTYPE,TUNIT,TDISP))); end if;
 
 		return NextCardPos;
 
@@ -902,6 +918,138 @@ end To_XT_Type;
 
                 return HDUSizeInfo;
         end Get;
+
+
+----------------------------------------------------------------------
+	-- experimental Get(RootArr) to return Tab_Type's read arrays
+
+	-- FIXME modify so thet Arr can be shorter, containing only the Read elements
+	function Is_Any_Element_Read(Arr : TFIELDS_Arr) return Boolean
+	is
+		Is_Read : Boolean := False;
+		-- FIXME what if Arr is empty array ? raise exception or return False
+	begin
+		for I in Arr'Range
+		loop
+			Is_Read := Arr(I).Read;
+			exit when Arr(I).Read;
+		end loop;
+		return Is_Read;
+	end Is_Any_Element_Read;
+
+
+	function Is_In_Set(Root : Root_Type; Roots : Root_Arr) return Boolean
+	is
+	begin
+		for I in Roots'Range
+		loop
+			if(Root = Roots(I))
+			then
+				return True;
+			end if;
+		end loop;
+		return False;
+	end Is_In_Set;
+
+	function Needed_Length(Roots : Root_Arr) return Natural
+	is
+		Len : Natural := 0;
+	begin
+		if(Is_In_Set(TTYPE,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TTYPEn)) then Len := Len + 1; end if;
+		end if;
+		if(Is_In_Set(TUNIT,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TUNITn)) then Len := Len + 1; end if;
+		end if;
+		if(Is_In_Set(TSCAL,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TSCALn)) then Len := Len + 1; end if;
+		end if;
+		if(Is_In_Set(TZERO,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TZEROn)) then Len := Len + 1; end if;
+		end if;
+		if(Is_In_Set(TNULL,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TNULLn)) then Len := Len + 1; end if;
+		end if;
+		if(Is_In_Set(TDISP,Roots)) then
+			if(Is_Any_Element_Read(State.Tab.TDISPn)) then Len := Len + 1; end if;
+		end if;
+		return Len;
+	end Needed_Length;
+
+
+	function Get(Roots : Root_Arr) return IdxKey_Rec_Arr
+	is
+		IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
+		Len : Natural := 0;-- FIXME rename to Idx
+	begin
+		if(Is_In_Set(TTYPE,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TTYPEn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TTYPE;
+				IdxKey(Len).Arr  := State.Tab.TTYPEn;
+			end if;
+		end if;
+
+		if(Is_In_Set(TUNIT,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TUNITn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TUNIT;
+				IdxKey(Len).Arr  := State.Tab.TUNITn;
+			end if;
+		end if;
+
+		if(Is_In_Set(TSCAL,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TSCALn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TSCAL;
+				IdxKey(Len).Arr  := State.Tab.TSCALn;
+			end if;
+		end if;
+
+		if(Is_In_Set(TZERO,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TZEROn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TZERO;
+				IdxKey(Len).Arr  := State.Tab.TZEROn;
+			end if;
+		end if;
+
+		if(Is_In_Set(TNULL,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TNULLn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TNULL;
+				IdxKey(Len).Arr  := State.Tab.TNULLn;
+			end if;
+		end if;
+
+		if(Is_In_Set(TDISP,Roots))
+		then
+			if(Is_Any_Element_Read(State.Tab.TDISPn))
+			then 
+				Len := Len + 1;
+				IdxKey(Len).Root := TDISP;
+				IdxKey(Len).Arr  := State.Tab.TDISPn;
+			end if;
+		end if;
+
+	return IdxKey;
+	end Get;
+
+
+
+
+
+
 
 
 end FA_Extension;

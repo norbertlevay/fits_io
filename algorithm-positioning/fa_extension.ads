@@ -32,6 +32,28 @@ type Options_Type is
         function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
 	function  Get return HDU_Size_Rec;
+
+	type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+
+	type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+
+
+        type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
+        type Root_Arr  is array (Natural range <>) of Root_Type;
+
+
+        type IdxKey_Rec is
+                record
+                        Root : Root_Type;
+                        Arr  : TFIELDS_Arr;
+                end record;
+        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+
+	function  Get(Roots : Root_Arr) return IdxKey_Rec_Arr;
 	
 	Unexpected_Card       : exception;
 	Unexpected_Card_Value : exception;
