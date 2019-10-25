@@ -6,75 +6,46 @@ package FA_Primary is
 
 	-- Mandatory keys
 
-type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
-type Primary_Size_Rec(Last : Natural;
-                HDUType    : Primary_HDU) is
-        record
-                CardsCount : Positive;
-                BITPIX     : Integer;
-                NAXISArr   : NAXIS_Arr(1 .. Last);
-		case HDUType is
+	type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
+	type Primary_Size_Rec(Last : Natural;
+        	           HDUType : Primary_HDU) is
+        	record
+                	CardsCount : Positive;
+              		BITPIX     : Integer;
+                	NAXISArr   : NAXIS_Arr(1 .. Last);
+			case HDUType is
 			when RANDOM_GROUPS =>
 				PCOUNT : Natural;
 				GCOUNT : Positive;
 			when others =>
 				null;
-		end case;
-        end record;
+			end case;
+        	end record;
 
 
 	-- Reserved keys
 
--- production related
-type Prod_Card_Data is 
-	record
-		Key   : Prod_Key;
-		Value : String(1..20);
-	end record;
-type Prod_Arr is
-	array (Positive range <>) of Prod_Card_Data;
+	type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
 
+	type Key_Rec is 
+		record
+			Key   : Reserved_Key;
+			Value : String(1..20);
+		end record;
+	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+
+
+	-- RANDOM GROUPS releated
 	
--- bibliographic
-type Biblio_Card_Data is 
-	record
-		Key   : Biblio_Key;
-		Value : String(1..20);
-	end record;
-type Biblio_Arr is
-	array (Positive range <>) of Biblio_Card_Data;
-
-
--- observation related
-type Obs_Card_Data is 
-	record
-		Key   : Obs_Key;
-		Value : String(1..20);
-	end record;
-type Obs_Arr is
-	array (Positive range <>) of Obs_Card_Data;
-
-
--- data array (IMAGE) related
-type DataArr_Card_Data is 
-	record
-		Key   : DataArr_Key;
-		Value : String(1..20);
-	end record;
-type DataArr_Arr is
-	array (Positive range <>) of DataArr_Card_Data;
-
-
--- RANDOM GROUPS releated
-type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
-type RANDG_Arr is array (1..RANDG_Max) of CardValue;
-type RG_Card_Data is 
-	record
-		Key   : RG_KeyRoot;
-		Value : RANDG_Arr;
-	end record;
-type RG_Arr is
-	array (Positive range <>) of RG_Card_Data;
+	type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
+	type RANDG_Arr is array (1..RANDG_Max) of CardValue;
+	type RG_Card_Data is 
+		record
+			Key   : RG_KeyRoot;
+			Value : RANDG_Arr;
+		end record;
+	type RG_Arr is
+		array (Positive range <>) of RG_Card_Data;
 
 
 -- FA configuration
@@ -102,28 +73,8 @@ type Options_Type is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function Get return Primary_Size_Rec;
-
-	type Reserved_Key is (
-		DATE, ORIGIN, BLOCKED, EXTEND, 			-- production related
-		AUTHOR, REFERENC, 				-- bibliographic
-		DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT 	-- observation
-		);
-	type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
-
-	type Key_Rec is 
-		record
-			Key   : Reserved_Key;
-			Value : String(1..20);
-		end record;
-	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 	function Get(Keys     : in Res_Key_Arr) return Key_Rec_Arr;
 --	function Get(KeyRoots : in Res_Key_Arr) return Reserved_Arrays_Arr;
-
-
-	function Get return Prod_Arr;
-	function Get return Biblio_Arr;
-	function Get return Obs_Arr;
-	function Get return DataArr_Arr;
 	function Get return RG_Arr;
 
 

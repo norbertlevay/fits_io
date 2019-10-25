@@ -74,7 +74,7 @@ type State_Type is
 	-- Reserved (RANDOM GROUPS specific)
 	ResRG  : ResRG_Type;
 	-- Reserved (generic, data-arrays only, like IMAGE)
-	DataArr : Reserved.DataArr_Type;
+	--DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
 
@@ -94,7 +94,7 @@ InitState : State_Type :=
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
 	InitResRG,
-	Reserved.InitDataArr,
+	--Reserved.InitDataArr,
 	Reserved.Init,
 	0,
         0,False);
@@ -110,7 +110,6 @@ TIO.New_Line;
 if(State.SIMPLE.Read) then TIO.Put_Line("SIMPLE  "&State.SIMPLE.Value); end if;
 if(State.BITPIX.Read) then TIO.Put_Line("BITPITX "&State.BITPIX.Value); end if;
 if(State.NAXIS.Read)  then TIO.Put_Line("NAXIS   "&State.NAXIS.Value);  end if;
---TIO.Put(Boolean'Image(State.NAXIS1.Read) & " NAXIS1 "); TIO.Put_Line(State.NAXIS1.Value);
 for I in State.NAXISn'Range
 loop
 	if(State.NAXISn(I).Read) then
@@ -122,7 +121,6 @@ if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
 if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
 if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
 Reserved.DBG_Print(State.GenRes);
-Reserved.DBG_Print(State.DataArr);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
@@ -131,11 +129,7 @@ end DBG_Print;
 
 procedure DBG_Print_Reserved
 is
-	Prod    : Prod_Arr    := Get;
-	Biblio  : Biblio_Arr  := Get;
-	Obs     : Obs_Arr     := Get;
-	DataArr : DataArr_Arr := Get;
-	Res : Key_Rec_Arr := Get((INSTRUME,TELESCOP));
+	Res : Key_Rec_Arr := Get((DATAMAX,DATAMIN,INSTRUME,TELESCOP));
 begin
 	for I in Res'Range
 	loop
@@ -144,35 +138,8 @@ begin
 		TIO.New_Line;
 	end loop;
 
-	for I in Prod'Range
-	loop
-		TIO.Put("Get Prod> "&Prod_Key'Image(Prod(I).Key));
-		TIO.Put(" : "&Prod(I).Value);
-		TIO.New_Line;
-	end loop;
 
-	for I in Biblio'Range
-	loop
-		TIO.Put("Get Biblio> "&Biblio_Key'Image(Biblio(I).Key));
-		TIO.Put(" : "&Biblio(I).Value);
-		TIO.New_Line;
-	end loop;
-
-	for I in Obs'Range
-	loop
-		TIO.Put("Get Obs> "&Obs_Key'Image(Obs(I).Key));
-		TIO.Put(" : "&Obs(I).Value);
-		TIO.New_Line;
-	end loop;
-
-	for I in DataArr'Range
-	loop
-		TIO.Put("Get DataArr> "&DataArr_Key'Image(DataArr(I).Key));
-		TIO.Put(" : "&DataArr(I).Value);
-		TIO.New_Line;
-	end loop;
-
-end DBG_Print_reserved;
+end DBG_Print_Reserved;
 
 -- -----------------------------------------------------------
 
@@ -370,7 +337,7 @@ end DBG_Print_reserved;
 
 		-- Reserved (generic, image-like only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.DataArr))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -508,7 +475,7 @@ end DBG_Print_reserved;
 
 		-- Reserved (generic, data-arryas only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.DataArr))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -743,151 +710,6 @@ end DBG_Print_reserved;
 
 
 
--- Priduction keys
-
-
-  function Needed_Length(Arr : in Prod_Type) return Natural
-  is
-	  Count : Natural := 0;
-  begin
-	  for I in Prod_Type'Range
-	  loop
-		  if(Arr(I).Read) then Count := Count + 1; end if;
-	  end loop;
-
-	  return Count;
-  end Needed_Length;
-
-  function Get return Prod_Arr
-  is
-	ArrLen : Natural := Needed_Length(State.GenRes.Prod);
-	Arr    : Prod_Arr(1 .. ArrLen);
-	Idx : Natural := 1; -- FIXME use Prod_Type'First
-  begin
-	  for I in Prod_Type'Range
-	  loop
-		  if(State.GenRes.Prod(I).Read) 
-		  then
-			 Arr(Idx).Key   := I; 
-			 Arr(Idx).Value := State.GenRes.Prod(I).Value; 
-			  Idx := Idx + 1; 
-		  end if;
-	  end loop;
-
-	 return Arr;
-  end Get;
-
-
-	
--- Biblio
-
-
-  function Needed_Length(Biblio : in Biblio_Type) return Natural
-  is
-	  Count : Natural := 0;
-  begin
-	  for I in Biblio_Type'Range
-	  loop
-		  if(Biblio(I).Read) then Count := Count + 1; end if;
-	  end loop;
-
-	  return Count;
-  end Needed_Length;
-
-  function Get return Biblio_Arr
-  is
-	ArrLen : Natural := Needed_Length(State.GenRes.Biblio);
-	Arr    : Biblio_Arr(1 .. ArrLen);
-	Idx : Natural := 1; -- FIXME use Biblio_Type'First
-  begin
-	  for I in Biblio_Type'Range
-	  loop
-		  if(State.GenRes.Biblio(I).Read) 
-		  then
-			 Arr(Idx).Key   := I; 
-			 Arr(Idx).Value := State.GenRes.Biblio(I).Value; 
-			  Idx := Idx + 1; 
-		  end if;
-	  end loop;
-
-	 return Arr;
-  end Get;
-
-
-
-
-
-
-
--- Observational
-
-
-  function Needed_Length(Obs : in Obs_Type) return Natural
-  is
-	  Count : Natural := 0;
-  begin
-	  for I in Obs_Type'Range
-	  loop
-		  if(Obs(I).Read) then Count := Count + 1; end if;
-	  end loop;
-
-	  return Count;
-  end Needed_Length;
-
-  function Get return Obs_Arr
-  is
-	ArrLen : Natural := Needed_Length(State.GenRes.Obs);
-	Arr    : Obs_Arr(1 .. ArrLen);
-	Idx : Natural := 1; -- FIXME use Obs_Type'First
-  begin
-	  for I in Obs_Type'Range
-	  loop
-		  if(State.GenRes.Obs(I).Read) 
-		  then
-			 Arr(Idx).Key   := I; 
-			 Arr(Idx).Value := State.GenRes.Obs(I).Value; 
-			  Idx := Idx + 1; 
-		  end if;
-	  end loop;
-
-	 return Arr;
-  end Get;
-
-
--- data is Array structure (like IMAGE)
-
-	function Needed_Length(DataArr : Reserved.DataArr_Type) return Natural
-	is
-		ArrLen : Natural := 0;
-	begin
-		for I in Reserved.DataArr_Type'Range
-		loop
-			if(DataArr(I).Read) then ArrLen := ArrLen + 1; end if;
-		end loop;
-
-		return ArrLen;
-	end Needed_Length;
-
-	function Get return DataArr_Arr
-	is
-		ArrLen : Natural := Needed_Length(State.DataArr);
-		Arr    : DataArr_Arr(1 .. ArrLen);
-		Idx    : Natural := 0;
-	begin
-
-		for I in Reserved.DataArr_Type'Range
-		loop
-			if(State.DataArr(I).Read)
-			then 
-		       		Idx := Idx + 1;	
-				Arr(Idx).Key   := I; 
-				Arr(Idx).Value := State.DataArr(I).Value; 
-			end if;
-		end loop;
-
-		return Arr;
-	end Get;
-
 -- data is RandGroup reserved key arrays
 
         function Needed_Length(RGArr : ResRG_Type) return Natural
@@ -905,8 +727,8 @@ end DBG_Print_reserved;
 
         function Get return RG_Arr
         is
-                ArrLen : Natural := Needed_Length(State.DataArr);
-                Arr    : RG_Arr(1 .. ArrLen);
+                --ArrLen : Natural := Needed_Length(State.DataArr);
+                Arr    : RG_Arr(1 .. 0);--ArrLen);
                 Idx    : Natural := 0;
         begin
 
@@ -935,18 +757,12 @@ end DBG_Print_reserved;
  is
 	 Count : Natural := 0;
  begin
-	--	State.GenRes.Prod
-	--	State.GenRes.Biblio
-	--	FIXME above two and other Reserved from State.XX are not done yet...
-	for K in Obs_Type'Range
+	for I in Keys'Range
 	loop
-		for I in Keys'Range
-		loop
-			if(Reserved_Key'Image(Keys(I)) = Obs_Key'Image(K))
-			then
-				Count := Count + 1;
-			end if;
-		end loop;
+		if(State.GenRes.Res(Keys(I)).Read)
+		then
+			Count := Count + 1;
+		end if;
 	end loop;
 
 	return Count;
@@ -960,23 +776,15 @@ end DBG_Print_reserved;
 	 OutKeys : Key_Rec_Arr(1..FoundCount);
 	 Idx : Positive := 1; 
  begin
-	--	State.GenRes.Prod
-	--	State.GenRes.Biblio
-	--	FIXME above two and other Reserved from State.XX are not done yet...
-	for K in State.GenRes.Obs'Range
+
+	for I in Keys'Range
 	loop
-		if(State.GenRes.Obs(K).Read)
+		if(State.GenRes.Res(Keys(I)).Read)
 		then
-			for I in Keys'Range
-			loop
-				if(Reserved_Key'Image(Keys(I)) = Obs_Key'Image(K))
-				then
-					OutKeys(Idx).Key   := Keys(I);
-					OutKeys(Idx).Value := State.GenRes.Obs(K).Value;
-					exit when (Idx = FoundCount);
-					Idx := Idx + 1;
-				end if;
-			end loop;
+			OutKeys(Idx).Key   := Keys(I);
+			OutKeys(Idx).Value := State.GenRes.Res(Keys(I)).Value;
+			exit when (Idx = FoundCount);
+			Idx := Idx + 1;
 		end if;
 	end loop;
 

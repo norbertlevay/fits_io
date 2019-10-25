@@ -17,37 +17,32 @@ type CardValue is
 InitVal  : constant CardValue := (EmptyVal,False);
 -- FIXME these above, we want hidden, but needed in 3 packs: here and FA_Primary (also FA_Ext)
 
+type Reserved_Key is (
+	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys
+	AUTHOR, REFERENC,				-- bibliographic keys
+	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT, 	-- observation keys
+	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN	-- data-array keys
+	);
 
+
+type Reserved_Key_Cards is array (Reserved_Key) of CardValue;
 
 
 -- Production keys
-type Prod_Key is (DATE, ORIGIN, BLOCKED, EXTEND);
+subtype Prod_Key is Reserved_Key range DATE .. EXTEND;
 -- BLOCKED & EXTEND only in Primary (BLOCKED only within 1st 36 cards) 
 -- check in Extension that not present, otherwise raise exception(?)
-type Prod_Type is array (Prod_Key) of CardValue;
-InitProd : constant Prod_Type := (others => InitVal);
-
-procedure DBG_Print(Prod : in Prod_Type);
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;
-                        Prod : in out Prod_Type) return Boolean;
-
-
+			Res  : in out Reserved_Key_Cards) return Boolean;
 
 -- Bibliographic keys
-type Biblio_Key is (AUTHOR, REFERENC);
-type Biblio_Type is array (Biblio_Key) of CardValue;
-InitBiblio : constant Biblio_Type := (others => InitVal);
+subtype Biblio_Key is Reserved_Key range AUTHOR .. REFERENC;
 
-procedure DBG_Print(Biblio : in Biblio_Type);
-
-function Match_Any_Biblio(Flag   : Boolean; 
-			  Card   : in Card_Type;
-                          Biblio : in out Biblio_Type) return Boolean;
-
-
-
+function Match_Any_Biblio(Flag : Boolean; 
+			  Card : in Card_Type;
+			  Res  : in out Reserved_Key_Cards) return Boolean;
 
 -- Commentary keys
 subtype Comment_Str is String(1..72);
@@ -90,29 +85,20 @@ function Match_Any_Comment(Flag    : Boolean;
 -- Observation related keys
 
 --DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
-type Obs_Key is (DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT);
-type Obs_Type is array (Obs_Key) of CardValue;
-InitObs : constant Obs_Type := (others => InitVal);
-
-procedure DBG_Print(Obs : in Obs_Type);
+subtype Obs_Key is Reserved_Key range DATEOBS .. OBJECT;
 
 function Match_Any_Obs(Flag : Boolean;
                        Card : in Card_Type;
-                       Obs  : in out Obs_Type) return Boolean;
-
-
+		       Res  : in out Reserved_Key_Cards) return Boolean;
 
 -- all generic Reserved keys [FITS Table C.2]
-
+InitResKeyCards : constant Reserved_Key_Cards := (others => InitVal);
 type Reserved_Type is
         record
-                Prod   : Prod_Type;
-		Biblio : Biblio_Type;
 		Comments : Comment_Type;
-                Obs    : Obs_Type;
+		Res    : Reserved_Key_Cards;
         end record;
-
-Init : constant Reserved_Type := (InitProd,InitBiblio,InitComments,InitObs);
+Init : constant Reserved_Type := (InitComments,InitResKeyCards);
 
 procedure DBG_Print(Res : in Reserved_Type);
 
@@ -122,33 +108,18 @@ function Match_Any(Flag   : Boolean;
                    Reserved : in out Reserved_Type) return Boolean;
 
 
-
-
-----------------------------------------------------------------------------------------
-
 -- Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
-type DataArr_Key is (BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN);
-type DataArr_Type is array (DataArr_Key) of CardValue;
-InitDataArr : constant DataArr_Type := (others => InitVal);
-
-procedure DBG_Print(DataArr : DataArr_Type);
+subtype DataArr_Key is Reserved_Key range BSCALE .. DATAMIN;
 
 function Match_Any_DataArr(Flag : Boolean;
                        Card : in Card_Type;
-                       DataArr  : in out DataArr_Type) return Boolean;
-
-
-
-
-
-
+		       Res  : in out Reserved_Key_Cards) return Boolean;
 
 
 -- Exceptions
 
 		   Duplicate_Card : exception;
 
-
-
 end Reserved;
+
 

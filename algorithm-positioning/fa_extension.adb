@@ -107,7 +107,7 @@ type State_Type is
 	Tab     : Tab_Type;
 	BinTab  : BinTab_Type;
         -- Reserved (generic, IMAGE-like only)
-        DataArr : Reserved.DataArr_Type;
+        --DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
 
@@ -129,7 +129,7 @@ InitState : State_Type :=
         InitTBCOLArrVal,
 	InitConfExt,
 	InitTab, InitBinTab,
-	Reserved.InitDataArr,
+--	Reserved.InitDataArr,
 	Reserved.Init,
 	0,
         0,False);
@@ -243,7 +243,7 @@ if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTL
 DBG_Print(State.Tab);
 DBG_Print(State.BinTab);
 Reserved.DBG_Print(State.GenRes);
-Reserved.DBG_Print(State.DataArr);
+--Reserved.DBG_Print(State.DataArr);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -482,7 +482,7 @@ end To_XT_Type;
 
                 -- Reserved (generic, image-like only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.DataArr))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
