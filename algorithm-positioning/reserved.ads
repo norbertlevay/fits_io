@@ -24,25 +24,36 @@ type Reserved_Key is (
 	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN	-- data-array keys
 	);
 
-
-type Reserved_Key_Cards is array (Reserved_Key) of CardValue;
-
-
--- Production keys
 subtype Prod_Key is Reserved_Key range DATE .. EXTEND;
 -- BLOCKED & EXTEND only in Primary (BLOCKED only within 1st 36 cards) 
 -- check in Extension that not present, otherwise raise exception(?)
+subtype Biblio_Key is Reserved_Key range AUTHOR .. REFERENC;
+--DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
+subtype Obs_Key is Reserved_Key range DATEOBS .. OBJECT;
+-- Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
+subtype DataArr_Key is Reserved_Key range BSCALE .. DATAMIN;
+
+type Reserved_Key_Cards is array (Reserved_Key) of CardValue;
+
+InitResKeyCards : constant Reserved_Key_Cards := (others => InitVal);
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;
 			Res  : in out Reserved_Key_Cards) return Boolean;
 
--- Bibliographic keys
-subtype Biblio_Key is Reserved_Key range AUTHOR .. REFERENC;
-
 function Match_Any_Biblio(Flag : Boolean; 
 			  Card : in Card_Type;
 			  Res  : in out Reserved_Key_Cards) return Boolean;
+
+function Match_Any_Obs(Flag : Boolean;
+                       Card : in Card_Type;
+		       Res  : in out Reserved_Key_Cards) return Boolean;
+
+function Match_Any_DataArr(Flag : Boolean;
+                       Card : in Card_Type;
+		       Res  : in out Reserved_Key_Cards) return Boolean;
+
+
 
 -- Commentary keys
 subtype Comment_Str is String(1..72);
@@ -82,21 +93,14 @@ function Match_Any_Comment(Flag    : Boolean;
 
 
 
--- Observation related keys
-
---DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
-subtype Obs_Key is Reserved_Key range DATEOBS .. OBJECT;
-
-function Match_Any_Obs(Flag : Boolean;
-                       Card : in Card_Type;
-		       Res  : in out Reserved_Key_Cards) return Boolean;
-
+--
 -- all generic Reserved keys [FITS Table C.2]
-InitResKeyCards : constant Reserved_Key_Cards := (others => InitVal);
+-- 
+
 type Reserved_Type is
         record
 		Comments : Comment_Type;
-		Res    : Reserved_Key_Cards;
+		Res      : Reserved_Key_Cards;
         end record;
 Init : constant Reserved_Type := (InitComments,InitResKeyCards);
 
@@ -107,13 +111,6 @@ function Match_Any(Flag   : Boolean;
 		   Card   : in Card_Type;
                    Reserved : in out Reserved_Type) return Boolean;
 
-
--- Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
-subtype DataArr_Key is Reserved_Key range BSCALE .. DATAMIN;
-
-function Match_Any_DataArr(Flag : Boolean;
-                       Card : in Card_Type;
-		       Res  : in out Reserved_Key_Cards) return Boolean;
 
 
 -- Exceptions
