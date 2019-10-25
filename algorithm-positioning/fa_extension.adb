@@ -106,8 +106,6 @@ type State_Type is
 	-- Reserved (Tables only)
 	Tab     : Tab_Type;
 	BinTab  : BinTab_Type;
-        -- Reserved (generic, IMAGE-like only)
-        --DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
 
@@ -129,7 +127,6 @@ InitState : State_Type :=
         InitTBCOLArrVal,
 	InitConfExt,
 	InitTab, InitBinTab,
---	Reserved.InitDataArr,
 	Reserved.Init,
 	0,
         0,False);
@@ -243,7 +240,6 @@ if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTL
 DBG_Print(State.Tab);
 DBG_Print(State.BinTab);
 Reserved.DBG_Print(State.GenRes);
---Reserved.DBG_Print(State.DataArr);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 

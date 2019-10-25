@@ -73,8 +73,6 @@ type State_Type is
 
 	-- Reserved (RANDOM GROUPS specific)
 	ResRG  : ResRG_Type;
-	-- Reserved (generic, data-arrays only, like IMAGE)
-	--DataArr : Reserved.DataArr_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
 
@@ -94,7 +92,6 @@ InitState : State_Type :=
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
 	InitResRG,
-	--Reserved.InitDataArr,
 	Reserved.Init,
 	0,
         0,False);
