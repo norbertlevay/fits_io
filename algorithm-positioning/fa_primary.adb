@@ -75,6 +75,7 @@ type State_Type is
 	ResRG  : ResRG_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
+     newResRG  : Reserved.Reserved_RG_Cards;
 
 	-- other cards not recognized by this FA	
 	OtherCount : Natural;
@@ -93,6 +94,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
 	InitResRG,
 	Reserved.Init,
+	Reserved.InitResRGCards,
 	0,
         0,False);
 

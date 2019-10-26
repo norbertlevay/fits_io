@@ -17,11 +17,17 @@ type CardValue is
 InitVal  : constant CardValue := (EmptyVal,False);
 -- FIXME these above, we want hidden, but needed in 3 packs: here and FA_Primary (also FA_Ext)
 
+-- FIXME DATEOBS should be DATE-OBS as key-string
 type Reserved_Key is (
-	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys
-	AUTHOR, REFERENC,				-- bibliographic keys
-	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT, 	-- observation keys
-	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN	-- data-array keys
+	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
+	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
+	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
+	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
+	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN	-- data-array keys, IMAGES-like only
+	);
+type Ext_Reserved_Key is (
+	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
+	THEAP						-- BINTABLE only
 	);
 
 subtype Prod_Key is Reserved_Key range DATE .. EXTEND;
@@ -34,8 +40,37 @@ subtype Obs_Key is Reserved_Key range DATEOBS .. OBJECT;
 subtype DataArr_Key is Reserved_Key range BSCALE .. DATAMIN;
 
 type Reserved_Key_Cards is array (Reserved_Key) of CardValue;
-
 InitResKeyCards : constant Reserved_Key_Cards := (others => InitVal);
+
+type Ext_Reserved_Cards is array (Ext_Reserved_Key) of CardValue;
+InitResExtCards : constant Ext_Reserved_Cards := (others => InitVal);
+
+
+
+
+-- Indexed Arrays
+
+type Prim_Reserved_Root is (
+	PTYPE, PSCAL, PZERO				-- Random groups only
+	);
+type Reserved_RG_Cards is array (Prim_Reserved_Root) of CardValue;
+InitResRGCards : constant Reserved_RG_Cards := (others => InitVal);
+
+
+type Ext_Reserved_Root is (
+	TSCAL, TZERO, TNULL, TTYPE, TUNIT, TDISP,	-- tables only
+	TDIM						-- BINTABLE only
+	);
+subtype Tab_Root    is Ext_Reserved_Root range TSCAL .. TDISP;
+subtype BinTab_Root is Ext_Reserved_Root range TSCAL .. TDIM;
+
+type Reserved_Ext_Root_Arr is array (Ext_Reserved_Root) of CardValue;
+InitResExtRootArrs : constant Reserved_Ext_Root_Arr := (others => InitVal);
+
+
+
+
+-- selector funcs
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;

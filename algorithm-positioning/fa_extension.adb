@@ -108,6 +108,8 @@ type State_Type is
 	BinTab  : BinTab_Type;
 	-- Reserved (generic)
 	GenRes : Reserved.Reserved_Type;
+	ExtRes : Reserved.Ext_Reserved_Cards;
+	ArrRes : Reserved.Reserved_Ext_Root_Arr;
 
         OtherCount : Natural;
 
@@ -128,6 +130,8 @@ InitState : State_Type :=
 	InitConfExt,
 	InitTab, InitBinTab,
 	Reserved.Init,
+	Reserved.InitResExtCards,
+	Reserved.InitResExtRootArrs,
 	0,
         0,False);
 
