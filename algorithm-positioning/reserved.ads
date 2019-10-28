@@ -65,6 +65,9 @@ type Extension_Key_Values is array (Extension_Key) of CardValue;
 InitCommKeyVals : constant Common_Key_Values    := (others => InitVal);
 InitExtKeyVals  : constant Extension_Key_Values := (others => InitVal);
 
+
+
+
 --
 -- Reserved Indexed Arrays for Prim, Ext
 --
@@ -93,9 +96,7 @@ InitPrimArrVals : constant Primary_Root_Values   := (others => InitRANDGArr);
 InitExtArrVals  : constant Extension_Root_Values := (others => InitTFIELDSArr);
 
 
-
-
--- selector funcs
+-- selector funcs, scalar-Keys
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;
@@ -112,6 +113,22 @@ function Match_Any_Obs(Flag : Boolean;
 function Match_Any_DataArr(Flag : Boolean;
                        Card : in Card_Type;
 		       Res  : in out Common_Key_Values) return Boolean;
+
+
+
+-- selector funcs, indexed-Keys
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
