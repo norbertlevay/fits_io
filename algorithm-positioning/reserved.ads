@@ -80,11 +80,17 @@ subtype Tab_Root    is Extension_Root range TSCAL .. TDISP;
 subtype BinTab_Root is Extension_Root range TSCAL .. TDIM;
 
 
-type Primary_Root_Values   is array (Primary_Root)   of CardValue;
-type Extension_Root_Values is array (Extension_Root) of CardValue;
+type RANDG_Arr   is array (1 .. RANDG_Max)   of CardValue;
+type TFIELDS_Arr is array (1 .. TFIELDS_Max) of CardValue;
 
-InitPrimArrVals : constant Primary_Root_Values   := (others => InitVal);
-InitExtArrVals  : constant Extension_Root_Values := (others => InitVal);
+type Primary_Root_Values   is array (Primary_Root)   of RANDG_Arr;
+type Extension_Root_Values is array (Extension_Root) of TFIELDS_Arr;
+
+
+InitRANDGArr   : constant RANDG_Arr   := (others => InitVal);
+InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
+InitPrimArrVals : constant Primary_Root_Values   := (others => InitRANDGArr);
+InitExtArrVals  : constant Extension_Root_Values := (others => InitTFIELDSArr);
 
 
 
