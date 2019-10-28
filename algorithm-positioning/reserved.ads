@@ -1,4 +1,22 @@
 
+-- FIXME CardValue & InitVal & EmpptyVal, we want hidden, but needed in 3 packs: here and FA_Primary (also FA_Ext)
+-- FIXME DATEOBS should be DATE-OBS as key-string
+-- FIXME Prod_Keys BLOCKED & EXTEND only in Primary (BLOCKED only within 1st 36 cards) 
+-- check in Extension that not present, otherwise raise exception(?)
+-- FIXME DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
+
+-- NOTE Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
+
+
+
+-- Reserved-Key placement:
+--		scalar Keys 	IndexedKeys
+-- Common 	yes		none
+-- Prim		none		yes
+-- Ext		yes		yes
+
+
+
 with Ada.Exceptions; use Ada.Exceptions;
 with FITS; use FITS; -- Card_Type needed
 
@@ -15,57 +33,58 @@ type CardValue is
         end record;
 
 InitVal  : constant CardValue := (EmptyVal,False);
--- FIXME these above, we want hidden, but needed in 3 packs: here and FA_Primary (also FA_Ext)
 
--- FIXME DATEOBS should be DATE-OBS as key-string
+
+
+--
+-- Reserved scalar Keys for Primary or Extension or both ('Common')
+--
 type Reserved_Key is (
 	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
 	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
 	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
 	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
-	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN	-- data-array keys, IMAGES-like only
-	);
-type Ext_Reserved_Key is (
+	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN,	-- data-array keys, IMAGES-like only
 	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
 	THEAP						-- BINTABLE only
 	);
 
-subtype Prod_Key is Reserved_Key range DATE .. EXTEND;
--- BLOCKED & EXTEND only in Primary (BLOCKED only within 1st 36 cards) 
--- check in Extension that not present, otherwise raise exception(?)
-subtype Biblio_Key is Reserved_Key range AUTHOR .. REFERENC;
---DATExxxx : CardValue; -- FIXME what to do ? -> return List and store also KeyName
-subtype Obs_Key is Reserved_Key range DATEOBS .. OBJECT;
--- Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
-subtype DataArr_Key is Reserved_Key range BSCALE .. DATAMIN;
 
-type Reserved_Key_Cards is array (Reserved_Key) of CardValue;
-InitResKeyCards : constant Reserved_Key_Cards := (others => InitVal);
+subtype Common_Key    is Reserved_Key range DATE .. DATAMIN;
+subtype Extension_Key is Reserved_Key range EXTNAME .. THEAP;
 
-type Ext_Reserved_Cards is array (Ext_Reserved_Key) of CardValue;
-InitResExtCards : constant Ext_Reserved_Cards := (others => InitVal);
+subtype Prod_Key    is Common_Key range DATE .. EXTEND;
+subtype Biblio_Key  is Common_Key range AUTHOR .. REFERENC;
+subtype Obs_Key     is Common_Key range DATEOBS .. OBJECT;
+subtype DataArr_Key is Common_Key range BSCALE .. DATAMIN;
 
 
+type Common_Key_Values    is array (Common_Key)    of CardValue;
+type Extension_Key_Values is array (Extension_Key) of CardValue;
 
+InitCommKeyVals : constant Common_Key_Values    := (others => InitVal);
+InitExtKeyVals  : constant Extension_Key_Values := (others => InitVal);
 
--- Indexed Arrays
-
-type Prim_Reserved_Root is (
+--
+-- Reserved Indexed Arrays for Prim, Ext
+--
+type Primary_Root is (
 	PTYPE, PSCAL, PZERO				-- Random groups only
 	);
-type Reserved_RG_Cards is array (Prim_Reserved_Root) of CardValue;
-InitResRGCards : constant Reserved_RG_Cards := (others => InitVal);
-
-
-type Ext_Reserved_Root is (
+type Extension_Root is (
 	TSCAL, TZERO, TNULL, TTYPE, TUNIT, TDISP,	-- tables only
 	TDIM						-- BINTABLE only
 	);
-subtype Tab_Root    is Ext_Reserved_Root range TSCAL .. TDISP;
-subtype BinTab_Root is Ext_Reserved_Root range TSCAL .. TDIM;
 
-type Reserved_Ext_Root_Arr is array (Ext_Reserved_Root) of CardValue;
-InitResExtRootArrs : constant Reserved_Ext_Root_Arr := (others => InitVal);
+subtype Tab_Root    is Extension_Root range TSCAL .. TDISP;
+subtype BinTab_Root is Extension_Root range TSCAL .. TDIM;
+
+
+type Primary_Root_Values   is array (Primary_Root)   of CardValue;
+type Extension_Root_Values is array (Extension_Root) of CardValue;
+
+InitPrimArrVals : constant Primary_Root_Values   := (others => InitVal);
+InitExtArrVals  : constant Extension_Root_Values := (others => InitVal);
 
 
 
@@ -74,19 +93,19 @@ InitResExtRootArrs : constant Reserved_Ext_Root_Arr := (others => InitVal);
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;
-			Res  : in out Reserved_Key_Cards) return Boolean;
+			Res  : in out Common_Key_Values) return Boolean;
 
 function Match_Any_Biblio(Flag : Boolean; 
 			  Card : in Card_Type;
-			  Res  : in out Reserved_Key_Cards) return Boolean;
+			  Res  : in out Common_Key_Values) return Boolean;
 
 function Match_Any_Obs(Flag : Boolean;
                        Card : in Card_Type;
-		       Res  : in out Reserved_Key_Cards) return Boolean;
+		       Res  : in out Common_Key_Values) return Boolean;
 
 function Match_Any_DataArr(Flag : Boolean;
                        Card : in Card_Type;
-		       Res  : in out Reserved_Key_Cards) return Boolean;
+		       Res  : in out Common_Key_Values) return Boolean;
 
 
 
@@ -135,9 +154,9 @@ function Match_Any_Comment(Flag    : Boolean;
 type Reserved_Type is
         record
 		Comments : Comment_Type;
-		Res      : Reserved_Key_Cards;
+		Res      : Common_Key_Values;
         end record;
-Init : constant Reserved_Type := (InitComments,InitResKeyCards);
+Init : constant Reserved_Type := (InitComments,InitCommKeyVals);
 
 procedure DBG_Print(Res : in Reserved_Type);
 

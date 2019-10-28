@@ -34,7 +34,7 @@ package TIO renames Ada.Text_IO;
 
         function Match_Any_Prod(Flag : Boolean;
 			        Card : in Card_Type;
-                                Res  : in out Reserved_Key_Cards) return Boolean
+                                Res  : in out Common_Key_Values) return Boolean
         is
         begin
 		if(NOT Flag) then
@@ -71,7 +71,7 @@ package TIO renames Ada.Text_IO;
 
         function Match_Any_Biblio(Flag   : Boolean;
 				  Card   : in Card_Type;
-                                Res  : in out Reserved_Key_Cards) return Boolean
+                                Res  : in out Common_Key_Values) return Boolean
         is
         begin
 		if(NOT Flag) then
@@ -189,7 +189,7 @@ end DBG_Print;
 
         function Match_Any_Obs(Flag : Boolean;
 				Card : in Card_Type;
-                                Res  : in out Reserved_Key_Cards) return Boolean
+                                Res  : in out Common_Key_Values) return Boolean
         is
         begin
 		if(NOT Flag) then
@@ -270,7 +270,7 @@ end DBG_Print;
 
         function Match_Any_DataArr(Flag : Boolean;
 			           Card    : in Card_Type;
-                           Res : in out Reserved_Key_Cards) return Boolean
+                           Res : in out Common_Key_Values) return Boolean
         is
         begin
 		if(NOT Flag) then
