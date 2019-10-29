@@ -145,7 +145,7 @@ type Primary_Type is
         record
 	Comments : Comment_Type;
 	Res      : Common_Key_Values;
-        ResRG    : Primary_Root_Values;
+        Arr    : Primary_Root_Values;
         end record;
 PrimInit : constant Primary_Type := (InitComments,InitCommKeyVals,InitPrimArrVals);
 

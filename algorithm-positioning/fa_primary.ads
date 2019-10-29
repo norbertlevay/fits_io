@@ -5,7 +5,7 @@ with Reserved; use Reserved;
 package FA_Primary is
 
 	-- Mandatory keys
-
+	
 	type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
 	type Primary_Size_Rec(Last : Natural;
         	           HDUType : Primary_HDU) is
@@ -34,18 +34,20 @@ package FA_Primary is
 		end record;
 	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 
-
-	-- RANDOM GROUPS related
+	-- Reserved indexed keys
 	
-	type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
-	type RANDG_Arr is array (1..RANDG_Max) of CardValue;
-	type RG_Card_Data is 
-		record
-			Key   : RG_KeyRoot;
-			Value : RANDG_Arr;
-		end record;
-	type RG_Arr is
-		array (Positive range <>) of RG_Card_Data;
+        type Root_Type is (PTYPE,PSCAL,PZERO);
+        type Root_Arr  is array (Natural range <>) of Root_Type;
+
+        type IdxKey_Rec is
+                record
+                        Root : Root_Type;
+                        Arr  : Reserved.RANDG_Arr;
+                end record;
+        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+
+
+
 
 
 -- FA configuration
@@ -73,9 +75,9 @@ type Options_Type is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function Get return Primary_Size_Rec;
-	function Get(Keys     : in Res_Key_Arr) return Key_Rec_Arr;
---	function Get(KeyRoots : in Res_Key_Arr) return Reserved_Arrays_Arr;
-	function Get return RG_Arr;
+	function Get(Keys  : in Res_Key_Arr) return Key_Rec_Arr;
+	function Get(Roots : in Root_Arr) return IdxKey_Rec_Arr;
+
 
 
 	Unexpected_Card       : exception;

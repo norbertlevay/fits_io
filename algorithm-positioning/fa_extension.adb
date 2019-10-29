@@ -97,6 +97,7 @@ type State_Type is
 	-- Reserved
 	Res : Reserved.Extension_Type;
 
+	-- other cards not recognized by this FA
         OtherCount : Natural;
 
         ENDCardPos : Natural;
@@ -741,6 +742,10 @@ end To_XT_Type;
 
 
 
+
+
+-- read Mandatory keys as record
+
         function To_HDU_Type(StateName : in FA_Extension.State_Name) return HDU_Type
         is
                 t : HDU_Type;
@@ -832,10 +837,84 @@ end To_XT_Type;
         end Get;
 
 
-----------------------------------------------------------------------
+
+-- read reserved scalar keys
+
+ function Needed_Count(Keys : in Res_Key_Arr) return Natural
+ is
+         Count : Natural := 0;
+ begin
+
+ 	 for I in Keys'Range
+	 loop
+		 case(Keys(I)) is
+			when DATE .. DATAMIN =>
+
+        	        if(State.Res.Comm(Keys(I)).Read)
+                	then
+                        	Count := Count + 1;
+             		end if;
+
+
+			when EXTNAME .. THEAP =>
+
+			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
+                	if(State.Res.Ext(Keys(I)).Read)
+                	then
+                        	Count := Count + 1;
+                	end if;
+
+--			when others =>	null;
+		end case;
+        end loop;
+
+        return Count;
+
+ end Needed_Count;
+
+
+ function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
+ is
+         FoundCount : Natural := Needed_Count(Keys);
+         OutKeys : Key_Rec_Arr(1..FoundCount);
+         Idx : Positive := 1;
+ begin
+
+        for I in Keys'Range
+        loop
+		case(Keys(I)) is
+			when DATE .. DATAMIN =>
+
+        	        if(State.Res.Comm(Keys(I)).Read)
+                	then
+            	            OutKeys(Idx).Key   := Keys(I);
+                	    OutKeys(Idx).Value := State.Res.Comm(Keys(I)).Value;
+                            exit when (Idx = FoundCount);
+                   	    Idx := Idx + 1;
+                	end if;
+
+		when EXTNAME .. THEAP =>
+
+			if(State.Res.Ext(Keys(I)).Read)
+                	then
+                        	OutKeys(Idx).Key   := Keys(I);
+	                        OutKeys(Idx).Value := State.Res.Ext(Keys(I)).Value;
+        	                exit when (Idx = FoundCount);
+                	        Idx := Idx + 1;
+        	        end if;
+
+--			when others => null;
+		end case;
+
+        end loop;
+
+        return OutKeys;
+ end Get;
+
+
 	-- experimental Get(RootArr) to return Tab_Type's read arrays
 
-	-- FIXME modify so thet Arr can be shorter, containing only the Read elements
+	-- FIXME modify so that Arr can be shorter, containing only the Read elements
 	function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
 	is
 		Is_Read : Boolean := False;
@@ -956,89 +1035,6 @@ end To_XT_Type;
 
 	return IdxKey;
 	end Get;
-
-
--- read reserved scalar keys
-
- function Needed_Count(Keys : in Res_Key_Arr) return Natural
- is
-         Count : Natural := 0;
- begin
-
- 	 for I in Keys'Range
-	 loop
-		 case(Keys(I)) is
-			when DATE .. OBJECT =>
-
---			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
-        	        if(State.Res.Comm(Keys(I)).Read)
-                	then
-                        	Count := Count + 1;
-             		end if;
-
-
-			when EXTNAME .. EXTLEVEL =>
-
-			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
-                	if(State.Res.Ext(Keys(I)).Read)
-                	then
-                        	Count := Count + 1;
-                	end if;
-
-			when others =>
-				null; -- FIXME
-		end case;
-        end loop;
---	TIO.New_Line;
-
-        return Count;
-
- end Needed_Count;
-
-
- function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
- is
-         FoundCount : Natural := Needed_Count(Keys);
-         OutKeys : Key_Rec_Arr(1..FoundCount);
-         Idx : Positive := 1;
- begin
-
-        for I in Keys'Range
-        loop
-		case(Keys(I)) is
-			when DATE .. OBJECT =>
-
-                if(State.Res.Comm(Keys(I)).Read)
-                then
-                        OutKeys(Idx).Key   := Keys(I);
-                        OutKeys(Idx).Value := State.Res.Comm(Keys(I)).Value;
-                        exit when (Idx = FoundCount);
-                        Idx := Idx + 1;
-                end if;
-
-		when EXTNAME .. EXTLEVEL =>
-
-			if(State.Res.Ext(Keys(I)).Read)
-                	then
-                        	OutKeys(Idx).Key   := Keys(I);
-	                        OutKeys(Idx).Value := State.Res.Ext(Keys(I)).Value;
-        	                exit when (Idx = FoundCount);
-                	        Idx := Idx + 1;
-        	        end if;
-
-			when others =>
-				null; -- FIXME
-
-		end case;
-
-        end loop;
-
-        return OutKeys;
- end Get;
-
-
-
-
 
 
 end FA_Extension;

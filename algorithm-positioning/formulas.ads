@@ -1,6 +1,7 @@
 
 with FITS; use FITS;
 with FA_Primary;
+with FA_Extension;
 
 
 package Formulas is
@@ -14,7 +15,7 @@ package Formulas is
 -- FIXME PCOUNT GCOUNT not implemented yet
 
 	function  Calc_HDU_Size_blocks
-		(HDUSizeInfo : in HDU_Size_Rec) return Positive_Count;
+		(HDUSizeInfo : in FA_Extension.HDU_Size_Rec) return Positive_Count;
 
 
 	function  Calc_HeaderUnit_Size_blocks

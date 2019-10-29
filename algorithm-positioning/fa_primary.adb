@@ -39,11 +39,6 @@ type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
 
--- reserved arrays, RAND GROUP specific
-type ResRG_Type is array (RG_KeyRoot) of RANDG_Arr;
-InitResRG : constant ResRg_Type := (others => InitRANDGArrVal);
-
-
 
 type State_Type is
         record
@@ -62,8 +57,6 @@ type State_Type is
         GCOUNT : CardValue;
         GROUPS : CardValue;
 
-	-- Reserved (RANDOM GROUPS specific)
-	--ResRG  : ResRG_Type;
 	-- Reserved
 	Res : Reserved.Primary_Type;
 
@@ -82,7 +75,6 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
---	InitResRG,
 	Reserved.PrimInit,
 	0,
         0,False);
@@ -130,46 +122,6 @@ begin
 end DBG_Print_Reserved;
 
 -- -----------------------------------------------------------
-
-
-
-        function OFF_Match_Any_ResRG(Flag : Boolean;
-                           Card    : in Card_Type;
-                           RGArr   : in out ResRG_Type) return Boolean
-        is
-                Idx : Positive;
-        begin
-                if(NOT Flag) then
-                        return False;
-                end if;
-
-                for I in ResRG_Type'Range
-                loop
-                        if(Is_Array(Card,  RG_KeyRoot'Image(I),1,RANDG_Max,Idx ) )
-                        then
-                                if (NOT RGArr(I)(Idx).Read)
-                                then
-                                        RGArr(I)(Idx).Value :=  Card(11..30);
-                                        RGArr(I)(Idx).Read  := True;
-
-                                        return True;
-                                else
-                                        Raise_Exception(Duplicate_Card'Identity, Card);
-                                end if;
-                        end if;
-                end loop;
-
-                return False;
-
-        end OFF_Match_Any_ResRG;
-
-
-
-
-
-
-
-
 
         procedure Configure(Options : Options_Type)
 	is
@@ -450,7 +402,7 @@ end DBG_Print_Reserved;
 
 		-- Reserved keys (specific to RANDOM GROUPS)
 
-		elsif(Reserved.Match_Any_ResRG(m_Options.Reserved, Card, State.Res.ResRG))
+		elsif(Reserved.Match_Any_ResRG(m_Options.Reserved, Card, State.Res.Arr))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
  
@@ -555,6 +507,10 @@ end DBG_Print_Reserved;
 
 
 
+
+	
+-- read Mandatory keys as record
+
 	function To_HDU_Type(StateName : in FA_Primary.State_Name) return HDU_Type
 	is
 		t : HDU_Type;
@@ -574,74 +530,6 @@ end DBG_Print_Reserved;
 	end To_HDU_Type;
 
 
-
-	function  Get return HDU_Size_Rec
-	is
-		HDUSizeInfo : HDU_Size_Rec(State.NAXIS_Val);
-                NAXIS : Positive;
-        begin
--- Final FA states naming: 
--- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
--- IMAGE with other(n) : header has mandatory IMAGE cards and n extra cards 
--- not spec'd by Options or unknown to this implementation.
--- Other cases refer to Reserved key groups, like biblio, related to bibligraphic keys:
--- IMAGE with biblo wcs : has only mandatory keys and at least one of biblio related 
--- reserved keys, and some WCS keys.
-		TIO.Put(State_Name'Image(State.Name));
-		if(State.OtherCount > 0)
-		then
-			TIO.Put_Line(" with Other("& Integer'Image(State.OtherCount) &")");
-		end if;
-
-
-		-- NOTE: user can simply call Get() without running the FA -> programming error
-		-- OR Header was read, but is broken (without END card) so we read through all file
-		--  reaching EOF <- but this should raise exception: trying to read behind file end??
-		--  OR user called FA on non FITS file and so probably scans through until EOF
-                if(State.ENDCardSet) then
-                        HDUSizeInfo.CardsCount := State.ENDCardPos;
-                else
-                        Raise_Exception(Card_Not_Found'Identity, 
-					"END card not found, not a valid FITS file.");
-                end if;
-
-
-		--
-		-- conversion HDU_Size_Rec
-		--
-		
-		if(m_Options.Mand)
-		then
-
-                	-- FIXME how about SIMPLE value, should we check it was set ?
-                	HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
-
-                	if(State.BITPIX.Read) then
-                        	HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
-                	else
-                        	Raise_Exception(Card_Not_Found'Identity, "BITPIX");
-                	end if;
-
-                	if(State.NAXIS.Read) then
-                        	NAXIS := To_Integer(State.NAXIS.Value);
-                	else
-                        	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
-                	end if;
-
-                	for I in 1 .. NAXIS
-                	loop
-                        	if(State.NAXISn(I).Read) then
-                               		HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
-                        	else
-                                	Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
-                        	end if;
-
-                	end loop;
-
-		end if;
-
-                return HDUSizeInfo;
-        end Get;
 
 	function To_Primary_HDU(S : State_Name) return Primary_HDU
 	is
@@ -698,41 +586,6 @@ end DBG_Print_Reserved;
 
 
 
--- data is RandGroup reserved key arrays
-
-        function Needed_Length(RGArr : ResRG_Type) return Natural
-        is
-                ArrLen : Natural := 0;
-        begin
---                for I in ResRG_Type'Range
-  --              loop
-    --                    if(RGArr(I).Read) then ArrLen := ArrLen + 1; end if;
-      --          end loop;
--- FIXME not implemented
-                return ArrLen;
-        end Needed_Length;
-
-
-        function Get return RG_Arr
-        is
-                --ArrLen : Natural := Needed_Length(State.DataArr);
-                Arr    : RG_Arr(1 .. 0);--ArrLen);
-                Idx    : Natural := 0;
-        begin
-
---                for I in Reserved.DataArr_Type'Range
-  --              loop
-    --                    if(State.DataArr(I).Read)
-       --                 then
-         --                       Idx := Idx + 1;
-           --                     Arr(Idx).Key   := I;
-             --                   Arr(Idx).Value := State.DataArr(I).Value;
-               --         end if;
-                --end loop;
-
-                return Arr;
-        end Get;
-
 
 
 
@@ -779,6 +632,95 @@ end DBG_Print_Reserved;
 	return OutKeys;
  end Get;
 
+
+        -- experimental Get(RootArr) to return Tab_Type's read arrays
+
+        -- FIXME modify so that Arr can be shorter, containing only the Read elements
+        function Is_Any_Element_Read(Arr : Reserved.RANDG_Arr) return Boolean
+        is
+                Is_Read : Boolean := False;
+                -- FIXME what if Arr is empty array ? raise exception or return False
+        begin
+                for I in Arr'Range
+                loop
+                        Is_Read := Arr(I).Read;
+                        exit when Arr(I).Read;
+                end loop;
+                return Is_Read;
+        end Is_Any_Element_Read;
+
+
+       function Is_In_Set(Root : Root_Type; Roots : Root_Arr) return Boolean
+        is
+        begin
+                for I in Roots'Range
+                loop
+                        if(Root = Roots(I))
+                        then
+                                return True;
+                        end if;
+                end loop;
+                return False;
+        end Is_In_Set;
+
+        function Needed_Length(Roots : Root_Arr) return Natural
+        is
+                Len : Natural := 0;
+        begin
+                if(Is_In_Set(PTYPE,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PTYPE))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(PSCAL,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PSCAL))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(PZERO,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PZERO))) then Len := Len + 1; end if;
+                end if;
+                return Len;
+        end Needed_Length;
+
+
+
+
+
+
+ function Get(Roots : Root_Arr) return IdxKey_Rec_Arr
+        is
+                IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
+                Len : Natural := 0;-- FIXME rename to Idx
+        begin
+                if(Is_In_Set(PTYPE,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PTYPE)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PTYPE;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PTYPE);
+                        end if;
+                end if;
+
+                if(Is_In_Set(PSCAL,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PSCAL)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PSCAL;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PSCAL);
+                        end if;
+                end if;
+
+                if(Is_In_Set(PZERO,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PZERO)))
+                        then 
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PZERO;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PZERO);
+                        end if;
+                end if;
+
+        return IdxKey;
+        end Get;
 
 
 end FA_Primary;

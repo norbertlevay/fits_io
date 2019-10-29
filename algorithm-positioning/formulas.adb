@@ -21,7 +21,7 @@ package body Formulas is
 
 
 	function  Calc_HDU_Size_blocks
-		(HDUSizeInfo : in HDU_Size_Rec) return Positive_Count
+		(HDUSizeInfo : in FA_Extension.HDU_Size_Rec) return Positive_Count
 	is
 		HDUSize : Positive_Count;
 	begin

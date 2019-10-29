@@ -4,6 +4,23 @@ with Reserved; use Reserved;
 
 package FA_Extension is
 
+	-- Mandatory keys
+	
+	type OFF_HDU_Type is
+        	(UNSPECIFIED,
+	        PRIMARY_NON_STANDARD, PRIMARY_WITHOUT_DATA,
+        	PRIMARY_NOT_IMAGE, PRIMARY_IMAGE, RANDOM_GROUPS,
+	        EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE,
+        	SPECIAL_RECORDS);
+
+	type HDU_Size_Rec(Last : Positive) is
+        	record
+                	HDUType    : HDU_Type;   -- HDU info
+	                CardsCount : Positive;   -- HDU info
+        	        BITPIX     : Integer; --Data_Type;  -- HDU info
+                	NAXISArr   : NAXIS_Arr(1 .. Last);  -- HDU info
+	        end record;
+
 
 
         -- Reserved keys
@@ -17,9 +34,31 @@ package FA_Extension is
                 end record;
         type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 
+	-- Reserved indexed keys 
+	
+	type CardValue is
+        record
+                Value : String(1..20);
+                Read  : Boolean;
+        end record;
+
+	type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+
+
+        type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
+        type Root_Arr  is array (Natural range <>) of Root_Type;
+
+
+        type IdxKey_Rec is
+                record
+                        Root : Root_Type;
+                        Arr  : Reserved.TFIELDS_Arr;
+                end record;
+        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
 
 
 
+-- FA configuration
 type Algorithm_Type is
         (
 	ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
@@ -48,30 +87,11 @@ type Options_Type is
         function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
 	function Get return HDU_Size_Rec;
-	function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr;
-
-	type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
-
-	type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
+	function Get(Keys  : in Res_Key_Arr) return Key_Rec_Arr;
+	function Get(Roots : in Root_Arr) return IdxKey_Rec_Arr;
 
 
-        type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
-        type Root_Arr  is array (Natural range <>) of Root_Type;
 
-
-        type IdxKey_Rec is
-                record
-                        Root : Root_Type;
-                        Arr  : Reserved.TFIELDS_Arr;
-                end record;
-        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
-
-	function  Get(Roots : Root_Arr) return IdxKey_Rec_Arr;
-	
 	Unexpected_Card       : exception;
 	Unexpected_Card_Value : exception;
 	Duplicate_Card        : exception;
