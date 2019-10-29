@@ -220,14 +220,28 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
---if(State.ConfExt.EXTNAME.Read)  then TIO.Put_Line("EXTNAME  "&State.ConfExt.EXTNAME.Value);  end if;
---if(State.ConfExt.EXTVER.Read)   then TIO.Put_Line("EXTVER   "&State.ConfExt.EXTVER.Value);   end if;
---if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTLEVEL.Value); end if;
---DBG_Print(State.Tab);
---DBG_Print(State.BinTab);
 Reserved.DBG_Print(State.Res);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
+
+
+procedure DBG_Print_Reserved
+is
+        Res : Key_Rec_Arr := Get((EXTNAME,DATAMAX,DATAMIN,INSTRUME,TELESCOP));
+begin
+	TIO.Put_Line("DBG_Print_reserved");
+        for I in Res'Range
+        loop
+                TIO.Put("Get Res> "&Reserved_Key'Image(Res(I).Key));
+                TIO.Put(" : "&Res(I).Value);
+                TIO.New_Line;
+        end loop;
+
+
+end DBG_Print_Reserved;
+
+
+
 
 
 function To_XT_Type(XTENSION_Value : in String) return XT_Type
@@ -717,6 +731,7 @@ end To_XT_Type;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
+		if(NextCardPos = 0) then DBG_Print_Reserved; end if;
 		if(NextCardPos = 0) then DBG_Print(Get((TSCAL,TTYPE,TUNIT,TDISP))); end if;
 
 		return NextCardPos;
@@ -810,12 +825,6 @@ end To_XT_Type;
                 	        end if;
 
 	                end loop;
-
-        	        -- FIXME dirty fix: should return NAXISArr only NAXIS-long
---	                for I in NAXIS+1 .. NAXIS_Max
-  --      	        loop
-    --            	        HDUSizeInfo.NAXISArr(I) := 1;
---	                end loop;
 
 		end if;
 
@@ -949,6 +958,83 @@ end To_XT_Type;
 	end Get;
 
 
+-- read reserved scalar keys
+
+ function Needed_Count(Keys : in Res_Key_Arr) return Natural
+ is
+         Count : Natural := 0;
+ begin
+
+ 	 for I in Keys'Range
+	 loop
+		 case(Keys(I)) is
+			when DATE .. OBJECT =>
+
+--			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
+        	        if(State.Res.Comm(Keys(I)).Read)
+                	then
+                        	Count := Count + 1;
+             		end if;
+
+
+			when EXTNAME .. EXTLEVEL =>
+
+			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
+                	if(State.Res.Ext(Keys(I)).Read)
+                	then
+                        	Count := Count + 1;
+                	end if;
+
+			when others =>
+				null; -- FIXME
+		end case;
+        end loop;
+--	TIO.New_Line;
+
+        return Count;
+
+ end Needed_Count;
+
+
+ function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
+ is
+         FoundCount : Natural := Needed_Count(Keys);
+         OutKeys : Key_Rec_Arr(1..FoundCount);
+         Idx : Positive := 1;
+ begin
+
+        for I in Keys'Range
+        loop
+		case(Keys(I)) is
+			when DATE .. OBJECT =>
+
+                if(State.Res.Comm(Keys(I)).Read)
+                then
+                        OutKeys(Idx).Key   := Keys(I);
+                        OutKeys(Idx).Value := State.Res.Comm(Keys(I)).Value;
+                        exit when (Idx = FoundCount);
+                        Idx := Idx + 1;
+                end if;
+
+		when EXTNAME .. EXTLEVEL =>
+
+			if(State.Res.Ext(Keys(I)).Read)
+                	then
+                        	OutKeys(Idx).Key   := Keys(I);
+	                        OutKeys(Idx).Value := State.Res.Ext(Keys(I)).Value;
+        	                exit when (Idx = FoundCount);
+                	        Idx := Idx + 1;
+        	        end if;
+
+			when others =>
+				null; -- FIXME
+
+		end case;
+
+        end loop;
+
+        return OutKeys;
+ end Get;
 
 
 

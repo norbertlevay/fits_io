@@ -1,6 +1,6 @@
 
 with FITS; use FITS; -- Card_Type needed
-with Reserved; use Reserved; -- Obs_Key needed
+with Reserved; use Reserved;
 
 package FA_Primary is
 

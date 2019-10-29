@@ -1,8 +1,24 @@
 
 with FITS; use FITS; -- Card_Type needed
-with Reserved;
+with Reserved; use Reserved;
 
 package FA_Extension is
+
+
+
+        -- Reserved keys
+
+        type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
+
+        type Key_Rec is
+                record
+                        Key   : Reserved_Key;
+                        Value : String(1..20);
+                end record;
+        type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+
+
+
 
 type Algorithm_Type is
         (
@@ -31,7 +47,8 @@ type Options_Type is
 	function  Reset_State return Positive; 
         function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
-	function  Get return HDU_Size_Rec;
+	function Get return HDU_Size_Rec;
+	function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr;
 
 	type CardValue is
         record

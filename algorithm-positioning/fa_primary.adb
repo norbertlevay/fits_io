@@ -34,16 +34,7 @@ type State_Name is
         );
 
 
---type CardValue is
-  --      record
-    --            Value : String(1..20);
-      --          Read  : Boolean;
-       -- end record;
-
---InitVal  : constant CardValue := (EmptyVal,False);
-
 type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
---type RANDG_Arr is array (1..RANDG_Max) of CardValue;
 
 InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
 InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
