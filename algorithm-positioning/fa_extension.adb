@@ -20,25 +20,18 @@ EmptyVal : constant String(1..20) := (others => ' ');
         --
 
 type State_Name is
-        (NOT_ACCEPTING_CARDS,  -- FA inactive
-         CONFORMING_EXTENSION, -- Initial state: collect scalar card-values
-         COLLECT_TABLE_ARRAYS, -- collect TFORM & TBCOL arrays and END-card
-         WAIT_END,             -- ignore all cards except END-card
-         IMAGE, TABLE, BINTABLE,	-- Final states
-	 SPECIAL_RECORDS		-- Final states
+        (NOT_ACCEPTING_CARDS,  	-- FA inactive
+         IS_CONFORMING, 	-- Initial state
+         COLLECT_TABLE_ARRAYS, 	-- collect TFORM & TBCOL arrays and END-card
+         WAIT_END,             	-- ignore all cards except END-card
+	 SPECIAL_RECORDS,	-- Final state (not XTENSION)
+	 CONFORMING_EXTENSION,	-- Final state (is XTENSION bun not Standard)
+	 IMAGE, TABLE, BINTABLE -- Final states (Standard Ext)
 	 );	
-
---type CardValue is
-  --      record
-    --            Value : String(1..20);
-      --          Read  : Boolean;
-       -- end record;
 
 InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXIS_Arr   is array (1..NAXIS_Max)   of CardValue;
--- type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
-
 
 InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
@@ -101,11 +94,6 @@ type State_Type is
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
 	
-	-- Reserved (Conf ext only)
---	ConfExt : ConfExt_Type;
-	-- Reserved (Tables only)
---	Tab     : Tab_Type;
---	BinTab  : BinTab_Type;
 	-- Reserved
 	Res : Reserved.Extension_Type;
 
@@ -125,8 +113,6 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
---	InitConfExt,
-	--InitTab, InitBinTab,
 	Reserved.ExtInit,
 	0,
         0,False);
@@ -297,7 +283,7 @@ end To_XT_Type;
 		
                 if(m_Options.Mand)
                 then
-                        State.Name := CONFORMING_EXTENSION;
+                        State.Name := IS_CONFORMING;
 
 		elsif(m_Options.Tab)
                 then
@@ -312,7 +298,7 @@ end To_XT_Type;
 
 
 
-	function In_CONFORMING_EXTENSION(Pos : Positive; Card : Card_Type) return Positive
+	function In_IS_CONFORMING(Pos : Positive; Card : Card_Type) return Positive
 	is
 		Idx : Positive;
 	begin
@@ -365,8 +351,9 @@ end To_XT_Type;
 			State.GCOUNT.Read  := True;
 
 			case(State.XTENSION_Val) is
-				when IMAGE => State.Name := WAIT_END;
-				when others => null;
+				when IMAGE  => State.Name := WAIT_END;
+				when ASCII_TABLE | BIN_TABLE => null;
+				when others => State.Name := WAIT_END;
 			end case;
 
 		elsif ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
@@ -388,7 +375,7 @@ end To_XT_Type;
 
 		return Pos + 1;
 
-	end In_CONFORMING_EXTENSION;
+	end In_IS_CONFORMING;
 
 
 
@@ -409,58 +396,6 @@ end To_XT_Type;
         end Is_Valid;
 
 
-	function Match_ConfExt(Card : in Card_Type;
-				ConfExt : in out ConfExt_Type) return Boolean
-	is
-	begin
-		if(NOT m_Options.ConfExt) 
-		then
-			return False;
-		end if;
-
-
-		if ( "EXTNAME " = Card(1..8) )
-                then
-                        if(NOT ConfExt.EXTNAME.Read)
-                        then
-                                ConfExt.EXTNAME.Value := Card(11..30);
-                                ConfExt.EXTNAME.Read := True;
-        		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-        	elsif ( "EXTVER  " = Card(1..8) )
-                then
-        		if(NOT ConfExt.EXTVER.Read)
-                        then
-                                ConfExt.EXTVER.Value := Card(11..30);
-                                ConfExt.EXTVER.Read := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-	
-		elsif ( "EXTLEVEL" = Card(1..8) )
-                then
- 
-			if(NOT ConfExt.EXTLEVEL.Read)
-                        then
-                                ConfExt.EXTLEVEL.Value := Card(11..30);
-                                ConfExt.EXTLEVEL.Read := True;
-                        else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-                        end if;
-
-
-		else
-			return False;
-		end if;
-
-		return True;
-
-	end Match_ConfExt;
-
-
-	
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
 	is
 	begin
@@ -493,7 +428,12 @@ end To_XT_Type;
 			
                         if( m_Options.Mand )
                         then
-                                State.Name := IMAGE;
+        			case(State.XTENSION_Val) is
+				when IMAGE  => State.Name := IMAGE;
+				when ASCII_TABLE | BIN_TABLE => null;
+				when others => State.Name := CONFORMING_EXTENSION;
+				end case;
+                        State.Name := IMAGE;
                         else
                                 null;-- FIXME State.Name := NOT_DETERMINED;
 		        end if;
@@ -502,7 +442,7 @@ end To_XT_Type;
 
 
                 elsif(Is_Fixed_Position(Card)) then
-                        -- one of CONFORMING_EXTENSION cards: may appear only once in header
+                        -- one of IS_CONFORMING cards: may appear only once in header
                         Raise_Exception(Duplicate_Card'Identity, Card);
 
                 elsif(Is_Valid(Card)) then
@@ -670,58 +610,18 @@ end To_XT_Type;
 		-- Reserved (all Conforming Extensions)
 
 		elsif ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
-		--elsif ( Match_ConfExt(Card, State.ConfExt) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		-- Reserved (TABLE or BINTABLE specific)
 
 		elsif ( Reserved.Match_Any_Tab(Card, State.Res.Arr) )
-		--elsif ( Match_Any_Tab(Card, State.Tab) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif ( Reserved.Match_Any_BinTab(Card, State.Res) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
-		-- Reserved (BINTABLE only)
---                elsif ( "TDIM" = Card(1..4) )
-  --              then
-    --                    if(State.XTENSION_Val = BIN_TABLE)
-      --                  then
-        --                        Ix := Extract_Index("TDIM",Card(1..8));
-          --                      if(NOT State.BinTab.TDIMn(Ix).Read)
-            --                    then
-              --                          State.BinTab.TDIMn(Ix).Value := Card(11..30);
-                --                        State.BinTab.TDIMn(Ix).Read  := True;
-                  --              else
-                    --                    Raise_Exception(Duplicate_Card'Identity, Card);
-                      --          end if;
-
-			--	TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
---                        else
-  --                              Raise_Exception(Unexpected_Card'Identity, Card);
-    --                    end if;
-
-
-      --          elsif ( "THEAP   " = Card(1..8) )
-        --        then
---                        if(State.XTENSION_Val = BIN_TABLE)
-  --                      then
-    --                            if(NOT State.BinTab.THEAP.Read)
-      --                          then
-        --                                State.BinTab.THEAP.Value := Card(11..30);
-          --                              State.BinTab.THEAP.Read  := True;
-            --                    else
-              --                          Raise_Exception(Duplicate_Card'Identity, Card);
-                --                end if;
---
---				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-  --                      else
-    --                            Raise_Exception(Unexpected_Card'Identity, Card);
-      --                  end if;
-
 
 		-- Reserved (generic)
 
@@ -758,7 +658,7 @@ end To_XT_Type;
 		elsif(Is_Fixed_Position(Card))
 		then
                         Raise_Exception(Duplicate_Card'Identity, Card);
-                        -- one of CONFORMING_EXTENSION cards: may appear only once in header
+                        -- one of IS_CONFORMING cards: may appear only once in header
 
                 elsif(Is_Valid(Card)) then
                         -- valid card defined by [FITS Appendix A] BNF syntax
@@ -804,14 +704,15 @@ end To_XT_Type;
 			when NOT_ACCEPTING_CARDS =>
 				NextCardPos := 0;
 
-			when CONFORMING_EXTENSION =>
-				NextCardPos := In_CONFORMING_EXTENSION(Pos, Card);
+			when IS_CONFORMING =>
+				NextCardPos := In_IS_CONFORMING(Pos, Card);
 			when WAIT_END =>
 				NextCardPos := In_WAIT_END(Pos, Card);
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 
-			when SPECIAL_RECORDS | IMAGE | TABLE |	BINTABLE =>
+			when SPECIAL_RECORDS | CONFORMING_EXTENSION 
+			     | IMAGE | TABLE |BINTABLE =>
 				NextCardPos := 0;
 		end case;
 		
@@ -959,7 +860,6 @@ end To_XT_Type;
 	begin
 		if(Is_In_Set(TTYPE,Roots)) then
 			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE))) then Len := Len + 1; end if;
-			--if(Is_Any_Element_Read(State.Tab.TTYPEn)) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TUNIT,Roots)) then
 			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT))) then Len := Len + 1; end if;

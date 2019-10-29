@@ -35,7 +35,7 @@ package FA_Primary is
 	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 
 
-	-- RANDOM GROUPS releated
+	-- RANDOM GROUPS related
 	
 	type RG_KeyRoot is (PTYPE,PSCAL,PZERO);-- array roots
 	type RANDG_Arr is array (1..RANDG_Max) of CardValue;
