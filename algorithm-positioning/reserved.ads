@@ -96,31 +96,6 @@ InitPrimArrVals : constant Primary_Root_Values   := (others => InitRANDGArr);
 InitExtArrVals  : constant Extension_Root_Values := (others => InitTFIELDSArr);
 
 
--- selector funcs, scalar-Keys
-
-function Match_Any_Prod(Flag : Boolean; 
-		        Card : in Card_Type;
-			Res  : in out Common_Key_Values) return Boolean;
-
-function Match_Any_Biblio(Flag : Boolean; 
-			  Card : in Card_Type;
-			  Res  : in out Common_Key_Values) return Boolean;
-
-function Match_Any_Obs(Flag : Boolean;
-                       Card : in Card_Type;
-		       Res  : in out Common_Key_Values) return Boolean;
-
-function Match_Any_DataArr(Flag : Boolean;
-                       Card : in Card_Type;
-		       Res  : in out Common_Key_Values) return Boolean;
-
-
-
--- selector funcs, indexed-Keys
-
-
-
-
 
 
 
@@ -174,19 +149,83 @@ function Match_Any_Comment(Flag    : Boolean;
 -- all generic Reserved keys [FITS Table C.2]
 -- 
 
-type Reserved_Type is
-        record
-		Comments : Comment_Type;
-		Res      : Common_Key_Values;
-        end record;
-Init : constant Reserved_Type := (InitComments,InitCommKeyVals);
 
-procedure DBG_Print(Res : in Reserved_Type);
+-- for Primary HDU
+
+type Primary_Type is
+        record
+	Comments : Comment_Type;
+	Res      : Common_Key_Values;
+        ResRG    : Primary_Root_Values;
+        end record;
+PrimInit : constant Primary_Type := (InitComments,InitCommKeyVals,InitPrimArrVals);
+
+procedure DBG_Print(Res : in Primary_Type);
 
 function Match_Any(Flag   : Boolean;
        		   Pos    : in Positive;	
 		   Card   : in Card_Type;
-                   Reserved : in out Reserved_Type) return Boolean;
+                   Reserved : in out Primary_Type) return Boolean;
+
+
+-- for Extensions HDU
+
+type Extension_Type is
+        record
+	Comments : Comment_Type;
+	Comm     : Common_Key_Values;
+	Ext      : Extension_Key_Values;
+        Arr      : Extension_Root_Values;
+        end record;
+ExtInit : constant Extension_Type := (InitComments,InitCommKeyVals,
+				InitExtKeyVals,InitExtArrVals);
+
+procedure DBG_Print(Res : in Extension_Type);
+
+function Match_Any(Flag   : Boolean;
+       		   Pos    : in Positive;	
+		   Card   : in Card_Type;
+                   Reserved : in out Extension_Type) return Boolean;
+
+
+
+
+
+-- selector funcs, scalar-Keys
+
+function Match_Any_Prod(Flag : Boolean; 
+		        Card : in Card_Type;
+			Res  : in out Common_Key_Values) return Boolean;
+
+function Match_Any_Biblio(Flag : Boolean; 
+			  Card : in Card_Type;
+			  Res  : in out Common_Key_Values) return Boolean;
+
+function Match_Any_Obs(Flag : Boolean;
+                       Card : in Card_Type;
+		       Res  : in out Common_Key_Values) return Boolean;
+
+function Match_Any_DataArr(Flag : Boolean;
+                       Card : in Card_Type;
+		       Res  : in out Common_Key_Values) return Boolean;
+
+
+
+-- selector funcs, indexed-Keys
+
+function Match_Any_ResRG(Flag : Boolean;
+			 Card : in Card_Type;
+			 RGArr  : in out Primary_Root_Values) return Boolean;
+
+
+function Match_Any_Tab(Card : in Card_Type;
+                       Tab  : in out Extension_Root_Values) return Boolean;
+  
+function Match_Any_BinTab(Card : in Card_Type;
+                          Ext  : in out Extension_Type) return Boolean;
+
+
+
 
 
 

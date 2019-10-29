@@ -106,10 +106,8 @@ type State_Type is
 	-- Reserved (Tables only)
 	Tab     : Tab_Type;
 	BinTab  : BinTab_Type;
-	-- Reserved (generic)
-	GenRes : Reserved.Reserved_Type;
-	ExtRes : Reserved.Extension_Key_Values;
-	ArrRes : Reserved.Extension_Root_Values;
+	-- Reserved
+	Res : Reserved.Extension_Type;
 
         OtherCount : Natural;
 
@@ -129,9 +127,7 @@ InitState : State_Type :=
         InitTBCOLArrVal,
 	InitConfExt,
 	InitTab, InitBinTab,
-	Reserved.Init,
-	Reserved.InitExtKeyVals,
-	Reserved.InitExtArrVals,
+	Reserved.ExtInit,
 	0,
         0,False);
 
@@ -243,7 +239,7 @@ if(State.ConfExt.EXTVER.Read)   then TIO.Put_Line("EXTVER   "&State.ConfExt.EXTV
 if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTLEVEL.Value); end if;
 DBG_Print(State.Tab);
 DBG_Print(State.BinTab);
-Reserved.DBG_Print(State.GenRes);
+Reserved.DBG_Print(State.Res);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
 
@@ -476,13 +472,13 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
                 -- Reserved (generic, image-like only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Comm))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -723,7 +719,7 @@ end To_XT_Type;
 
 		-- Reserved (generic)
 
-		elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
+		elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
                 then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 

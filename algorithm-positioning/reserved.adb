@@ -226,7 +226,7 @@ end DBG_Print;
 
 -- all Reserved categories
 
-procedure DBG_Print(Res : in Reserved_Type)
+procedure DBG_Print(Res : in Primary_Type)
 is
 begin
 	DBG_Print(Res.Comments);
@@ -238,7 +238,7 @@ end DBG_Print;
         function Match_Any(Flag : Boolean;
 			   Pos  : in Positive;
 			   Card : in Card_Type;
-                           Reserved : in out Reserved_Type) return Boolean
+                           Reserved : in out Primary_Type) return Boolean
         is
         begin
 		if(Match_Any_Prod(Flag, Card, Reserved.Res))
@@ -296,6 +296,167 @@ end DBG_Print;
 		return False;
 
         end Match_Any_DataArr;
+
+
+
+function Match_Any_ResRG(Flag : Boolean;
+                         Card : in Card_Type;
+                         RGArr : in out Primary_Root_Values) return Boolean
+is
+                Idx : Positive;
+begin
+	if(NOT Flag) then
+		return False;
+	end if;
+
+        for I in Primary_Root'Range
+        loop
+		if(Is_Array(Card,  Primary_Root'Image(I),1,RANDG_Max,Idx ) )
+                then
+			if (NOT RGArr(I)(Idx).Read)
+                        then
+				RGArr(I)(Idx).Value :=  Card(11..30);
+                                RGArr(I)(Idx).Read  := True;
+
+                                return True;
+                         else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                         end if;
+                 end if;
+        end loop;
+
+        return False;
+
+end Match_Any_ResRG;
+
+
+
+-- for Extension
+procedure DBG_Print(Res : in Extension_Type)
+is
+begin
+        DBG_Print(Res.Comments);
+-- ??   DBG_Print(Res.Res);
+end DBG_Print;
+
+
+       function Match_Any_Tab(Card : in Card_Type;
+                              Tab  : in out Extension_Root_Values) return Boolean
+        is
+                Ix : Positive;
+        begin
+
+		for I in Tab_Root'Range
+		loop
+	                if (Is_Array(Card,  Tab_Root'Image(I),1,TFIELDS_Max,Ix )  )
+        	        then
+                        	if(NOT Tab(I)(Ix).Read)
+	                        then
+        	                        Tab(I)(Ix).Value := Card(11..30);
+                	                Tab(I)(Ix).Read := True;
+
+					return True;
+                        	else
+	                                Raise_Exception(Duplicate_Card'Identity, Card);
+        	                end if;
+			end if;
+		end loop;
+
+		return False;
+
+        end Match_Any_Tab;
+
+       function Match_Any_BinTab(Card : in Card_Type;
+                                 Ext  : in out Extension_Type) return Boolean
+        is
+                Ix : Positive;
+        begin
+
+                if ( "TDIM" = Card(1..4) )
+                then
+--                        if(State.XTENSION_Val = BIN_TABLE)
+  --                      then
+                                Ix := Extract_Index("TDIM",Card(1..8));
+                                if(NOT Ext.Arr(TDIM)(Ix).Read)
+                                then
+                                        Ext.Arr(TDIM)(Ix).Value := Card(11..30);
+                                        Ext.Arr(TDIM)(Ix).Read  := True;
+                                else
+                                        Raise_Exception(Duplicate_Card'Identity, Card);
+                                end if;
+
+    --                    else
+      --                          Raise_Exception(Unexpected_Card'Identity, Card);
+        --                end if;
+
+
+                elsif ( "THEAP   " = Card(1..8) )
+                then
+          --              if(State.XTENSION_Val = BIN_TABLE)
+            --            then
+                                if(NOT Ext.Ext(THEAP).Read)
+                                then
+                                        Ext.Ext(THEAP).Value := Card(11..30);
+                                        Ext.Ext(THEAP).Read  := True;
+                                else
+                                        Raise_Exception(Duplicate_Card'Identity, Card);
+                                end if;
+
+              --          else
+                --                Raise_Exception(Unexpected_Card'Identity, Card);
+                  --      end if;
+		
+		else
+			return False;
+		end if;
+
+		return True;
+
+        end Match_Any_BinTab;
+
+
+
+
+
+
+
+
+        function Match_Any(Flag : Boolean;
+                           Pos  : in Positive;
+                           Card : in Card_Type;
+                           Reserved : in out Extension_Type) return Boolean
+        is
+        begin
+                if(Match_Any_Prod(Flag, Card, Reserved.Comm))
+                then
+                        null;
+
+                elsif(Match_Any_Biblio(Flag, Card, Reserved.Comm))
+                then
+                        null;
+
+                elsif(Match_Any_Comment(Flag, Pos, Card, Reserved.Comments))
+                then
+                        null;
+
+                elsif(Match_Any_Obs(Flag, Card, Reserved.Comm))
+                then
+                        null;
+                else
+                        return False;
+                end if;
+
+                return True;
+
+        end Match_Any;
+
+
+
+
+
+
+
+
 
 end Reserved;
 

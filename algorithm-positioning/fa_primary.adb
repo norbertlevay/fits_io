@@ -73,9 +73,8 @@ type State_Type is
 
 	-- Reserved (RANDOM GROUPS specific)
 	ResRG  : ResRG_Type;
-	-- Reserved (generic)
-	GenRes : Reserved.Reserved_Type;
-     newResRG  : Reserved.Primary_Root_Values;
+	-- Reserved
+	Res : Reserved.Primary_Type;
 
 	-- other cards not recognized by this FA	
 	OtherCount : Natural;
@@ -93,8 +92,7 @@ InitState : State_Type :=
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
 	InitResRG,
-	Reserved.Init,
-	Reserved.InitPrimArrVals,
+	Reserved.PrimInit,
 	0,
         0,False);
 
@@ -119,7 +117,7 @@ TIO.New_Line;
 if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
 if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
 if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
-Reserved.DBG_Print(State.GenRes);
+Reserved.DBG_Print(State.Res);
 TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
 TIO.Put_Line(Positive'Image(State.ENDCardPos));
 TIO.Put_Line(State_Name'Image(State.Name));
@@ -330,13 +328,13 @@ end DBG_Print_Reserved;
         begin
 		-- Reserved (generic)
 
-                if( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
+                if( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		-- Reserved (generic, image-like only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -468,13 +466,13 @@ end DBG_Print_Reserved;
 
 		-- Reserved keys (generic)
 
-                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.GenRes))
+                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		-- Reserved (generic, data-arryas only)
 
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.GenRes.Res))
+                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Res))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -758,7 +756,7 @@ end DBG_Print_Reserved;
  begin
 	for I in Keys'Range
 	loop
-		if(State.GenRes.Res(Keys(I)).Read)
+		if(State.Res.Res(Keys(I)).Read)
 		then
 			Count := Count + 1;
 		end if;
@@ -778,10 +776,10 @@ end DBG_Print_Reserved;
 
 	for I in Keys'Range
 	loop
-		if(State.GenRes.Res(Keys(I)).Read)
+		if(State.Res.Res(Keys(I)).Read)
 		then
 			OutKeys(Idx).Key   := Keys(I);
-			OutKeys(Idx).Value := State.GenRes.Res(Keys(I)).Value;
+			OutKeys(Idx).Value := State.Res.Res(Keys(I)).Value;
 			exit when (Idx = FoundCount);
 			Idx := Idx + 1;
 		end if;
