@@ -1,6 +1,6 @@
 
 with FITS; use FITS; -- Card_Type needed
-
+with Reserved;
 
 package FA_Extension is
 
@@ -49,7 +49,7 @@ type Options_Type is
         type IdxKey_Rec is
                 record
                         Root : Root_Type;
-                        Arr  : TFIELDS_Arr;
+                        Arr  : Reserved.TFIELDS_Arr;
                 end record;
         type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
 

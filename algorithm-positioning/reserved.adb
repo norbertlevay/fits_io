@@ -340,6 +340,58 @@ begin
 end DBG_Print;
 
 
+        function Match_Any_ConfExt(Card : in Card_Type;
+                                   ConfExt : in out Extension_Key_Values) return Boolean
+        is
+        begin
+
+                if ( "EXTNAME " = Card(1..8) )
+                then
+                        if(NOT ConfExt(EXTNAME).Read)
+                        then
+                                ConfExt(EXTNAME).Value := Card(11..30);
+                                ConfExt(EXTNAME).Read := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+                elsif ( "EXTVER  " = Card(1..8) )
+                then
+                        if(NOT ConfExt(EXTVER).Read)
+                        then
+                                ConfExt(EXTVER).Value := Card(11..30);
+                                ConfExt(EXTVER).Read := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+                elsif ( "EXTLEVEL" = Card(1..8) )
+                then
+
+                        if(NOT ConfExt(EXTLEVEL).Read)
+                        then
+                                ConfExt(EXTLEVEL).Value := Card(11..30);
+                                ConfExt(EXTLEVEL).Read := True;
+                        else
+                                Raise_Exception(Duplicate_Card'Identity, Card);
+                        end if;
+
+
+                else
+                        return False;
+                end if;
+
+                return True;
+
+        end Match_Any_ConfExt;
+
+
+
+
+
+
+
+
        function Match_Any_Tab(Card : in Card_Type;
                               Tab  : in out Extension_Root_Values) return Boolean
         is

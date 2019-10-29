@@ -7,9 +7,9 @@
 
 -- NOTE Array structures (only in IMAGE or IMAGE-like HDUs, see: [FITS Table C.2 comment(2)])
 
-
-
+--
 -- Reserved-Key placement:
+--
 --		scalar Keys 	IndexedKeys
 -- Common 	yes		none
 -- Prim		none		yes
@@ -36,9 +36,9 @@ InitVal  : constant CardValue := (EmptyVal,False);
 
 
 
---
--- Reserved scalar Keys for Primary or Extension or both ('Common')
---
+
+-- All Reserved scalar Keys
+
 type Reserved_Key is (
 	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
 	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
@@ -49,65 +49,54 @@ type Reserved_Key is (
 	THEAP						-- BINTABLE only
 	);
 
+-- Common Keys (may be present in both Primary & Extensions)
 
 subtype Common_Key    is Reserved_Key range DATE .. DATAMIN;
-subtype Extension_Key is Reserved_Key range EXTNAME .. THEAP;
 
 subtype Prod_Key    is Common_Key range DATE .. EXTEND;
 subtype Biblio_Key  is Common_Key range AUTHOR .. REFERENC;
 subtype Obs_Key     is Common_Key range DATEOBS .. OBJECT;
 subtype DataArr_Key is Common_Key range BSCALE .. DATAMIN;
 
-
-type Common_Key_Values    is array (Common_Key)    of CardValue;
-type Extension_Key_Values is array (Extension_Key) of CardValue;
-
-InitCommKeyVals : constant Common_Key_Values    := (others => InitVal);
-InitExtKeyVals  : constant Extension_Key_Values := (others => InitVal);
+type Common_Key_Values is array (Common_Key) of CardValue;
+InitCommKeyVals : constant Common_Key_Values := (others => InitVal);
 
 
 
+-- Keys for Primary HDU
 
---
--- Reserved Indexed Arrays for Prim, Ext
---
-type Primary_Root is (
-	PTYPE, PSCAL, PZERO				-- Random groups only
-	);
+type Primary_Root is (PTYPE, PSCAL, PZERO); -- Random groups only
+
+type RANDG_Arr is array (1 .. RANDG_Max) of CardValue;
+type Primary_Root_Values is array (Primary_Root) of RANDG_Arr;
+
+InitRANDGArr    : constant RANDG_Arr := (others => InitVal);
+InitPrimArrVals : constant Primary_Root_Values   := (others => InitRANDGArr);
+
+
+-- Keys for Extension HDU
+
+subtype Extension_Key is Reserved_Key range EXTNAME .. THEAP;
+
 type Extension_Root is (
-	TSCAL, TZERO, TNULL, TTYPE, TUNIT, TDISP,	-- tables only
-	TDIM						-- BINTABLE only
-	);
+	TSCAL, TZERO, TNULL, TTYPE, TUNIT, TDISP, -- tables only
+	TDIM);					  -- BINTABLE only
 
 subtype Tab_Root    is Extension_Root range TSCAL .. TDISP;
 subtype BinTab_Root is Extension_Root range TSCAL .. TDIM;
 
+type Extension_Key_Values is array (Extension_Key) of CardValue;
 
-type RANDG_Arr   is array (1 .. RANDG_Max)   of CardValue;
 type TFIELDS_Arr is array (1 .. TFIELDS_Max) of CardValue;
-
-type Primary_Root_Values   is array (Primary_Root)   of RANDG_Arr;
 type Extension_Root_Values is array (Extension_Root) of TFIELDS_Arr;
 
-
-InitRANDGArr   : constant RANDG_Arr   := (others => InitVal);
-InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
-InitPrimArrVals : constant Primary_Root_Values   := (others => InitRANDGArr);
+InitExtKeyVals  : constant Extension_Key_Values  := (others => InitVal);
+InitTFIELDSArr  : constant TFIELDS_Arr 		 := (others => InitVal);
 InitExtArrVals  : constant Extension_Root_Values := (others => InitTFIELDSArr);
 
 
-
-
-
-
-
-
-
-
-
-
-
 -- Commentary keys
+
 subtype Comment_Str is String(1..72);
 NullCommStr : constant Comment_Str := (others => ' ');
 
@@ -190,8 +179,12 @@ function Match_Any(Flag   : Boolean;
 
 
 
+--
+-- selector funcs
+--
+		   
 
--- selector funcs, scalar-Keys
+-- common 
 
 function Match_Any_Prod(Flag : Boolean; 
 		        Card : in Card_Type;
@@ -210,12 +203,21 @@ function Match_Any_DataArr(Flag : Boolean;
 		       Res  : in out Common_Key_Values) return Boolean;
 
 
+-- for Primary HDU
 
--- selector funcs, indexed-Keys
 
 function Match_Any_ResRG(Flag : Boolean;
 			 Card : in Card_Type;
 			 RGArr  : in out Primary_Root_Values) return Boolean;
+
+
+-- for Extension HDU
+
+function Match_Any_ConfExt(Card : in Card_Type;
+                           ConfExt : in out Extension_Key_Values) return Boolean;
+
+
+
 
 
 function Match_Any_Tab(Card : in Card_Type;
@@ -228,9 +230,9 @@ function Match_Any_BinTab(Card : in Card_Type;
 
 
 
-
+--
 -- Exceptions
-
+--
 		   Duplicate_Card : exception;
 
 end Reserved;

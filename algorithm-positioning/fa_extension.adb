@@ -102,10 +102,10 @@ type State_Type is
         TBCOLn   : TFIELDS_Arr;
 	
 	-- Reserved (Conf ext only)
-	ConfExt : ConfExt_Type;
+--	ConfExt : ConfExt_Type;
 	-- Reserved (Tables only)
-	Tab     : Tab_Type;
-	BinTab  : BinTab_Type;
+--	Tab     : Tab_Type;
+--	BinTab  : BinTab_Type;
 	-- Reserved
 	Res : Reserved.Extension_Type;
 
@@ -125,8 +125,8 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
-	InitConfExt,
-	InitTab, InitBinTab,
+--	InitConfExt,
+	--InitTab, InitBinTab,
 	Reserved.ExtInit,
 	0,
         0,False);
@@ -234,11 +234,11 @@ loop
 	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
 end loop;
 New_Line;
-if(State.ConfExt.EXTNAME.Read)  then TIO.Put_Line("EXTNAME  "&State.ConfExt.EXTNAME.Value);  end if;
-if(State.ConfExt.EXTVER.Read)   then TIO.Put_Line("EXTVER   "&State.ConfExt.EXTVER.Value);   end if;
-if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTLEVEL.Value); end if;
-DBG_Print(State.Tab);
-DBG_Print(State.BinTab);
+--if(State.ConfExt.EXTNAME.Read)  then TIO.Put_Line("EXTNAME  "&State.ConfExt.EXTNAME.Value);  end if;
+--if(State.ConfExt.EXTVER.Read)   then TIO.Put_Line("EXTVER   "&State.ConfExt.EXTVER.Value);   end if;
+--if(State.ConfExt.EXTLEVEL.Read) then TIO.Put_Line("EXTLEVEL "&State.ConfExt.EXTLEVEL.Value); end if;
+--DBG_Print(State.Tab);
+--DBG_Print(State.BinTab);
 Reserved.DBG_Print(State.Res);
 TIO.Put_Line(State_Name'Image(State.Name));
 end DBG_Print;
@@ -466,7 +466,8 @@ end To_XT_Type;
 	begin
 		-- Reserved (all Conforming Extensions)
 
-		if ( Match_ConfExt(Card, State.ConfExt) )
+		if ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
+		--if ( Match_ConfExt(Card, State.ConfExt) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
@@ -668,53 +669,58 @@ end To_XT_Type;
 
 		-- Reserved (all Conforming Extensions)
 
-		elsif ( Match_ConfExt(Card, State.ConfExt) )
+		elsif ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
+		--elsif ( Match_ConfExt(Card, State.ConfExt) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		-- Reserved (TABLE or BINTABLE specific)
 
-		elsif ( Match_Any_Tab(Card, State.Tab) )
+		elsif ( Reserved.Match_Any_Tab(Card, State.Res.Arr) )
+		--elsif ( Match_Any_Tab(Card, State.Tab) )
+		then
+			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+
+		elsif ( Reserved.Match_Any_BinTab(Card, State.Res) )
 		then
 			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		-- Reserved (BINTABLE only)
+--                elsif ( "TDIM" = Card(1..4) )
+  --              then
+    --                    if(State.XTENSION_Val = BIN_TABLE)
+      --                  then
+        --                        Ix := Extract_Index("TDIM",Card(1..8));
+          --                      if(NOT State.BinTab.TDIMn(Ix).Read)
+            --                    then
+              --                          State.BinTab.TDIMn(Ix).Value := Card(11..30);
+                --                        State.BinTab.TDIMn(Ix).Read  := True;
+                  --              else
+                    --                    Raise_Exception(Duplicate_Card'Identity, Card);
+                      --          end if;
 
-                elsif ( "TDIM" = Card(1..4) )
-                then
-                        if(State.XTENSION_Val = BIN_TABLE)
-                        then
-                                Ix := Extract_Index("TDIM",Card(1..8));
-                                if(NOT State.BinTab.TDIMn(Ix).Read)
-                                then
-                                        State.BinTab.TDIMn(Ix).Value := Card(11..30);
-                                        State.BinTab.TDIMn(Ix).Read  := True;
-                                else
-                                        Raise_Exception(Duplicate_Card'Identity, Card);
-                                end if;
-
-				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-                        else
-                                Raise_Exception(Unexpected_Card'Identity, Card);
-                        end if;
+			--	TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+--                        else
+  --                              Raise_Exception(Unexpected_Card'Identity, Card);
+    --                    end if;
 
 
-                elsif ( "THEAP   " = Card(1..8) )
-                then
-                        if(State.XTENSION_Val = BIN_TABLE)
-                        then
-                                if(NOT State.BinTab.THEAP.Read)
-                                then
-                                        State.BinTab.THEAP.Value := Card(11..30);
-                                        State.BinTab.THEAP.Read  := True;
-                                else
-                                        Raise_Exception(Duplicate_Card'Identity, Card);
-                                end if;
-
-				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-                        else
-                                Raise_Exception(Unexpected_Card'Identity, Card);
-                        end if;
+      --          elsif ( "THEAP   " = Card(1..8) )
+        --        then
+--                        if(State.XTENSION_Val = BIN_TABLE)
+  --                      then
+    --                            if(NOT State.BinTab.THEAP.Read)
+      --                          then
+        --                                State.BinTab.THEAP.Value := Card(11..30);
+          --                              State.BinTab.THEAP.Read  := True;
+            --                    else
+              --                          Raise_Exception(Duplicate_Card'Identity, Card);
+                --                end if;
+--
+--				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+  --                      else
+    --                            Raise_Exception(Unexpected_Card'Identity, Card);
+      --                  end if;
 
 
 		-- Reserved (generic)
@@ -920,7 +926,7 @@ end To_XT_Type;
 	-- experimental Get(RootArr) to return Tab_Type's read arrays
 
 	-- FIXME modify so thet Arr can be shorter, containing only the Read elements
-	function Is_Any_Element_Read(Arr : TFIELDS_Arr) return Boolean
+	function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
 	is
 		Is_Read : Boolean := False;
 		-- FIXME what if Arr is empty array ? raise exception or return False
@@ -952,22 +958,23 @@ end To_XT_Type;
 		Len : Natural := 0;
 	begin
 		if(Is_In_Set(TTYPE,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TTYPEn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE))) then Len := Len + 1; end if;
+			--if(Is_Any_Element_Read(State.Tab.TTYPEn)) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TUNIT,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TUNITn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT))) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TSCAL,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TSCALn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL))) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TZERO,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TZEROn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO))) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TNULL,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TNULLn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL))) then Len := Len + 1; end if;
 		end if;
 		if(Is_In_Set(TDISP,Roots)) then
-			if(Is_Any_Element_Read(State.Tab.TDISPn)) then Len := Len + 1; end if;
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP))) then Len := Len + 1; end if;
 		end if;
 		return Len;
 	end Needed_Length;
@@ -980,61 +987,61 @@ end To_XT_Type;
 	begin
 		if(Is_In_Set(TTYPE,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TTYPEn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TTYPE;
-				IdxKey(Len).Arr  := State.Tab.TTYPEn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TTYPE);
 			end if;
 		end if;
 
 		if(Is_In_Set(TUNIT,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TUNITn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TUNIT;
-				IdxKey(Len).Arr  := State.Tab.TUNITn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TUNIT);
 			end if;
 		end if;
 
 		if(Is_In_Set(TSCAL,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TSCALn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TSCAL;
-				IdxKey(Len).Arr  := State.Tab.TSCALn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TSCAL);
 			end if;
 		end if;
 
 		if(Is_In_Set(TZERO,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TZEROn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TZERO;
-				IdxKey(Len).Arr  := State.Tab.TZEROn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TZERO);
 			end if;
 		end if;
 
 		if(Is_In_Set(TNULL,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TNULLn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TNULL;
-				IdxKey(Len).Arr  := State.Tab.TNULLn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TNULL);
 			end if;
 		end if;
 
 		if(Is_In_Set(TDISP,Roots))
 		then
-			if(Is_Any_Element_Read(State.Tab.TDISPn))
+			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP)))
 			then 
 				Len := Len + 1;
 				IdxKey(Len).Root := TDISP;
-				IdxKey(Len).Arr  := State.Tab.TDISPn;
+				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TDISP);
 			end if;
 		end if;
 

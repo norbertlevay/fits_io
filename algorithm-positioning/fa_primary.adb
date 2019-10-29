@@ -72,7 +72,7 @@ type State_Type is
         GROUPS : CardValue;
 
 	-- Reserved (RANDOM GROUPS specific)
-	ResRG  : ResRG_Type;
+	--ResRG  : ResRG_Type;
 	-- Reserved
 	Res : Reserved.Primary_Type;
 
@@ -91,7 +91,7 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
-	InitResRG,
+--	InitResRG,
 	Reserved.PrimInit,
 	0,
         0,False);
@@ -142,7 +142,7 @@ end DBG_Print_Reserved;
 
 
 
-        function Match_Any_ResRG(Flag : Boolean;
+        function OFF_Match_Any_ResRG(Flag : Boolean;
                            Card    : in Card_Type;
                            RGArr   : in out ResRG_Type) return Boolean
         is
@@ -170,7 +170,7 @@ end DBG_Print_Reserved;
 
                 return False;
 
-        end Match_Any_ResRG;
+        end OFF_Match_Any_ResRG;
 
 
 
@@ -459,7 +459,7 @@ end DBG_Print_Reserved;
 
 		-- Reserved keys (specific to RANDOM GROUPS)
 
-		elsif(Match_Any_ResRG(m_Options.Reserved, Card, State.ResRG))
+		elsif(Reserved.Match_Any_ResRG(m_Options.Reserved, Card, State.Res.ResRG))
 		then
                       TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
  
