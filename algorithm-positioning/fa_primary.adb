@@ -511,26 +511,6 @@ end DBG_Print_Reserved;
 	
 -- read Mandatory keys as record
 
-	function To_HDU_Type(StateName : in FA_Primary.State_Name) return HDU_Type
-	is
-		t : HDU_Type;
-	begin
-		case(StateName) is
-			when NO_DATA 	   => t := PRIMARY_WITHOUT_DATA;
-			when IMAGE   	   => t := PRIMARY_IMAGE;
-			when RANDOM_GROUPS => t := RANDOM_GROUPS;
-			when others =>
-				Raise_Exception(Programming_Error'Identity,
-				"Not all cards read. State "&
-				FA_Primary.State_Name'Image(StateName) );
-		end case;
-
-		return t;
-
-	end To_HDU_Type;
-
-
-
 	function To_Primary_HDU(S : State_Name) return Primary_HDU
 	is
 	begin

@@ -31,11 +31,11 @@ type State_Name is
 
 InitVal  : constant CardValue := (EmptyVal,False);
 
-type NAXIS_Arr   is array (1..NAXIS_Max)   of CardValue;
+type NAXIS_MaxArr   is array (1..NAXIS_Max)   of CardValue;
 
-InitNAXISArrVal : constant NAXIS_Arr   := (others => InitVal);
-InitTFORMArrVal : constant TFIELDS_Arr := (others => InitVal);
-InitTBCOLArrVal : constant TFIELDS_Arr := (others => InitVal);
+InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
+InitTFORMArrVal : constant TFIELDS_Arr  := (others => InitVal);
+InitTBCOLArrVal : constant TFIELDS_Arr  := (others => InitVal);
 
 -- Reserved (optional) keys in any Conforming Extension
 type ConfExt_Type is
@@ -87,7 +87,7 @@ type State_Type is
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;
-        NAXISn   : NAXIS_Arr;
+        NAXISn   : NAXIS_MaxArr;
         PCOUNT   : CardValue;
         GCOUNT   : CardValue;
         TFIELDS  : CardValue;
@@ -746,15 +746,16 @@ end To_XT_Type;
 
 -- read Mandatory keys as record
 
-        function To_HDU_Type(StateName : in FA_Extension.State_Name) return HDU_Type
+        function To_Extension_HDU(StateName : in FA_Extension.State_Name) return Extension_HDU
         is
-                t : HDU_Type;
+                t : Extension_HDU;
         begin
                 case(StateName) is
                         when SPECIAL_RECORDS 	=> t := SPECIAL_RECORDS;
-                        when IMAGE		=> t := EXT_IMAGE;
-                        when TABLE		=> t := EXT_ASCII_TABLE;
-                        when BINTABLE		=> t := EXT_BIN_TABLE;
+                        when CONFORMING_EXTENSION => t := CONFORMING_EXTENSION;
+                        when IMAGE		=> t := STANDARD_IMAGE;
+                        when TABLE		=> t := STANDARD_TABLE;
+                        when BINTABLE		=> t := STANDARD_BINTABLE;
                         when others =>
                                 Raise_Exception(Programming_Error'Identity,
                                 "Not all cards read. State "&
@@ -763,7 +764,7 @@ end To_XT_Type;
 
                 return t;
 
-        end To_HDU_Type;
+        end To_Extension_HDU;
 
 
 
@@ -807,7 +808,7 @@ end To_XT_Type;
                 
 			-- FIXME how about XTENSION value, shoule we check it was set ?
 
-	                HDUSizeInfo.HDUType := To_HDU_Type(State.Name);
+	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
 
         	        if(State.BITPIX.Read) then
                 	        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
@@ -830,6 +831,20 @@ end To_XT_Type;
                 	        end if;
 
 	                end loop;
+
+-- FIXME here? to check whether XTENSION typ vs P/GCOUNT values match ?
+
+			if(State.PCOUNT.Read) then
+        	                HDUSizeInfo.PCOUNT := To_Integer(State.PCOUNT.Value);
+               		else
+                        	Raise_Exception(Card_Not_Found'Identity, "PCOUNT");
+	                end if;
+
+			if(State.GCOUNT.Read) then
+        	                HDUSizeInfo.GCOUNT := To_Integer(State.GCOUNT.Value);
+               		else
+                        	Raise_Exception(Card_Not_Found'Identity, "GCOUNT");
+	                end if;
 
 		end if;
 

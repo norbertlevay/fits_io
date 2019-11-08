@@ -6,24 +6,26 @@ package FA_Extension is
 
 	-- Mandatory keys
 	
-	type OFF_HDU_Type is
-        	(UNSPECIFIED,
-	        PRIMARY_NON_STANDARD, PRIMARY_WITHOUT_DATA,
-        	PRIMARY_NOT_IMAGE, PRIMARY_IMAGE, RANDOM_GROUPS,
-	        EXT_IMAGE, EXT_ASCII_TABLE, EXT_BIN_TABLE,
+	type Extension_HDU is
+        	(CONFORMING_EXTENSION,
+	        STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE,
         	SPECIAL_RECORDS);
 
 	type HDU_Size_Rec(Last : Positive) is
         	record
-                	HDUType    : HDU_Type;   -- HDU info
-	                CardsCount : Positive;   -- HDU info
-        	        BITPIX     : Integer; --Data_Type;  -- HDU info
-                	NAXISArr   : NAXIS_Arr(1 .. Last);  -- HDU info
+                	HDUType    : Extension_HDU;
+	                CardsCount : Positive;
+        	        BITPIX     : Integer;
+			NAXISArr   : NAXIS_Arr(1 .. Last);
+                        PCOUNT     : Natural;
+                        GCOUNT     : Positive;
 	        end record;
 
 
 
-        -- Reserved keys
+
+
+	-- Reserved keys
 
         type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
 
@@ -36,18 +38,8 @@ package FA_Extension is
 
 	-- Reserved indexed keys 
 	
-	type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
-
-	type TFIELDS_Arr is array (1..TFIELDS_Max) of CardValue;
-
-
         type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
         type Root_Arr  is array (Natural range <>) of Root_Type;
-
 
         type IdxKey_Rec is
                 record
@@ -55,7 +47,6 @@ package FA_Extension is
                         Arr  : Reserved.TFIELDS_Arr;
                 end record;
         type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
-
 
 
 -- FA configuration

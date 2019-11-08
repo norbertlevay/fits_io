@@ -6,7 +6,9 @@ package FA_Primary is
 
 	-- Mandatory keys
 	
-	type Primary_HDU is (NO_DATA, IMAGE, RANDOM_GROUPS);	
+	type Primary_HDU is
+		(NO_DATA, IMAGE, RANDOM_GROUPS);
+
 	type Primary_Size_Rec(Last : Natural;
         	           HDUType : Primary_HDU) is
         	record
@@ -45,9 +47,6 @@ package FA_Primary is
                         Arr  : Reserved.RANDG_Arr;
                 end record;
         type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
-
-
-
 
 
 -- FA configuration
