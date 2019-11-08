@@ -104,7 +104,7 @@ type Read_Control is
 	Blk : Card_Block;
 	Rc  : Read_Control;
 	Stoped : Boolean;
---	HDUSizeInfo : HDU_Size_Rec;
+--	HDUSizeInfo : Size_Rec;
 	HDUSize_blocks : Formulas.Positive_Count;
 
 
@@ -153,7 +153,7 @@ begin
 	end loop;
 	
 	declare
-		PSize : FA_Primary.Primary_Size_Rec := FA_Primary.Get;
+		PSize : FA_Primary.Size_Rec := FA_Primary.Get;
 	begin
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
 	end;
@@ -196,7 +196,7 @@ loop
 	end loop;
 
 	declare
-		HDUSizeInfo : FA_Extension.HDU_Size_Rec := FA_Extension.Get;
+		HDUSizeInfo : FA_Extension.Size_Rec := FA_Extension.Get;
 	begin
 		--HDUSizeInfo    := FA_Extension.Get;
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);

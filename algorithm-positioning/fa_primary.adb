@@ -522,9 +522,9 @@ end DBG_Print_Reserved;
 	end To_Primary_HDU;
 
 
-	function  Get return Primary_Size_Rec
+	function  Get return Size_Rec
 	is
-		PrimSize : Primary_Size_Rec(State.NAXIS_Val,
+		PrimSize : Size_Rec(State.NAXIS_Val,
 						To_Primary_HDU(State.Name));
                 NAXIS : Positive;
         begin

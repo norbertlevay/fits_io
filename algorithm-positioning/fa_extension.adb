@@ -765,9 +765,9 @@ end To_XT_Type;
 
 
 
-	function  Get return HDU_Size_Rec
+	function  Get return Size_Rec
         is
-                HDUSizeInfo : HDU_Size_Rec(State.NAXIS_Val);
+                HDUSizeInfo : Size_Rec(State.NAXIS_Val);
                 NAXIS : Positive;
 	begin
 -- Final FA states naming: 
@@ -797,7 +797,7 @@ end To_XT_Type;
 
 
         	--
-                -- conversion HDU_Size_Rec
+                -- conversion Size_Rec
                 --
 		
 		if(m_Options.Mand)

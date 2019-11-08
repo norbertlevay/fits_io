@@ -10,7 +10,7 @@ package FA_Extension is
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE,
 		SPECIAL_RECORDS);
 
-	type HDU_Size_Rec(Last : Positive) is
+	type Size_Rec(Last : Positive) is
 		record
 			HDUType    : Extension_HDU;
 			CardsCount : Positive;
@@ -77,7 +77,7 @@ package FA_Extension is
 	function  Reset_State return Positive; 
 	function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
-	function Get return HDU_Size_Rec;
+	function Get return Size_Rec;
 	function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
 	function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
 
