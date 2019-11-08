@@ -37,12 +37,13 @@ package FA_Primary is
 
 	-- Reserved indexed keys
 
-	type Root_Type is (PTYPE,PSCAL,PZERO);
-	type Root_Arr  is array (Natural range <>) of Root_Type;
+	type Reserved_Root is (PTYPE,PSCAL,PZERO);
+
+	type Res_Root_Arr  is array (Natural range <>) of Reserved_Root;
 
 	type IdxKey_Rec is
 		record
-			Root : Root_Type;
+			Root : Reserved_Root;
 			Arr  : RANDG_Arr;
 		end record;
 	type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
@@ -73,8 +74,8 @@ package FA_Primary is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function Get return Primary_Size_Rec;
-	function Get(Keys  : in Res_Key_Arr) return Key_Rec_Arr;
-	function Get(Roots : in Root_Arr) return IdxKey_Rec_Arr;
+	function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
+	function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
 
 
 

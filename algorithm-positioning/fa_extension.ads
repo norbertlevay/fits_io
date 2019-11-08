@@ -37,12 +37,13 @@ package FA_Extension is
 
 	-- Reserved indexed keys 
 
-	type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
-	type Root_Arr  is array (Natural range <>) of Root_Type;
+	type Reserved_Root is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
+
+	type Res_Root_Arr  is array (Natural range <>) of Reserved_Root;
 
 	type IdxKey_Rec is
 		record
-			Root : Root_Type;
+			Root : Reserved_Root;
 			Arr  : TFIELDS_Arr;
 		end record;
 	type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
@@ -77,8 +78,8 @@ package FA_Extension is
 	function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
 	function Get return HDU_Size_Rec;
-	function Get(Keys  : in Res_Key_Arr) return Key_Rec_Arr;
-	function Get(Roots : in Root_Arr) return IdxKey_Rec_Arr;
+	function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
+	function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
 
 
 

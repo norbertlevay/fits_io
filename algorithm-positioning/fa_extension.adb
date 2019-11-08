@@ -180,7 +180,7 @@ begin
 	TIO.Put_Line("DBG_Print IdxKeys");
 	for I in IdxKeys'Range
 	loop
-		TIO.Put("Get ResArr "& Root_Type'Image(IdxKeys(I).Root)&" ");
+		TIO.Put("Get ResArr "& Reserved_Root'Image(IdxKeys(I).Root)&" ");
 		for Idx in IdxKeys(I).Arr'Range
 		loop
 			TIO.Put(Integer'Image(Idx) &":"& IdxKeys(I).Arr(Idx).Value);
@@ -942,7 +942,7 @@ end To_XT_Type;
 	end Is_Any_Element_Read;
 
 
-	function Is_In_Set(Root : Root_Type; Roots : Root_Arr) return Boolean
+	function Is_In_Set(Root : Reserved_Root; Roots : Res_Root_Arr) return Boolean
 	is
 	begin
 		for I in Roots'Range
@@ -955,7 +955,7 @@ end To_XT_Type;
 		return False;
 	end Is_In_Set;
 
-	function Needed_Length(Roots : Root_Arr) return Natural
+	function Needed_Length(Roots : Res_Root_Arr) return Natural
 	is
 		Len : Natural := 0;
 	begin
@@ -981,7 +981,7 @@ end To_XT_Type;
 	end Needed_Length;
 
 
-	function Get(Roots : Root_Arr) return IdxKey_Rec_Arr
+	function Get(Roots : Res_Root_Arr) return IdxKey_Rec_Arr
 	is
 		IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
 		Len : Natural := 0;-- FIXME rename to Idx
