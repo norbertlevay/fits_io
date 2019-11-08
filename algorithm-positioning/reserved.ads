@@ -23,31 +23,20 @@ with FITS; use FITS; -- Card_Type needed
 
 package Reserved is
 
-EmptyVal : constant String(1..20) := (others => ' ');
-
-
-type CardValue is
-        record
-                Value : String(1..20);
-                Read  : Boolean;
-        end record;
-
-InitVal  : constant CardValue := (EmptyVal,False);
-
 
 
 
 -- All Reserved scalar Keys
 
-type Reserved_Key is (
-	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
-	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
-	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
-	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
-	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN,	-- data-array keys, IMAGES-like only
-	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
-	THEAP						-- BINTABLE only
-	);
+--type Reserved_Key is (
+--	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
+--	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
+--	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
+--	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
+--	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN,	-- data-array keys, IMAGES-like only
+--	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
+--	THEAP						-- BINTABLE only
+--	);
 
 -- Common Keys (may be present in both Primary & Extensions)
 
@@ -67,7 +56,7 @@ InitCommKeyVals : constant Common_Key_Values := (others => InitVal);
 
 type Primary_Root is (PTYPE, PSCAL, PZERO); -- Random groups only
 
-type RANDG_Arr is array (1 .. RANDG_Max) of CardValue;
+--type RANDG_Arr is array (1 .. RANDG_Max) of CardValue;
 type Primary_Root_Values is array (Primary_Root) of RANDG_Arr;
 
 InitRANDGArr    : constant RANDG_Arr := (others => InitVal);
@@ -87,7 +76,7 @@ subtype BinTab_Root is Extension_Root range TSCAL .. TDIM;
 
 type Extension_Key_Values is array (Extension_Key) of CardValue;
 
-type TFIELDS_Arr is array (1 .. TFIELDS_Max) of CardValue;
+--type TFIELDS_Arr is array (1 .. TFIELDS_Max) of CardValue;
 type Extension_Root_Values is array (Extension_Root) of TFIELDS_Arr;
 
 InitExtKeyVals  : constant Extension_Key_Values  := (others => InitVal);

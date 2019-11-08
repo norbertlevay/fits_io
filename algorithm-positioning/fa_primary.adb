@@ -19,8 +19,6 @@ package body FA_Primary is
 m_Options : Options_Type := (others => False);
 
 
-EmptyVal : constant String(1..20) := (others => ' ');
-
         --
         -- definition of states
         --
@@ -616,7 +614,8 @@ end DBG_Print_Reserved;
         -- experimental Get(RootArr) to return Tab_Type's read arrays
 
         -- FIXME modify so that Arr can be shorter, containing only the Read elements
-        function Is_Any_Element_Read(Arr : Reserved.RANDG_Arr) return Boolean
+        function Is_Any_Element_Read(Arr : RANDG_Arr) return Boolean
+        --function Is_Any_Element_Read(Arr : Reserved.RANDG_Arr) return Boolean
         is
                 Is_Read : Boolean := False;
                 -- FIXME what if Arr is empty array ? raise exception or return False

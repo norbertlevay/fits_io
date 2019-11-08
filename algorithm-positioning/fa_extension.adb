@@ -13,8 +13,6 @@ package body FA_Extension is
 m_Options : Options_Type := (others => False);
 
 
-EmptyVal : constant String(1..20) := (others => ' ');
-
 	--
         -- definition of states
         --
@@ -29,7 +27,6 @@ type State_Name is
 	 IMAGE, TABLE, BINTABLE -- Final states (Standard Ext)
 	 );	
 
-InitVal  : constant CardValue := (EmptyVal,False);
 
 type NAXIS_MaxArr   is array (1..NAXIS_Max)   of CardValue;
 
@@ -930,7 +927,8 @@ end To_XT_Type;
 	-- experimental Get(RootArr) to return Tab_Type's read arrays
 
 	-- FIXME modify so that Arr can be shorter, containing only the Read elements
-	function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
+	function Is_Any_Element_Read(Arr : TFIELDS_Arr) return Boolean
+	--function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
 	is
 		Is_Read : Boolean := False;
 		-- FIXME what if Arr is empty array ? raise exception or return False
