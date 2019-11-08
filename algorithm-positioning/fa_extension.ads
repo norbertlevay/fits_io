@@ -5,21 +5,21 @@ with Reserved; use Reserved;
 package FA_Extension is
 
 	-- Mandatory keys
-	
+
 	type Extension_HDU is
-        	(CONFORMING_EXTENSION,
-	        STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE,
-        	SPECIAL_RECORDS);
+		(CONFORMING_EXTENSION,
+		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE,
+		SPECIAL_RECORDS);
 
 	type HDU_Size_Rec(Last : Positive) is
-        	record
-                	HDUType    : Extension_HDU;
-	                CardsCount : Positive;
-        	        BITPIX     : Integer;
+		record
+			HDUType    : Extension_HDU;
+			CardsCount : Positive;
+			BITPIX     : Integer;
 			NAXISArr   : NAXIS_Arr(1 .. Last);
-                        PCOUNT     : Natural;
-                        GCOUNT     : Positive;
-	        end record;
+			PCOUNT     : Natural;
+			GCOUNT     : Positive;
+		end record;
 
 
 
@@ -27,45 +27,45 @@ package FA_Extension is
 
 	-- Reserved keys
 
-        type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
+	type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
 
-        type Key_Rec is
-                record
-                        Key   : Reserved_Key;
-                        Value : String(1..20);
-                end record;
-        type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+	type Key_Rec is
+		record
+			Key   : Reserved_Key;
+			Value : String(1..20);
+		end record;
+	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 
 	-- Reserved indexed keys 
-	
-        type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
-        type Root_Arr  is array (Natural range <>) of Root_Type;
 
-        type IdxKey_Rec is
-                record
-                        Root : Root_Type;
-                        Arr  : Reserved.TFIELDS_Arr;
-                end record;
-        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+	type Root_Type is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
+	type Root_Arr  is array (Natural range <>) of Root_Type;
 
-
--- FA configuration
-type Algorithm_Type is
-        (
-	ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
-        ALGORITHM_TOLERANT     -- parsing Headers fails only if: 
-                                 -- * essential key is missing
-                                 -- * essential key is duplicate with different values (ambiguity) 
-	); -- FIXME not implemented
+	type IdxKey_Rec is
+		record
+			Root : Root_Type;
+			Arr  : Reserved.TFIELDS_Arr;
+		end record;
+	type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
 
 
-type Options_Type is
-        record
-                Mand    : Boolean;
-                Tab     : Boolean;
-		ConfExt : Boolean;
-		Reserved : Boolean;
-        end record;
+	-- FA configuration
+	type Algorithm_Type is
+		(
+			ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
+			ALGORITHM_TOLERANT     -- parsing Headers fails only if: 
+			-- * essential key is missing
+			-- * essential key is duplicate with different values (ambiguity) 
+			); -- FIXME not implemented
+
+
+	type Options_Type is
+		record
+			Mand    : Boolean;
+			Tab     : Boolean;
+			ConfExt : Boolean;
+			Reserved : Boolean;
+		end record;
 
 
 	--
@@ -75,7 +75,7 @@ type Options_Type is
 	procedure Configure(Options : Options_Type);
 
 	function  Reset_State return Positive; 
-        function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
+	function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
 
 	function Get return HDU_Size_Rec;
 	function Get(Keys  : in Res_Key_Arr) return Key_Rec_Arr;

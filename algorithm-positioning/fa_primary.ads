@@ -5,24 +5,24 @@ with Reserved; use Reserved;
 package FA_Primary is
 
 	-- Mandatory keys
-	
+
 	type Primary_HDU is
 		(NO_DATA, IMAGE, RANDOM_GROUPS);
 
 	type Primary_Size_Rec(Last : Natural;
-        	           HDUType : Primary_HDU) is
-        	record
-                	CardsCount : Positive;
-              		BITPIX     : Integer;
-                	NAXISArr   : NAXIS_Arr(1 .. Last);
+	HDUType : Primary_HDU) is
+		record
+			CardsCount : Positive;
+			BITPIX     : Integer;
+			NAXISArr   : NAXIS_Arr(1 .. Last);
 			case HDUType is
-			when RANDOM_GROUPS =>
-				PCOUNT : Natural;
-				GCOUNT : Positive;
-			when others =>
-				null;
+				when RANDOM_GROUPS =>
+					PCOUNT : Natural;
+					GCOUNT : Positive;
+				when others =>
+					null;
 			end case;
-        	end record;
+		end record;
 
 
 	-- Reserved keys
@@ -37,32 +37,32 @@ package FA_Primary is
 	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
 
 	-- Reserved indexed keys
-	
-        type Root_Type is (PTYPE,PSCAL,PZERO);
-        type Root_Arr  is array (Natural range <>) of Root_Type;
 
-        type IdxKey_Rec is
-                record
-                        Root : Root_Type;
-                        Arr  : Reserved.RANDG_Arr;
-                end record;
-        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+	type Root_Type is (PTYPE,PSCAL,PZERO);
+	type Root_Arr  is array (Natural range <>) of Root_Type;
+
+	type IdxKey_Rec is
+		record
+			Root : Root_Type;
+			Arr  : Reserved.RANDG_Arr;
+		end record;
+	type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
 
 
--- FA configuration
-type Algorithm_Type is 
-	(
-	ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
-	ALGORITHM_TOLERANT   -- parsing Headers fails only if: 
-				-- * essential key is missing
-				-- * essential key is duplicate with different values (ambiguity)
-	); -- FIXME not implemented
+	-- FA configuration
+	type Algorithm_Type is 
+		(
+			ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
+			ALGORITHM_TOLERANT   -- parsing Headers fails only if: 
+			-- * essential key is missing
+			-- * essential key is duplicate with different values (ambiguity)
+			); -- FIXME not implemented
 
-type Options_Type is
-	record
-		Mand   : Boolean;
-		Reserved : Boolean;
-	end record;
+	type Options_Type is
+		record
+			Mand   : Boolean;
+			Reserved : Boolean;
+		end record;
 
 	--
 	-- finite automaton
@@ -80,7 +80,7 @@ type Options_Type is
 
 
 	Unexpected_Card       : exception;
- 	Unexpected_Card_Value : exception;
+	Unexpected_Card_Value : exception;
 	Duplicate_Card        : exception;
 	Card_Not_Found        : exception;
 	Invalid_Card	      : exception;
