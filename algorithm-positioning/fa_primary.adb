@@ -1,4 +1,4 @@
-with Ada.Text_IO; -- for debug only DBG_Print, Trace_State
+--with Ada.Text_IO; -- for debug only DBG_Print, Trace_State
 
 with Ada.Exceptions; use Ada.Exceptions;
 
@@ -78,48 +78,11 @@ InitState : State_Type :=
         0,False);
 
 State : State_Type := InitState;
-------------------------------------------------------------------
-package TIO renames Ada.Text_IO;
 
-procedure DBG_Print 
-is
-begin
-TIO.New_Line;
-if(State.SIMPLE.Read) then TIO.Put_Line("SIMPLE  "&State.SIMPLE.Value); end if;
-if(State.BITPIX.Read) then TIO.Put_Line("BITPITX "&State.BITPIX.Value); end if;
-if(State.NAXIS.Read)  then TIO.Put_Line("NAXIS   "&State.NAXIS.Value);  end if;
-for I in State.NAXISn'Range
-loop
-	if(State.NAXISn(I).Read) then
-		TIO.Put(Integer'Image(I) &":"& State.NAXISn(I).Value);
-	end if;
-end loop;
-TIO.New_Line;
-if(State.PCOUNT.Read) then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value); end if;
-if(State.GCOUNT.Read) then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value); end if;
-if(State.GROUPS.Read) then TIO.Put_Line("GROUPS  "&State.GROUPS.Value); end if;
-Reserved.DBG_Print(State.Res);
-TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
-TIO.Put_Line(Positive'Image(State.ENDCardPos));
-TIO.Put_Line(State_Name'Image(State.Name));
-end DBG_Print;
+procedure DBG_Print is separate;
+procedure DBG_Print_reserved is separate;
 
 
-procedure DBG_Print_Reserved
-is
-	Res : Key_Rec_Arr := Get((DATAMAX,DATAMIN,INSTRUME,TELESCOP));
-begin
-	for I in Res'Range
-	loop
-		TIO.Put("Get Res> "&Reserved_Key'Image(Res(I).Key));
-		TIO.Put(" : "&Res(I).Value);
-		TIO.New_Line;
-	end loop;
-
-
-end DBG_Print_Reserved;
-
--- -----------------------------------------------------------
 
         procedure Configure(Options : Options_Type)
 	is
@@ -138,11 +101,6 @@ end DBG_Print_Reserved;
 	is
 	begin
 		State := InitState;
-
-		TIO.Put_Line("Opts: "
-		&" "&Boolean'Image(m_Options.Mand)
-		&" "&Boolean'Image(m_Options.Reserved)
-		);
 
 		if(m_Options.Mand) 
 		then
@@ -168,7 +126,6 @@ end DBG_Print_Reserved;
 	is
 		Idx : Positive;
 	begin
-		TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
 		then 
@@ -271,20 +228,19 @@ end DBG_Print_Reserved;
 
                 if( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
 		then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
+			null;
+			
 		-- Reserved (generic, image-like only)
 
                 elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Res))
 		then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 
 		elsif( ENDCard = Card ) then
                         	State.ENDCardPos := Pos;
                         	State.ENDCardSet := True;
   		
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 			if( State.NAXIS_Val = 0 )
 			then
@@ -369,7 +325,6 @@ end DBG_Print_Reserved;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 			Assert_GROUPS_T_Found(Card);
 
@@ -383,7 +338,6 @@ end DBG_Print_Reserved;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 			
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif (Card(1..8) = "GCOUNT  ") then
 			
@@ -395,35 +349,30 @@ end DBG_Print_Reserved;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 			
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 
 		-- Reserved keys (specific to RANDOM GROUPS)
 
 		elsif(Reserved.Match_Any_ResRG(m_Options.Reserved, Card, State.Res.Arr))
 		then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
- 
+			null; 
 
 		-- Reserved keys (generic)
 
                 elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
 		then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
+			null;
 		-- Reserved (generic, data-arryas only)
 
                 elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Res))
 		then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
-
+			null;
 
 
 		elsif (Card = ENDCard) then
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
 	
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 			Assert_GROUPS_PCOUNT_GCOUNT_Found;
  
