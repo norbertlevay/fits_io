@@ -116,131 +116,8 @@ InitState : State_Type :=
         0,False);
 
 State : State_Type := InitState;
-------------------------------------------------------------------
-package TIO renames Ada.Text_IO;
-
-procedure DBG_Print(BinTab : BinTab_Type) 
-is
-begin
-
-TIO.Put("TDIM: ");
-for I in BinTab.TDIMn'Range
-loop
-	if(BinTab.TDIMn(I).Read) then Put(Positive'Image(I) &":"& BinTab.TDIMn(I).Value & " "); end if;
-end loop;
-New_Line;
-if(BinTab.THEAP.Read) then TIO.Put_Line("BinTab THEAP "&BinTab.THEAP.Value); end if;
-end DBG_Print;
-
-procedure DBG_Print(Tab : Tab_Type) 
-is
-begin
-TIO.Put("TSCAL: ");
-for I in Tab.TSCALn'Range
-loop
-	if(Tab.TSCALn(I).Read) then Put(Positive'Image(I) &":"& Tab.TSCALn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TZERO: ");
-for I in Tab.TZEROn'Range
-loop
-	if(Tab.TZEROn(I).Read) then Put(Positive'Image(I) &":"& Tab.TZEROn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TNULL: ");
-for I in Tab.TNULLn'Range
-loop
-	if(Tab.TNULLn(I).Read) then Put(Positive'Image(I) &":"& Tab.TNULLn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TTYPE: ");
-for I in Tab.TTYPEn'Range
-loop
-	if(Tab.TTYPEn(I).Read) then Put(Positive'Image(I) &":"& Tab.TTYPEn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TUNIT: ");
-for I in Tab.TUNITn'Range
-loop
-	if(Tab.TUNITn(I).Read) then Put(Positive'Image(I) &":"& Tab.TUNITn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TDISP: ");
-for I in Tab.TDISPn'Range
-loop
-	if(Tab.TDISPn(I).Read) then Put(Positive'Image(I) &":"& Tab.TDISPn(I).Value & " "); end if;
-end loop;
-New_Line;
-end DBG_Print;
-
 	
-procedure DBG_Print(IdxKeys : IdxKey_Rec_Arr)
-is
-begin
-	TIO.Put_Line("DBG_Print IdxKeys");
-	for I in IdxKeys'Range
-	loop
-		TIO.Put("Get ResArr "& Reserved_Root'Image(IdxKeys(I).Root)&" ");
-		for Idx in IdxKeys(I).Arr'Range
-		loop
-			TIO.Put(Integer'Image(Idx) &":"& IdxKeys(I).Arr(Idx).Value);
-		end loop;
-		TIO.New_Line;
-	end loop;
-end DBG_Print;
-
-
-procedure DBG_Print
-is
-begin
-TIO.New_Line;
-if(State.XTENSION.Read) then TIO.Put_Line("XTENSION "&State.XTENSION.Value); end if;
-if(State.BITPIX.Read)   then TIO.Put_Line("BITPITX  "&State.BITPIX.Value);   end if;
-if(State.NAXIS.Read)    then TIO.Put_Line("NAXIS    "&State.NAXIS.Value);    end if;
-TIO.Put("NAXIS: ");
-for I in State.NAXISn'Range
-loop
- if(State.NAXISn(I).Read) then Put(Positive'Image(I) &":"& State.NAXISn(I).Value & " "); end if;
-end loop;
-New_Line;
-if(State.PCOUNT.Read)  then TIO.Put_Line("PCOUNT  "&State.PCOUNT.Value);  end if;
-if(State.GCOUNT.Read)  then TIO.Put_Line("GCOUNT  "&State.GCOUNT.Value);  end if;
-if(State.TFIELDS.Read) then TIO.Put_Line("TFIELDS "&State.TFIELDS.Value); end if;
-TIO.Put("TFORM: ");
-for I in State.TFORMn'Range
-loop
-	if(State.TFORMn(I).Read) then Put(Positive'Image(I) &":"& State.TFORMn(I).Value & " "); end if;
-end loop;
-New_Line;
-TIO.Put("TBCOL: ");
-for I in State.TBCOLn'Range
-loop
-	if(State.TBCOLn(I).Read) then Put(Positive'Image(I) &":"& State.TBCOLn(I).Value & " "); end if;
-end loop;
-New_Line;
-Reserved.DBG_Print(State.Res);
-TIO.Put_Line(State_Name'Image(State.Name));
-end DBG_Print;
-
-
-procedure DBG_Print_Reserved
-is
-        Res : Key_Rec_Arr := Get((EXTNAME,DATAMAX,DATAMIN,INSTRUME,TELESCOP));
-begin
-	TIO.Put_Line("DBG_Print_reserved");
-        for I in Res'Range
-        loop
-                TIO.Put("Get Res> "&Reserved_Key'Image(Res(I).Key));
-                TIO.Put(" : "&Res(I).Value);
-                TIO.New_Line;
-        end loop;
-
-
-end DBG_Print_Reserved;
-
-
-
-
+procedure DBG_Print is separate;
 
 function To_XT_Type(XTENSION_Value : in String) return XT_Type
 is
@@ -262,7 +139,8 @@ begin
 	return t;
 
 end To_XT_Type;
--- -----------------------------------------------------------
+
+
 
         procedure Configure(Options : Options_Type)
         is
@@ -288,11 +166,6 @@ end To_XT_Type;
 		State      := InitState;
 		-- FIXME m_Options is incorrect
 		
-                TIO.Put_Line("Opts: "
-                &" "&Boolean'Image(m_Options.Mand) 
-                &" "&Boolean'Image(m_Options.Tab)
-                );
-		
                 if(m_Options.Mand)
                 then
                         State.Name := IS_CONFORMING;
@@ -314,7 +187,6 @@ end To_XT_Type;
 	is
 		Idx : Positive;
 	begin
-		TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 		if(Pos = 1)
 		then
 			-- [FITS 3.5] The first 8 bytes of the special records 
@@ -416,19 +288,20 @@ end To_XT_Type;
 		if ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
 		--if ( Match_ConfExt(Card, State.ConfExt) )
 		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 		-- Reserved (generic)
 
                 elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
                 then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
                 -- Reserved (generic, image-like only)
 
                 elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Comm))
                 then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
+
 
 
 
@@ -436,7 +309,6 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			
                         if( m_Options.Mand )
                         then
@@ -599,7 +471,6 @@ end To_XT_Type;
 				Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 			
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
 		elsif ( "TBCOL" = Card(1..5) )
 		then
@@ -614,7 +485,6 @@ end To_XT_Type;
 	                                Raise_Exception(Duplicate_Card'Identity, Card);
                 	        end if;
 
-				TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
@@ -623,23 +493,23 @@ end To_XT_Type;
 
 		elsif ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
 		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 		-- Reserved (TABLE or BINTABLE specific)
 
 		elsif ( Reserved.Match_Any_Tab(Card, State.Res.Arr) )
 		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 		elsif ( Reserved.Match_Any_BinTab(Card, State.Res) )
 		then
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 		-- Reserved (generic)
 
 		elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
                 then
-                      TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
+			null;
 
 
 		elsif( Card = ENDCard )
@@ -647,7 +517,6 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
-			TIO.Put_Line(State_Name'Image(State.Name)&"::"&Card(1..8));
 
                         case(State.XTENSION_Val) is
                                	when ASCII_TABLE => 
@@ -729,8 +598,8 @@ end To_XT_Type;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
-		if(NextCardPos = 0) then DBG_Print_Reserved; end if;
-		if(NextCardPos = 0) then DBG_Print(Get((TSCAL,TTYPE,TUNIT,TDISP))); end if;
+		-- if(NextCardPos = 0) then DBG_Print_Reserved; end if;
+		-- if(NextCardPos = 0) then DBG_Print(Get((TSCAL,TTYPE,TUNIT,TDISP))); end if;
 
 		return NextCardPos;
 
@@ -777,10 +646,9 @@ end To_XT_Type;
 -- Other cases refer to Reserved key groups, like biblio, related to bibligraphic keys:
 -- IMAGE with biblo wcs : has only mandatory keys and at least one of biblio related 
 -- reserved keys, and some WCS keys.
-	        TIO.Put(State_Name'Image(State.Name));
                 if(State.OtherCount > 0)
                 then
-                        TIO.Put_Line(" with Other("& Integer'Image(State.OtherCount) &")");
+			null;-- was here debug print only
                 end if;
 
                 -- NOTE: user can simply call Get() without running the FA -> programming error
@@ -870,7 +738,6 @@ end To_XT_Type;
 
 			when EXTNAME .. THEAP =>
 
-			TIO.Put(Reserved_Key'Image(Keys(I)) & " ");
                 	if(State.Res.Ext(Keys(I)).Read)
                 	then
                         	Count := Count + 1;
