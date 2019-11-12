@@ -7,8 +7,7 @@ package FA_Extension is
 
 	type Extension_HDU is
 		(CONFORMING_EXTENSION,
-		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE,
-		SPECIAL_RECORDS);
+		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
 	type Size_Rec(Last : Positive) is
 		record
@@ -24,8 +23,10 @@ package FA_Extension is
 	function Reset_State return Positive; 
 	function Next (Pos : in Positive; Card : in Card_Type) return Natural;
 	function Get return Size_Rec;
+	-- FIXME add Get Table_Rec -> TFORMn TBCOLn are mandatory
 
 
+	Unexpected_First_Card : exception;-- possibly Special Records
 	Unexpected_Card       : exception;
 	Unexpected_Card_Value : exception;
 	Duplicate_Card        : exception;

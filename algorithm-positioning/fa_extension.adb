@@ -16,7 +16,6 @@ type State_Name is
          IS_CONFORMING, 	-- Initial state
          COLLECT_TABLE_ARRAYS, 	-- collect TFORM & TBCOL arrays and END-card
          WAIT_END,             	-- ignore all cards except END-card
-	 SPECIAL_RECORDS,	-- Final state (not XTENSION)
 	 CONFORMING_EXTENSION,	-- Final state (is XTENSION bun not Standard)
 	 IMAGE, TABLE, BINTABLE -- Final states (Standard Ext)
 	 );	
@@ -129,7 +128,7 @@ end To_XT_Type;
 				State.XTENSION.Read  := True;
 				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value);
 			else
-				State.Name := SPECIAL_RECORDS;
+				Raise_Exception(Unexpected_First_Card'Identity, Card);
 			end if;
 
 		elsif    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
@@ -390,7 +389,7 @@ end To_XT_Type;
 			when COLLECT_TABLE_ARRAYS =>
 				NextCardPos := In_COLLECT_TABLE_ARRAYS(Pos, Card);
 
-			when SPECIAL_RECORDS | CONFORMING_EXTENSION 
+			when CONFORMING_EXTENSION 
 			     | IMAGE | TABLE |BINTABLE =>
 				NextCardPos := 0;
 		end case;
@@ -413,7 +412,6 @@ end To_XT_Type;
                 t : Extension_HDU;
         begin
                 case(StateName) is
-                        when SPECIAL_RECORDS 	=> t := SPECIAL_RECORDS;
                         when CONFORMING_EXTENSION => t := CONFORMING_EXTENSION;
                         when IMAGE		=> t := STANDARD_IMAGE;
                         when TABLE		=> t := STANDARD_TABLE;
