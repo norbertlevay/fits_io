@@ -36,5 +36,26 @@ package FA_Primary is
 	Invalid_Card	      : exception;
 	Programming_Error     : exception;
 
+-- experimental
+
+	type Result_Rec(HDU  : Primary_HDU;
+			Last : Natural) is
+		record
+			CardsCount : Positive;
+			BITPIX     : Integer;
+			case HDU is
+				when IMAGE | RANDOM_GROUPS =>
+					NAXISArr : NAXIS_Arr(1 .. Last);
+					case HDU is
+					when RANDOM_GROUPS =>
+						PCOUNT : Natural;
+						GCOUNT : Positive;
+					when others => null;
+					end case;
+				when others => null;
+			end case;
+		end record;
+
+
 end FA_Primary;
 
