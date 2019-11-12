@@ -428,11 +428,11 @@ end DBG_Print;
                 Ix : Positive;
         begin
 
-                if ( "TDIM" = Card(1..4) )
+                if ( "TDIM" = Card(1..4) AND Is_Natural(Card(5..8)) )
                 then
 --                        if(State.XTENSION_Val = BIN_TABLE)
   --                      then
-                                Ix := Extract_Index("TDIM",Card(1..8));
+                                Ix := To_Integer(Card(5..8));
                                 if(NOT Ext.Arr(TDIM)(Ix).Read)
                                 then
                                         Ext.Arr(TDIM)(Ix).Value := Card(11..30);

@@ -132,8 +132,9 @@ procedure DBG_Print is separate;
 			State.NAXISn(1).Value := Card(11..30);
 			State.NAXISn(1).Read := True;
 	
-		elsif (Is_Array(Card,"NAXIS",2,NAXIS_Max,Idx))
+		elsif ((Card(1..5) = "NAXIS") AND Is_Natural(Card(6..8)))
 		then
+			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
 			then
 				State.NAXISn(Idx).Value := Card(11..30);

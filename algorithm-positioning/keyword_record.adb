@@ -52,20 +52,6 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 package body Keyword_Record is
 
-	function Is_ValuedCard (Card : Card_Type) return Boolean
-	is 
-	begin
-		if(Card(9..10) = "= ") then
-			return True;
-		else
-			return False;
-		end if;
-
-	end Is_ValuedCard;
-
-
-
-
 	function To_Boolean(Value : String) return Boolean
 	is
 		V : constant Character := Value(Value'First -1 + 30-10);
@@ -76,7 +62,8 @@ package body Keyword_Record is
 			when 'F' =>
 				return False;
 			when others =>
-				Raise_Exception(Invalid_Card_Value'Identity, "Expected Boolean but found " & Value);
+				Raise_Exception(Invalid_Card_Value'Identity,
+					"Expected Boolean but found " & Value);
 		end case;
 
 	end To_Boolean;
@@ -87,8 +74,6 @@ package body Keyword_Record is
 	begin
 		return Integer'Value(Value);
 	end To_Integer;
-	
-	
 	
 	
 	
@@ -107,18 +92,42 @@ package body Keyword_Record is
 		return 0.0;
 	end To_Float;
 
-	-- For Ada complex see: https://www.adaic.org/resources/add_content/standards/95lrm/ARM_HTML/RM-A-5.html
-	-- with Ada.Numerics.Generic_Complex_Types;
-  	-- package Complex_Types is new Ada.Numerics.Generic_Complex_Types (Long_Float);
-   	-- package Complex_IO is new Ada.Text_IO.Complex_IO (Complex_Types);
 --	function To_ComplexInteger(Value : String) return ???;
 --	function To_ComplexFloat  (Value : String) return ???;
 
+	-- For Ada complex see: 
+	-- https://www.adaic.org/resources/add_content/standards/95lrm/ARM_HTML/RM-A-5.html
+	-- with Ada.Numerics.Generic_Complex_Types;
+  	-- package Complex_Types is new Ada.Numerics.Generic_Complex_Types (Long_Float);
+   	-- package Complex_IO is new Ada.Text_IO.Complex_IO (Complex_Types);
+
+
+	function Is_Natural(S : String) return Boolean
+	is 
+  		Dummy : Natural;
+	begin
+	-- FIXME consider alternative implementation
+	-- using Is_Digit(C) from Package: Characters.Handling
+
+    		Dummy := Natural'Value (S);
+	      	return True;
+	   exception
+	      when others =>
+        	 return False;
+	end Is_Natural;
 
 
 
 
 
+
+-- ---------------------------------------------------------------------------
+-- below not used
+-- replaced with Is_Natural() and To_Integer()
+-- as consequence we do not check for Index in First..Last as Is_Array did
+-- FIXME should we ?
+
+subtype Card_Type is String(1..80);-- FIXME normally comes from FITS.ads
 
 function Is_Array(Card : in  Card_Type;
                   Root : in  String;
@@ -131,7 +140,7 @@ is
 begin
         if(CardKey(1..Root'Length) = Root)
 	then
-                Idx := Positive'Value(CardKey(6..8));
+                Idx := Positive'Value(CardKey(6..8));-- FIXME not 6 but Root'Length
 
 		if ((Idx < First) OR (Idx > Last))
 		then
@@ -150,7 +159,7 @@ begin
 end Is_Array;
 
 
-
+-- FIXME should this check array limits First..Last ? like for NAXISn : 1 <= Idx <= NAXIS_Val
 function Extract_Index(Root : String; CardKey : String) return Positive
 is
 	RootLen : Positive := Root'Length;
@@ -158,6 +167,22 @@ begin
 	return Positive'Value( CardKey( (CardKey'First+RootLen) .. (CardKey'First+7) ) );
 end Extract_Index;
 
+
+
+
+
+
+
+	function Is_ValuedCard (Card : Card_Type) return Boolean
+	is 
+	begin
+		if(Card(9..10) = "= ") then
+			return True;
+		else
+			return False;
+		end if;
+
+	end Is_ValuedCard;
 
 
 

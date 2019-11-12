@@ -141,12 +141,11 @@ end To_XT_Type;
 			State.NAXIS.Value := Card(11..30);
 			State.NAXIS.Read  := True;
 
-			State.NAXIS_Val      := To_Integer(State.NAXIS.Value);
+			State.NAXIS_Val   := To_Integer(State.NAXIS.Value);
 
-		elsif ( Is_Array(Card,"NAXIS",1,NAXIS_Max,Idx) )
-			-- FIXME NAXIS_Max should be NAXIS_Val but how to 
-			-- guarantee it is read before used ? The same for Idx: nested if's !!
+		elsif ( "NAXIS" = Card(1..5) AND Is_Natural(Card(6..8)) )
 		then
+			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
 			then
 				State.NAXISn(Idx).Value := Card(11..30);
@@ -272,18 +271,16 @@ end To_XT_Type;
 
 	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
 	is
-		Ix : Positive := 1;
+		Idx : Positive := 1;
 	begin
 
- 		-- Mandatory cards
-
-		if ( "TFORM" = Card(1..5) )
+		if ( "TFORM" = Card(1..5) AND Is_Natural(Card(6..8)) )
 		then
-			Ix := Extract_Index("TFORM",Card(1..8));
-			if(NOT State.TFORMn(Ix).Read)
+			Idx := To_Integer(Card(6..8));
+			if(NOT State.TFORMn(Idx).Read)
 			then
-				State.TFORMn(Ix).Value := Card(11..30);
-				State.TFORMn(Ix).Read := True;
+				State.TFORMn(Idx).Value := Card(11..30);
+				State.TFORMn(Idx).Read := True;
 			else
 				-- FIXME only duplicates with diff values raises exception
 				-- duplicate with equal values: make configurable what to do...
@@ -291,15 +288,15 @@ end To_XT_Type;
 			end if;
 			
 
-		elsif ( "TBCOL" = Card(1..5) )
+		elsif ( "TBCOL" = Card(1..5) AND Is_Natural(Card(6..8)) )
 		then
 			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
-				Ix := Extract_Index("TBCOL",Card(1..8));
-				if(NOT State.TBCOLn(Ix).Read)
+				Idx := To_Integer(Card(6..8));
+				if(NOT State.TBCOLn(Idx).Read)
 				then
-					State.TBCOLn(Ix).Value := Card(11..30);
-					State.TBCOLn(Ix).Read  := True;
+					State.TBCOLn(Idx).Value := Card(11..30);
+					State.TBCOLn(Idx).Read  := True;
 				else
 	                                Raise_Exception(Duplicate_Card'Identity, Card);
                 	        end if;
@@ -322,6 +319,7 @@ end To_XT_Type;
 					State.Name := TABLE;
 					return 0;
 					-- no more cards
+
 
                                	when BIN_TABLE   => 
   					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
