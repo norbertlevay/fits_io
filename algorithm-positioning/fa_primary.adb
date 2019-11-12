@@ -23,10 +23,10 @@ type State_Name is
         );
 
 
-type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
+--type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
 
-InitNAXISArrVal : constant NAXIS_Arr := (others => InitVal);
-InitRANDGArrVal : constant RANDG_Arr := (others => InitVal);
+InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
+InitRANDGArrVal : constant RANDG_MaxArr := (others => InitVal);
 
 
 type State_Type is
@@ -41,7 +41,7 @@ type State_Type is
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
-        NAXISn : NAXIS_Arr;
+        NAXISn : NAXIS_MaxArr;
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;

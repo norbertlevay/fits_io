@@ -21,11 +21,11 @@ type State_Name is
 	 );	
 
 
-type NAXIS_MaxArr   is array (1..NAXIS_Max)   of CardValue;
+--type NAXIS_MaxArr   is array (1..NAXIS_Max)   of CardValue;
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
-InitTFORMArrVal : constant TFIELDS_Arr  := (others => InitVal);
-InitTBCOLArrVal : constant TFIELDS_Arr  := (others => InitVal);
+InitTFORMArrVal : constant TFIELDS_MaxArr  := (others => InitVal);
+InitTBCOLArrVal : constant TFIELDS_MaxArr  := (others => InitVal);
 
 
 type XT_Type is
@@ -48,8 +48,8 @@ type State_Type is
         PCOUNT   : CardValue;
         GCOUNT   : CardValue;
         TFIELDS  : CardValue;
-        TFORMn   : TFIELDS_Arr;
-        TBCOLn   : TFIELDS_Arr;
+        TFORMn   : TFIELDS_MaxArr;
+        TBCOLn   : TFIELDS_MaxArr;
 	
 	-- other cards not recognized by this FA
         OtherCount : Natural;
@@ -252,7 +252,7 @@ end To_XT_Type;
 
 
 	-- NOTE Ada2005 has package Ada.Assertions; and also 'pragma Assert()'
-  	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_Arr )
+  	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_MaxArr )
 	is
 		ArrComplete : Boolean := True;
 	begin
@@ -430,7 +430,7 @@ end To_XT_Type;
 
 	function  Get return Size_Rec
         is
-                HDUSizeInfo : Size_Rec(State.NAXIS_Val);
+                HDUSizeInfo : Size_Rec(State.NAXIS_Val, To_Extension_HDU(State.Name));
                 NAXIS : Positive;
 	begin
                 if(State.OtherCount > 0)
@@ -458,7 +458,7 @@ end To_XT_Type;
                 
 			-- FIXME how about XTENSION value, shoule we check it was set ?
 
-	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
+--	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
 
         	        if(State.BITPIX.Read) then
                 	        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
@@ -499,6 +499,38 @@ end To_XT_Type;
 
                 return HDUSizeInfo;
         end Get;
+
+	function Get_TFORMn return TFIELDS_Arr
+	is
+		Arr : TFIELDS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+	begin
+		for I in 1 .. State.TFIELDS_Val
+		loop
+			if( State.TFORMn(I).Read )
+			then 
+				Arr(I) := State.TFORMn(I).Value; 
+			else
+				null; -- FIXME what if some value missing ?
+			end if;
+		end loop;
+		return Arr;
+	end Get_TFORMn;
+
+	function Get_TBCOLn return TFIELDS_Arr
+	is
+		Arr : TFIELDS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+	begin
+		for I in 1 .. State.TFIELDS_Val
+		loop
+			if( State.TBCOLn(I).Read )
+			then 
+				Arr(I) := State.TBCOLn(I).Value; 
+			else
+				null; -- FIXME what if some value missing ?
+			end if;
+		end loop;
+		return Arr;
+	end Get_TBCOLn;
 
 end FA_Extension;
 
