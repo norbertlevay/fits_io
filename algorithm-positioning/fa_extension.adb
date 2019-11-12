@@ -1,10 +1,8 @@
-with Ada.Text_IO; use Ada.Text_IO; -- for debug only DBG_Print, Trace_State
 
 with Ada.Exceptions; use Ada.Exceptions;
 
 with FITS; use FITS; -- Card_Type needed
 with Keyword_Record; use Keyword_Record;
-with Reserved;
 
 
 package body FA_Extension is
@@ -34,39 +32,6 @@ InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_Arr  := (others => InitVal);
 InitTBCOLArrVal : constant TFIELDS_Arr  := (others => InitVal);
 
--- Reserved (optional) keys in any Conforming Extension
-type ConfExt_Type is
-        record
-                EXTNAME  : CardValue;
-                EXTVER   : CardValue;
-                EXTLEVEL : CardValue;
-        end record;
-
-InitConfExt : ConfExt_Type := (InitVal, InitVal, InitVal);
-
--- Reserved (optional) keys related to TABLEs
-type Tab_Type is
-        record
-                TTYPEn : TFIELDS_Arr;
-                TUNITn : TFIELDS_Arr;
-                TSCALn : TFIELDS_Arr;
-                TZEROn : TFIELDS_Arr;
-                TNULLn : TFIELDS_Arr;
-                TDISPn : TFIELDS_Arr;
-        end record;
-
-InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
-
-InitTab : Tab_Type := (others => InitTFIELDSArr);
-
-type BinTab_Type is
-	record
-		TDIMn : TFIELDS_Arr;
-		THEAP : CardValue;
-	end record;
-
-InitBinTab : BinTab_Type := (InitTFIELDSArr, InitVal);
-
 
 type XT_Type is
         (UNSPECIFIED, IMAGE, ASCII_TABLE, BIN_TABLE);
@@ -91,9 +56,6 @@ type State_Type is
         TFORMn   : TFIELDS_Arr;
         TBCOLn   : TFIELDS_Arr;
 	
-	-- Reserved
-	Res : Reserved.Extension_Type;
-
 	-- other cards not recognized by this FA
         OtherCount : Natural;
 
@@ -111,7 +73,6 @@ InitState : State_Type :=
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
         InitTBCOLArrVal,
-	Reserved.ExtInit,
 	0,
         0,False);
 
@@ -283,32 +244,10 @@ end To_XT_Type;
 	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
 	is
 	begin
-		-- Reserved (all Conforming Extensions)
-
-		if ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
-		--if ( Match_ConfExt(Card, State.ConfExt) )
+		if( ENDCard = Card )
 		then
-			null;
-
-		-- Reserved (generic)
-
-                elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
-                then
-			null;
-
-                -- Reserved (generic, image-like only)
-
-                elsif( Reserved.Match_Any_DataArr(m_Options.Reserved,Card,State.Res.Comm))
-                then
-			null;
-
-
-
-
-		elsif( ENDCard = Card ) then
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
-
 			
                         if( m_Options.Mand )
                         then
@@ -325,11 +264,13 @@ end To_XT_Type;
 			-- no more cards
 
 
-                elsif(Is_Fixed_Position(Card)) then
+                elsif(Is_Fixed_Position(Card))
+		then
                         -- one of IS_CONFORMING cards: may appear only once in header
                         Raise_Exception(Duplicate_Card'Identity, Card);
 
-                elsif(Is_Valid(Card)) then
+                elsif(Is_Valid(Card))
+		then
                         -- defined by [FITS Appendix A] BNF syntax
                         State.OtherCount := State.OtherCount + 1;
                         -- valid but unknown to this FA-implementation
@@ -361,93 +302,6 @@ end To_XT_Type;
 		end loop;
 	end Assert_Array_Complete;
 
-
-
-	function Match_Any_Tab(Card : in Card_Type;
-				Tab : in out Tab_Type) return Boolean
-	is
-		Ix : Positive;
-	begin
-		if(NOT m_Options.Tab) 
-		then
-			return False;
-		end if;
-
-
-		if ( "TSCAL" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TSCAL",Card(1..8));
-                        if(NOT Tab.TSCALn(Ix).Read)
-                        then
-                                Tab.TSCALn(Ix).Value := Card(11..30);
-                                Tab.TSCALn(Ix).Read := True;
-        		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-		elsif ( "TZERO" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TZERO",Card(1..8));
-                        if(NOT Tab.TZEROn(Ix).Read)
-                        then
-                                Tab.TZEROn(Ix).Value := Card(11..30);
-                                Tab.TZEROn(Ix).Read := True;
-        		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-		
-		elsif ( "TNULL" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TNULL",Card(1..8));
-                        if(NOT Tab.TNULLn(Ix).Read)
-                        then
-                                Tab.TNULLn(Ix).Value := Card(11..30);
-                                Tab.TNULLn(Ix).Read := True;
-        		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-                elsif ( "TTYPE" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TTYPE",Card(1..8));
-                        if(NOT Tab.TTYPEn(Ix).Read)
-                        then
-                                Tab.TTYPEn(Ix).Value := Card(11..30);
-                                Tab.TTYPEn(Ix).Read := True;
-        		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-		elsif ( "TUNIT" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TUNIT",Card(1..8));
-                        if(NOT Tab.TUNITn(Ix).Read)
-                        then
-                                Tab.TUNITn(Ix).Value := Card(11..30);
-                                Tab.TUNITn(Ix).Read := True;
-	       		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-		elsif ( "TDISP" = Card(1..5) )
-                then
-                        Ix := Extract_Index("TDISP",Card(1..8));
-                        if(NOT Tab.TDISPn(Ix).Read)
-                        then
-                                Tab.TDISPn(Ix).Value := Card(11..30);
-                                Tab.TDISPn(Ix).Read := True;
-	       		else
-                                Raise_Exception(Duplicate_Card'Identity, Card);
-			end if;
-
-
-		else
-			return False;
-		end if;
-
-		return True;
-   
-	end Match_Any_Tab;
 
 
 
@@ -488,28 +342,6 @@ end To_XT_Type;
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
-
-		-- Reserved (all Conforming Extensions)
-
-		elsif ( Reserved.Match_Any_ConfExt(Card, State.Res.Ext) )
-		then
-			null;
-
-		-- Reserved (TABLE or BINTABLE specific)
-
-		elsif ( Reserved.Match_Any_Tab(Card, State.Res.Arr) )
-		then
-			null;
-
-		elsif ( Reserved.Match_Any_BinTab(Card, State.Res) )
-		then
-			null;
-
-		-- Reserved (generic)
-
-		elsif( Reserved.Match_Any(m_Options.Reserved,Pos,Card,State.Res))
-                then
-			null;
 
 
 		elsif( Card = ENDCard )
@@ -598,8 +430,6 @@ end To_XT_Type;
 		end case;
 		
 		if(NextCardPos = 0) then DBG_Print; end if;
-		-- if(NextCardPos = 0) then DBG_Print_Reserved; end if;
-		-- if(NextCardPos = 0) then DBG_Print(Get((TSCAL,TTYPE,TUNIT,TDISP))); end if;
 
 		return NextCardPos;
 
@@ -639,13 +469,6 @@ end To_XT_Type;
                 HDUSizeInfo : Size_Rec(State.NAXIS_Val);
                 NAXIS : Positive;
 	begin
--- Final FA states naming: 
--- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
--- IMAGE with other(n) : header has mandatory IMAGE cards and n extra cards 
--- not spec'd by Options or unknown to this implementation.
--- Other cases refer to Reserved key groups, like biblio, related to bibligraphic keys:
--- IMAGE with biblo wcs : has only mandatory keys and at least one of biblio related 
--- reserved keys, and some WCS keys.
                 if(State.OtherCount > 0)
                 then
 			null;-- was here debug print only
@@ -716,208 +539,5 @@ end To_XT_Type;
                 return HDUSizeInfo;
         end Get;
 
-
-
--- read reserved scalar keys
-
- function Needed_Count(Keys : in Res_Key_Arr) return Natural
- is
-         Count : Natural := 0;
- begin
-
- 	 for I in Keys'Range
-	 loop
-		 case(Keys(I)) is
-			when DATE .. DATAMIN =>
-
-        	        if(State.Res.Comm(Keys(I)).Read)
-                	then
-                        	Count := Count + 1;
-             		end if;
-
-
-			when EXTNAME .. THEAP =>
-
-                	if(State.Res.Ext(Keys(I)).Read)
-                	then
-                        	Count := Count + 1;
-                	end if;
-
---			when others =>	null;
-		end case;
-        end loop;
-
-        return Count;
-
- end Needed_Count;
-
-
- function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
- is
-         FoundCount : Natural := Needed_Count(Keys);
-         OutKeys : Key_Rec_Arr(1..FoundCount);
-         Idx : Positive := 1;
- begin
-
-        for I in Keys'Range
-        loop
-		case(Keys(I)) is
-			when DATE .. DATAMIN =>
-
-        	        if(State.Res.Comm(Keys(I)).Read)
-                	then
-            	            OutKeys(Idx).Key   := Keys(I);
-                	    OutKeys(Idx).Value := State.Res.Comm(Keys(I)).Value;
-                            exit when (Idx = FoundCount);
-                   	    Idx := Idx + 1;
-                	end if;
-
-		when EXTNAME .. THEAP =>
-
-			if(State.Res.Ext(Keys(I)).Read)
-                	then
-                        	OutKeys(Idx).Key   := Keys(I);
-	                        OutKeys(Idx).Value := State.Res.Ext(Keys(I)).Value;
-        	                exit when (Idx = FoundCount);
-                	        Idx := Idx + 1;
-        	        end if;
-
---			when others => null;
-		end case;
-
-        end loop;
-
-        return OutKeys;
- end Get;
-
-
-	-- experimental Get(RootArr) to return Tab_Type's read arrays
-
-	-- FIXME modify so that Arr can be shorter, containing only the Read elements
-	function Is_Any_Element_Read(Arr : TFIELDS_Arr) return Boolean
-	--function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
-	is
-		Is_Read : Boolean := False;
-		-- FIXME what if Arr is empty array ? raise exception or return False
-	begin
-		for I in Arr'Range
-		loop
-			Is_Read := Arr(I).Read;
-			exit when Arr(I).Read;
-		end loop;
-		return Is_Read;
-	end Is_Any_Element_Read;
-
-
-	function Is_In_Set(Root : Reserved_Root; Roots : Res_Root_Arr) return Boolean
-	is
-	begin
-		for I in Roots'Range
-		loop
-			if(Root = Roots(I))
-			then
-				return True;
-			end if;
-		end loop;
-		return False;
-	end Is_In_Set;
-
-	function Needed_Length(Roots : Res_Root_Arr) return Natural
-	is
-		Len : Natural := 0;
-	begin
-		if(Is_In_Set(TTYPE,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE))) then Len := Len + 1; end if;
-		end if;
-		if(Is_In_Set(TUNIT,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT))) then Len := Len + 1; end if;
-		end if;
-		if(Is_In_Set(TSCAL,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL))) then Len := Len + 1; end if;
-		end if;
-		if(Is_In_Set(TZERO,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO))) then Len := Len + 1; end if;
-		end if;
-		if(Is_In_Set(TNULL,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL))) then Len := Len + 1; end if;
-		end if;
-		if(Is_In_Set(TDISP,Roots)) then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP))) then Len := Len + 1; end if;
-		end if;
-		return Len;
-	end Needed_Length;
-
-
-	function Get(Roots : Res_Root_Arr) return IdxKey_Rec_Arr
-	is
-		IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
-		Len : Natural := 0;-- FIXME rename to Idx
-	begin
-		if(Is_In_Set(TTYPE,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TTYPE;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TTYPE);
-			end if;
-		end if;
-
-		if(Is_In_Set(TUNIT,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TUNIT;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TUNIT);
-			end if;
-		end if;
-
-		if(Is_In_Set(TSCAL,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TSCAL;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TSCAL);
-			end if;
-		end if;
-
-		if(Is_In_Set(TZERO,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TZERO;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TZERO);
-			end if;
-		end if;
-
-		if(Is_In_Set(TNULL,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TNULL;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TNULL);
-			end if;
-		end if;
-
-		if(Is_In_Set(TDISP,Roots))
-		then
-			if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP)))
-			then 
-				Len := Len + 1;
-				IdxKey(Len).Root := TDISP;
-				IdxKey(Len).Arr  := State.Res.Arr(Reserved.TDISP);
-			end if;
-		end if;
-
-	return IdxKey;
-	end Get;
-
-
 end FA_Extension;
-
-
 

@@ -1,8 +1,8 @@
 with Ada.Text_IO;
 
-
-
-separate(FA_Primary)
+-- was originally in FA_Primary
+--separate(FA_Primary)
+separate(Reserved)
 procedure DBG_Print_Reserved
 is
  package TIO renames Ada.Text_IO;

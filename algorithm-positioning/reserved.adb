@@ -22,6 +22,9 @@ with Keyword_Record; use Keyword_Record; -- Is_Array() needed
 -- 6 WCS related
 -- 7 extension keywords
 
+ -- FIXME Reserved (optional) keys are not fixed-format, but free-format -> Value NOT Card(11..30) 
+
+-- FIXME pose Reserved as special case of ANY optional card parsing, like user's own proprietary card definitions <- implemente such generic parsing and use as special case for ReservdKeys defined in Stabdard
 
 
 package body Reserved is
@@ -501,6 +504,498 @@ end DBG_Print;
                 return True;
 
         end Match_Any;
+
+
+-- NON FUNCTIONAL: only backup here, does not compile
+-- move here Get funcs from FA_Primary FA_Extension
+-- These Get funcs would read out and return optional/Reserved keys after FA-stopped
+
+
+-- Final FA states naming: 
+-- IMAGE : header contains exactly only mandatory cards for IMAGE, no other cards.
+-- IMAGE with other(n) : header has mandatory IMAGE cards and n extra cards 
+-- not spec'd by Options or unknown to this implementation.
+-- Other cases refer to Reserved key groups, like biblio, related to bibligraphic keys:
+-- IMAGE with biblo wcs : has only mandatory keys and at least one of biblio related 
+-- reserved keys, and some WCS keys.
+
+
+
+-- From FA_Primary:
+--
+
+-- FA_Primary.ads had:
+        
+-- Reserved keys
+
+        type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
+
+        type Key_Rec is  
+                record
+                        Key   : Reserved_Key;
+                        Value : String(1..20);
+                end record;
+        type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+
+        -- Reserved indexed keys
+
+        type Reserved_Root is (PTYPE,PSCAL,PZERO);
+
+        type Res_Root_Arr  is array (Natural range <>) of Reserved_Root;
+
+        type IdxKey_Rec is
+                record
+                        Root : Reserved_Root;
+                        Arr  : RANDG_Arr;
+                end record;
+        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+
+
+        function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
+        function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
+
+--
+-- FA_Primary.adb had:
+--
+ function Needed_Count(Keys : in Res_Key_Arr) return Natural
+ is
+         Count : Natural := 0;
+ begin
+        for I in Keys'Range
+        loop
+                if(State.Res.Res(Keys(I)).Read)
+                then
+                        Count := Count + 1;
+                end if;
+        end loop;
+
+        return Count;
+
+ end Needed_Count;
+
+
+ function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
+ is
+         FoundCount : Natural := Needed_Count(Keys);
+         OutKeys : Key_Rec_Arr(1..FoundCount);
+         Idx : Positive := 1;  
+ begin
+
+        for I in Keys'Range
+        loop
+                if(State.Res.Res(Keys(I)).Read)
+                then
+                        OutKeys(Idx).Key   := Keys(I);
+                        OutKeys(Idx).Value := State.Res.Res(Keys(I)).Value;
+                        exit when (Idx = FoundCount);
+                        Idx := Idx + 1;
+                end if;
+        end loop;
+
+        return OutKeys;
+ end Get;
+
+
+        -- experimental Get(RootArr) to return Tab_Type's read arrays
+
+        -- FIXME modify so that Arr can be shorter, containing only the Read elements
+        function Is_Any_Element_Read(Arr : RANDG_Arr) return Boolean
+        --function Is_Any_Element_Read(Arr : Reserved.RANDG_Arr) return Boolean
+        is
+                Is_Read : Boolean := False;
+                -- FIXME what if Arr is empty array ? raise exception or return False
+        begin
+                for I in Arr'Range
+                loop
+                        Is_Read := Arr(I).Read;
+                        exit when Arr(I).Read;
+               end loop;
+                return Is_Read;
+        end Is_Any_Element_Read;
+
+
+       function Is_In_Set(Root : Reserved_Root; Roots : Res_Root_Arr) return Boolean
+        is
+        begin
+                for I in Roots'Range
+                loop
+                        if(Root = Roots(I))
+                        then
+                                return True;
+                        end if;
+                end loop;
+                return False;
+        end Is_In_Set;
+
+        function Needed_Length(Roots : Res_Root_Arr) return Natural
+        is
+                Len : Natural := 0;
+        begin
+                if(Is_In_Set(PTYPE,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PTYPE))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(PSCAL,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PSCAL))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(PZERO,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PZERO))) then Len := Len + 1; end if;
+                end if;
+                return Len;
+        end Needed_Length;
+
+
+
+
+ function Get(Roots : Res_Root_Arr) return IdxKey_Rec_Arr
+        is
+                IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
+                Len : Natural := 0;-- FIXME rename to Idx
+        begin
+                if(Is_In_Set(PTYPE,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PTYPE)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PTYPE;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PTYPE);
+                        end if;
+                end if;
+
+                if(Is_In_Set(PSCAL,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PSCAL)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PSCAL;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PSCAL);
+                        end if;
+                end if;
+
+                if(Is_In_Set(PZERO,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.PZERO)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := PZERO;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.PZERO);
+                        end if;
+                end if;
+
+        return IdxKey;
+        end Get;
+
+-- ---------------------------------------
+-- From FA_Extension:
+--
+
+-- FA_Extension.ads had:
+
+
+        -- Reserved keys
+
+        type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
+
+        type Key_Rec is
+                record
+                        Key   : Reserved_Key;
+                        Value : String(1..20);
+                end record;
+        type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
+
+        -- Reserved indexed keys 
+
+        type Reserved_Root is (TTYPE,TUNIT,TSCAL,TZERO,TNULL,TDISP);
+
+        type Res_Root_Arr  is array (Natural range <>) of Reserved_Root;
+
+        type IdxKey_Rec is
+                record
+                        Root : Reserved_Root;
+                        Arr  : TFIELDS_Arr;
+                end record;
+        type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
+
+        function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
+        function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
+
+
+-- FA_Extension.adb had:
+
+
+-- Reserved (optional) keys in any Conforming Extension
+type ConfExt_Type is
+        record
+                EXTNAME  : CardValue;
+                EXTVER   : CardValue;
+                EXTLEVEL : CardValue;
+        end record;
+
+InitConfExt : ConfExt_Type := (InitVal, InitVal, InitVal);
+
+-- Reserved (optional) keys related to TABLEs
+type Tab_Type is
+        record
+                TTYPEn : TFIELDS_Arr;
+                TUNITn : TFIELDS_Arr;
+                TSCALn : TFIELDS_Arr;
+                TZEROn : TFIELDS_Arr;
+                TNULLn : TFIELDS_Arr;
+                TDISPn : TFIELDS_Arr;
+        end record;
+
+InitTFIELDSArr : constant TFIELDS_Arr := (others => InitVal);
+
+InitTab : Tab_Type := (others => InitTFIELDSArr);
+
+type BinTab_Type is
+        record
+                TDIMn : TFIELDS_Arr;
+                THEAP : CardValue;
+        end record;
+
+InitBinTab : BinTab_Type := (InitTFIELDSArr, InitVal);
+
+-- Get funcs to return optional/reserved keys:
+
+
+
+
+
+ function Needed_Count(Keys : in Res_Key_Arr) return Natural
+ is
+         Count : Natural := 0;
+ begin
+
+         for I in Keys'Range
+         loop
+                 case(Keys(I)) is
+                        when DATE .. DATAMIN =>
+
+                        if(State.Res.Comm(Keys(I)).Read)
+                        then
+                                Count := Count + 1;
+                        end if;
+
+
+                        when EXTNAME .. THEAP =>
+
+                        if(State.Res.Ext(Keys(I)).Read)
+                        then
+                                Count := Count + 1;
+                        end if;
+
+--                      when others =>  null;
+                end case;
+        end loop;
+
+        return Count;
+
+ end Needed_Count;
+
+ function Get(Keys : in Res_Key_Arr) return Key_Rec_Arr
+ is
+         FoundCount : Natural := Needed_Count(Keys);
+         OutKeys : Key_Rec_Arr(1..FoundCount);
+         Idx : Positive := 1;
+ begin
+
+        for I in Keys'Range
+        loop
+                case(Keys(I)) is
+                        when DATE .. DATAMIN =>
+
+                        if(State.Res.Comm(Keys(I)).Read)
+                        then
+                            OutKeys(Idx).Key   := Keys(I);
+                            OutKeys(Idx).Value := State.Res.Comm(Keys(I)).Value;
+                            exit when (Idx = FoundCount);
+                            Idx := Idx + 1;
+                        end if;
+
+                when EXTNAME .. THEAP =>
+
+                        if(State.Res.Ext(Keys(I)).Read)
+                        then
+                                OutKeys(Idx).Key   := Keys(I);
+                                OutKeys(Idx).Value := State.Res.Ext(Keys(I)).Value;
+                                exit when (Idx = FoundCount);
+                                Idx := Idx + 1;
+                        end if;
+
+--                      when others => null;
+                end case;
+
+        end loop;
+
+        return OutKeys;
+ end Get;
+
+
+        -- experimental Get(RootArr) to return Tab_Type's read arrays
+
+        -- FIXME modify so that Arr can be shorter, containing only the Read elements
+        function Is_Any_Element_Read(Arr : TFIELDS_Arr) return Boolean
+        --function Is_Any_Element_Read(Arr : Reserved.TFIELDS_Arr) return Boolean
+        is
+                Is_Read : Boolean := False;
+                -- FIXME what if Arr is empty array ? raise exception or return False
+        begin
+                for I in Arr'Range
+                loop
+                        Is_Read := Arr(I).Read;
+                        exit when Arr(I).Read;
+                end loop;
+                return Is_Read;
+        end Is_Any_Element_Read;
+
+
+        function Is_In_Set(Root : Reserved_Root; Roots : Res_Root_Arr) return Boolean
+        is
+        begin
+                for I in Roots'Range
+                loop
+                        if(Root = Roots(I))
+                        then
+                                return True;
+                        end if;
+                end loop;
+                return False;
+        end Is_In_Set;
+
+        function Needed_Length(Roots : Res_Root_Arr) return Natural
+        is
+                Len : Natural := 0;
+        begin
+                if(Is_In_Set(TTYPE,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(TUNIT,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(TSCAL,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(TZERO,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(TNULL,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL))) then Len := Len + 1; end if;
+                end if;
+                if(Is_In_Set(TDISP,Roots)) then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP))) then Len := Len + 1; end if;
+                end if;
+                return Len;
+        end Needed_Length;
+
+
+        function Get(Roots : Res_Root_Arr) return IdxKey_Rec_Arr
+        is
+                IdxKey : IdxKey_Rec_Arr(1..Needed_Length(Roots));
+                Len : Natural := 0;-- FIXME rename to Idx
+        begin
+                if(Is_In_Set(TTYPE,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TTYPE)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TTYPE;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TTYPE);
+                        end if;
+                end if;
+
+                if(Is_In_Set(TUNIT,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TUNIT)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TUNIT;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TUNIT);
+                        end if;
+                end if;
+
+                if(Is_In_Set(TSCAL,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TSCAL)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TSCAL;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TSCAL);
+                        end if;
+                end if;
+
+                if(Is_In_Set(TZERO,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TZERO)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TZERO;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TZERO);
+                        end if;
+                end if;
+
+                if(Is_In_Set(TNULL,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TNULL)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TNULL;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TNULL);
+                        end if;
+                end if;
+
+                if(Is_In_Set(TDISP,Roots))
+                then
+                        if(Is_Any_Element_Read(State.Res.Arr(Reserved.TDISP)))
+                        then
+                                Len := Len + 1;
+                                IdxKey(Len).Root := TDISP;
+                                IdxKey(Len).Arr  := State.Res.Arr(Reserved.TDISP);
+                        end if;
+                end if;
+
+        return IdxKey;
+        end Get;
+
+-- DBG_Print funcs from fa_extension:
+
+        procedure DBG_Print_Reserved
+        is
+        Res : Key_Rec_Arr := Get((EXTNAME,DATAMAX,DATAMIN,INSTRUME,TELESCOP));
+        begin
+        TIO.Put_Line("DBG_Print_reserved");
+        for I in Res'Range
+        loop
+        TIO.Put("Get Res> "&Reserved_Key'Image(Res(I).Key));
+        TIO.Put(" : "&Res(I).Value);
+        TIO.New_Line;
+        end loop;
+
+
+        end DBG_Print_Reserved;
+
+
+procedure DBG_Print(IdxKeys : IdxKey_Rec_Arr)
+        is
+        begin
+        TIO.Put_Line("DBG_Print IdxKeys");
+        for I in IdxKeys'Range
+        loop
+        TIO.Put("Get ResArr "& Reserved_Root'Image(IdxKeys(I).Root)&" ");
+        for Idx in IdxKeys(I).Arr'Range
+        loop
+        TIO.Put(Integer'Image(Idx) &":"& IdxKeys(I).Arr(Idx).Value);
+        end loop;
+        TIO.New_Line;
+        end loop;
+        end DBG_Print;
+
+
+
+
+
+
+
+
 
 
 

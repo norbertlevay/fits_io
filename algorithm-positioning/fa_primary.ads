@@ -24,31 +24,6 @@ package FA_Primary is
 		end record;
 
 
-	-- Reserved keys
-
-	type Res_Key_Arr is array (Positive range <>) of Reserved_Key;
-
-	type Key_Rec is 
-		record
-			Key   : Reserved_Key;
-			Value : String(1..20);
-		end record;
-	type Key_Rec_Arr is array (Positive range <>) of Key_Rec;
-
-	-- Reserved indexed keys
-
-	type Reserved_Root is (PTYPE,PSCAL,PZERO);
-
-	type Res_Root_Arr  is array (Natural range <>) of Reserved_Root;
-
-	type IdxKey_Rec is
-		record
-			Root : Reserved_Root;
-			Arr  : RANDG_Arr;
-		end record;
-	type IdxKey_Rec_Arr is array (Natural range <>) of IdxKey_Rec;
-
-
 	-- FA configuration
 	type Algorithm_Type is 
 		(
@@ -74,9 +49,6 @@ package FA_Primary is
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;
 
 	function Get return Size_Rec;
-	function Get(Keys  : in Res_Key_Arr)  return Key_Rec_Arr;
-	function Get(Roots : in Res_Root_Arr) return IdxKey_Rec_Arr;
-
 
 
 	Unexpected_Card       : exception;
