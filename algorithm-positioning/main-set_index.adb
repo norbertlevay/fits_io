@@ -162,7 +162,7 @@ loop
 	end loop;
 
 	declare
-		HDUSizeInfo : FA_Extension.Size_Rec := FA_Extension.Get;
+		HDUSizeInfo : FA_Extension.Result_Rec := FA_Extension.Get;
 	begin
 		--HDUSizeInfo    := FA_Extension.Get;
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);

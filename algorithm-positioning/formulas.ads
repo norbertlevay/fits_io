@@ -15,7 +15,7 @@ package Formulas is
 -- FIXME PCOUNT GCOUNT not implemented yet
 
 	function  Calc_HDU_Size_blocks
-		(HDUSizeInfo : in FA_Extension.Size_Rec) return Positive_Count;
+		(HDUSizeInfo : in FA_Extension.Result_Rec) return Positive_Count;
 
 
 	function  Calc_HeaderUnit_Size_blocks

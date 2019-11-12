@@ -428,77 +428,7 @@ end To_XT_Type;
 
 
 
-	function  Get return Size_Rec
-        is
-                HDUSizeInfo : Size_Rec(State.NAXIS_Val);
-                NAXIS : Positive;
-	begin
-                if(State.OtherCount > 0)
-                then
-			null;-- was here debug print only
-                end if;
 
-                -- NOTE: user can simply call Get() without running the FA -> programming error
-                -- OR Header was read, but is broken (without END card) so we read through all file
-                --  reaching EOF <- but this should raise exception: trying to read behind file end??
-                --  OR user called FA on non FITS file and so probably scans through until EOF
-                if(State.ENDCardSet) then
-                        HDUSizeInfo.CardsCount := State.ENDCardPos;
-                else
-                        Raise_Exception(Card_Not_Found'Identity,   
-                                        "END card not found, not a valid FITS file.");
-                end if;
-
-
-
-        	--
-                -- conversion Size_Rec
-                --
-		
-                
-			-- FIXME how about XTENSION value, shoule we check it was set ?
-
-	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
-
-        	        if(State.BITPIX.Read) then
-                	        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
-	                else
-        	                Raise_Exception(Card_Not_Found'Identity, "BITPIX");
-                	end if;
-
-	                if(State.NAXIS.Read) then
-        	                NAXIS := To_Integer(State.NAXIS.Value);
-               		else
-                        	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
-	                end if;
-
-        	        for I in 1 .. NAXIS
-                	loop
-                        	if(State.NAXISn(I).Read) then
-                                	HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
-	                        else
-        	                        Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
-                	        end if;
-
-	                end loop;
-
--- FIXME here? to check whether XTENSION typ vs P/GCOUNT values match ?
-
-			if(State.PCOUNT.Read) then
-        	                HDUSizeInfo.PCOUNT := To_Integer(State.PCOUNT.Value);
-               		else
-                        	Raise_Exception(Card_Not_Found'Identity, "PCOUNT");
-	                end if;
-
-			if(State.GCOUNT.Read) then
-        	                HDUSizeInfo.GCOUNT := To_Integer(State.GCOUNT.Value);
-               		else
-                        	Raise_Exception(Card_Not_Found'Identity, "GCOUNT");
-	                end if;
-
-
-                return HDUSizeInfo;
-        end Get;
 
 	function Get_TFORMn return TFIELDS_Arr
 	is
@@ -516,6 +446,14 @@ end To_XT_Type;
 		return Arr;
 	end Get_TFORMn;
 
+
+
+
+
+
+
+
+
 	function Get_TBCOLn return TFIELDS_Arr
 	is
 		Arr : TFIELDS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
@@ -531,6 +469,100 @@ end To_XT_Type;
 		end loop;
 		return Arr;
 	end Get_TBCOLn;
+
+
+
+
+	function  Get return Result_Rec
+        is
+		-- FIXME how about XTENSION value, shoule we check it was set ?
+                HDUSizeInfo : Result_Rec(To_Extension_HDU(State.Name),
+					State.NAXIS_Val,
+					State.TFIELDS_Val);
+                NAXIS : Positive;
+	begin
+                if(State.OtherCount > 0)
+                then
+			null;
+                end if;
+                -- NOTE: user can simply call Get() without running the FA -> programming error
+                -- OR Header was read, but is broken (without END card) so we read through all file
+                -- reaching EOF <- but this should raise exception: trying to read behind file end
+                -- OR user called FA on non FITS file and so probably scans through until EOF
+
+
+                if(State.ENDCardSet) then
+                        HDUSizeInfo.CardsCount := State.ENDCardPos;
+                else
+                        Raise_Exception(Card_Not_Found'Identity,   
+                                        "END card not found, not a valid FITS file.");
+                end if;
+
+        	if(State.BITPIX.Read)
+		then
+                	HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+	        else
+        		Raise_Exception(Card_Not_Found'Identity, "BITPIX");
+                end if;
+		-- FIXME here? to check whether XTENSION type vs BITPIX NAXIS values match ?
+		
+		-- FIXME see FA_Primary : NAXIS.Read vs NAXIS_Val
+	        if(State.NAXIS.Read) then
+        		NAXIS := To_Integer(State.NAXIS.Value);
+               	else
+                       	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
+	        end if;
+
+       	        for I in 1 .. NAXIS -- FIXME use NAXIS_Val ??
+               	loop
+                       	if(State.NAXISn(I).Read) then
+                               	HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                        else
+       	                        Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+               	        end if;
+                end loop;
+
+		-- FIXME here? to check whether XTENSION type vs P/GCOUNT values match ?
+
+		if(State.PCOUNT.Read) then
+       	                HDUSizeInfo.PCOUNT := To_Integer(State.PCOUNT.Value);
+       		else
+                       	Raise_Exception(Card_Not_Found'Identity, "PCOUNT");
+                end if;
+
+		if(State.GCOUNT.Read) then
+       	                HDUSizeInfo.GCOUNT := To_Integer(State.GCOUNT.Value);
+      		else
+                       	Raise_Exception(Card_Not_Found'Identity, "GCOUNT");
+                end if;
+
+
+		case HDUSizeInfo.HDU is
+		when STANDARD_TABLE | STANDARD_BINTABLE =>
+
+			HDUSizeInfo.TFORMn := Get_TFORMn;
+
+			case HDUSizeInfo.HDU is
+			when STANDARD_TABLE =>
+				HDUSizeInfo.TBCOLn := Get_TBCOLn;
+			when others => null;
+			end case;
+
+		when others => null;
+		end case;
+ 
+
+                return HDUSizeInfo;
+        end Get;
+
+
+
+
+
+
+
+
+
 
 end FA_Extension;
 
