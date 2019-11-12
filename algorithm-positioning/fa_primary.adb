@@ -12,13 +12,6 @@ with Keyword_Record; use Keyword_Record;
 package body FA_Primary is
 
 
-m_Options : Options_Type := (others => False);
-
-
-        --
-        -- definition of states
-        --
-
 type State_Name is 
        (NOT_ACCEPTING_CARDS, -- FA inactive
         PRIMARY_STANDARD,    -- Initial state: collect scalar card-values
@@ -74,36 +67,15 @@ State : State_Type := InitState;
 procedure DBG_Print is separate;
 
 
-
-        procedure Configure(Options : Options_Type)
-	is
-	begin
-		m_Options := Options;
-	end Configure;
-
-
 --
 -- state transitions
 --
-
-
 
 	function Reset_State return Positive
 	is
 	begin
 		State := InitState;
-
-		if(m_Options.Mand) 
-		then
-			State.Name := PRIMARY_STANDARD;
-
-		elsif(m_Options.Reserved)
-		then
-			State.Name := WAIT_END;
-
-		else
-			State.Name := WAIT_END;
-		end if;
+		State.Name := PRIMARY_STANDARD;
 		return 1; -- start FA from 1st card of HDU
 	end Reset_State;
 

@@ -25,25 +25,19 @@ package FA_Primary is
 
 
 	-- FA configuration
-	type Algorithm_Type is 
+	type Options_Type is 
 		(
-			ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
-			ALGORITHM_TOLERANT   -- parsing Headers fails only if: 
+			ALGORITHM_STRICT,  -- parsing Headers follows strictly FITS-Standard
+			ALGORITHM_TOLERANT -- parsing Headers fails only if: 
 			-- * essential key is missing
 			-- * essential key is duplicate with different values (ambiguity)
-			); -- FIXME not implemented
-
-	type Options_Type is
-		record
-			Mand   : Boolean;
-			Reserved : Boolean;
-		end record;
+			);
 
 	--
 	-- finite automaton
 	--
 
-	procedure Configure(Options : Options_Type);
+	procedure Configure(Options : Options_Type) is null;
 
 	function  Reset_State return Positive;
 	function  Next(Pos : Positive; Card : Card_Type) return Natural;

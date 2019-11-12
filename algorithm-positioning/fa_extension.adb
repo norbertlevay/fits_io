@@ -8,13 +8,6 @@ with Keyword_Record; use Keyword_Record;
 package body FA_Extension is
 
 
-m_Options : Options_Type := (others => False);
-
-
-	--
-        -- definition of states
-        --
-
 type State_Name is
         (NOT_ACCEPTING_CARDS,  	-- FA inactive
          IS_CONFORMING, 	-- Initial state
@@ -101,19 +94,6 @@ begin
 
 end To_XT_Type;
 
-
-
-        procedure Configure(Options : Options_Type)
-        is
-        begin
-                m_Options := Options;
-        end Configure;
-
-
-
-
-
-
 --
 -- state transitions
 --
@@ -125,19 +105,7 @@ end To_XT_Type;
 	is
 	begin
 		State      := InitState;
-		-- FIXME m_Options is incorrect
-		
-                if(m_Options.Mand)
-                then
-                        State.Name := IS_CONFORMING;
-
-		elsif(m_Options.Tab)
-                then
-                        State.Name := COLLECT_TABLE_ARRAYS;
-
-		else
-                        State.Name := WAIT_END;
-                end if;
+                State.Name := IS_CONFORMING;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
 
@@ -249,17 +217,12 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 			
-                        if( m_Options.Mand )
-                        then
-        			case(State.XTENSION_Val) is
+        		case(State.XTENSION_Val) is
 				when IMAGE  => State.Name := IMAGE;
 				when ASCII_TABLE | BIN_TABLE => null;
+				-- FIXME ??? cannot be In_WAIT_END if XTENSION_Val *_TABLE !!!
 				when others => State.Name := CONFORMING_EXTENSION;
-				end case;
-                        State.Name := IMAGE;
-                        else
-                                null;-- FIXME State.Name := NOT_DETERMINED;
-		        end if;
+			end case;
 			return 0;
 			-- no more cards
 
@@ -491,8 +454,6 @@ end To_XT_Type;
                 -- conversion Size_Rec
                 --
 		
-		if(m_Options.Mand)
-		then
                 
 			-- FIXME how about XTENSION value, shoule we check it was set ?
 
@@ -534,7 +495,6 @@ end To_XT_Type;
                         	Raise_Exception(Card_Not_Found'Identity, "GCOUNT");
 	                end if;
 
-		end if;
 
                 return HDUSizeInfo;
         end Get;

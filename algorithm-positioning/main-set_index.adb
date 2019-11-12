@@ -22,40 +22,7 @@ type Read_Control is
          Stop);              -- do not provide more CardBlocks, usually after END-card found
 -- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
 
-	function To_Prim_Options_Type(Opt : String) return FA_Primary.Options_Type
-	is
-	begin
-		if(Options = "MAND")
-		then
-			return (True,False);
-
-		elsif(Options = "RES")
-		then
-			return (True,True);
-		else
-			return (False,False);
-		end if;
-
-	end To_Prim_Options_Type;
-	
-	function To_Ext_Options_Type(Opt : String) return FA_Extension.Options_Type
-	is
-	begin
-		if(Options = "MAND")
-		then
-			return (True,False,False,False);
-
-		elsif(Options = "RES")
-		then
-			return (True,True,True,True);
-
-		else
-			return (False,False,False,False);
-		end if;
-
-	end To_Ext_Options_Type;
-
-        --
+	--
         -- read by blocks
         --
        function  Next
@@ -104,15 +71,14 @@ type Read_Control is
 	Blk : Card_Block;
 	Rc  : Read_Control;
 	Stoped : Boolean;
---	HDUSizeInfo : Size_Rec;
 	HDUSize_blocks : Formulas.Positive_Count;
 
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
 	CardPos : Positive;
 
-	FA_Prim_Options : constant FA_Primary.Options_Type   := To_Prim_Options_Type(Options);	
-	FA_Ext_Options  : constant FA_Extension.Options_Type := To_Ext_Options_Type(Options);	
+	FA_Prim_Options : constant FA_Primary.Options_Type   := FA_Primary.ALGORITHM_STRICT;
+	FA_Ext_Options  : constant FA_Extension.Options_Type := FA_Extension.ALGORITHM_STRICT;
 begin
 
 	PrimaryHeaderStart := 1;

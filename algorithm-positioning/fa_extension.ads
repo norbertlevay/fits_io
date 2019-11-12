@@ -22,7 +22,7 @@ package FA_Extension is
 
 
 	-- FA configuration
-	type Algorithm_Type is
+	type Options_Type is
 		(
 			ALGORITHM_STRICT,      -- parsing Headers follows strictly FITS-Standard
 			ALGORITHM_TOLERANT     -- parsing Headers fails only if: 
@@ -31,20 +31,11 @@ package FA_Extension is
 			); -- FIXME not implemented
 
 
-	type Options_Type is
-		record
-			Mand    : Boolean;
-			Tab     : Boolean;
-			ConfExt : Boolean;
-			Reserved : Boolean;
-		end record;
-
-
 	--
 	-- finite automaton
 	--
 
-	procedure Configure(Options : Options_Type);
+	procedure Configure(Options : Options_Type) is null;
 
 	function  Reset_State return Positive; 
 	function  Next (Pos  : in Positive; Card : in Card_Type) return Natural;
