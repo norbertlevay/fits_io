@@ -24,24 +24,8 @@ package FA_Primary is
 		end record;
 
 
-	-- FA configuration
-	type Options_Type is 
-		(
-			ALGORITHM_STRICT,  -- parsing Headers follows strictly FITS-Standard
-			ALGORITHM_TOLERANT -- parsing Headers fails only if: 
-			-- * essential key is missing
-			-- * essential key is duplicate with different values (ambiguity)
-			);
-
-	--
-	-- finite automaton
-	--
-
-	procedure Configure(Options : Options_Type) is null;
-
-	function  Reset_State return Positive;
-	function  Next(Pos : Positive; Card : Card_Type) return Natural;
-
+	function Reset_State return Positive;
+	function Next(Pos : in Positive; Card : in Card_Type) return Natural;
 	function Get return Size_Rec;
 
 

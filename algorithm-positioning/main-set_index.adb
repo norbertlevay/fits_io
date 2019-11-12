@@ -77,8 +77,8 @@ type Read_Control is
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
 	CardPos : Positive;
 
-	FA_Prim_Options : constant FA_Primary.Options_Type   := FA_Primary.ALGORITHM_STRICT;
-	FA_Ext_Options  : constant FA_Extension.Options_Type := FA_Extension.ALGORITHM_STRICT;
+	--FA_Prim_Options : constant FA_Primary.Options_Type   := FA_Primary.ALGORITHM_STRICT;
+	--FA_Ext_Options  : constant FA_Extension.Options_Type := FA_Extension.ALGORITHM_STRICT;
 begin
 
 	PrimaryHeaderStart := 1;
@@ -92,7 +92,7 @@ begin
 
 -- Read Primary HDU
 
-	FA_Primary.Configure(FA_Prim_Options);
+	--FA_Primary.Configure(FA_Prim_Options);
 	-- parse for size-related cards (a.k.a. mandatory cards)
 
 	CardPos := FA_Primary.Reset_State;
@@ -138,7 +138,7 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
-	FA_Extension.Configure(FA_Ext_Options);
+	--FA_Extension.Configure(FA_Ext_Options);
 	-- parse for size-related cards (a.k.a. mandatory cards)
 
 	CardPos := FA_Extension.Reset_State;

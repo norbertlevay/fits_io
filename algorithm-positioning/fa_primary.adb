@@ -7,7 +7,9 @@ with Keyword_Record; use Keyword_Record;
 -- FIXME consider configurable how to react to duplicates (with the same card value)
 -- FIXME some keys may appear only in Primery (EXTEND,BLOCKED...?) and MUST NOT appear in extensions: should we check in extensions that they are not there ? -> distiguish between Standard-complience verification (taskA) vs. ambiguity if diff value (taskB)
 
-
+--
+-- Finite Automaton
+--
 
 package body FA_Primary is
 
