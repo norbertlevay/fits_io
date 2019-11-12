@@ -430,7 +430,7 @@ end To_XT_Type;
 
 	function  Get return Size_Rec
         is
-                HDUSizeInfo : Size_Rec(State.NAXIS_Val, To_Extension_HDU(State.Name));
+                HDUSizeInfo : Size_Rec(State.NAXIS_Val);
                 NAXIS : Positive;
 	begin
                 if(State.OtherCount > 0)
@@ -458,7 +458,7 @@ end To_XT_Type;
                 
 			-- FIXME how about XTENSION value, shoule we check it was set ?
 
---	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
+	                HDUSizeInfo.HDUType := To_Extension_HDU(State.Name);
 
         	        if(State.BITPIX.Read) then
                 	        HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
