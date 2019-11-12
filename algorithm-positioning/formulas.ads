@@ -11,7 +11,7 @@ package Formulas is
 	-- Calc size
 
 	function  Calc_HDU_Size_blocks
-		(PrimSize : in FA_Primary.Size_Rec) return Positive_Count;
+		(PrimSize : in FA_Primary.Result_Rec) return Positive_Count;
 -- FIXME PCOUNT GCOUNT not implemented yet
 
 	function  Calc_HDU_Size_blocks

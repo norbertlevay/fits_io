@@ -119,7 +119,7 @@ begin
 	end loop;
 	
 	declare
-		PSize : FA_Primary.Size_Rec := FA_Primary.Get;
+		PSize : FA_Primary.Result_Rec := FA_Primary.Get;
 	begin
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
 	end;

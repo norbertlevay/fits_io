@@ -406,42 +406,52 @@ procedure DBG_Print is separate;
 	end To_Primary_HDU;
 
 
-	function  Get return Size_Rec
+
+
+
+
+
+
+	function  Get return Result_Rec
 	is
-		PrimSize : Size_Rec(State.NAXIS_Val,
-						To_Primary_HDU(State.Name));
-                NAXIS : Positive;
+		Result : Result_Rec(To_Primary_HDU(State.Name), State.NAXIS_Val);
         begin
-                if(State.ENDCardSet) then
-                        PrimSize.CardsCount := State.ENDCardPos;
+
+                if(State.ENDCardSet)
+		then
+                        Result.CardsCount := State.ENDCardPos;
                 else
                         Raise_Exception(Card_Not_Found'Identity, 
 					"END card not found, not a valid FITS file.");
                 end if;
 
+                Result.BITPIX := To_Integer(State.BITPIX.Value);
 
-                PrimSize.BITPIX := To_Integer(State.BITPIX.Value);
-
-                NAXIS := To_Integer(State.NAXIS.Value);
-               	for I in 1 .. NAXIS
-               	loop
-                       	if(State.NAXISn(I).Read) then
-                         		PrimSize.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
-                       	else
-                               	Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
-                       	end if;
-
-               	end loop;
-
-		case(PrimSize.HDUType) is
+		case(Result.HDU) is
+			when IMAGE | RANDOM_GROUPS =>
+	
+        	       	for I in 1 .. State.NAXIS_Val
+               		loop
+                       		if(State.NAXISn(I).Read)
+				then
+                       			Result.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                       		else
+                               		Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                       		end if;
+               		end loop;
+			
+			case Result.HDU is
 			when RANDOM_GROUPS =>
-				PrimSize.PCOUNT := To_Integer(State.PCOUNT.Value);
-				PrimSize.GCOUNT := To_Integer(State.GCOUNT.Value);
-			when others =>
-				null;
+				Result.PCOUNT := To_Integer(State.PCOUNT.Value);
+				Result.GCOUNT := To_Integer(State.GCOUNT.Value);
+			when others => null;
+			end case;
+
+		when others =>null;
 		end case;
 
- 		return PrimSize;
+ 		return Result;
+
         end Get;
 
 end FA_Primary;
