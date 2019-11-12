@@ -26,6 +26,7 @@ with Keyword_Record; use Keyword_Record; -- Is_Array() needed
 
 -- FIXME pose Reserved as special case of ANY optional card parsing, like user's own proprietary card definitions <- implemente such generic parsing and use as special case for ReservdKeys defined in Stabdard
 
+--Comments_Max : constant Positive := 1000;
 
 package body Reserved is
 

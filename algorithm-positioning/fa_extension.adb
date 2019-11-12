@@ -20,8 +20,8 @@ type State_Name is
 	 IMAGE, TABLE, BINTABLE -- Final states (Standard Ext)
 	 );	
 
-
---type NAXIS_MaxArr   is array (1..NAXIS_Max)   of CardValue;
+TFIELDS_Max : constant Positive := 100;
+type TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue;
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
 InitTFORMArrVal : constant TFIELDS_MaxArr  := (others => InitVal);

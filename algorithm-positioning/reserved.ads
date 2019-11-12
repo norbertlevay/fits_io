@@ -28,15 +28,15 @@ package Reserved is
 
 -- All Reserved scalar Keys
 
---type Reserved_Key is (
---	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
---	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
---	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
---	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
---	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN,	-- data-array keys, IMAGES-like only
---	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
---	THEAP						-- BINTABLE only
---	);
+type Reserved_Key is (
+	DATE, ORIGIN, BLOCKED, EXTEND, 			-- production keys, all HDUs
+	AUTHOR, REFERENC,				-- bibliographic keys, all HDUs
+	DATEOBS, TELESCOP, INSTRUME, OBSERVER, OBJECT,	-- observation keys, all HDUs
+	EQUINOX, EOPCH,					-- observation keys / WCS ?, all HDUs
+	BSCALE,BZERO,BUNIT,BLANK,DATAMAX,DATAMIN,	-- data-array keys, IMAGES-like only
+	EXTNAME, EXTVER, EXTLEVEL,			-- conforming extensions only
+	THEAP						-- BINTABLE only
+	);
 
 -- Common Keys (may be present in both Primary & Extensions)
 

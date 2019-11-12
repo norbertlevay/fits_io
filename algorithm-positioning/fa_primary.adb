@@ -22,8 +22,8 @@ type State_Name is
         NO_DATA, IMAGE, RANDOM_GROUPS -- Final states
         );
 
-
---type NAXIS_Arr is array (1..NAXIS_Max) of CardValue;
+RANDG_Max   : constant Positive := 100;
+type RANDG_MaxArr   is array (1 .. RANDG_Max)   of CardValue;
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
 InitRANDGArrVal : constant RANDG_MaxArr := (others => InitVal);

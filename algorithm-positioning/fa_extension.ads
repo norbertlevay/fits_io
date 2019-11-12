@@ -9,6 +9,8 @@ package FA_Extension is
 		(CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
+	type TFIELDS_Arr is array (Positive range <>) of String(1..20);
+
 	type Result_Rec(HDU : Extension_HDU;
 			NAXIS_Last   : Positive;
 			TFIELDS_Last : Positive) is
