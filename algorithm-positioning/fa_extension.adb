@@ -44,7 +44,7 @@ type State_Type is
         XTENSION : CardValue;
         BITPIX   : CardValue;
         NAXIS    : CardValue;
-        NAXISn   : NAXIS_MaxArr;
+        NAXISn   : NAXIS_MaxArr;-- arr of CardValue
         PCOUNT   : CardValue;
         GCOUNT   : CardValue;
         TFIELDS  : CardValue;

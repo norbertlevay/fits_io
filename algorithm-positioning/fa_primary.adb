@@ -42,7 +42,7 @@ type State_Type is
         SIMPLE : CardValue;
         BITPIX : CardValue;
         NAXIS  : CardValue;
-        NAXISn : NAXIS_MaxArr;
+        NAXISn : NAXIS_MaxArr;-- arr of CardValue
         PCOUNT : CardValue;
         GCOUNT : CardValue;
         GROUPS : CardValue;
@@ -108,7 +108,7 @@ procedure DBG_Print is separate;
 
 		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
 		then
-			State.BITPIX.Value := String(Card(11..30));
+			State.BITPIX.Value := Card(11..30);
 			State.BITPIX.Read  := True;
 		
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
@@ -273,7 +273,7 @@ procedure DBG_Print is separate;
 			
 			if (NOT State.GROUPS.Read)
 			then
-				State.GROUPS.Value := String(Card(11..30));
+				State.GROUPS.Value := Card(11..30);
 				State.GROUPS.Read := True;
 			else
                                 -- FIXME only duplicates with diff values raises exception
@@ -299,7 +299,7 @@ procedure DBG_Print is separate;
 			
 			if (NOT State.GCOUNT.Read)
 			then
-				State.GCOUNT.Value := String(Card(11..30));
+				State.GCOUNT.Value := Card(11..30);
 				State.GCOUNT.Read  := True;
 			else
                                 Raise_Exception(Duplicate_Card'Identity, Card);
