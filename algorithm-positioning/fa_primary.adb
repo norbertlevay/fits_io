@@ -86,8 +86,6 @@ procedure DBG_Print is separate;
 
 
 
-
-
 	function In_PRIMARY_STANDARD
 		(Pos  : in Positive;
 		 Card : in Card_Type) return Natural
@@ -114,6 +112,7 @@ procedure DBG_Print is separate;
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
 		then
 			State.NAXIS_Val := To_Integer(Card(11..30));
+
 			Set(State.NAXIS, Card); 
 	
 			if (State.NAXIS_Val = 0)
@@ -124,6 +123,7 @@ procedure DBG_Print is separate;
 		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
 		then
 			State.NAXIS1_Val := To_Integer(Card(11..30));
+
 			Set(State.NAXISn(1), Card); 
 	
 		elsif ((Card(1..5) = "NAXIS") AND Is_Natural(Card(6..8)))
@@ -173,11 +173,6 @@ procedure DBG_Print is separate;
 		-- later hook up here Reserved/optional key parsing
 		return True;
 	end Is_Valid;
-
-
-
-
-
 
 
 
@@ -327,10 +322,6 @@ procedure DBG_Print is separate;
 		return Pos + 1;
 
 	end In_DATA_NOT_IMAGE;
-
-
-
-
 
 
 

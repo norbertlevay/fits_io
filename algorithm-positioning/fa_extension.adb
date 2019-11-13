@@ -82,14 +82,16 @@ function To_XT_Type(XTENSION_Value : in String) return XT_Type
 is
 	t : XT_Type;
 begin
-		-- FIXME use here To_String converions from Keyword_Record
-	if(XTENSION_Value    = "'IMAGE   '          ") then
+	if(XTENSION_Value    = "IMAGE")
+	then
 		t := IMAGE;
 				
-        elsif(XTENSION_Value = "'TABLE   '          ") then
+        elsif(XTENSION_Value = "TABLE")
+	then
                 t := ASCII_TABLE;
 
-        elsif(XTENSION_Value = "'BINTABLE'          ") then
+        elsif(XTENSION_Value = "BINTABLE")
+	then
                 t := BIN_TABLE;
 
 	else
@@ -126,9 +128,9 @@ end To_XT_Type;
 		then
 			if( "XTENSION" = Card(1..8) )
 			then
-				State.XTENSION.Value := Card(11..80);
-				State.XTENSION.Read  := True;
-				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value(1..20));
+				Set(State.XTENSION, Card);
+
+				State.XTENSION_Val := To_XT_Type(To_String(State.XTENSION.Value));
 			else
 				-- possibly Special Records:
 				-- [FITS 3.5] The first 8 bytes of the special records 
@@ -295,8 +297,7 @@ end To_XT_Type;
 			Idx := To_Integer(Card(6..8));
 			if(NOT State.TFORMn(Idx).Read)
 			then
-				State.TFORMn(Idx).Value := Card(11..80);
-				State.TFORMn(Idx).Read := True;
+				Set(State.TFORMn(Idx), Card);
 			else
 				-- FIXME only duplicates with diff values raises exception
 				-- duplicate with equal values: make configurable what to do...
@@ -451,7 +452,7 @@ end To_XT_Type;
 			if( State.TFORMn(I).Read )
 			then 
 				Arr(I) := To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
-				Put_Line("DBG US>"&Arr(I)&"<"); 
+				Put_Line("DBG >"&Arr(I)&"<"); 
 			else
 				null; -- FIXME what if some value missing ?
 			end if;

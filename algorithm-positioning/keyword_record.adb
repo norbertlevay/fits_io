@@ -100,7 +100,8 @@ package body Keyword_Record is
 		exit when S(I) = ''';
 		end loop;	
 		
-		return Trim(Value(AFirst+1 .. ASecond-1), Both );
+		return Trim(Value(AFirst+1 .. ASecond-1), Right);
+		-- Trim Right: [FITS 4.2.1] Leading spaces are significant, trailing spaces not.
 	end To_String;
 
 
