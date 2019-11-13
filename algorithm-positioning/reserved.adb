@@ -2,7 +2,6 @@ with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
 
-with FITS; use FITS; -- Card_Type needed
 with Keyword_Record; use Keyword_Record; -- Is_Array() needed
 
 -- Notes on Reserved optional keys:

@@ -127,7 +127,6 @@ package body Keyword_Record is
 -- as consequence we do not check for Index in First..Last as Is_Array did
 -- FIXME should we ?
 
-subtype Card_Type is String(1..80);-- FIXME normally comes from FITS.ads
 
 function Is_Array(Card : in  Card_Type;
                   Root : in  String;

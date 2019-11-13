@@ -1,5 +1,5 @@
 
-with FITS; use FITS;
+with Keyword_Record; use Keyword_Record;
 
 package FA_Extension is
 
@@ -8,7 +8,7 @@ package FA_Extension is
 	type Extension_HDU is
 		(CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
-
+	
 	type TFIELDS_Arr is array (Positive range <>) of String(1..20);
 
 	type Result_Rec(HDU : Extension_HDU;

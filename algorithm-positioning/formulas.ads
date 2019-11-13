@@ -1,5 +1,5 @@
 
-with FITS; use FITS;
+with Keyword_Record; use Keyword_Record;
 with FA_Primary;
 with FA_Extension;
 

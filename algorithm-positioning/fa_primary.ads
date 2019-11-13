@@ -1,5 +1,5 @@
 
-with FITS; use FITS;
+with Keyword_Record; use Keyword_Record;
 
 package FA_Primary is
 
@@ -7,7 +7,7 @@ package FA_Primary is
 
 	type Primary_HDU is
 		(NO_DATA, IMAGE, RANDOM_GROUPS);
-
+	
 	type Result_Rec(HDU  : Primary_HDU;
 			Last : Natural) is
 		record

@@ -1,7 +1,6 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with FITS; use FITS;
 with Formulas;
 with Keyword_Record;    use Keyword_Record;
 with FA_Primary;
@@ -76,6 +75,23 @@ type Read_Control is
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
 	CardPos : Positive;
+
+
+-- NOTES:
+-- FA_Prim/Ext had Options for configurability (not implemented):
+       -- FA configuration
+--     type Options_Type is
+--              (
+--                 ALGORITHM_STRICT,  -- parsing Headers follows strictly FITS-Standard
+--                 ALGORITHM_TOLERANT -- parsing Headers fails only if:
+                        -- * essential key is missing
+                        -- * essential key is duplicate with different values (ambiguity)
+--         );
+--       procedure Configure(Options : Options_Type) is null;
+-- END NOTES
+
+
+
 
 	--FA_Prim_Options : constant FA_Primary.Options_Type   := FA_Primary.ALGORITHM_STRICT;
 	--FA_Ext_Options  : constant FA_Extension.Options_Type := FA_Extension.ALGORITHM_STRICT;

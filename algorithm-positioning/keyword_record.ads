@@ -1,7 +1,15 @@
 
--- implementas FITSv3 Section 4.2 Fixed format variant
+-- implements FITSv3 Section 4.2 Fixed format variant
 
 package Keyword_Record is
+
+type NAXIS_Arr is array (Positive range <>) of Positive;
+-- FIXME Formulas & FA_Prim/Ext need it; where to declare?
+
+
+subtype Card_Type is String(1..80);
+ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+
 	
 	function To_Boolean(Value : String) return Boolean;
 	function To_Integer(Value : String) return Integer;

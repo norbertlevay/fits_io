@@ -18,7 +18,6 @@
 
 
 with Ada.Exceptions; use Ada.Exceptions;
-with FITS; use FITS; -- Card_Type needed
 
 
 package Reserved is
