@@ -450,22 +450,6 @@ end To_XT_Type;
 		loop
 			if( State.TFORMn(I).Read )
 			then 
-				Arr(I) := State.TFORMn(I).Value; 
-			else
-				null; -- FIXME what if some value missing ?
-			end if;
-		end loop;
-		return Arr;
-	end Get_TFORMn;
-
-	function Get_TFORMn return TFORM_UArr
-	is
-		Arr : TFORM_UArr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
-	begin
-		for I in 1 .. State.TFIELDS_Val
-		loop
-			if( State.TFORMn(I).Read )
-			then 
 				Arr(I) := To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
 				Put_Line("DBG US>"&Arr(I)&"<"); 
 			else
@@ -509,9 +493,6 @@ end To_XT_Type;
 					State.NAXIS_Val,
 					State.TFIELDS_Val);
                 NAXIS : Positive;
-
-
-		test : TFORM_UArr(1 .. State.TFIELDS_Val);
 	begin
                 if(State.OtherCount > 0)
                 then
@@ -573,7 +554,6 @@ end To_XT_Type;
 		when STANDARD_TABLE | STANDARD_BINTABLE =>
 
 			HDUSizeInfo.TFORMn := Get_TFORMn;
-			test := Get_TFORMn;
 
 			case HDUSizeInfo.HDU is
 			when STANDARD_TABLE =>

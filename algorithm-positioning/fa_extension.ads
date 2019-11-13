@@ -11,8 +11,7 @@ package FA_Extension is
 		(CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 	
-	type TFORM_Arr is array (Positive range <>) of String(1..70);
-	type TFORM_UArr is array (Positive range <>) of Unbounded_String;
+	type TFORM_Arr is array (Positive range <>) of Unbounded_String;
 
 	type Result_Rec(HDU : Extension_HDU;
 			NAXIS_Last   : Positive;
