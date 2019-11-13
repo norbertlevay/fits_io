@@ -55,6 +55,8 @@ with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
 
 package body Keyword_Record is
 
+	EmptyKey : constant String(1..8) := (others => ' ');
+
 	function To_Boolean(Value : String) return Boolean
 	is
 		V : constant Character := Value(Value'First -1 + 30-10);
@@ -135,6 +137,29 @@ package body Keyword_Record is
 	      when others =>
         	 return False;
 	end Is_Natural;
+
+
+
+
+	-- FIXME review both Match_* for bounds
+        function Match_Key(Key : in String; Card : in Card_Type) return Boolean
+	is
+	begin
+		return (  (Card(1..Key'Length)       = Key)  AND 
+			  (Card(Key'Length + 1 .. 8) = EmptyKey(Key'Length + 1 .. 8)) );
+	end Match_Key;
+	-- FIXME add pragma inline
+
+
+
+        function Match_Indexed_Key(Root : in String; Card : in Card_Type) return Boolean
+	is
+	begin
+		return 	(Card(1..Root'Length) = Root) 
+			AND 
+			Is_Natural(Card(Root'Length + 1 .. 8)) ;
+	end Match_Indexed_Key;
+
 
 
 

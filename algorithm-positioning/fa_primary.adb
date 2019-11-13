@@ -93,7 +93,7 @@ procedure DBG_Print is separate;
 		Idx : Positive;
 	begin
 
-		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
+		if ( Match_Key("SIMPLE", Card) AND (Pos = 1))
 		then
 			Set(State.SIMPLE, Card); 
 			
@@ -105,11 +105,11 @@ procedure DBG_Print is separate;
 			end if;
 
 
-		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
+		elsif ( Match_Key("BITPIX", Card) AND (Pos = 2))
 		then
 			Set(State.BITPIX, Card); 
 		
-		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
+		elsif ( Match_Key("NAXIS", Card) AND (Pos = 3))
 		then
 			State.NAXIS_Val := To_Integer(Card(11..30));
 
@@ -120,13 +120,13 @@ procedure DBG_Print is separate;
 				State.Name := WAIT_END;
 			end if;
 
-		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
+		elsif ( Match_Key("NAXIS1", Card) AND (Pos = 4))
 		then
 			State.NAXIS1_Val := To_Integer(Card(11..30));
 
 			Set(State.NAXISn(1), Card); 
 	
-		elsif ((Card(1..5) = "NAXIS") AND Is_Natural(Card(6..8)))
+		elsif ( Match_Indexed_Key("NAXIS", Card) )
 		then
 			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
@@ -257,7 +257,7 @@ procedure DBG_Print is separate;
 
 		-- Mandatory keys
 
-		if ( Card(1..8) = "GROUPS  " )
+		if ( Match_Key("GROUPS", Card) )
 		then
 			if (NOT State.GROUPS.Read)
 			then
@@ -270,7 +270,7 @@ procedure DBG_Print is separate;
 
 			Assert_GROUPS_T_Found(Card);
 
-		elsif (Card(1..8) = "PCOUNT  ")
+		elsif ( Match_Key("PCOUNT", Card) )
 		then
 			if (NOT State.PCOUNT.Read)
 			then
@@ -280,7 +280,7 @@ procedure DBG_Print is separate;
 			end if;
 			
 
-		elsif (Card(1..8) = "GCOUNT  ")
+		elsif ( Match_Key("GCOUNT", Card) )
 		then
 			if (NOT State.GCOUNT.Read)
 			then

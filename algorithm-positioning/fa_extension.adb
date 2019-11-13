@@ -126,7 +126,7 @@ end To_XT_Type;
 	begin
 		if(Pos = 1)
 		then
-			if( "XTENSION" = Card(1..8) )
+			if( Match_Key("XTENSION", Card) )
 			then
 				Set(State.XTENSION, Card);
 
@@ -138,17 +138,17 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_First_Card'Identity, Card);
 			end if;
 
-		elsif  ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
+		elsif  ( Match_Key("BITPIX", Card) AND (Pos = 2) )
 		then
 			Set(State.BITPIX, Card);
 
-		elsif ( "NAXIS   " = Card(1..8) AND (Pos = 3) )
+		elsif ( Match_Key("NAXIS", Card) AND (Pos = 3) )
 		then
 			Set(State.NAXIS, Card);
 
 			State.NAXIS_Val := To_Integer(State.NAXIS.Value);
 
-		elsif ( "NAXIS" = Card(1..5) AND Is_Natural(Card(6..8)) )
+		elsif ( Match_Indexed_Key("NAXIS", Card) )
 		then
 			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
@@ -158,11 +158,11 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 	
-		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
+		elsif ( Match_Key("PCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
 			Set(State.PCOUNT, Card);
 
-		elsif ( "GCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 2))
+		elsif ( Match_Key("GCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
 			Set(State.GCOUNT, Card);
 
@@ -172,7 +172,7 @@ end To_XT_Type;
 				when others => State.Name := WAIT_END;
 			end case;
 
-		elsif ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
+		elsif ( Match_Key("TFIELDS", Card) AND (Pos = 3 + State.NAXIS_Val + 3) )
 		then
 			Set(State.TFIELDS, Card);
 
@@ -292,7 +292,7 @@ end To_XT_Type;
 		Idx : Positive := 1;
 	begin
 
-		if ( "TFORM" = Card(1..5) AND Is_Natural(Card(6..8)) )
+		if ( Match_Indexed_Key("TFORM", Card) )
 		then
 			Idx := To_Integer(Card(6..8));
 			if(NOT State.TFORMn(Idx).Read)
@@ -305,7 +305,7 @@ end To_XT_Type;
 			end if;
 			
 
-		elsif ( "TBCOL" = Card(1..5) AND Is_Natural(Card(6..8)) )
+		elsif ( Match_Indexed_Key("TBCOL", Card) )
 		then
 			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
