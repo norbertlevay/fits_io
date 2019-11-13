@@ -23,6 +23,8 @@ type State_Name is
         NO_DATA, IMAGE, RANDOM_GROUPS -- Final states
         );
 
+subtype CardValue is Inited_Value.CardValue(20);
+
 RANDG_Max   : constant Positive := 100;
 type RANDG_MaxArr   is array (1 .. RANDG_Max)   of CardValue;
 

@@ -21,10 +21,11 @@ type State_Name is
 	 );	
 
 TFIELDS_Max : constant Positive := 100;
-type TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue;
+type TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue(20);
+type TFORMn_TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue(70);
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
-InitTFORMArrVal : constant TFIELDS_MaxArr  := (others => InitVal);
+InitTFORMArrVal : constant TFORMn_TFIELDS_MaxArr  := (others => InitVal70);
 InitTBCOLArrVal : constant TFIELDS_MaxArr  := (others => InitVal);
 
 
@@ -41,14 +42,14 @@ type State_Type is
         TFIELDS_Val  : Natural;
 
 	-- Mandatory
-        XTENSION : CardValue;
-        BITPIX   : CardValue;
-        NAXIS    : CardValue;
+        XTENSION : CardValue(70);
+        BITPIX   : CardValue(20);
+        NAXIS    : CardValue(20);
         NAXISn   : NAXIS_MaxArr;-- arr of CardValue
-        PCOUNT   : CardValue;
-        GCOUNT   : CardValue;
-        TFIELDS  : CardValue;
-        TFORMn   : TFIELDS_MaxArr;
+        PCOUNT   : CardValue(20);
+        GCOUNT   : CardValue(20);
+        TFIELDS  : CardValue(20);
+        TFORMn   : TFORMn_TFIELDS_MaxArr;
         TBCOLn   : TFIELDS_MaxArr;
 	
 	-- other cards not recognized by this FA
@@ -63,7 +64,7 @@ InitState : State_Type :=
 	0,
 	NOT_ACCEPTING_CARDS, UNSPECIFIED, 0, 0, 
 	
-	InitVal,InitVal,InitVal,
+	InitVal70,InitVal,InitVal,
         InitNAXISArrVal,
         InitVal,InitVal,InitVal,
         InitTFORMArrVal,
@@ -79,6 +80,7 @@ function To_XT_Type(XTENSION_Value : in String) return XT_Type
 is
 	t : XT_Type;
 begin
+		-- FIXME use here To_String converions from Keyword_Record
 	if(XTENSION_Value    = "'IMAGE   '          ") then
 		t := IMAGE;
 				
@@ -124,9 +126,9 @@ end To_XT_Type;
 			-- must not contain the string “XTENSION”.
 			if( "XTENSION" = Card(1..8) )
 			then
-				State.XTENSION.Value := Card(11..30);
+				State.XTENSION.Value := Card(11..80);
 				State.XTENSION.Read  := True;
-				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value);
+				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value(1..20));
 			else
 				Raise_Exception(Unexpected_First_Card'Identity, Card);
 			end if;
@@ -251,7 +253,7 @@ end To_XT_Type;
 
 
 	-- NOTE Ada2005 has package Ada.Assertions; and also 'pragma Assert()'
-  	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_MaxArr )
+   	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_MaxArr )
 	is
 		ArrComplete : Boolean := True;
 	begin
@@ -266,6 +268,21 @@ end To_XT_Type;
 		end loop;
 	end Assert_Array_Complete;
 
+ 	procedure Assert_Array_Complete_TFORMn(ArrName : String; Length : Positive; Arr : TFORMn_TFIELDS_MaxArr )
+	is
+		ArrComplete : Boolean := True;
+	begin
+		for Ix in 1 .. Length 
+		loop
+			if(Arr(Ix).Read)
+			then
+				null;
+			else
+				Raise_Exception(Card_Not_Found'Identity, ArrName&Integer'Image(Ix));
+			end if;
+		end loop;
+	end Assert_Array_Complete_TFORMn;
+
 
 
 
@@ -279,7 +296,7 @@ end To_XT_Type;
 			Idx := To_Integer(Card(6..8));
 			if(NOT State.TFORMn(Idx).Read)
 			then
-				State.TFORMn(Idx).Value := Card(11..30);
+				State.TFORMn(Idx).Value := Card(11..80);
 				State.TFORMn(Idx).Read := True;
 			else
 				-- FIXME only duplicates with diff values raises exception
@@ -314,7 +331,7 @@ end To_XT_Type;
 
                         case(State.XTENSION_Val) is
                                	when ASCII_TABLE => 
-  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
+  					Assert_Array_Complete_TFORMn("TFORM",State.TFIELDS_Val, State.TFORMn);
   					Assert_Array_Complete("TBCOL",State.TFIELDS_Val, State.TBCOLn);
 					State.Name := TABLE;
 					return 0;
@@ -322,7 +339,7 @@ end To_XT_Type;
 
 
                                	when BIN_TABLE   => 
-  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
+  					Assert_Array_Complete_TFORMn("TFORM",State.TFIELDS_Val, State.TFORMn);
 					State.Name := BINTABLE;
 					return 0;
 					-- no more cards
@@ -428,9 +445,9 @@ end To_XT_Type;
 
 
 
-	function Get_TFORMn return TFIELDS_Arr
+	function Get_TFORMn return TFORM_Arr
 	is
-		Arr : TFIELDS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+		Arr : TFORM_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
 	begin
 		for I in 1 .. State.TFIELDS_Val
 		loop
@@ -452,9 +469,9 @@ end To_XT_Type;
 
 
 
-	function Get_TBCOLn return TFIELDS_Arr
+	function Get_TBCOLn return TBCOL_Arr
 	is
-		Arr : TFIELDS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+		Arr : TBCOL_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
 	begin
 		for I in 1 .. State.TFIELDS_Val
 		loop

@@ -9,7 +9,8 @@ package FA_Extension is
 		(CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 	
-	type TFIELDS_Arr is array (Positive range <>) of String(1..20);
+	type TFORM_Arr is array (Positive range <>) of String(1..70);
+	type TBCOL_Arr is array (Positive range <>) of String(1..20);
 
 	type Result_Rec(HDU : Extension_HDU;
 			NAXIS_Last   : Positive;
@@ -22,10 +23,10 @@ package FA_Extension is
 			GCOUNT     : Positive;
 			case HDU is
 			when STANDARD_TABLE | STANDARD_BINTABLE =>
-				TFORMn : TFIELDS_Arr(1..TFIELDS_Last);
+				TFORMn : TFORM_Arr(1..TFIELDS_Last);
 				case HDU is
 					when STANDARD_TABLE =>
-					TBCOLn : TFIELDS_Arr(1..TFIELDS_Last);
+					TBCOLn : TBCOL_Arr(1..TFIELDS_Last);
 					when others => null;
 				end case;
 			when others => null;
