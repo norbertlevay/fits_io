@@ -96,9 +96,8 @@ procedure DBG_Print is separate;
 	begin
 
 		if ((Card(1..8) = "SIMPLE  ") AND (Pos = 1))
-		then 
-        		State.SIMPLE.Value := Card(11..30);
-			State.SIMPLE.Read  := True;
+		then
+			Set(State.SIMPLE, Card); 
 			
 			-- SIMPLE = F 
 			-- non-standard primary HDU: don't know what to do -> exit.	
@@ -110,15 +109,12 @@ procedure DBG_Print is separate;
 
 		elsif ((Card(1..8) = "BITPIX  ") AND (Pos = 2))
 		then
-			State.BITPIX.Value := Card(11..30);
-			State.BITPIX.Read  := True;
+			Set(State.BITPIX, Card); 
 		
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
 		then
 			State.NAXIS_Val := To_Integer(Card(11..30));
-
-			State.NAXIS.Value := Card(11..30);
-			State.NAXIS.Read := True;
+			Set(State.NAXIS, Card); 
 	
 			if (State.NAXIS_Val = 0)
 			then
@@ -127,19 +123,15 @@ procedure DBG_Print is separate;
 
 		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
 		then
-
 			State.NAXIS1_Val := To_Integer(Card(11..30));
-
-			State.NAXISn(1).Value := Card(11..30);
-			State.NAXISn(1).Read := True;
+			Set(State.NAXISn(1), Card); 
 	
 		elsif ((Card(1..5) = "NAXIS") AND Is_Natural(Card(6..8)))
 		then
 			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
 			then
-				State.NAXISn(Idx).Value := Card(11..30);
-				State.NAXISn(Idx).Read  := True;
+				Set(State.NAXISn(Idx), Card); 
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
@@ -274,14 +266,12 @@ procedure DBG_Print is separate;
 		then
 			if (NOT State.GROUPS.Read)
 			then
-				State.GROUPS.Value := Card(11..30);
-				State.GROUPS.Read := True;
+				Set(State.GROUPS, Card);
 			else
                                 -- FIXME only duplicates with diff values raises exception
                                 -- duplicate with equal values: make configurable what to do...
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
-
 
 			Assert_GROUPS_T_Found(Card);
 
@@ -289,8 +279,7 @@ procedure DBG_Print is separate;
 		then
 			if (NOT State.PCOUNT.Read)
 			then
-				State.PCOUNT.Value := Card(11..30);
-				State.PCOUNT.Read  := True;
+				Set(State.PCOUNT, Card);
 			else
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
@@ -300,8 +289,7 @@ procedure DBG_Print is separate;
 		then
 			if (NOT State.GCOUNT.Read)
 			then
-				State.GCOUNT.Value := Card(11..30);
-				State.GCOUNT.Read  := True;
+				Set(State.GCOUNT, Card);
 			else
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;

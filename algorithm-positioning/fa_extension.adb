@@ -138,36 +138,31 @@ end To_XT_Type;
 
 		elsif  ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
 		then
-			State.BITPIX.Value := Card(11..30);
-			State.BITPIX.Read  := True;
+			Set(State.BITPIX, Card);
 
 		elsif ( "NAXIS   " = Card(1..8) AND (Pos = 3) )
 		then
-			State.NAXIS.Value := Card(11..30);
-			State.NAXIS.Read  := True;
+			Set(State.NAXIS, Card);
 
-			State.NAXIS_Val   := To_Integer(State.NAXIS.Value);
+			State.NAXIS_Val := To_Integer(State.NAXIS.Value);
 
 		elsif ( "NAXIS" = Card(1..5) AND Is_Natural(Card(6..8)) )
 		then
 			Idx := To_Integer(Card(6..8));
 			if(Pos = 3 + Idx)
 			then
-				State.NAXISn(Idx).Value := Card(11..30);
-				State.NAXISn(Idx).Read  := True;
+				Set(State.NAXISn(Idx), Card);
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 	
 		elsif ( "PCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
-			State.PCOUNT.Value := Card(11..30);
-			State.PCOUNT.Read  := True;
+			Set(State.PCOUNT, Card);
 
 		elsif ( "GCOUNT  " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
-			State.GCOUNT.Value := Card(11..30);
-			State.GCOUNT.Read  := True;
+			Set(State.GCOUNT, Card);
 
 			case(State.XTENSION_Val) is
 				when IMAGE  => State.Name := WAIT_END;
@@ -177,8 +172,7 @@ end To_XT_Type;
 
 		elsif ("TFIELDS " = Card(1..8) AND (Pos = 3 + State.NAXIS_Val + 3) )
 		then
-			State.TFIELDS.Value := Card(11..30);
-			State.TFIELDS.Read  := True;
+			Set(State.TFIELDS, Card);
 
 			State.TFIELDS_Val := To_Integer(State.TFIELDS.Value);
 
@@ -317,8 +311,7 @@ end To_XT_Type;
 				Idx := To_Integer(Card(6..8));
 				if(NOT State.TBCOLn(Idx).Read)
 				then
-					State.TBCOLn(Idx).Value := Card(11..30);
-					State.TBCOLn(Idx).Read  := True;
+					Set(State.TBCOLn(Idx), Card);
 				else
 	                                Raise_Exception(Duplicate_Card'Identity, Card);
                 	        end if;
