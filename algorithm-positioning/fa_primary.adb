@@ -1,6 +1,7 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
 
+with Inited_Value; use Inited_Value;
 with Keyword_Record; use Keyword_Record;
 
 

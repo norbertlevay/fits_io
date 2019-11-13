@@ -2,6 +2,7 @@
 with Ada.Exceptions; use Ada.Exceptions;
 
 with FITS; use FITS; -- Card_Type needed
+with Inited_Value; use Inited_Value;
 with Keyword_Record; use Keyword_Record;
 
 --
