@@ -23,7 +23,7 @@ package Formulas is
 
 	function  Calc_DataUnit_Size_blocks  
 		(BITPIX   : in Integer;--Data_Type;
-		 NAXISArr : in NAXIS_Arr) return Positive_Count;
+		 NAXISArr : in Positive_Arr) return Positive_Count;
 	
 end Formulas;
 

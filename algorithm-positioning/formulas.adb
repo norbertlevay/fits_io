@@ -48,7 +48,7 @@ package body Formulas is
 
 	function  Calc_DataUnit_Size_blocks  
 		(BITPIX   : in Integer;--Data_Type;
-		 NAXISArr : in NAXIS_Arr) 
+		 NAXISArr : in Positive_Arr) 
 		 return Positive_Count
 	is
 		DUSize : Positive_Count := 1;

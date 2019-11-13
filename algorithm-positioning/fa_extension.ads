@@ -10,7 +10,6 @@ package FA_Extension is
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 	
 	type TFORM_Arr is array (Positive range <>) of String(1..70);
-	type TBCOL_Arr is array (Positive range <>) of String(1..20);
 
 	type Result_Rec(HDU : Extension_HDU;
 			NAXIS_Last   : Positive;
@@ -18,7 +17,7 @@ package FA_Extension is
 		record
 			CardsCount : Positive;
 			BITPIX     : Integer;
-			NAXISArr   : NAXIS_Arr(1 .. NAXIS_Last);
+			NAXISArr   : Positive_Arr(1 .. NAXIS_Last);
 			PCOUNT     : Natural;
 			GCOUNT     : Positive;
 			case HDU is
@@ -26,7 +25,7 @@ package FA_Extension is
 				TFORMn : TFORM_Arr(1..TFIELDS_Last);
 				case HDU is
 					when STANDARD_TABLE =>
-					TBCOLn : TBCOL_Arr(1..TFIELDS_Last);
+					TBCOLn : Positive_Arr(1..TFIELDS_Last);
 					when others => null;
 				end case;
 			when others => null;

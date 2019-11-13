@@ -21,12 +21,12 @@ type State_Name is
 	 );	
 
 TFIELDS_Max : constant Positive := 100;
-type TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue(20);
-type TFORMn_TFIELDS_MaxArr is array (1 .. TFIELDS_Max) of CardValue(70);
+type TBCOL_MaxArr is array (1 .. TFIELDS_Max) of CardValue(20);
+type TFORM_MaxArr is array (1 .. TFIELDS_Max) of CardValue(70);
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
-InitTFORMArrVal : constant TFORMn_TFIELDS_MaxArr  := (others => InitVal70);
-InitTBCOLArrVal : constant TFIELDS_MaxArr  := (others => InitVal);
+InitTFORMArrVal : constant TFORM_MaxArr  := (others => InitVal70);
+InitTBCOLArrVal : constant TBCOL_MaxArr  := (others => InitVal);
 
 
 type XT_Type is
@@ -45,12 +45,12 @@ type State_Type is
         XTENSION : CardValue(70);
         BITPIX   : CardValue(20);
         NAXIS    : CardValue(20);
-        NAXISn   : NAXIS_MaxArr;-- arr of CardValue
+        NAXISn   : NAXIS_MaxArr;-- arr of CardValue20
         PCOUNT   : CardValue(20);
         GCOUNT   : CardValue(20);
         TFIELDS  : CardValue(20);
-        TFORMn   : TFORMn_TFIELDS_MaxArr;
-        TBCOLn   : TFIELDS_MaxArr;
+        TFORMn   : TFORM_MaxArr;-- arr of CardValue70
+        TBCOLn   : TBCOL_MaxArr;-- arr of CardValue20
 	
 	-- other cards not recognized by this FA
         OtherCount : Natural;
@@ -122,18 +122,19 @@ end To_XT_Type;
 	begin
 		if(Pos = 1)
 		then
-			-- [FITS 3.5] The first 8 bytes of the special records 
-			-- must not contain the string “XTENSION”.
 			if( "XTENSION" = Card(1..8) )
 			then
 				State.XTENSION.Value := Card(11..80);
 				State.XTENSION.Read  := True;
 				State.XTENSION_Val := To_XT_Type(State.XTENSION.Value(1..20));
 			else
+				-- possibly Special Records:
+				-- [FITS 3.5] The first 8 bytes of the special records 
+				-- must not contain the string “XTENSION”.
 				Raise_Exception(Unexpected_First_Card'Identity, Card);
 			end if;
 
-		elsif    ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
+		elsif  ( "BITPIX  " = Card(1..8) AND (Pos = 2) )
 		then
 			State.BITPIX.Value := Card(11..30);
 			State.BITPIX.Read  := True;
@@ -180,7 +181,8 @@ end To_XT_Type;
 			State.TFIELDS_Val := To_Integer(State.TFIELDS.Value);
 
 			case(State.XTENSION_Val) is
-				when ASCII_TABLE | BIN_TABLE => State.Name := COLLECT_TABLE_ARRAYS;
+				when ASCII_TABLE | BIN_TABLE =>
+					State.Name := COLLECT_TABLE_ARRAYS;
 				when others => 
 					Raise_Exception(Unexpected_Card'Identity, Card);
 			end case;
@@ -208,6 +210,7 @@ end To_XT_Type;
         is
         begin
                 -- FIXME to be implemented
+                -- later hook up here Reserved/Optional Key parsing
                 return True;
         end Is_Valid;
 
@@ -243,7 +246,7 @@ end To_XT_Type;
 
                 else
                         Raise_Exception(Invalid_Card'Identity, Card);
-                        -- found card which does not confirm [FITS Addendix A] BNF syntax
+                        -- found card which does not conform [FITS Addendix A] BNF syntax
                         -- FIXME consider configurable whether to raise excpetion here or ignore
 		end if;
 
@@ -253,7 +256,7 @@ end To_XT_Type;
 
 
 	-- NOTE Ada2005 has package Ada.Assertions; and also 'pragma Assert()'
-   	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFIELDS_MaxArr )
+   	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TBCOL_MaxArr )
 	is
 		ArrComplete : Boolean := True;
 	begin
@@ -268,7 +271,7 @@ end To_XT_Type;
 		end loop;
 	end Assert_Array_Complete;
 
- 	procedure Assert_Array_Complete_TFORMn(ArrName : String; Length : Positive; Arr : TFORMn_TFIELDS_MaxArr )
+ 	procedure Assert_Array_Complete(ArrName : String; Length : Positive; Arr : TFORM_MaxArr )
 	is
 		ArrComplete : Boolean := True;
 	begin
@@ -281,7 +284,7 @@ end To_XT_Type;
 				Raise_Exception(Card_Not_Found'Identity, ArrName&Integer'Image(Ix));
 			end if;
 		end loop;
-	end Assert_Array_Complete_TFORMn;
+	end Assert_Array_Complete;
 
 
 
@@ -328,18 +331,16 @@ end To_XT_Type;
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
 
-
                         case(State.XTENSION_Val) is
                                	when ASCII_TABLE => 
-  					Assert_Array_Complete_TFORMn("TFORM",State.TFIELDS_Val, State.TFORMn);
+  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
   					Assert_Array_Complete("TBCOL",State.TFIELDS_Val, State.TBCOLn);
 					State.Name := TABLE;
 					return 0;
 					-- no more cards
 
-
                                	when BIN_TABLE   => 
-  					Assert_Array_Complete_TFORMn("TFORM",State.TFIELDS_Val, State.TFORMn);
+  					Assert_Array_Complete("TFORM",State.TFIELDS_Val, State.TFORMn);
 					State.Name := BINTABLE;
 					return 0;
 					-- no more cards
@@ -353,7 +354,8 @@ end To_XT_Type;
                         Raise_Exception(Duplicate_Card'Identity, Card);
                         -- one of IS_CONFORMING cards: may appear only once in header
 
-                elsif(Is_Valid(Card)) then
+                elsif(Is_Valid(Card))
+		then
                         -- valid card defined by [FITS Appendix A] BNF syntax
                         State.OtherCount := State.OtherCount + 1;
                         -- valid but unknown to this FA-implementation
@@ -469,15 +471,15 @@ end To_XT_Type;
 
 
 
-	function Get_TBCOLn return TBCOL_Arr
+	function Get_TBCOLn return Positive_Arr
 	is
-		Arr : TBCOL_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+		Arr : Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
 	begin
 		for I in 1 .. State.TFIELDS_Val
 		loop
 			if( State.TBCOLn(I).Read )
 			then 
-				Arr(I) := State.TBCOLn(I).Value; 
+				Arr(I) := To_Integer(State.TBCOLn(I).Value); 
 			else
 				null; -- FIXME what if some value missing ?
 			end if;

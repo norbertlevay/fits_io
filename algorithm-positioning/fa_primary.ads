@@ -15,7 +15,7 @@ package FA_Primary is
 			BITPIX     : Integer;
 			case HDU is
 				when IMAGE | RANDOM_GROUPS =>
-					NAXISArr : NAXIS_Arr(1 .. Last);
+					NAXISArr : Positive_Arr(1 .. Last);
 					case HDU is
 					when RANDOM_GROUPS =>
 						PCOUNT : Natural;

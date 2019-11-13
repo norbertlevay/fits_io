@@ -115,16 +115,14 @@ procedure DBG_Print is separate;
 		
 		elsif ((Card(1..8) = "NAXIS   ") AND (Pos = 3))
 		then
-
 			State.NAXIS_Val := To_Integer(Card(11..30));
 
 			State.NAXIS.Value := Card(11..30);
 			State.NAXIS.Read := True;
 	
-			if (State.NAXIS_Val = 0) then
+			if (State.NAXIS_Val = 0)
+			then
 				State.Name := WAIT_END;
-				-- FIXME check this behaviour against Standard
-				-- there is some talk that NAXISn() may also be zero
 			end if;
 
 		elsif ((Card(1..8) = "NAXIS1  ") AND (Pos = 4))
@@ -180,6 +178,7 @@ procedure DBG_Print is separate;
 	is
 	begin
 		-- FIXME to be implemented
+		-- later hook up here Reserved/optional key parsing
 		return True;
 	end Is_Valid;
 
@@ -271,8 +270,8 @@ procedure DBG_Print is separate;
 
 		-- Mandatory keys
 
-		if ( Card(1..8) = "GROUPS  " ) then
-			
+		if ( Card(1..8) = "GROUPS  " )
+		then
 			if (NOT State.GROUPS.Read)
 			then
 				State.GROUPS.Value := Card(11..30);
@@ -286,8 +285,8 @@ procedure DBG_Print is separate;
 
 			Assert_GROUPS_T_Found(Card);
 
-		elsif (Card(1..8) = "PCOUNT  ") then
-			
+		elsif (Card(1..8) = "PCOUNT  ")
+		then
 			if (NOT State.PCOUNT.Read)
 			then
 				State.PCOUNT.Value := Card(11..30);
@@ -297,8 +296,8 @@ procedure DBG_Print is separate;
 			end if;
 			
 
-		elsif (Card(1..8) = "GCOUNT  ") then
-			
+		elsif (Card(1..8) = "GCOUNT  ")
+		then
 			if (NOT State.GCOUNT.Read)
 			then
 				State.GCOUNT.Value := Card(11..30);
@@ -308,10 +307,10 @@ procedure DBG_Print is separate;
 			end if;
 
 
-		elsif (Card = ENDCard) then
+		elsif (Card = ENDCard)
+		then
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
-	
 
 			Assert_GROUPS_PCOUNT_GCOUNT_Found;
  
@@ -320,12 +319,14 @@ procedure DBG_Print is separate;
 			-- no more cards
 
 
-		elsif(Is_Fixed_Position(Card)) then
+		elsif(Is_Fixed_Position(Card))
+		then
 			
 			Raise_Exception(Duplicate_Card'Identity, Card);
 			-- one of PRIMARY_STANDARD cards: may appear only once in header
 
-		elsif(Is_Valid(Card)) then
+		elsif(Is_Valid(Card))
+		then
 			-- valid card defined by [FITS Appendix A] BNF syntax
 			State.OtherCount := State.OtherCount + 1;
 			-- valid but unknown to this FA-implementation

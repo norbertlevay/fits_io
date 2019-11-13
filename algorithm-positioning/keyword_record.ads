@@ -3,7 +3,7 @@
 
 package Keyword_Record is
 
-type NAXIS_Arr is array (Positive range <>) of Positive;
+type Positive_Arr is array (Positive range <>) of Positive;
 -- FIXME Formulas & FA_Prim/Ext need it; where to declare?
 
 
