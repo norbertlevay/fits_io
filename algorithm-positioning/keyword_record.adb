@@ -49,6 +49,9 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Strings; use Ada.Strings;
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
+
 
 package body Keyword_Record is
 
@@ -79,9 +82,25 @@ package body Keyword_Record is
 	
 	function To_String (Value : String) return String
 	is
+		S : String := Value; -- rename
+		AFirst  : Positive;
+		ASecond : Positive;
 	begin
 		-- separate optional comment from string value
-		return Value;
+
+		for I in S'Range
+		loop
+		AFirst := I;
+		exit when S(I) = '''; 
+		end loop;
+
+		for I in AFirst + 1 .. S'Last
+		loop
+		ASecond := I;
+		exit when S(I) = ''';
+		end loop;	
+		
+		return Trim(Value(AFirst+1 .. ASecond-1), Both );
 	end To_String;
 
 

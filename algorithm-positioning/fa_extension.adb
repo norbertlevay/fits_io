@@ -1,5 +1,7 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
 with Inited_Value; use Inited_Value;
 with Keyword_Record; use Keyword_Record;
@@ -463,6 +465,23 @@ end To_XT_Type;
 		return Arr;
 	end Get_TFORMn;
 
+	function Get_TFORMn return TFORM_UArr
+	is
+		Arr : TFORM_UArr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+	begin
+		for I in 1 .. State.TFIELDS_Val
+		loop
+			if( State.TFORMn(I).Read )
+			then 
+				Arr(I) := To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
+				Put_Line("DBG US>"&Arr(I)&"<"); 
+			else
+				null; -- FIXME what if some value missing ?
+			end if;
+		end loop;
+		return Arr;
+	end Get_TFORMn;
+
 
 
 
@@ -497,6 +516,9 @@ end To_XT_Type;
 					State.NAXIS_Val,
 					State.TFIELDS_Val);
                 NAXIS : Positive;
+
+
+		test : TFORM_UArr(1 .. State.TFIELDS_Val);
 	begin
                 if(State.OtherCount > 0)
                 then
@@ -558,6 +580,7 @@ end To_XT_Type;
 		when STANDARD_TABLE | STANDARD_BINTABLE =>
 
 			HDUSizeInfo.TFORMn := Get_TFORMn;
+			test := Get_TFORMn;
 
 			case HDUSizeInfo.HDU is
 			when STANDARD_TABLE =>
