@@ -15,7 +15,6 @@ ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
 	function To_Integer(Value : String) return Integer;
 	function To_String (Value : String) return String;
 
-	function Is_Natural(S : String) return Boolean;
 
 	function Match_Key(Key : in String; Card : in Card_Type) return Boolean;
 	function Match_Indexed_Key(Root : in String; Card : in Card_Type) return Boolean;
