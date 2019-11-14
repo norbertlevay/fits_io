@@ -122,22 +122,23 @@ procedure DBG_Print is separate;
 				State.Name := WAIT_END;
 			end if;
 
-		elsif ( KW.Match_Key("NAXIS1", Card) AND (Pos = 4))
-		then
-			Set(State.NAXISn(1), Card); 
-			
-			State.NAXIS1_Val := KW.To_Integer(State.NAXISn(1).Value);
-	
+
 		elsif ( KW.Match_Indexed_Key("NAXIS", Card) )
 		then
 			Idx := KW.Take_Index("NAXIS", Card);
+
 			if(Pos = 3 + Idx)
 			then
 				Set(State.NAXISn(Idx), Card); 
 			else
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
-			
+	
+			if ( Idx = 1 )
+			then
+				State.NAXIS1_Val := KW.To_Integer(State.NAXISn(1).Value);
+			end if;
+			-- FIXME what if NAXIS=1 NAXIS1=0 ??? check [FITS]
 			if(Idx >= State.NAXIS_Val)
 			then
 				if (State.NAXIS1_Val = 0) then
