@@ -4,13 +4,15 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
 with Inited_Value; use Inited_Value;
-with Keyword_Record; use Keyword_Record;
+with Keyword_Record;
 
 --
 -- Finite Automaton
 --
 
 package body FA_Extension is
+
+package KW renames Keyword_Record;
 
 
 type State_Name is
@@ -120,17 +122,17 @@ end To_XT_Type;
 
 
 
-	function In_IS_CONFORMING(Pos : Positive; Card : Card_Type) return Positive
+	function In_IS_CONFORMING(Pos : Positive; Card : KW.Card_Type) return Positive
 	is
 		Idx : Positive;
 	begin
 		if(Pos = 1)
 		then
-			if( Match_Key("XTENSION", Card) )
+			if( KW.Match_Key("XTENSION", Card) )
 			then
 				Set(State.XTENSION, Card);
 
-				State.XTENSION_Val := To_XT_Type(To_String(State.XTENSION.Value));
+				State.XTENSION_Val := To_XT_Type(KW.To_String(State.XTENSION.Value));
 			else
 				-- possibly Special Records:
 				-- [FITS 3.5] The first 8 bytes of the special records 
@@ -138,19 +140,19 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_First_Card'Identity, Card);
 			end if;
 
-		elsif  ( Match_Key("BITPIX", Card) AND (Pos = 2) )
+		elsif  ( KW.Match_Key("BITPIX", Card) AND (Pos = 2) )
 		then
 			Set(State.BITPIX, Card);
 
-		elsif ( Match_Key("NAXIS", Card) AND (Pos = 3) )
+		elsif ( KW.Match_Key("NAXIS", Card) AND (Pos = 3) )
 		then
 			Set(State.NAXIS, Card);
 
-			State.NAXIS_Val := To_Integer(State.NAXIS.Value);
+			State.NAXIS_Val := KW.To_Integer(State.NAXIS.Value);
 
-		elsif ( Match_Indexed_Key("NAXIS", Card) )
+		elsif ( KW.Match_Indexed_Key("NAXIS", Card) )
 		then
-			Idx := Take_Index("NAXIS", Card);
+			Idx := KW.Take_Index("NAXIS", Card);
 			if(Pos = 3 + Idx)
 			then
 				Set(State.NAXISn(Idx), Card);
@@ -158,11 +160,11 @@ end To_XT_Type;
 				Raise_Exception(Unexpected_Card'Identity, Card);
 			end if;
 	
-		elsif ( Match_Key("PCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 1))
+		elsif ( KW.Match_Key("PCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 1))
 		then
 			Set(State.PCOUNT, Card);
 
-		elsif ( Match_Key("GCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 2))
+		elsif ( KW.Match_Key("GCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 2))
 		then
 			Set(State.GCOUNT, Card);
 
@@ -172,11 +174,11 @@ end To_XT_Type;
 				when others => State.Name := WAIT_END;
 			end case;
 
-		elsif ( Match_Key("TFIELDS", Card) AND (Pos = 3 + State.NAXIS_Val + 3) )
+		elsif ( KW.Match_Key("TFIELDS", Card) AND (Pos = 3 + State.NAXIS_Val + 3) )
 		then
 			Set(State.TFIELDS, Card);
 
-			State.TFIELDS_Val := To_Integer(State.TFIELDS.Value);
+			State.TFIELDS_Val := KW.To_Integer(State.TFIELDS.Value);
 
 			case(State.XTENSION_Val) is
 				when ASCII_TABLE | BIN_TABLE =>
@@ -196,7 +198,7 @@ end To_XT_Type;
 
 
 
-        function Is_Fixed_Position(Card : in Card_Type) return Boolean
+        function Is_Fixed_Position(Card : in KW.Card_Type) return Boolean
         is
         begin
                 -- FIXME to be implemented
@@ -204,7 +206,7 @@ end To_XT_Type;
         end Is_Fixed_Position;
 
 
-        function Is_Valid(Card : in Card_Type) return Boolean
+        function Is_Valid(Card : in KW.Card_Type) return Boolean
         is
         begin
                 -- FIXME to be implemented
@@ -213,10 +215,10 @@ end To_XT_Type;
         end Is_Valid;
 
 
-	function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
+	function In_WAIT_END(Pos : Positive; Card : KW.Card_Type) return Natural
 	is
 	begin
-		if( ENDCard = Card )
+		if( KW.ENDCard = Card )
 		then
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
@@ -287,14 +289,14 @@ end To_XT_Type;
 
 
 
-	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : Card_Type) return Natural
+	function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : KW.Card_Type) return Natural
 	is
 		Idx : Positive := 1;
 	begin
 
-		if ( Match_Indexed_Key("TFORM", Card) )
+		if ( KW.Match_Indexed_Key("TFORM", Card) )
 		then
-			Idx := Take_Index("TFORM", Card);
+			Idx := KW.Take_Index("TFORM", Card);
 			if(NOT State.TFORMn(Idx).Read)
 			then
 				Set(State.TFORMn(Idx), Card);
@@ -305,11 +307,11 @@ end To_XT_Type;
 			end if;
 			
 
-		elsif ( Match_Indexed_Key("TBCOL", Card) )
+		elsif ( KW.Match_Indexed_Key("TBCOL", Card) )
 		then
 			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
-				Idx := Take_Index("TBCOL", Card);
+				Idx := KW.Take_Index("TBCOL", Card);
 				if(NOT State.TBCOLn(Idx).Read)
 				then
 					Set(State.TBCOLn(Idx), Card);
@@ -322,7 +324,7 @@ end To_XT_Type;
 			end if;
 
 
-		elsif( Card = ENDCard )
+		elsif( Card = KW.ENDCard )
 		then
 			State.ENDCardPos := Pos;
 			State.ENDCardSet := True;
@@ -374,7 +376,7 @@ end To_XT_Type;
 	--
 	function Next
 		(Pos : Positive;
-		Card : Card_Type) return Natural
+		Card : KW.Card_Type) return Natural
 	is
 		NextCardPos : Natural;
 		InState : State_Name := State.Name;
@@ -468,15 +470,15 @@ end To_XT_Type;
 
 
 
-	function Get_TBCOLn return Positive_Arr
+	function Get_TBCOLn return KW.Positive_Arr
 	is
-		Arr : Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+		Arr : KW.Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
 	begin
 		for I in 1 .. State.TFIELDS_Val
 		loop
 			if( State.TBCOLn(I).Read )
 			then 
-				Arr(I) := To_Integer(State.TBCOLn(I).Value); 
+				Arr(I) := KW.To_Integer(State.TBCOLn(I).Value); 
 			else
 				null; -- FIXME what if some value missing ?
 			end if;
@@ -514,7 +516,7 @@ end To_XT_Type;
 
         	if(State.BITPIX.Read)
 		then
-                	HDUSizeInfo.BITPIX := To_Integer(State.BITPIX.Value);
+                	HDUSizeInfo.BITPIX := KW.To_Integer(State.BITPIX.Value);
 	        else
         		Raise_Exception(Card_Not_Found'Identity, "BITPIX");
                 end if;
@@ -522,7 +524,7 @@ end To_XT_Type;
 		
 		-- FIXME see FA_Primary : NAXIS.Read vs NAXIS_Val
 	        if(State.NAXIS.Read) then
-        		NAXIS := To_Integer(State.NAXIS.Value);
+        		NAXIS := KW.To_Integer(State.NAXIS.Value);
                	else
                        	Raise_Exception(Card_Not_Found'Identity, "NAXIS");
 	        end if;
@@ -530,7 +532,7 @@ end To_XT_Type;
        	        for I in 1 .. NAXIS -- FIXME use NAXIS_Val ??
                	loop
                        	if(State.NAXISn(I).Read) then
-                               	HDUSizeInfo.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                               	HDUSizeInfo.NAXISArr(I) := KW.To_Integer(State.NAXISn(I).Value);
                         else
        	                        Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
                	        end if;
@@ -539,13 +541,13 @@ end To_XT_Type;
 		-- FIXME here? to check whether XTENSION type vs P/GCOUNT values match ?
 
 		if(State.PCOUNT.Read) then
-       	                HDUSizeInfo.PCOUNT := To_Integer(State.PCOUNT.Value);
+       	                HDUSizeInfo.PCOUNT := KW.To_Integer(State.PCOUNT.Value);
        		else
                        	Raise_Exception(Card_Not_Found'Identity, "PCOUNT");
                 end if;
 
 		if(State.GCOUNT.Read) then
-       	                HDUSizeInfo.GCOUNT := To_Integer(State.GCOUNT.Value);
+       	                HDUSizeInfo.GCOUNT := KW.To_Integer(State.GCOUNT.Value);
       		else
                        	Raise_Exception(Card_Not_Found'Identity, "GCOUNT");
                 end if;

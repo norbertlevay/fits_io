@@ -1,5 +1,5 @@
 
-with Keyword_Record; use Keyword_Record;
+with Keyword_Record;
 
 package FA_Primary is
 
@@ -15,7 +15,7 @@ package FA_Primary is
 			BITPIX     : Integer;
 			case HDU is
 				when IMAGE | RANDOM_GROUPS =>
-					NAXISArr : Positive_Arr(1 .. Last);
+					NAXISArr : Keyword_Record.Positive_Arr(1 .. Last);
 					case HDU is
 					when RANDOM_GROUPS =>
 						PCOUNT : Natural;
@@ -29,7 +29,7 @@ package FA_Primary is
 
 
 	function Reset_State return Positive;
-	function Next(Pos : in Positive; Card : in Card_Type) return Natural;
+	function Next(Pos : in Positive; Card : in Keyword_Record.Card_Type) return Natural;
 	function Get return Result_Rec;
 
 

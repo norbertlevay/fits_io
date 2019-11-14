@@ -2,7 +2,7 @@
 with Ada.Exceptions; use Ada.Exceptions;
 
 with Inited_Value; use Inited_Value;
-with Keyword_Record; use Keyword_Record;
+with Keyword_Record;
 
 
 -- FIXME consider configurable how to react to duplicates (with the same card value)
@@ -13,6 +13,8 @@ with Keyword_Record; use Keyword_Record;
 --
 
 package body FA_Primary is
+
+package KW renames Keyword_Record;
 
 
 type State_Name is 
@@ -88,30 +90,30 @@ procedure DBG_Print is separate;
 
 	function In_PRIMARY_STANDARD
 		(Pos  : in Positive;
-		 Card : in Card_Type) return Natural
+		 Card : in KW.Card_Type) return Natural
 	is
 		Idx : Positive;
 	begin
 
-		if ( Match_Key("SIMPLE", Card) AND (Pos = 1))
+		if ( KW.Match_Key("SIMPLE", Card) AND (Pos = 1))
 		then
 			Set(State.SIMPLE, Card); 
 			
 			-- SIMPLE = F 
 			-- non-standard primary HDU: don't know what to do -> exit.	
-			if(To_Boolean(Card(11..30)) = False)
+			if(KW.To_Boolean(Card(11..30)) = False)
 			then
 				Raise_Exception(Unexpected_Card_Value'Identity, Card);
 			end if;
 
 
-		elsif ( Match_Key("BITPIX", Card) AND (Pos = 2))
+		elsif ( KW.Match_Key("BITPIX", Card) AND (Pos = 2))
 		then
 			Set(State.BITPIX, Card); 
 		
-		elsif ( Match_Key("NAXIS", Card) AND (Pos = 3))
+		elsif ( KW.Match_Key("NAXIS", Card) AND (Pos = 3))
 		then
-			State.NAXIS_Val := To_Integer(Card(11..30));
+			State.NAXIS_Val := KW.To_Integer(Card(11..30));
 
 			Set(State.NAXIS, Card); 
 	
@@ -120,15 +122,15 @@ procedure DBG_Print is separate;
 				State.Name := WAIT_END;
 			end if;
 
-		elsif ( Match_Key("NAXIS1", Card) AND (Pos = 4))
+		elsif ( KW.Match_Key("NAXIS1", Card) AND (Pos = 4))
 		then
-			State.NAXIS1_Val := To_Integer(Card(11..30));
+			State.NAXIS1_Val := KW.To_Integer(Card(11..30));
 
 			Set(State.NAXISn(1), Card); 
 	
-		elsif ( Match_Indexed_Key("NAXIS", Card) )
+		elsif ( KW.Match_Indexed_Key("NAXIS", Card) )
 		then
-			Idx := Take_Index("NAXIS", Card);
+			Idx := KW.Take_Index("NAXIS", Card);
 			if(Pos = 3 + Idx)
 			then
 				Set(State.NAXISn(Idx), Card); 
@@ -158,7 +160,7 @@ procedure DBG_Print is separate;
 
 
 	
-	function Is_Fixed_Position(Card : in Card_Type) return Boolean
+	function Is_Fixed_Position(Card : in KW.Card_Type) return Boolean
 	is
 	begin
 		-- FIXME to be implemented
@@ -166,7 +168,7 @@ procedure DBG_Print is separate;
 	end Is_Fixed_Position;
 
 
-	function Is_Valid(Card : in Card_Type) return Boolean
+	function Is_Valid(Card : in KW.Card_Type) return Boolean
 	is
 	begin
 		-- FIXME to be implemented
@@ -176,10 +178,10 @@ procedure DBG_Print is separate;
 
 
 
-        function In_WAIT_END(Pos : Positive; Card : Card_Type) return Natural
+        function In_WAIT_END(Pos : Positive; Card : KW.Card_Type) return Natural
         is
         begin
-		if( ENDCard = Card )
+		if( KW.ENDCard = Card )
 		then
                        	State.ENDCardPos := Pos;
                        	State.ENDCardSet := True;
@@ -238,11 +240,11 @@ procedure DBG_Print is separate;
 	end Assert_GROUPS_PCOUNT_GCOUNT_Found;
 
 
-	procedure Assert_GROUPS_T_Found(Card : in Card_Type)
+	procedure Assert_GROUPS_T_Found(Card : in KW.Card_Type)
 	is
 	begin
 	-- GROUPS = F
-		if(To_Boolean(Card(11..30)) = False)
+		if(KW.To_Boolean(Card(11..30)) = False)
 		then
 			Raise_Exception(Unexpected_Card_Value'Identity, Card);
 		end if;
@@ -251,13 +253,13 @@ procedure DBG_Print is separate;
 
 	function In_DATA_NOT_IMAGE
 		(Pos  : in Positive;
-		 Card : in Card_Type) return Natural
+		 Card : in KW.Card_Type) return Natural
 	is
 	begin
 
 		-- Mandatory keys
 
-		if ( Match_Key("GROUPS", Card) )
+		if ( KW.Match_Key("GROUPS", Card) )
 		then
 			if (NOT State.GROUPS.Read)
 			then
@@ -270,7 +272,7 @@ procedure DBG_Print is separate;
 
 			Assert_GROUPS_T_Found(Card);
 
-		elsif ( Match_Key("PCOUNT", Card) )
+		elsif ( KW.Match_Key("PCOUNT", Card) )
 		then
 			if (NOT State.PCOUNT.Read)
 			then
@@ -280,7 +282,7 @@ procedure DBG_Print is separate;
 			end if;
 			
 
-		elsif ( Match_Key("GCOUNT", Card) )
+		elsif ( KW.Match_Key("GCOUNT", Card) )
 		then
 			if (NOT State.GCOUNT.Read)
 			then
@@ -290,7 +292,7 @@ procedure DBG_Print is separate;
 			end if;
 
 
-		elsif (Card = ENDCard)
+		elsif (Card = KW.ENDCard)
 		then
 			State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
@@ -332,7 +334,7 @@ procedure DBG_Print is separate;
 	--
 	function  Next
 		(Pos  : in Positive; 
-		Card : in Card_Type) return Natural
+		Card : in KW.Card_Type) return Natural
 	is
 		NextCardPos : Natural;
 	begin
@@ -409,7 +411,7 @@ procedure DBG_Print is separate;
 					"END card not found, not a valid FITS file.");
                 end if;
 
-                Result.BITPIX := To_Integer(State.BITPIX.Value);
+                Result.BITPIX := KW.To_Integer(State.BITPIX.Value);
 
 		case(Result.HDU) is
 			when IMAGE | RANDOM_GROUPS =>
@@ -418,7 +420,7 @@ procedure DBG_Print is separate;
                		loop
                        		if(State.NAXISn(I).Read)
 				then
-                       			Result.NAXISArr(I) := To_Integer(State.NAXISn(I).Value);
+                       			Result.NAXISArr(I) := KW.To_Integer(State.NAXISn(I).Value);
                        		else
                                		Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
                        		end if;
@@ -426,8 +428,8 @@ procedure DBG_Print is separate;
 			
 			case Result.HDU is
 			when RANDOM_GROUPS =>
-				Result.PCOUNT := To_Integer(State.PCOUNT.Value);
-				Result.GCOUNT := To_Integer(State.GCOUNT.Value);
+				Result.PCOUNT := KW.To_Integer(State.PCOUNT.Value);
+				Result.GCOUNT := KW.To_Integer(State.GCOUNT.Value);
 			when others => null;
 			end case;
 

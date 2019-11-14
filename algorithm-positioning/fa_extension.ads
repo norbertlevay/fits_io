@@ -1,7 +1,7 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Keyword_Record; use Keyword_Record;
+with Keyword_Record;
 
 package FA_Extension is
 
@@ -19,7 +19,7 @@ package FA_Extension is
 		record
 			CardsCount : Positive;
 			BITPIX     : Integer;
-			NAXISArr   : Positive_Arr(1 .. NAXIS_Last);
+			NAXISArr   : Keyword_Record.Positive_Arr(1 .. NAXIS_Last);
 			PCOUNT     : Natural;
 			GCOUNT     : Positive;
 			case HDU is
@@ -27,7 +27,7 @@ package FA_Extension is
 				TFORMn : TFORM_Arr(1..TFIELDS_Last);
 				case HDU is
 					when STANDARD_TABLE =>
-					TBCOLn : Positive_Arr(1..TFIELDS_Last);
+					TBCOLn : Keyword_Record.Positive_Arr(1..TFIELDS_Last);
 					when others => null;
 				end case;
 			when others => null;
@@ -37,7 +37,7 @@ package FA_Extension is
 
 
 	function Reset_State return Positive; 
-	function Next (Pos : in Positive; Card : in Card_Type) return Natural;
+	function Next (Pos : in Positive; Card : in Keyword_Record.Card_Type) return Natural;
 	function Get return Result_Rec;
 
 
