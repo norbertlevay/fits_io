@@ -128,7 +128,7 @@ procedure DBG_Print is separate;
 	
 		elsif ( Match_Indexed_Key("NAXIS", Card) )
 		then
-			Idx := To_Integer(Card(6..8));
+			Idx := Take_Index("NAXIS", Card);
 			if(Pos = 3 + Idx)
 			then
 				Set(State.NAXISn(Idx), Card); 

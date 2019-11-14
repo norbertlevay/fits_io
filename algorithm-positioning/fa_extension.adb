@@ -150,7 +150,7 @@ end To_XT_Type;
 
 		elsif ( Match_Indexed_Key("NAXIS", Card) )
 		then
-			Idx := To_Integer(Card(6..8));
+			Idx := Take_Index("NAXIS", Card);
 			if(Pos = 3 + Idx)
 			then
 				Set(State.NAXISn(Idx), Card);
@@ -294,7 +294,7 @@ end To_XT_Type;
 
 		if ( Match_Indexed_Key("TFORM", Card) )
 		then
-			Idx := To_Integer(Card(6..8));
+			Idx := Take_Index("TFORM", Card);
 			if(NOT State.TFORMn(Idx).Read)
 			then
 				Set(State.TFORMn(Idx), Card);
@@ -309,7 +309,7 @@ end To_XT_Type;
 		then
 			if(State.XTENSION_Val = ASCII_TABLE) 
 			then
-				Idx := To_Integer(Card(6..8));
+				Idx := Take_Index("TBCOL", Card);
 				if(NOT State.TBCOLn(Idx).Read)
 				then
 					Set(State.TBCOLn(Idx), Card);
