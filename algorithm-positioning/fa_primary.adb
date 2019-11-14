@@ -101,7 +101,7 @@ procedure DBG_Print is separate;
 			
 			-- SIMPLE = F 
 			-- non-standard primary HDU: don't know what to do -> exit.	
-			if(KW.To_Boolean(Card(11..30)) = False)
+			if(KW.To_Boolean(State.SIMPLE.Value) = False)
 			then
 				Raise_Exception(Unexpected_Card_Value'Identity, Card);
 			end if;
@@ -113,9 +113,9 @@ procedure DBG_Print is separate;
 		
 		elsif ( KW.Match_Key("NAXIS", Card) AND (Pos = 3))
 		then
-			State.NAXIS_Val := KW.To_Integer(Card(11..30));
-
 			Set(State.NAXIS, Card); 
+
+			State.NAXIS_Val := KW.To_Integer(State.NAXIS.Value);
 	
 			if (State.NAXIS_Val = 0)
 			then
@@ -124,9 +124,9 @@ procedure DBG_Print is separate;
 
 		elsif ( KW.Match_Key("NAXIS1", Card) AND (Pos = 4))
 		then
-			State.NAXIS1_Val := KW.To_Integer(Card(11..30));
-
 			Set(State.NAXISn(1), Card); 
+			
+			State.NAXIS1_Val := KW.To_Integer(State.NAXISn(1).Value);
 	
 		elsif ( KW.Match_Indexed_Key("NAXIS", Card) )
 		then
@@ -240,13 +240,13 @@ procedure DBG_Print is separate;
 	end Assert_GROUPS_PCOUNT_GCOUNT_Found;
 
 
-	procedure Assert_GROUPS_T_Found(Card : in KW.Card_Type)
+	procedure Assert_GROUPS_T_Found(Value : in String)
 	is
 	begin
 	-- GROUPS = F
-		if(KW.To_Boolean(Card(11..30)) = False)
+		if(KW.To_Boolean(Value) = False)
 		then
-			Raise_Exception(Unexpected_Card_Value'Identity, Card);
+			Raise_Exception(Unexpected_Card_Value'Identity, "Key: GROUPS  Value: " & Value);
 		end if;
 	end Assert_GROUPS_T_Found;
 
@@ -270,7 +270,7 @@ procedure DBG_Print is separate;
                                 Raise_Exception(Duplicate_Card'Identity, Card);
 			end if;
 
-			Assert_GROUPS_T_Found(Card);
+			Assert_GROUPS_T_Found(State.GROUPS.Value);
 
 		elsif ( KW.Match_Key("PCOUNT", Card) )
 		then
