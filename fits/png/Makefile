@@ -21,8 +21,8 @@ buildlibz: libz-1.2.8.2015.12.26
 zlibinstall:
 	sudo apt install zlib1g-dev
 
-#zlib-ada: buildlibz
-zlib-ada: zlibinstall
+zlib-ada: buildlibz
+#zlib-ada: zlibinstall
 	mkdir -p zlib-ada
 	tar xzfv zlib-ada-1.3.tar.gz -C zlib-ada
 	gnatmake -Pzlib-ada/zlib.gpr
