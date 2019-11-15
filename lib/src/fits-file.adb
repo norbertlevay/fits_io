@@ -464,7 +464,10 @@ package body FITS.File is
    --
    -- Set file index to position given by params
    --
-   procedure Set_Index(FitsFile : in SIO.File_Type;
+   procedure Set_Index(File : in SIO.File_Type;
+                       HDUNum   : in Positive) is separate;
+
+   procedure OFF_Set_Index(FitsFile : in SIO.File_Type;
                        HDUNum   : in Positive)
    is
     CurHDUSize_blocks : FPositive;
@@ -508,7 +511,7 @@ package body FITS.File is
      CurHDUNum := CurHDUNum + 1;
     end loop;
 
-   end Set_Index;
+   end OFF_Set_Index;
 
    --
    -- calculate Header size in FITS Blocks

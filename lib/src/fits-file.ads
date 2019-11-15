@@ -209,7 +209,7 @@ package FITS.File is
    -- Positioning in file --
    -------------------------
 
-   procedure Set_Index(FitsFile : in SIO.File_Type;
+   procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive);
 
    -----------
