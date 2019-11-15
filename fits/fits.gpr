@@ -1,0 +1,23 @@
+project fits is
+
+   for Languages use ("Ada");
+   for Source_Dirs use (".", "../lib/src", "../lib/src/parser" ,"png/png_4_6", "png/zlib-ada");
+   for Object_Dir use "obj";
+   for Exec_Dir use ".";
+   for Main use ("main.adb");
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-gnat12");
+   end Compiler;
+
+   package Linker is
+      for Default_Switches ("ada") use ("-lz");
+   end Linker;
+
+   package Builder is
+      for Default_Switches ("ada") use ("-s", "-gnatQ");
+      for Executable ("main.adb") use "fits";
+   end Builder;
+
+end fits;
+
