@@ -1,3 +1,16 @@
+-- NOTES:
+-- FA_Prim/Ext had Options for configurability (not implemented):
+       -- FA configuration
+--     type Options_Type is
+--              (
+--                 ALGORITHM_STRICT,  -- parsing Headers follows strictly FITS-Standard
+--                 ALGORITHM_TOLERANT -- parsing Headers fails only if:
+                        -- * essential key is missing
+                        -- * essential key is duplicate with different values (ambiguity)
+--         );
+--       procedure Configure(Options : Options_Type) is null;
+-- END NOTES
+
 
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -13,91 +26,49 @@ procedure Set_Index
 	    Options : String;
             HDUNum : Positive)
 is
-type Card_Block is array(1..36) of Card_Type;
 
+	type Card_Block is array(1..36) of Card_Type;
 
-type Read_Control is
-        (Continue,           -- continue calling Next() and supplying CardBlocks
-         StartFromBegining,  -- read again CardBlock from begining of Header
-         Stop);              -- do not provide more CardBlocks, usually after END-card found
--- this enables implement various parsing strategies including 2-pass parsing (StartFromBegining)
+	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+        
 
-	--
-        -- read by blocks
-        --
-       function  Next
-                (HDUNum : in Positive;
-		 BlockNum  : in Positive;
-                 CardBlock : in Card_Block) return Read_Control
-        is
-                NextCardPos : Natural;
-                Rc : Read_Control := Continue;
-                CardPosBase : Natural := (BlockNum-1) * 36;
-                CardPos : Positive;
-                Card : Card_Type;
-        begin
-                for I in CardBlock'Range
-                loop
-                        Card := CardBlock(I);
+	-- buffered read card
+	function NextCard (HStart : in SIO.Positive_Count;
+			CurBlkNum : in out Natural;
+			Blk : in out Card_Block;
+			CardNum : in Positive) return Natural
+	is
+		BlkNum : Positive;
+		CardNumInBlk : Positive;
+		Card : String(1..80);
+		BlkNumIndex : SIO.Positive_Count;
+	begin
+		BlkNum := 1 + (CardNum - 1) / 36;
+		CardNumInBlk := CardNum - (BlkNum - 1) * 36;
+	
+		if(BlkNum /= CurBlkNUm)
+		then
+			BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
+						* Positive(BlockSize_SIOunits) );
 
-                        CardPos := CardPosBase + I;
+			SIO.Set_Index(File, BlkNumIndex);
+		 	Card_Block'Read(SIO.Stream(File), Blk);
+			CurBlkNum := BlkNum;
+		end if;
 
-			if(HDUNum = 1)
-			then
-				--NextCardPos := FA_Primary.Next(CardPos, Card);
-				NextCardPos := Strict.Next(CardPos, Card);
-			else
-				--NextCardPos := FA_Extension.Next(CardPos, Card);
-				NextCardPos := Strict.Next(CardPos, Card);
-			end if;
-			-- FIXME use generic instead HDUNum
+		Card := Blk(CardNumInBlk);
 
-                        -- currently ignored - we loop throu anyway
-                        if(NextCardPos = 0)
-			then
-				Rc := Stop;
-				exit;
-			else
-				Rc := Continue;
-			end if;
-
-                end loop;
-                return Rc;
-        end Next;
+		return Strict.Next(CardNum, Card);
+	end NextCard;
 
 
 	CurHDUNum : Positive;
 	PrimaryHeaderStart : SIO.Positive_Count;
 	ExtHeaderStart : SIO.Positive_Count;
-	BlkNum : Positive;
 	Blk : Card_Block;
-	Rc  : Read_Control;
-	Stoped : Boolean;
 	HDUSize_blocks : Formulas.Positive_Count;
-
-
-	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-	CardPos : Positive;
-
-
--- NOTES:
--- FA_Prim/Ext had Options for configurability (not implemented):
-       -- FA configuration
---     type Options_Type is
---              (
---                 ALGORITHM_STRICT,  -- parsing Headers follows strictly FITS-Standard
---                 ALGORITHM_TOLERANT -- parsing Headers fails only if:
-                        -- * essential key is missing
-                        -- * essential key is duplicate with different values (ambiguity)
---         );
---       procedure Configure(Options : Options_Type) is null;
--- END NOTES
-
-
-
-
-	--FA_Prim_Options : constant FA_Primary.Options_Type   := FA_Primary.ALGORITHM_STRICT;
-	--FA_Ext_Options  : constant FA_Extension.Options_Type := FA_Extension.ALGORITHM_STRICT;
+	CardNum : Natural;
+	CurBlkNum : Natural := 0; -- none read yet
 begin
 
 	PrimaryHeaderStart := 1;
@@ -109,49 +80,37 @@ begin
 		return;
 	end if;
 
--- Read Primary HDU
+	-- Read Primary Header
 
-	--CardPos := FA_Primary.Reset_State;
-	CardPos := Strict.Reset_State;
-
+	CardNum := Strict.Reset_State;
 	loop
-	 	Card_Block'Read(SIO.Stream(File), Blk);
-
-		BlkNum := Positive( SIO.Index(File) / BlockSize_SIOunits );
-
-		Rc := Next(CurHDUNum,BlkNum, Blk);
-
-		case(Rc) is
-			when Continue =>
-				Stoped := False;
-			when StartFromBegining =>
-				SIO.Set_Index(File,PrimaryHeaderStart);
-				Stoped := False;
-			when Stop =>
-				Stoped := True;
-		end case;
-
-		exit when Stoped;
-
+		CardNum := NextCard(PrimaryHeaderStart, CurBlkNum, Blk, CardNum );
+		exit when (CardNum = 0);
 	end loop;
+
+	-- calc HDU size
 	
 	declare
-		--PSize : FA_Primary.Result_Rec := FA_Primary.Get;
 		PSize : Strict.Result_Rec := Strict.Get;
 	begin
-		--HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
 							PSize.BITPIX, 
 							PSize.NAXISArr);
 		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
 	end;
 
-	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
+	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
 
+	-- move to next HDU
+	
+	ExtHeaderStart := PrimaryHeaderStart 
+				+ SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
+	TIO.New_Line;
+	Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
 	SIO.Set_Index(File,ExtHeaderStart);
 	
-	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
-	
+
+
 
 -- Read Extension HDU's if exist, 
 
@@ -161,44 +120,34 @@ while ( CurHDUNum < HDUNum )
 loop
 
 	TIO.New_Line;
-
-	--CardPos := FA_Extension.Reset_State;
-	CardPos := Strict.Reset_State;
-
+	
+	-- Read Extension Header
+	
+	CardNum := Strict.Reset_State;
 	loop
-	 	Card_Block'Read(SIO.Stream(File), Blk);
-
-		BlkNum := Positive((SIO.Index(File) - ExtHeaderStart)/ BlockSize_SIOunits);
-		
-		Rc := Next(CurHDUNum, BlkNum, Blk);
-
-		case(Rc) is
-			when Continue =>
-				null;
-			when StartFromBegining =>
-				SIO.Set_Index(File, ExtHeaderStart);
-			when Stop =>
-				exit;
-		end case;
-
+		CardNum := NextCard(ExtHeaderStart, CurBlkNum, Blk, CardNum );
+		exit when (CardNum = 0);
 	end loop;
 
+	-- calc HDU size
+
 	declare
-		--HDUSizeInfo : FA_Extension.Result_Rec := FA_Extension.Get;
 		PSize : Strict.Result_Rec := Strict.Get;
 	begin
-		--HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
 							PSize.BITPIX, 
 							PSize.NAXISArr);
 		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
 	end;
 
-	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
+	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
+	
+	-- move to next HDU
 
+	ExtHeaderStart := ExtHeaderStart 
+				+ SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 	TIO.New_Line;
 	Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
-
 	SIO.Set_Index(File, ExtHeaderStart);
 
 CurHDUNum := CurHDUNum + 1;
