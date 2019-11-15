@@ -33,6 +33,25 @@ package body Formulas is
 		return HDUSize;
 	end Calc_HDU_Size_blocks;
 	
+	
+
+
+
+	function  Calc_HDU_Size_blocks
+                        (CardsCount : in Positive;
+                        BITPIX   : in Integer;
+                        NAXISArr : in Positive_Arr) return Positive_Count
+	is
+		HDUSize : Positive_Count;
+	begin
+		HDUSize :=  
+			Calc_HeaderUnit_Size_blocks(CardsCount) 
+			+
+			Calc_DataUnit_Size_blocks(BITPIX, NAXISArr);
+
+		return HDUSize;
+	end Calc_HDU_Size_blocks;
+	
 
 
 	function  Calc_HeaderUnit_Size_blocks

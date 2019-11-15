@@ -17,6 +17,12 @@ package Formulas is
 	function  Calc_HDU_Size_blocks
 		(HDUSizeInfo : in FA_Extension.Result_Rec) return Positive_Count;
 
+	function  Calc_HDU_Size_blocks
+			(CardsCount : in Positive;
+			BITPIX   : in Integer;
+			NAXISArr : in Positive_Arr) return Positive_Count;
+	
+
 
 	function  Calc_HeaderUnit_Size_blocks
 		(CardsCount : in Positive) return Positive_Count;

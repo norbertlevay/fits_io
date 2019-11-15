@@ -5,6 +5,7 @@ with Formulas;
 with Keyword_Record;    use Keyword_Record;
 with FA_Primary;
 with FA_Extension;
+with Strict;
 
 separate(main)
 procedure Set_Index
@@ -43,9 +44,11 @@ type Read_Control is
 
 			if(HDUNum = 1)
 			then
-				NextCardPos := FA_Primary.Next(CardPos, Card);
+				--NextCardPos := FA_Primary.Next(CardPos, Card);
+				NextCardPos := Strict.Next(CardPos, Card);
 			else
-				NextCardPos := FA_Extension.Next(CardPos, Card);
+				--NextCardPos := FA_Extension.Next(CardPos, Card);
+				NextCardPos := Strict.Next(CardPos, Card);
 			end if;
 			-- FIXME use generic instead HDUNum
 
@@ -108,10 +111,8 @@ begin
 
 -- Read Primary HDU
 
-	--FA_Primary.Configure(FA_Prim_Options);
-	-- parse for size-related cards (a.k.a. mandatory cards)
-
-	CardPos := FA_Primary.Reset_State;
+	--CardPos := FA_Primary.Reset_State;
+	CardPos := Strict.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
@@ -135,9 +136,13 @@ begin
 	end loop;
 	
 	declare
-		PSize : FA_Primary.Result_Rec := FA_Primary.Get;
+		--PSize : FA_Primary.Result_Rec := FA_Primary.Get;
+		PSize : Strict.Result_Rec := Strict.Get;
 	begin
-		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
+		--HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize);
+		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
+							PSize.BITPIX, 
+							PSize.NAXISArr);
 	end;
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
@@ -154,10 +159,8 @@ CurHDUNum := CurHDUNum + 1;
 while ( CurHDUNum < HDUNum )
 loop
 
-	--FA_Extension.Configure(FA_Ext_Options);
-	-- parse for size-related cards (a.k.a. mandatory cards)
-
-	CardPos := FA_Extension.Reset_State;
+	--CardPos := FA_Extension.Reset_State;
+	CardPos := Strict.Reset_State;
 
 	loop
 	 	Card_Block'Read(SIO.Stream(File), Blk);
@@ -178,10 +181,14 @@ loop
 	end loop;
 
 	declare
-		HDUSizeInfo : FA_Extension.Result_Rec := FA_Extension.Get;
+		--HDUSizeInfo : FA_Extension.Result_Rec := FA_Extension.Get;
+		PSize : Strict.Result_Rec := Strict.Get;
 	begin
 		--HDUSizeInfo    := FA_Extension.Get;
-		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+		--HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
+		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
+							PSize.BITPIX, 
+							PSize.NAXISArr);
 	end;
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
