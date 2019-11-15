@@ -143,12 +143,13 @@ begin
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
 							PSize.BITPIX, 
 							PSize.NAXISArr);
+		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
 	end;
 
 	ExtHeaderStart := PrimaryHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
 	SIO.Set_Index(File,ExtHeaderStart);
-
+	
 	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
 	
 
@@ -158,6 +159,8 @@ CurHDUNum := CurHDUNum + 1;
 
 while ( CurHDUNum < HDUNum )
 loop
+
+	TIO.New_Line;
 
 	--CardPos := FA_Extension.Reset_State;
 	CardPos := Strict.Reset_State;
@@ -184,16 +187,17 @@ loop
 		--HDUSizeInfo : FA_Extension.Result_Rec := FA_Extension.Get;
 		PSize : Strict.Result_Rec := Strict.Get;
 	begin
-		--HDUSizeInfo    := FA_Extension.Get;
 		--HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(HDUSizeInfo);
 		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
 							PSize.BITPIX, 
 							PSize.NAXISArr);
+		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
 	end;
 
 	ExtHeaderStart := ExtHeaderStart + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
 
-	Put_Line("DBG> New ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
+	TIO.New_Line;
+	Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
 
 	SIO.Set_Index(File, ExtHeaderStart);
 

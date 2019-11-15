@@ -48,8 +48,9 @@ begin
   SIO.Open(InFile, SIO.In_File, SU.To_String(InFileName));
 
   Ada.Text_IO.Put_Line("Set curHDU: "& Positive'Image(CurHDU));
+  Ada.Text_IO.New_Line;	
   main.Set_Index(InFile,"not_used",CurHDU);
-  --main.Set_Index(InFile,SU.To_String(InOptions),CurHDU);
+  Ada.Text_IO.New_Line;	
 
   SIO.Close(InFile);
 

@@ -635,7 +635,6 @@ end Is_Primary;
 			if( State.TFORMn(I).Read )
 			then 
 				Arr(I) := To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
-				Put_Line("DBG >"&Arr(I)&"<"); 
 			else
 				null; -- FIXME what if some value missing ?
 			end if;
