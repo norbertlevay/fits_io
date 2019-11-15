@@ -23,7 +23,6 @@ with Strict;
 separate(main)
 procedure Set_Index
            (File   : SIO.File_Type;
-	    Options : String;
             HDUNum : Positive)
 is
 

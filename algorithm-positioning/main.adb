@@ -18,7 +18,6 @@ is
 
  procedure Set_Index
            (File   : SIO.File_Type;
-	    Options : String;
             HDUNum : Positive) is separate;
 
 
@@ -49,7 +48,7 @@ begin
 
   Ada.Text_IO.Put_Line("Set curHDU: "& Positive'Image(CurHDU));
   Ada.Text_IO.New_Line;	
-  main.Set_Index(InFile,"not_used",CurHDU);
+  main.Set_Index(InFile,CurHDU);
   Ada.Text_IO.New_Line;	
 
   SIO.Close(InFile);
