@@ -27,12 +27,7 @@ type State_Name is
 
 subtype CardValue is Inited_Value.CardValue(20);
 
-RANDG_Max   : constant Positive := 100;
-type RANDG_MaxArr   is array (1 .. RANDG_Max)   of CardValue;
-
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
-InitRANDGArrVal : constant RANDG_MaxArr := (others => InitVal);
-
 
 type State_Type is
         record
@@ -423,7 +418,8 @@ procedure DBG_Print is separate;
 				then
                        			Result.NAXISArr(I) := KW.To_Integer(State.NAXISn(I).Value);
                        		else
-                               		Raise_Exception(Card_Not_Found'Identity, "NAXIS"&Integer'Image(I));
+                               		Raise_Exception(Card_Not_Found'Identity, 
+								"NAXIS"&Integer'Image(I));
                        		end if;
                		end loop;
 			
