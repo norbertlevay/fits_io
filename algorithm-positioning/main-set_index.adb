@@ -32,7 +32,7 @@ is
         
 
 	-- buffered read card
-	function NextCard (HStart : in SIO.Positive_Count;
+	function Read_Card (HStart : in SIO.Positive_Count;
 			CurBlkNum : in out Natural;
 			Blk : in out Card_Block;
 			CardNum : in Positive) return Natural
@@ -47,18 +47,24 @@ is
 	
 		if(BlkNum /= CurBlkNUm)
 		then
+			-- FIXME BEGIN only this section depends on SIO. file access
+			-- make it Read_Block(SIO.File, FileBlkNum, Blk)
+			-- where FileBlkNum := HStart + BlkNum
+			-- BlkNum - relative to HDU start
+			-- FileBlkNum - relative to File start
 			BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
 						* Positive(BlockSize_SIOunits) );
 
 			SIO.Set_Index(File, BlkNumIndex);
 		 	Card_Block'Read(SIO.Stream(File), Blk);
 			CurBlkNum := BlkNum;
+			-- FIXME END   only this section depends on SIO. file access
 		end if;
 
 		Card := Blk(CardNumInBlk);
 
 		return Strict.Next(CardNum, Card);
-	end NextCard;
+	end Read_Card;
 
 
 	CurHDUNum : Positive;
@@ -83,7 +89,7 @@ begin
 
 	CardNum := Strict.Reset_State;
 	loop
-		CardNum := NextCard(PrimaryHeaderStart, CurBlkNum, Blk, CardNum );
+		CardNum := Read_Card(PrimaryHeaderStart, CurBlkNum, Blk, CardNum );
 		exit when (CardNum = 0);
 	end loop;
 
@@ -124,7 +130,7 @@ loop
 	
 	CardNum := Strict.Reset_State;
 	loop
-		CardNum := NextCard(ExtHeaderStart, CurBlkNum, Blk, CardNum );
+		CardNum := Read_Card(ExtHeaderStart, CurBlkNum, Blk, CardNum );
 		exit when (CardNum = 0);
 	end loop;
 
