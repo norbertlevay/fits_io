@@ -3,7 +3,6 @@ with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
-with Inited_Value; use Inited_Value;
 with Keyword_Record;
 
 --
@@ -25,6 +24,20 @@ type State_Name is
 	 CONFORMING_EXTENSION,		 -- Final states (Extensions)
 	 ST_IMAGE, ST_TABLE, ST_BINTABLE -- Final states (Extensions)
 	 );	
+
+type CardValue(Last : Positive) is
+        record
+                Value : String(1..Last);
+                Read  : Boolean;
+        end record;
+
+EmptyVal : constant String(1..20) := (others => ' ');
+InitVal  : constant CardValue := (20,EmptyVal,False);
+
+EmptyVal70 : constant String(1..70) := (others => ' ');
+InitVal70  : constant CardValue := (70,EmptyVal70,False);
+
+
 
 NAXIS_Max : constant Positive := 9;
 type NAXIS_MaxArr is array (1 .. NAXIS_Max) of CardValue(20);
@@ -114,12 +127,37 @@ begin
 
 end To_XT_Type;
 
+
+
 function Is_Primary return Boolean
 is
 begin
 	return State.XTENSION_Val = UNSPECIFIED;
 end Is_Primary;
 -- FIXME what if SpecRecords ? review
+
+
+
+
+        procedure Set (V : in out CardValue; Card : in KW.Card_Type)
+        is
+        begin
+                V.Value := String(Card(11..(10+V.Value'Last)));
+                V.Read  := True;
+
+                -- Trace theoretical DFA-state: 
+                -- any change in implementation State-record (which is done by Set)
+                -- means a state-change of theoretical DFA
+-- FIXME make subpackage Trace_State
+--                Ada.Text_IO.Put(
+  --                              Ada.Strings.Fixed.Trim(Card(1..8), Ada.Strings.Both)
+    --                            &"("
+      --                          &Ada.Strings.Fixed.Trim(Card(11..30), Ada.Strings.Both)
+        --                        &") ");
+
+        end Set;
+
+
 
 
 --
