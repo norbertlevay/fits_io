@@ -1,38 +1,10 @@
 
+
+with Keyword_Record;
+
 package body Formulas is
 
-	 function  Calc_HDU_Size_blocks
-                (PrimSize : in FA_Primary.Result_Rec) return Positive_Count
-	 is
-                HDUSize : Positive_Count;
-	 begin
-                HDUSize :=
-                        Calc_HeaderUnit_Size_blocks(PrimSize.CardsCount)
-                        +
-                        Calc_DataUnit_Size_blocks(PrimSize.BITPIX, PrimSize.NAXISArr);
 
-                return HDUSize;
-		 
-	 end Calc_HDU_Size_blocks;
-
-
-
-
-
-
-	function  Calc_HDU_Size_blocks
-		(HDUSizeInfo : in FA_Extension.Result_Rec) return Positive_Count
-	is
-		HDUSize : Positive_Count;
-	begin
-		HDUSize :=  
-			Calc_HeaderUnit_Size_blocks(HDUSizeInfo.CardsCount) 
-			+
-			Calc_DataUnit_Size_blocks(HDUSizeInfo.BITPIX, HDUSizeInfo.NAXISArr);
-
-		return HDUSize;
-	end Calc_HDU_Size_blocks;
-	
 	
 
 
@@ -40,7 +12,7 @@ package body Formulas is
 	function  Calc_HDU_Size_blocks
                         (CardsCount : in Positive;
                         BITPIX   : in Integer;
-                        NAXISArr : in Positive_Arr) return Positive_Count
+                        NAXISArr : in Keyword_Record.Positive_Arr) return Positive_Count
 	is
 		HDUSize : Positive_Count;
 	begin
@@ -67,7 +39,7 @@ package body Formulas is
 
 	function  Calc_DataUnit_Size_blocks  
 		(BITPIX   : in Integer;--Data_Type;
-		 NAXISArr : in Positive_Arr) 
+		 NAXISArr : in Keyword_Record.Positive_Arr) 
 		 return Positive_Count
 	is
 		DUSize : Positive_Count := 1;

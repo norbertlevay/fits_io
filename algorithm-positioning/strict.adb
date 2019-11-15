@@ -26,6 +26,9 @@ type State_Name is
 	 ST_IMAGE, ST_TABLE, ST_BINTABLE -- Final states (Extensions)
 	 );	
 
+NAXIS_Max : constant Positive := 9;
+type NAXIS_MaxArr is array (1 .. NAXIS_Max) of CardValue(20);
+
 TFIELDS_Max : constant Positive := 100;
 type TBCOL_MaxArr is array (1 .. TFIELDS_Max) of CardValue(20);
 type TFORM_MaxArr is array (1 .. TFIELDS_Max) of CardValue(70);

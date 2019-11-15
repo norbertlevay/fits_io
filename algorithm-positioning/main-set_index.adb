@@ -16,8 +16,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Formulas;
 with Keyword_Record;    use Keyword_Record;
-with FA_Primary;
-with FA_Extension;
 with Strict;
 
 separate(main)
