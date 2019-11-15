@@ -17,10 +17,10 @@ package KW renames Keyword_Record;
 
 type State_Name is
         (NOT_ACCEPTING_CARDS,  	-- FA inactive
-         IS_CONFORMING, 	-- Initial state
-         DATA_NOT_IMAGE, 	-- collect GROUPS PCOUNT GCOUNT and END-card
-         COLLECT_TABLE_ARRAYS, 	-- collect TFORM & TBCOL arrays and END-card
-         WAIT_END,             	-- ignore all cards except END-card
+         READ_FIXED_POSITION_CARDS, 	-- Initial state
+         DATA_NOT_IMAGE, 	-- ignore all cards except GROUPS PCOUNT GCOUNT and END
+         COLLECT_TABLE_ARRAYS, 	-- ignore all cards except TFORM & TBCOL arrays and END
+         WAIT_END,             	-- ignore all cards except END
 	 NO_DATA, IMAGE, RANDOM_GROUPS,  -- Final states (Primary)
 	 CONFORMING_EXTENSION,		 -- Final states (Extensions)
 	 ST_IMAGE, ST_TABLE, ST_BINTABLE -- Final states (Extensions)
@@ -31,8 +31,8 @@ type TBCOL_MaxArr is array (1 .. TFIELDS_Max) of CardValue(20);
 type TFORM_MaxArr is array (1 .. TFIELDS_Max) of CardValue(70);
 
 InitNAXISArrVal : constant NAXIS_MaxArr := (others => InitVal);
-InitTFORMArrVal : constant TFORM_MaxArr  := (others => InitVal70);
-InitTBCOLArrVal : constant TBCOL_MaxArr  := (others => InitVal);
+InitTFORMArrVal : constant TFORM_MaxArr := (others => InitVal70);
+InitTBCOLArrVal : constant TBCOL_MaxArr := (others => InitVal);
 
 
 type XT_Type is
@@ -130,14 +130,14 @@ end Is_Primary;
 	is
 	begin
 		State      := InitState;
-                State.Name := IS_CONFORMING;
+                State.Name := READ_FIXED_POSITION_CARDS;
 		return 1; -- start FA from Header's 1st card	
 	end Reset_State;
 
 
 
 
-	function In_IS_CONFORMING(Pos : Positive; Card : KW.Card_Type) return Positive
+	function In_READ_FIXED_POSITION_CARDS(Pos : Positive; Card : KW.Card_Type) return Positive
 	is
 		Idx : Positive;
 	begin
@@ -248,7 +248,7 @@ end Is_Primary;
 
 		return Pos + 1;
 
-	end In_IS_CONFORMING;
+	end In_READ_FIXED_POSITION_CARDS;
 
 
 
@@ -302,7 +302,7 @@ end Is_Primary;
 
                 elsif(Is_Fixed_Position(Card))
 		then
-                        -- one of IS_CONFORMING cards: may appear only once in header
+                        -- one of READ_FIXED_POSITION_CARDS cards: may appear only once in header
                         Raise_Exception(Duplicate_Card'Identity, Card);
 
                 elsif(Is_Valid(Card))
@@ -523,7 +523,7 @@ end Is_Primary;
 		elsif(Is_Fixed_Position(Card))
 		then
                         Raise_Exception(Duplicate_Card'Identity, Card);
-                        -- one of IS_CONFORMING cards: may appear only once in header
+                        -- one of READ_FIXED_POSITION_CARDS cards: may appear only once in header
 
                 elsif(Is_Valid(Card))
 		then
@@ -570,8 +570,8 @@ end Is_Primary;
 			when NOT_ACCEPTING_CARDS =>
 				NextCardPos := 0;
 
-			when IS_CONFORMING =>
-				NextCardPos := In_IS_CONFORMING(Pos, Card);
+			when READ_FIXED_POSITION_CARDS =>
+				NextCardPos := In_READ_FIXED_POSITION_CARDS(Pos, Card);
 			when WAIT_END =>
 				NextCardPos := In_WAIT_END(Pos, Card);
                         when DATA_NOT_IMAGE =>
@@ -585,7 +585,7 @@ end Is_Primary;
 				NextCardPos := 0;
 		end case;
 		
-		if(NextCardPos = 0) then DBG_Print; end if;
+--		if(NextCardPos = 0) then DBG_Print; end if;
 
 		return NextCardPos;
 

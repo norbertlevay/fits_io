@@ -43,7 +43,7 @@ package Strict is
                         when others => null;
                         end case;
  		end record;
-
+-- FIXME using ranges after case-when ... is dangerous: if HDU_Type enum changes order of elements
 
 	function Reset_State return Positive; 
 	function Next (Pos : in Positive; Card : in Keyword_Record.Card_Type) return Natural;
