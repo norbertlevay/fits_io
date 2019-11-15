@@ -101,7 +101,7 @@ InitState : State_Type :=
 
 State : State_Type := InitState;
 	
---procedure DBG_Print is separate;
+procedure DBG_Print is separate;
 
 function To_XT_Type(XTENSION_Value : in String) return XT_Type
 is
@@ -626,7 +626,7 @@ end Is_Primary;
 				NextCardPos := 0;
 		end case;
 		
---		if(NextCardPos = 0) then DBG_Print; end if;
+		if(NextCardPos = 0) then DBG_Print; end if;
 
 		return NextCardPos;
 
