@@ -12,14 +12,21 @@ with Ada.Containers.Doubly_Linked_Lists;
 
 package body FITS.Parser is
 
+	package TIO renames Ada.Text_IO;
+
    function To_Key_Record_Type (Card : in Card_Type)
     return Key_Record_Type
    is
     KR : Key_Record_Type;
    begin
-    KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
-    KR.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
-    KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+    	KR.Name    := Max_8.To_Bounded_String(Trim(Card( 1.. 8),Ada.Strings.Both));
+
+	if (Card(1..7) /= "HISTORY")
+	then
+    	KR.Value   := Max20.To_Bounded_String(Trim(Card(10..30),Ada.Strings.Both));
+    	KR.Comment := Max48.To_Bounded_String(Trim(Card(32..80),Ada.Strings.Both));
+	end if;
+
     return KR;
    end To_Key_Record_Type;
 
@@ -52,11 +59,13 @@ package body FITS.Parser is
 
          Found_Keys.Append(FoundKey);
 
+
          if (Key'Tag = Keyword_Type'Tag) then
           In_Key_List.Delete(Keys_To_Parse,Cursor);
          end if;
 
         end if;
+
 
        In_Key_List.Next(Cursor);
 
@@ -166,7 +175,7 @@ package body FITS.Parser is
     Key : Key_Record_Type := To_Key_Record_Type(Card);
    begin
 
-      -- Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List :"&Card);
+       --Ada.Text_IO.Put_Line("DBG in Parse_Header::Init_List :"&Card);
 
 -- FIXME if should be like this: Ckeck it why errors.
 --      if (Max_8.Key.Name = Max_8.To_Bounded_String("SIMPLE") ) then
@@ -241,6 +250,7 @@ package body FITS.Parser is
      -- reset file-index to begining of the Header
      -- Let user deal with this....?
    begin
+
     loop
       -- [FITS] every valid FITS File must have at least one block
 
@@ -250,18 +260,22 @@ package body FITS.Parser is
       -- do for 1st card
       HBlk := Next(Source);
       Card := HBlk(HBlk'First);
+
       CardsCnt := CardsCnt + 1;
+
       InitList(Card,Keys_To_Parse);
+
       Parse(Card,Keys_To_Parse,Found_Keys);
+
       ENDCardFound  := (Card = ENDCard);
       exit when ENDCardFound;
 
-      -- Ada.Text_IO.Put_Line("DBG in Parse_Header");
 
       -- do for 2..end
       for I in (HBlk'First + 1) .. HBlk'Last
       loop
         Card := HBlk(I);
+
         CardsCnt := CardsCnt + 1;
         AllDataParsed := False; -- FIXME not in use: affects CardsCnt and FileIndex
 	Parse(Card,Keys_To_Parse,Found_Keys);
@@ -270,18 +284,6 @@ package body FITS.Parser is
       end loop;
 
 
-      -- get other blocks
-
-      HBlk := Next(Source);
-      for I in HBlk'Range
-      loop
-        Card := HBlk(I);
-        CardsCnt := CardsCnt + 1;
-        AllDataParsed := False; -- FIXME not in use: affects CardsCnt and FileIndex
-	Parse(Card,Keys_To_Parse,Found_Keys);
-        ENDCardFound  := (Card = ENDCard);
-        exit when ENDCardFound OR AllDataParsed;
-      end loop;
       exit when ENDCardFound OR AllDataParsed;
     end loop;
     return CardsCnt;

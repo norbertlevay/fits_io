@@ -15,7 +15,7 @@ project fits is
    end Linker;
 
    package Builder is
-      for Default_Switches ("ada") use ("-s", "-gnatQ");
+      for Default_Switches ("ada") use ("-g","-s", "-gnatQ");
       for Executable ("main.adb") use "fits";
    end Builder;
 
