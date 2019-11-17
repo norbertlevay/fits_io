@@ -52,6 +52,45 @@ is
 
 	end Read_Card;
 
+	function Read_Mandatory (HeaderStart : SIO.Positive_Count) return HDU_Info_Type
+	is
+		CardNum : Natural;
+		Card : String(1..80);
+
+		CurBlkNum : Natural := 0; -- none read yet
+		Blk : Card_Block;
+	begin
+		CardNum := Strict.Reset_State;
+		loop
+			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card);
+			CardNum := Strict.Next(CardNum, Card);
+			exit when (CardNum = 0);
+		end loop;
+
+		-- calc HDU size
+
+		declare
+			PSize   : Strict.Result_Rec := Strict.Get;
+			HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
+		begin
+			-- convert rec
+			
+			HDUInfo.XTENSION := Max20.To_Bounded_String("huhu");--Max20.Bounded_String
+			HDUInfo.CardsCnt := 1; --FPositive
+			HDUInfo.BITPIX := PSize.BITPIX;--Integer; 
+
+-- FIXME unify types:	HDUInfo.NAXISn := PSize.NAXISArr;
+			for I in HDUInfo.NAXISn'Range
+			loop
+				HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
+			end loop;
+
+			return HDUInfo;
+		end;
+
+	end Read_Mandatory;
+
+
 	Card : String(1..80);
 	CurHDUNum : Positive;
 	HeaderStart : SIO.Positive_Count;
@@ -77,7 +116,7 @@ begin
 	
 		CardNum := Strict.Reset_State;
 		loop
-			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card );
+			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card);
 			CardNum := Strict.Next(CardNum, Card);
 			exit when (CardNum = 0);
 		end loop;
