@@ -76,8 +76,8 @@ is
 			-- convert rec
 			
 			HDUInfo.XTENSION := Max20.To_Bounded_String("huhu");--Max20.Bounded_String
-			HDUInfo.CardsCnt := 1; --FPositive
-			HDUInfo.BITPIX := PSize.BITPIX;--Integer; 
+			HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
+			HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
 -- FIXME unify types:	HDUInfo.NAXISn := PSize.NAXISArr;
 			for I in HDUInfo.NAXISn'Range
