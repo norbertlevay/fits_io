@@ -10,50 +10,10 @@ procedure Set_Index
            (File   : SIO.File_Type;
             HDUNum : Positive)
 is
-
 	package TIO renames Ada.Text_IO;
-
---	type Card_Block is array(1..36) of Card_Type;
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
         
-
-	-- buffered read card
-	procedure OFFRead_Card (HStart : in SIO.Positive_Count;
-			CurBlkNum : in out Natural;
-			Blk : in out Card_Block;
-			CardNum : in Positive;
-			Card    : out  String)
-	is
-		BlkNum : Positive;
-		CardNumInBlk : Positive;
-		BlkNumIndex : SIO.Positive_Count;
-	begin
-		BlkNum := 1 + (CardNum - 1) / 36;
-		CardNumInBlk := CardNum - (BlkNum - 1) * 36;
-	
-		if(BlkNum /= CurBlkNUm)
-		then
-			-- FIXME BEGIN only this section depends on SIO. file access
-			-- make it Read_Block(SIO.File, FileBlkNum, Blk)
-			-- where FileBlkNum := HStart + BlkNum
-			-- BlkNum - relative to HDU start
-			-- FileBlkNum - relative to File start
-			BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
-						* Positive(BlockSize_SIOunits) );
-
-			SIO.Set_Index(File, BlkNumIndex);
-		 	Card_Block'Read(SIO.Stream(File), Blk);
-			CurBlkNum := BlkNum;
-			-- FIXME END   only this section depends on SIO. file access
-		end if;
-
-		Card := Blk(CardNumInBlk);
-
-	end OFFRead_Card;
-
-
-
 	Card : String(1..80);
 	CurHDUNum : Positive;
 	HeaderStart : SIO.Positive_Count;
