@@ -48,13 +48,12 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
-with FITS.Header; use FITS.Header;
+--with FITS.Header; use FITS.Header;
 
 with Strict;
 with Formulas;
 with Keyword_Record;    use Keyword_Record;
 
-with FITS_IO.File;
 
 package body FITS.File is
    
