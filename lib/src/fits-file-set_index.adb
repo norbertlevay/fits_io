@@ -13,13 +13,13 @@ is
 
 	package TIO renames Ada.Text_IO;
 
-	type Card_Block is array(1..36) of Card_Type;
+--	type Card_Block is array(1..36) of Card_Type;
 
 	BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
         
 
 	-- buffered read card
-	procedure Read_Card (HStart : in SIO.Positive_Count;
+	procedure OFFRead_Card (HStart : in SIO.Positive_Count;
 			CurBlkNum : in out Natural;
 			Blk : in out Card_Block;
 			CardNum : in Positive;
@@ -50,45 +50,8 @@ is
 
 		Card := Blk(CardNumInBlk);
 
-	end Read_Card;
+	end OFFRead_Card;
 
-	function Read_Mandatory (HeaderStart : SIO.Positive_Count) return HDU_Info_Type
-	is
-		CardNum : Natural;
-		Card : String(1..80);
-
-		CurBlkNum : Natural := 0; -- none read yet
-		Blk : Card_Block;
-	begin
-		CardNum := Strict.Reset_State;
-		loop
-			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card);
-			CardNum := Strict.Next(CardNum, Card);
-			exit when (CardNum = 0);
-		end loop;
-
-		-- calc HDU size
-
-		declare
-			PSize   : Strict.Result_Rec := Strict.Get;
-			HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
-		begin
-			-- convert rec
-			
-			HDUInfo.XTENSION := Max20.To_Bounded_String("huhu");--Max20.Bounded_String
-			HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
-			HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
-
--- FIXME unify types:	HDUInfo.NAXISn := PSize.NAXISArr;
-			for I in HDUInfo.NAXISn'Range
-			loop
-				HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
-			end loop;
-
-			return HDUInfo;
-		end;
-
-	end Read_Mandatory;
 
 
 	Card : String(1..80);
@@ -111,12 +74,12 @@ begin
 	while ( CurHDUNum < HDUNum )
 	loop
 		TIO.New_Line;
-	
+
 		-- Read Header
 	
 		CardNum := Strict.Reset_State;
 		loop
-			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card);
+			Read_Card(File, HeaderStart, CurBlkNum, Blk, CardNum, Card);
 			CardNum := Strict.Next(CardNum, Card);
 			exit when (CardNum = 0);
 		end loop;

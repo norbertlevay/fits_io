@@ -50,8 +50,10 @@ with Ada.Unchecked_Deallocation;
 
 with FITS.Header; use FITS.Header;
 
-with FITS.Parser;
-with FITS.Parser.DUSize;
+--with FITS.Parser;
+--with FITS.Parser.DUSize;
+
+with Strict;
 
 with FITS_IO.File;
 
@@ -66,12 +68,12 @@ package body FITS.File is
     return Read_Cards(Source);
    end Next_From_File;
 
-   package FP is new FITS.Parser(Source_Type => SIO.File_Type,
-                                 Next   => Next_From_File);
-   use FP;
+   --package FP is new FITS.Parser(Source_Type => SIO.File_Type,
+     --                            Next   => Next_From_File);
+   --use FP;
 
-   package FPDUSize is new FP.DUSize;
-   use FPDUSize;
+ --  package FPDUSize is new FP.DUSize;
+ --  use FPDUSize;
 
 
    -- Start FITS.File body
@@ -338,6 +340,40 @@ package body FITS.File is
     -- record fields were set
 
 
+
+
+
+-- BEGIN Replace old parser (FITS.Parser.*)
+   type DU_Size_Type(NAXIS : Positive) is record
+      CardsCnt : Positive;            -- FIXME these two do not
+      XTENSION : Max20.Bounded_String;-- FIXME really belong here
+      BITPIX   : Integer;
+      NAXISArr : NAXIS_Arr(1..NAXIS);
+   end record;
+
+
+   function Parse_Header_For_DUSize(File : SIO.File_Type)
+     return DU_Size_Type
+   is
+	HDUInfo : HDU_Info_Type := Get(File);
+	DUSize : DU_Size_Type(HDUInfo.NAXIS);
+   begin
+	DUSize.CardsCnt := Positive(HDUInfo.CardsCnt);
+	DUSize.XTENSION := HDUInfo.XTENSION;
+        DUSize.BITPIX   := HDUInfo.BITPIX; 
+        for I in DUSize.NAXISArr'Range
+        loop
+             DUSize.NAXISArr(I) := FInteger(HDUInfo.NAXISn(I));
+        end loop;
+	return DUSize;
+
+   end Parse_Header_For_DUSize;
+-- END   Replace old parser (FITS.Parser.*)
+
+
+
+
+
    -- temporary converters from new parsing to old FITS-File code:
 
    -- convert DU_Size_Type -> HDU_Size_Type
@@ -396,28 +432,98 @@ package body FITS.File is
      return HDUType;
    end Read_Header_And_Parse_Type;
 
-   -- position to Header start before call with Set_Index(F,HDUNum)
+-- BEGIN by Strict FA-based parsing
+
+
+        -- buffered read card
+        procedure Read_Card (File : in SIO.File_Type;
+			HStart : in SIO.Positive_Count;
+                        CurBlkNum : in out Natural;
+                        Blk : in out Card_Block;
+                        CardNum : in Positive;
+                        Card    : out  String)
+        is
+		 BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+
+                BlkNum : Positive;
+                CardNumInBlk : Positive;
+                BlkNumIndex : SIO.Positive_Count;
+        begin
+                BlkNum := 1 + (CardNum - 1) / 36; 
+                CardNumInBlk := CardNum - (BlkNum - 1) * 36; 
+    
+                if(BlkNum /= CurBlkNUm)
+                then
+                        -- FIXME BEGIN only this section depends on SIO. file access
+                        -- make it Read_Block(SIO.File, FileBlkNum, Blk)
+                        -- where FileBlkNum := HStart + BlkNum
+                        -- BlkNum - relative to HDU start
+                        -- FileBlkNum - relative to File start
+                        BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
+                                                * Positive(BlockSize_SIOunits) );
+
+                        SIO.Set_Index(File, BlkNumIndex);
+                        Card_Block'Read(SIO.Stream(File), Blk);
+                        CurBlkNum := BlkNum;
+                        -- FIXME END   only this section depends on SIO. file access
+                end if;
+
+                Card := Blk(CardNumInBlk);
+
+        end Read_Card;
+
    function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
    is
-    HeaderStart : SIO.Positive_Count := Index(FitsFile);
---    HDUSize : HDU_Size_Type := Read_Header(FitsFile);
-    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(FitsFile);
-    HDUInfo : HDU_Info_Type(HDUSize.NAXIS);
-    HDUType : HDU_Type;
+        function Read_Mandatory (FitsFile : in SIO.File_Type;
+				HeaderStart : SIO.Positive_Count) return HDU_Info_Type
+        is
+                CardNum : Natural;
+                Card : String(1..80);
+
+                CurBlkNum : Natural := 0; -- none read yet
+                Blk : Card_Block;
+        begin
+                CardNum := Strict.Reset_State;
+                loop
+                        Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
+                        CardNum := Strict.Next(CardNum, Card);
+                        exit when (CardNum = 0); 
+                end loop;
+
+                -- calc HDU size
+
+                declare
+                        PSize   : Strict.Result_Rec := Strict.Get;
+                        HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
+                begin
+                        -- convert rec
+    
+                        HDUInfo.XTENSION := Max20.To_Bounded_String(Strict.HDU_Type'Image(Psize.HDU));-- FIXME convert HDUType to string
+                        HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
+                        HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
+
+-- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
+                        for I in HDUInfo.NAXISn'Range
+                        loop
+                                HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
+                        end loop;
+
+                        return HDUInfo;
+                end;
+
+        end Read_Mandatory;
+
+
+	From : SIO.Positive_Count := SIO.Index(FitsFile);	
+	HDUInfo : HDU_Info_Type := Read_Mandatory(FitsFile,From);
    begin
-    Set_Index(FitsFile,HeaderStart);
---    HDUType := Read_Header(FitsFile);
-    HDUType := Read_Header_And_Parse_Type(FitsFile);
-    -- fill in returned struct
-    HDUInfo.XTENSION := HDUType.XTENSION;
-    HDUInfo.CardsCnt := HDUSize.CardsCnt;
-    HDUInfo.BITPIX   := HDUSize.BITPIX;
-    for I in HDUInfo.NAXISn'Range
-      loop
-        HDUInfo.NAXISn(I) := HDUSize.NAXISn(I);
-      end loop;
-    return HDUInfo;
+	return HDUInfo;
    end Get;
+
+
+-- END   by Strict FA-based parsing
+
+
 
    -- Old parsing
    --
@@ -467,51 +573,6 @@ package body FITS.File is
    procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive) is separate;
 
-   procedure OFF_Set_Index(FitsFile : in SIO.File_Type;
-                       HDUNum   : in Positive)
-   is
-    CurHDUSize_blocks : FPositive;
-    CurHDUSize_bytes  : FPositive;
-    CurHDUNum : Positive := 1;
-    HDUSize   : HDU_Size_Type;
-
-     procedure Move_Index
-               (FitsFile : in SIO.File_Type;
-                ByCount  : in SIO.Positive_Count) is
-     begin
-       SIO.Set_Index(FitsFile, SIO.Index(FitsFile) + ByCount);
-     end Move_Index;
-     pragma Inline (Move_Index);
-     -- util: consider this part of Stream_IO
-   begin
--- test FIXME begin
--- now created examples/list.adb instead of this...
-   -- FITS_IO.File.Set_Index(FitsFile,HDUNum);
-   -- return;
--- test FIXME end
-
-    SIO.Set_Index(FitsFile, 1);
-    -- move to begining of the Primary HDU
-
-    while CurHDUNum < HDUNum
-    loop
-
-     -- move past current Header
---     HDUSize := Read_Header(FitsFile);
-     HDUSize := Read_Header_And_Parse_Size(FitsFile);
-     -- skip DataUnit if exists
-     if HDUSize.NAXIS /= 0
-     then
-       CurHDUSize_blocks := Size_blocks (HDUSize);
-       CurHDUSize_bytes  := CurHDUSize_blocks * BlockSize_bytes;
-       Move_Index(FitsFile, SIO.Positive_Count(CurHDUSize_bytes));
-     end if;
-
-     -- next HDU
-     CurHDUNum := CurHDUNum + 1;
-    end loop;
-
-   end OFF_Set_Index;
 
    --
    -- calculate Header size in FITS Blocks
