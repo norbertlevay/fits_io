@@ -19,14 +19,14 @@ is
         
 
 	-- buffered read card
-	function Read_Card (HStart : in SIO.Positive_Count;
+	procedure Read_Card (HStart : in SIO.Positive_Count;
 			CurBlkNum : in out Natural;
 			Blk : in out Card_Block;
-			CardNum : in Positive) return Natural
+			CardNum : in Positive;
+			Card    : out  String)
 	is
 		BlkNum : Positive;
 		CardNumInBlk : Positive;
-		Card : String(1..80);
 		BlkNumIndex : SIO.Positive_Count;
 	begin
 		BlkNum := 1 + (CardNum - 1) / 36;
@@ -50,21 +50,18 @@ is
 
 		Card := Blk(CardNumInBlk);
 
-		return Strict.Next(CardNum, Card);
 	end Read_Card;
 
-
+	Card : String(1..80);
 	CurHDUNum : Positive;
-	PrimaryHeaderStart : SIO.Positive_Count;
-	ExtHeaderStart : SIO.Positive_Count;
+	HeaderStart : SIO.Positive_Count;
 	Blk : Card_Block;
 	HDUSize_blocks : Formulas.Positive_Count;
 	CardNum : Natural;
 	CurBlkNum : Natural := 0; -- none read yet
 begin
-
-	PrimaryHeaderStart := 1;
-	SIO.Set_Index(File,PrimaryHeaderStart);
+	HeaderStart := 1;
+	SIO.Set_Index(File,HeaderStart);
 
 	CurHDUNum := 1;
 
@@ -72,79 +69,46 @@ begin
 		return;
 	end if;
 
-	-- Read Primary Header
-
-	CardNum := Strict.Reset_State;
+	while ( CurHDUNum < HDUNum )
 	loop
-		CardNum := Read_Card(PrimaryHeaderStart, CurBlkNum, Blk, CardNum );
-		exit when (CardNum = 0);
-	end loop;
-
-	-- calc HDU size
+		TIO.New_Line;
 	
-	declare
-		PSize : Strict.Result_Rec := Strict.Get;
-	begin
-		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
+		-- Read Header
+	
+		CardNum := Strict.Reset_State;
+		loop
+			Read_Card(HeaderStart, CurBlkNum, Blk, CardNum, Card );
+			CardNum := Strict.Next(CardNum, Card);
+			exit when (CardNum = 0);
+		end loop;
+
+		-- calc HDU size
+
+		declare
+			PSize : Strict.Result_Rec := Strict.Get;
+		begin
+			HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
 							PSize.BITPIX, 
 							PSize.NAXISArr);
-		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
-	end;
+			TIO.New_Line;Put_Line("DBG> HDU_Type: " 
+						& Strict.HDU_Type'Image(PSize.HDU));
+		end;
 
-	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
-
-	-- move to next HDU
+		TIO.Put_Line("DBG> HDUSize [blocks]: " 
+					& Formulas.Positive_Count'Image(HDUSize_blocks));
 	
-	ExtHeaderStart := PrimaryHeaderStart 
+		-- move to next HDU
+
+		HeaderStart := HeaderStart 
 				+ SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
-	TIO.New_Line;
-	Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
-	SIO.Set_Index(File,ExtHeaderStart);
-	
+		TIO.New_Line;
+		Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(HeaderStart));
+		
+		SIO.Set_Index(File, HeaderStart);
 
+		CurHDUNum := CurHDUNum + 1;
 
-
--- Read Extension HDU's if exist, 
-
-CurHDUNum := CurHDUNum + 1;
-
-while ( CurHDUNum < HDUNum )
-loop
-
-	TIO.New_Line;
-	
-	-- Read Extension Header
-	
-	CardNum := Strict.Reset_State;
-	loop
-		CardNum := Read_Card(ExtHeaderStart, CurBlkNum, Blk, CardNum );
-		exit when (CardNum = 0);
 	end loop;
-
-	-- calc HDU size
-
-	declare
-		PSize : Strict.Result_Rec := Strict.Get;
-	begin
-		HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
-							PSize.BITPIX, 
-							PSize.NAXISArr);
-		TIO.New_Line;Put_Line("DBG> HDU_Type: " & Strict.HDU_Type'Image(PSize.HDU));
-	end;
-
-	TIO.Put_Line("DBG> HDUSize [blocks]: " & Formulas.Positive_Count'Image(HDUSize_blocks));
-	
-	-- move to next HDU
-
-	ExtHeaderStart := ExtHeaderStart 
-				+ SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
-	TIO.New_Line;
-	Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(ExtHeaderStart));
-	SIO.Set_Index(File, ExtHeaderStart);
-
-CurHDUNum := CurHDUNum + 1;
-
-end loop;
 
 -- FIXME add handle Random Blocks if exist at fits-file end 
 
