@@ -50,34 +50,12 @@ with Ada.Unchecked_Deallocation;
 
 with FITS.Header; use FITS.Header;
 
---with FITS.Parser;
---with FITS.Parser.DUSize;
-
 with Strict;
 
 with FITS_IO.File;
 
 package body FITS.File is
-
-   -- Instantiate Parsers for File
-
-   function Next_From_File(Source : in SIO.File_Type)
-     return Card_Block
-   is
-   begin
-    return Read_Cards(Source);
-   end Next_From_File;
-
-   --package FP is new FITS.Parser(Source_Type => SIO.File_Type,
-     --                            Next   => Next_From_File);
-   --use FP;
-
- --  package FPDUSize is new FP.DUSize;
- --  use FPDUSize;
-
-
-   -- Start FITS.File body
-
+   
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
    -- [FITS 3.1 Overall file structure]
 
@@ -325,23 +303,8 @@ package body FITS.File is
 
 
    --
-   -- Read File until ENDCard found,
-   -- cal Parse_Card for each card and
-   -- return count of Cards
-   --
-
-   --
    -- Read File until ENDCard found
    --
-
-    -- FIXME how to make sure that each value of Parsed_Type
-    -- was set during parsing process ?
-    -- Parsed_Card implementation must keep track of which
-    -- record fields were set
-
-
-
-
 
 -- BEGIN Replace old parser (FITS.Parser.*)
    type DU_Size_Type(NAXIS : Positive) is record
@@ -350,7 +313,6 @@ package body FITS.File is
       BITPIX   : Integer;
       NAXISArr : NAXIS_Arr(1..NAXIS);
    end record;
-
 
    function Parse_Header_For_DUSize(File : SIO.File_Type)
      return DU_Size_Type
@@ -370,26 +332,12 @@ package body FITS.File is
    end Parse_Header_For_DUSize;
 -- END   Replace old parser (FITS.Parser.*)
 
-
-
-
-
    -- temporary converters from new parsing to old FITS-File code:
 
    -- convert DU_Size_Type -> HDU_Size_Type
    function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
      return HDU_Size_Type
    is
-     function OFFNext_From_File(Source : in SIO.File_Type)
-       return Card_Block
-     is
-     begin
-      return Read_Cards(Source);
-     end OFFNext_From_File;
---     function Parse_HeadDUSize is
---          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
---                                                         Next        => Next_From_File);
---     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
      DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
      HDUSize : HDU_Size_Type;
    begin
@@ -406,31 +354,23 @@ package body FITS.File is
      return HDUSize;
    end Read_Header_And_Parse_Size;
 
+
    -- convert DU_Size_Type -> HDU_Type
    function Read_Header_And_Parse_Type(FitsFile : SIO.File_Type)
      return HDU_Type
    is
-     function OOONext_From_File(Source : in SIO.File_Type)
-       return Card_Block
-     is
-     begin
-      return Read_Cards(Source);
-     end OOONext_From_File;
---     function Parse_HeadDUSize is
---          new FITS.Parser.DUSize.Parse_Header_For_DUSize(Source_Type => SIO.File_Type,
---                                                         Next        => Next_From_File);
---     DUSize  : DU_Size_Type  := Parse_HeadDUSize(FitsFile);
      DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
      HDUType : HDU_Type;
    begin
      HDUType.XTENSION := DUSize.XTENSION;
---     HDUType.XTENSION(1..DUSize.XTENSION'Length) := Max20.To_String(DUSize.XTENSION);
---     for I in DUSize.XTENSION'Range
---     loop
---       HDUType.XTENSION(I) := DUSize.XTENSION(I);
---     end loop;
      return HDUType;
    end Read_Header_And_Parse_Type;
+
+
+
+
+
+
 
 -- BEGIN by Strict FA-based parsing
 
@@ -498,11 +438,12 @@ package body FITS.File is
                 begin
                         -- convert rec
     
-                        HDUInfo.XTENSION := Max20.To_Bounded_String(Strict.HDU_Type'Image(Psize.HDU));-- FIXME convert HDUType to string
+                        HDUInfo.XTENSION := Max20.To_Bounded_String(
+			      Strict.HDU_Type'Image(Psize.HDU));-- FIXME convert HDUType to string
                         HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
                         HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
--- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
+			-- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
                         for I in HDUInfo.NAXISn'Range
                         loop
                                 HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
@@ -568,7 +509,7 @@ package body FITS.File is
 
 
    --
-   -- Set file index to position given by params
+   -- Set file index to HDU start given by HDUNum
    --
    procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive) is separate;
@@ -598,7 +539,6 @@ package body FITS.File is
    -- return size of the DU where InFits points to
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural
    is
---    HDUSize : HDU_Size_Type := Read_Header(InFits);
     HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
    begin
     return Size_blocks(HDUSize);
@@ -607,7 +547,6 @@ package body FITS.File is
    -- return size of the HDU where InFits points to
    function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
---    HDUSize : HDU_Size_Type := Read_Header(InFits);
     HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
    begin
     return Size_blocks(HDUSize.CardsCnt) + Size_blocks(HDUSize);
@@ -670,96 +609,4 @@ package body FITS.File is
 
 
 end FITS.File;
-
---   function To_Offset (Coords    : in  NAXIS_Arr;
---                       MaxCoords : in  NAXIS_Arr)
---     return FNatural
---   is
---    Offset : FNatural;
---    Sizes  : NAXIS_Arr := MaxCoords;
---   begin
---    if Coords'Length /= MaxCoords'Length
---    then
---     null;
---     -- raise exception <-- needed this if ?
---     -- no, check only high level inputs, this is not direct API call
---     -- assume if code corrct, it is corrct here
---    end if;
---
---    --
---    -- generate size of each plane
---    --
---    declare
---      Accu  : FPositive := 1;
---    begin
---      for I in MaxCoords'First .. (MaxCoords'Last - 1)
---      loop
---       Accu := Accu * MaxCoords(I);
---       Sizes(I) := Accu;
---       -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
---      end loop;
---      end;
---
---    Offset := Coords(1) - 1;
---    for I in (Coords'First + 1) .. Coords'Last
---    loop
---     Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
---    end loop;
---
---    return Offset;
---   end To_Offset;
-
-   -- not in use
---   procedure Set_Index_with_Offset(FitsFile : in SIO.File_Type;
---                       HDUNum   : in Positive;
---                       Coord    : in NAXIS_Arr := (1,1);
---                       MaxCoord : in NAXIS_Arr := (1,1);
---                       BITPIX   : in Positive  := 8)
---   is
---     SIO_Offset   : SIO.Positive_Count;
---     Offset       : FPositive;
---     SE_Size_bits : Positive := Ada.Streams.Stream_Element'Size;
---                                -- 'Size is in bits
---   begin
---
---     Set_Index(FitsFIle,HDUNum);
---     -- movef to beginig of HDU
---
---     -- next add offset up to Coord in array of BITPIX-type
---     Offset := To_Offset(Coord,MaxCoord);
---     if Offset > 0
---     then
---       SIO_Offset := SIO.Positive_Count(abs(BITPIX)/SE_Size_bits)
---                   * SIO.Positive_Count(Offset);
---       -- FIXME explicit conversions - verify!
---       Move_Index(FitsFile, SIO_Offset);
---     end if;
---
---   end Set_Index_with_Offset;
-
---   procedure Write_ENDCard(FitsFile : in SIO.File_Type)
---   is
---   begin
---     Card_Type'Write(Stream(FitsFile),ENDCard);
---     Write_Padding(FitsFile);
---   end Write_ENDCard;
-
---   procedure Write_Padding(FitsFile : in SIO.File_Type)
---   is
---    Pos      : constant SIO.Positive_Count := Index(FitsFile);
---    -- FIXME make sure CardSize and Pos are counted in
---    --       equal units (Stream ElemSize aka Bytes):
---    CardsCnt : constant SIO.Positive_Count :=
---               SIO.Positive_Count((Pos-1)/SIO.Positive_Count(CardSize));
---               -- distance from start of file in Card size
---    HPadCnt  : constant Positive := CardsCntInBlock -
---               Positive((CardsCnt) mod SIO.Positive_Count(CardsCntInBlock));
---    HPadArr  : constant Card_Arr(1 .. HPadCnt) := (others => EmptyCard);
---   begin
---     if HPadCnt /= CardsCntInBlock then
---        Card_Arr'Write(SIO.Stream(FitsFile),HPadArr);
---     end if;
---   end Write_Padding;
---
-
 
