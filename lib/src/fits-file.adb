@@ -303,111 +303,46 @@ package body FITS.File is
    -- Read File until ENDCard found
    --
 
--- BEGIN Replace old parser (FITS.Parser.*)
-   type DU_Size_Type(NAXIS : Positive) is record
-      CardsCnt : Positive;            -- FIXME these two do not
-      XTENSION : Max20.Bounded_String;-- FIXME really belong here
-      BITPIX   : Integer;
-      NAXISArr : NAXIS_Arr(1..NAXIS);
-   end record;
-
-   function Parse_Header_For_DUSize(File : SIO.File_Type)
-     return DU_Size_Type
-   is
-	HDUInfo : HDU_Info_Type := Get(File);
-	DUSize : DU_Size_Type(HDUInfo.NAXIS);
-   begin
-	DUSize.CardsCnt := Positive(HDUInfo.CardsCnt);
-	DUSize.XTENSION := HDUInfo.XTENSION;
-        DUSize.BITPIX   := HDUInfo.BITPIX; 
-        for I in DUSize.NAXISArr'Range
-        loop
-             DUSize.NAXISArr(I) := FInteger(HDUInfo.NAXISn(I));
-        end loop;
-	return DUSize;
-
-   end Parse_Header_For_DUSize;
--- END   Replace old parser (FITS.Parser.*)
-
-   -- temporary converters from new parsing to old FITS-File code:
-
-   -- convert DU_Size_Type -> HDU_Size_Type
-   function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
-     return HDU_Size_Type
-   is
-     DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
-     HDUSize : HDU_Size_Type;
-   begin
-      HDUSize.CardsCnt := FPositive(DUSize.CardsCnt);-- FIXME explicit conversion
-      HDUSize.BITPIX := DUSize.BITPIX;
-      HDUSize.NAXIS  := DUSize.NAXISArr'Length;
-      for I in DUSize.NAXISArr'Range
-      loop
-       HDUSize.NAXISn(I) := FNatural(DUSize.NAXISArr(I));
-        -- FIXME explicit conversion Integer -> FInteger
-      end loop;
-     HDUSize.PCOUNT := 0;
-     HDUSize.GCOUNT := 1;
-     return HDUSize;
-   end Read_Header_And_Parse_Size;
-
-
-   -- convert DU_Size_Type -> HDU_Type
-   function Read_Header_And_Parse_Type(FitsFile : SIO.File_Type)
-     return HDU_Type
-   is
-     DUSize  : DU_Size_Type  := Parse_Header_For_DUSize(FitsFile);
-     HDUType : HDU_Type;
-   begin
-     HDUType.XTENSION := DUSize.XTENSION;
-     return HDUType;
-   end Read_Header_And_Parse_Type;
-
-
-
-
-
-
-
--- BEGIN by Strict FA-based parsing
-
-
-        -- buffered read card
-        procedure Read_Card (File : in SIO.File_Type;
+   procedure Read_Card (File : in SIO.File_Type;
 			HStart : in SIO.Positive_Count;
                         CurBlkNum : in out Natural;
                         Blk : in out Card_Block;
                         CardNum : in Positive;
                         Card    : out  String)
-        is
-		 BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-
-                BlkNum : Positive;
-                CardNumInBlk : Positive;
-                BlkNumIndex : SIO.Positive_Count;
-        begin
-                BlkNum := 1 + (CardNum - 1) / 36; 
-                CardNumInBlk := CardNum - (BlkNum - 1) * 36; 
+   is
+	 BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+         BlkNum : Positive;
+         CardNumInBlk : Positive;
+         BlkNumIndex : SIO.Positive_Count;
+   begin
+         BlkNum := 1 + (CardNum - 1) / 36; 
+         CardNumInBlk := CardNum - (BlkNum - 1) * 36; 
     
-                if(BlkNum /= CurBlkNUm)
-                then
+         if(BlkNum /= CurBlkNUm)
+         then
                         -- FIXME BEGIN only this section depends on SIO. file access
                         -- make it Read_Block(SIO.File, FileBlkNum, Blk)
                         -- where FileBlkNum := HStart + BlkNum
                         -- BlkNum - relative to HDU start
                         -- FileBlkNum - relative to File start
-                        BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
+               BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
                                                 * Positive(BlockSize_SIOunits) );
 
-                        SIO.Set_Index(File, BlkNumIndex);
-                        Card_Block'Read(SIO.Stream(File), Blk);
-                        CurBlkNum := BlkNum;
-                        -- FIXME END   only this section depends on SIO. file access
-                end if;
+               SIO.Set_Index(File, BlkNumIndex);
+               Card_Block'Read(SIO.Stream(File), Blk);
+               CurBlkNum := BlkNum;
+               -- FIXME END   only this section depends on SIO. file access
+         end if;
 
-                Card := Blk(CardNumInBlk);
+         Card := Blk(CardNumInBlk);
 
-        end Read_Card;
+   end Read_Card;
+
+
+
+
+
+
 
    function  Get (FitsFile : in  SIO.File_Type) return HDU_Info_Type
    is
@@ -457,10 +392,6 @@ package body FITS.File is
    begin
 	return HDUInfo;
    end Get;
-
-
--- END   by Strict FA-based parsing
-
 
 
    --

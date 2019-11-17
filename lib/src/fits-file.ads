@@ -216,10 +216,5 @@ package FITS.File is
    procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive);
 
-private
-	-- export for Misc subpackage 
-   function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
-      return HDU_Size_Type;
-
 
 end FITS.File;

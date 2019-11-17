@@ -10,7 +10,12 @@ package body FITS.File.Misc is
    -- implements Eq(1), (2) and (4) from [FITS]
    -- However we should parse other keys (SIMPLE, XTENSION, GROUPS) to
    -- establish HDU type - FIXME what strategy to take here ?
-   function  Size_blocks (HDUSize : in HDU_Size_Type) return FPositive
+   function  Size_blocks 
+		(BITPIX : in Positive;
+		 NAXISn : in NAXIS_Arr;
+		 PCOUNT : in FNatural;
+		 GCOUNT : in FPositive
+		) return FPositive
    is  
     DataInBlock    : FPositive;
     DUSizeInBlocks : FPositive;
@@ -20,32 +25,31 @@ package body FITS.File.Misc is
 
      -- if HDU is RandomGroup NAXIS1=0 and NAXIS1 is not part of size
      -- calculations [FITS Sect 6, Eq.(4)]
-     if HDUSize.NAXISn(1) = 0 then
+     if NAXISn(1) = 0 then
       From := 2;
      end if;
 
-     for I in From..HDUSize.NAXIS
+     for I in From..NAXISn'Last
      loop
-      DUSize := DUSize * HDUSize.NAXISn(I);
+      DUSize := DUSize * NAXISn(I);
      end loop;
       -- DUSize cannot be 0: Naxis(I) is FPositive
       -- cannot be 0 (parsing would throw exception)
 
      -- Conforming extensions (or 0 and 1 for Primary Header):
-     DUSize := DUSize + HDUSize.PCOUNT;
-     DUSize := DUSize * HDUSize.GCOUNT;
+     DUSize := DUSize + PCOUNT;
+     DUSize := DUSize * GCOUNT;
 
-     DataInBlock := BlockSize_bits /  FNatural( abs HDUSize.BITPIX );
+     DataInBlock := BlockSize_bits /  FNatural( abs BITPIX );
      -- per FITS standard, these values are integer multiples (no remainder)
 
      DUSizeInBlocks := 1 + (DUSize - 1) / DataInBlock;
 
     return DUSizeInBlocks;
    end Size_blocks;
-   pragma Inline (Size_blocks);
 
 
- --
+   --
    -- calculate Header size in FITS Blocks
    --
    function  Size_blocks (CardsCnt    : in FPositive       ) return FPositive
@@ -55,31 +59,26 @@ package body FITS.File.Misc is
    end Size_blocks;
    pragma Inline (Size_blocks);
 
-   function  DU_Size (NAXISArr : in NAXIS_Arr) return FPositive
-   is
-    DUSize : FPositive := 1;
-   begin
-     for I in NAXISArr'Range
-     loop
-      DUSize := DUSize * NAXISArr(I);
-     end loop;
-     return DUSize;
-   end DU_Size;
 
    -- return size of the DU where InFits points to
    function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
+    HDUInfo : HDU_Info_Type := Get(InFits);
    begin
-    return Size_blocks(HDUSize);
+    return Size_blocks(HDUInfo.BITPIX, HDUInfo.NAXISn, 
+				0, 1);
+				-- FIXME HDUInfo.PCOUNT, HDUInfo.GCOUNT);
    end DU_Size_blocks;
 
    -- return size of the HDU where InFits points to
    function  HDU_Size_blocks (InFits  : in SIO.File_Type) return FNatural
    is
-    HDUSize : HDU_Size_Type := Read_Header_And_Parse_Size(InFits);
+    HDUInfo : HDU_Info_Type := Get(InFits);
    begin
-    return Size_blocks(HDUSize.CardsCnt) + Size_blocks(HDUSize);
+    return Size_blocks(HDUInfo.CardsCnt) 
+			+ Size_blocks(HDUInfo.BITPIX, HDUInfo.NAXISn, 
+					0,1);
+				-- FIXME 	HDUInfo.PCOUNT, HDUInfo.GCOUNT);
    end HDU_Size_blocks;
 -- FIXME both XX_Size_blocks funcs move file-Index and use Parse_HeaderBlocks:
 -- by func-name Parse_Header should be enough to calc sizes.

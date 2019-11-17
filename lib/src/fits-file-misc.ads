@@ -8,9 +8,6 @@ package FITS.File.Misc is
    -- Misc: --
    -----------
 
-   function DU_Size (NAXISArr : in NAXIS_Arr)
-     return FPositive;
-
    --  
    -- calc DataUnit size in blocks
    --  
