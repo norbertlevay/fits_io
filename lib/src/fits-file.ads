@@ -110,6 +110,10 @@ package FITS.File is
 
    package SIO renames Ada.Streams.Stream_IO;
 
+   -- FIXME needed also by Misc
+   BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
+    -- [FITS 3.1 Overall file structure]
+
    -----------------------------
    -- Read/Write Header Cards --
    -----------------------------
@@ -212,36 +216,10 @@ package FITS.File is
    procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive);
 
-   -----------
-   -- Misc: --
-   -----------
+private
+	-- export for Misc subpackage 
+   function Read_Header_And_Parse_Size(FitsFile : SIO.File_Type)
+      return HDU_Size_Type;
 
-   function DU_Size (NAXISArr : in NAXIS_Arr)
-     return FPositive;
-
-   --
-   -- calc DataUnit size in blocks
-   --
-   function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
-   -- FIXME is this needed ?? see commands.adb: Couldn't be used Get() & Size_blocks() ??
-
-   --
-   -- copy NBlocks from current index position in chunks of ChunkSize_blocks
-   --
-   procedure Copy_Blocks (InFits  : in SIO.File_Type;
-                          OutFits : in SIO.File_Type;
-                          NBlocks : in FPositive;
-                          ChunkSize_blocks : in Positive := 10);
-   -- FIXME is this needed ? maybe should be internal only
-   --       Ext API: Copy_HDU ok.
-
-   --
-   -- copy HDU from InFile to OutFile: both file-pointers must be correctly positioned
-   --
-   procedure Copy_HDU (InFits  : in SIO.File_Type;
-                       OutFits : in SIO.File_Type;
-                       HDUNum  : in Positive;
-                       ChunkSize_blocks : in Positive := 10);
-   -- FIXME IF: move to some new FITS.Utils or similar
 
 end FITS.File;

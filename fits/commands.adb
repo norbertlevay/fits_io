@@ -8,6 +8,7 @@ with System.Storage_Elements;
 
 with FITS;        use FITS;
 with FITS.File;   use FITS.File;
+with FITS.File.Misc;   use FITS.File.Misc;
 with FITS.Header; use FITS.Header;
 
 
