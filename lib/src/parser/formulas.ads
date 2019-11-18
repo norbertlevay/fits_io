@@ -1,27 +1,50 @@
+--
+-- Various calculations formulas from [FITS].
+--
+-- FIXME error/exception handling missing
+-- FIXME rename/re-examine FPositive FNatural definition in FITSlib.ads
+
+--with FITSlib.Header; use FITSlib.Header;
 
 with Keyword_Record;
 
-
 package Formulas is
 
-	type Positive_Count is new Positive;
+	type    FInteger  is range -(2**63) .. +(2**63 - 1);
+	-- 64bit portable, guaranteed to be 64bit or will not compile
+	subtype FNatural  is FInteger range 0 .. FInteger'Last;
+	subtype FPositive is FNatural range 1 .. FNatural'Last;
 
-	-- Calc size
-
-	function  Calc_HDU_Size_blocks
-			(CardsCount : in Positive;
-			BITPIX   : in Integer;
-			NAXISArr : in Keyword_Record.Positive_Arr) return Positive_Count;
+	-- FIXME review how big number will fit in Positive when converted from
+	-- cardvalue (20 digits) into Positive -> should use bigger like above FPositive
 	
+	--
+	-- Data array size calculations for all HDU types
+	--
 
-
-	function  Calc_HeaderUnit_Size_blocks
-		(CardsCount : in Positive) return Positive_Count;
-
-	function  Calc_DataUnit_Size_blocks  
-		(BITPIX   : in Integer;--Data_Type;
-		 NAXISArr : in Keyword_Record.Positive_Arr) return Positive_Count;
+	-- implements [FITS] Eq(1)
 	
+	function PrimaryImage_DataSize_bits
+		(BITPIX : Integer;
+		 NAXIS  : Keyword_Record.Positive_Arr) return Positive;
+
+
+	-- implements [FITS] Eq(2)
+	
+	function ConformingExtension_DataSize_bits
+		(BITPIX : Integer;
+		 NAXIS  : Keyword_Record.Positive_Arr;
+		 PCOUNT : Natural;
+		 GCOUNT : Positive) return Positive;
+
+
+	-- implements [FITS] Eq(4) 
+
+	 function RandomGroups_DataSize_bits
+		(BITPIX : Integer;
+		 NAXIS  : Keyword_Record.Positive_Arr;
+		 PCOUNT : Natural;
+		 GCOUNT : Positive) return Positive;
+
+
 end Formulas;
-
-

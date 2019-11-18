@@ -56,6 +56,8 @@ with Keyword_Record;    use Keyword_Record;
 
 
 package body FITS.File is
+
+	package TIO renames Ada.Text_IO;
    
    ---------------
    -- FITS.File :
@@ -388,6 +390,60 @@ package body FITS.File is
    --
    -- Set file index to HDU start given by HDUNum
    --
+
+
+
+        function  Calc_HeaderUnit_Size_blocks
+                (CardsCount : in Positive) 
+                return Positive
+        is
+                HUSize : Positive;
+        begin 
+                HUSize := Positive(1 + (CardsCount - 1)/36);
+
+                return HUSize;
+        end Calc_HeaderUnit_Size_blocks;
+
+
+        -- FIXME consider funcs depending on variable record, put where the variable record is
+        -- they always must check presence of the variable fields and 
+        -- call external funcs accordingly
+function  Calc_DataUnit_Size_blocks  
+                (Res : in Strict.Result_Rec) return Natural
+is
+	Size_bits : Natural;
+
+	BitsPerBlock : constant Positive := (2880*8);
+		-- FIXME generic FITS-constant: move elsewhere
+begin
+	case(Res.HDU) is
+	when Strict.NO_DATA =>
+		Size_bits := 0;
+
+	when Strict.IMAGE =>
+		Size_bits := Formulas.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
+
+	when Strict.RANDOM_GROUPS =>
+		Size_bits := Formulas.RandomGroups_DataSize_bits
+                 		(Res.BITPIX, Res.NAXISArr,
+                  		Res.PCOUNT, Res.GCOUNT);
+
+	when Strict.CONFORMING_EXTENSION .. Strict.STANDARD_BINTABLE =>
+		Size_bits := Formulas.ConformingExtension_DataSize_bits
+                 		(Res.BITPIX, Res.NAXISArr,
+                  		Res.PCOUNT, Res.GCOUNT);
+	end case;
+
+	return (1 + (Size_bits - 1) / BitsPerBlock); 
+		-- FIXME consider separate func for bits -> blocks
+
+end  Calc_DataUnit_Size_blocks;
+
+	
+
+
+
+
 procedure Set_Index
            (File   : SIO.File_Type;
             HDUNum : Positive)
@@ -400,7 +456,7 @@ is
         CurHDUNum : Positive;
         HeaderStart : SIO.Positive_Count;
         Blk : Card_Block;
-        HDUSize_blocks : Formulas.Positive_Count;
+        HDUSize_blocks : Positive;
         CardNum : Natural;
         CurBlkNum : Natural := 0; -- none read yet
 begin
@@ -431,15 +487,15 @@ begin
                declare
                         PSize : Strict.Result_Rec := Strict.Get;
                 begin
-                        HDUSize_blocks := Formulas.Calc_HDU_Size_blocks(PSize.CardsCount, 
-                                                        PSize.BITPIX, 
-                                                        PSize.NAXISArr);
-                        TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
+ 			TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Strict.HDU_Type'Image(PSize.HDU));
+
+                 	HDUSize_blocks := Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
+					+ Calc_DataUnit_Size_blocks(PSize);
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
-                                        & Formulas.Positive_Count'Image(HDUSize_blocks));
+                                        & Positive'Image(HDUSize_blocks));
 
                 -- move to next HDU
 
