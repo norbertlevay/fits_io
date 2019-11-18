@@ -3,17 +3,6 @@
 
 package FITS.File.Misc is
 
-
-   -----------
-   -- Misc: --
-   -----------
-
-   --  
-   -- calc DataUnit size in blocks
-   --  
-   function  DU_Size_blocks  (InFits  : in SIO.File_Type) return FNatural;
-   -- FIXME is this needed ?? see commands.adb: Couldn't be used Get() & Size_blocks() ??
-
    --  
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
    --  
@@ -31,8 +20,6 @@ package FITS.File.Misc is
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
-   -- FIXME IF: move to some new FITS.Utils or similar
-
 
 
 end FITS.File.Misc;

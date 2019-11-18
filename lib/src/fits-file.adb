@@ -439,7 +439,55 @@ begin
 
 end  Calc_DataUnit_Size_blocks;
 
+
+
+
+
+
+-- read info help in Mandatory keys of the Header
+  function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec
+  is
+		HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
+                CardNum : Natural;
+                Card : String(1..80);
+
+                CurBlkNum : Natural := 0; -- none read yet
+                Blk : Card_Block;
+   begin
+                CardNum := Strict.Reset_State;
+                loop
+                        Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
+                        CardNum := Strict.Next(CardNum, Card);
+                        exit when (CardNum = 0); 
+                end loop;
+
+                -- calc HDU size
+
+                declare
+                        PSize : Strict.Result_Rec := Strict.Get;
+                begin
+			return PSize;
+                end;
+
+   end Get_Mandatory;
+
+
 	
+-- these two replace size calc funcs in .Misc subpackage Copy_HDU()
+   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
+   is 
+	PSize : Strict.Result_Rec := Strict.Get;
+   begin
+        return Calc_DataUnit_Size_blocks(PSize);
+   end DU_Size_blocks;
+
+  function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
+   is 
+	PSize : Strict.Result_Rec := Strict.Get;
+   begin
+        return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
+               + Calc_DataUnit_Size_blocks(PSize);
+   end HDU_Size_blocks;
 
 
 

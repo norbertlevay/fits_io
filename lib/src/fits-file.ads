@@ -217,4 +217,16 @@ package FITS.File is
                        HDUNum   : in Positive);
 
 
+
+
+
+   -- Misc FIXME
+
+	function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Positive;	
+	-- used in commands
+private
+	-- for Misc subpackage
+	
+	function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive;	
+
 end FITS.File;
