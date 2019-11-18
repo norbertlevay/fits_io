@@ -17,7 +17,7 @@ ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
 	subtype FIndex is Integer range 0 .. 999;
 	
 	function To_Boolean(Value : String) return Boolean;
-	function To_Integer(Value : String) return Integer;
+	function To_Integer(Value : String) return FInteger;
 	function To_FIndex(Value : String) return FIndex;
 	function To_String (Value : String) return String;
 	

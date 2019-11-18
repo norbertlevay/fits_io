@@ -2,6 +2,8 @@
 
 
 with Strict; -- Positive_Arr needed
+with Keyword_Record;
+use Keyword_Record;
 
 package body Formulas is
 
@@ -9,9 +11,9 @@ package body Formulas is
 
         function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Strict.Positive_Arr) return Positive
+                 NAXIS  : Strict.Positive_Arr) return FPositive
 	is
-		Nbits : Positive := 1;
+		Nbits : FPositive := 1;
 	begin
 
 		for I in NAXIS'Range
@@ -19,7 +21,7 @@ package body Formulas is
 			Nbits := Nbits * NAXIS(I);
 		end loop;
 
-		Nbits := Natural(abs BITPIX) * Nbits;
+		Nbits := FPositive(abs BITPIX) * Nbits;
 		
 		return Nbits;
 
@@ -31,13 +33,13 @@ package body Formulas is
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : Strict.Positive_Arr;
-                 PCOUNT : Natural;
-                 GCOUNT : Positive) return Positive
+                 PCOUNT : FNatural;
+                 GCOUNT : FPositive) return FPositive
 	is
-		Nbits : Positive := PrimaryImage_DataSize_bits(BITPIX,NAXIS);
+		Nbits : FPositive := PrimaryImage_DataSize_bits(BITPIX,NAXIS);
 	begin
 
-		Nbits := Nbits + Natural(abs BITPIX) * PCOUNT;
+		Nbits := Nbits + FPositive(abs BITPIX) * PCOUNT;
 		Nbits := Nbits * GCOUNT;
 
 		return Nbits;
@@ -50,8 +52,8 @@ package body Formulas is
 	function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : Strict.Positive_Arr;
-                 PCOUNT : Natural;
-                 GCOUNT : Positive) return Positive
+                 PCOUNT : FNatural;
+                 GCOUNT : FPositive) return FPositive
 	is
 		NAXISCopy : Strict.Positive_Arr := NAXIS;
 	begin

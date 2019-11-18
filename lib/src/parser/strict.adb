@@ -4,6 +4,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
 with Keyword_Record; -- Card_Type needed
+use Keyword_Record; -- Card_Type needed
 
 --
 -- Finite Automaton
@@ -61,7 +62,7 @@ type State_Type is
         Name         	: State_Name;
         XTENSION_Val 	: XT_Type;
         NAXIS_Val    	: KW.FIndex;
-        NAXIS1_Val 	: Natural;
+        NAXIS1_Val 	: KW.FNatural;
         TFIELDS_Val  	: KW.FIndex;
 
 	-- Mandatory
@@ -737,7 +738,7 @@ end Is_Primary;
 
         	if(State.BITPIX.Read)
 		then
-                	Result.BITPIX := KW.To_Integer(State.BITPIX.Value);
+                	Result.BITPIX := Integer'Value(State.BITPIX.Value);
 	        else
         		Raise_Exception(Card_Not_Found'Identity, "BITPIX");
                 end if;

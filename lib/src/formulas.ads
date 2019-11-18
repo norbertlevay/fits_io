@@ -6,6 +6,9 @@
 
 with Strict; -- Positive_Arr needed
 
+with Keyword_Record;
+use  Keyword_Record;
+
 package Formulas is
 		
 	--
@@ -16,7 +19,7 @@ package Formulas is
 	
 	function PrimaryImage_DataSize_bits
 		(BITPIX : Integer;
-		 NAXIS  : Strict.Positive_Arr) return Positive;
+		 NAXIS  : Strict.Positive_Arr) return FPositive;
 
 
 	-- implements [FITS] Eq(2)
@@ -24,8 +27,8 @@ package Formulas is
 	function ConformingExtension_DataSize_bits
 		(BITPIX : Integer;
 		 NAXIS  : Strict.Positive_Arr;
-		 PCOUNT : Natural;
-		 GCOUNT : Positive) return Positive;
+		 PCOUNT : FNatural;
+		 GCOUNT : FPositive) return FPositive;
 
 
 	-- implements [FITS] Eq(4) 
@@ -33,8 +36,8 @@ package Formulas is
 	 function RandomGroups_DataSize_bits
 		(BITPIX : Integer;
 		 NAXIS  : Strict.Positive_Arr;
-		 PCOUNT : Natural;
-		 GCOUNT : Positive) return Positive;
+		 PCOUNT : FNatural;
+		 GCOUNT : FPositive) return FPositive;
 
 
 end Formulas;

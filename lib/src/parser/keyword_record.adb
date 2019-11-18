@@ -74,10 +74,10 @@ package body Keyword_Record is
 	end To_Boolean;
 
 
-	function To_Integer(Value : String) return Integer
+	function To_Integer(Value : String) return FInteger
 	is
 	begin
-		return Integer'Value(Value);
+		return FInteger'Value(Value);
 	end To_Integer;
 
 

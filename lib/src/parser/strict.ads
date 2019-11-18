@@ -10,7 +10,7 @@ package Strict is
 		CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
-	type Positive_Arr is array (Positive range <>) of Positive;
+	type Positive_Arr is array (Positive range <>) of Keyword_Record.FPositive;
 	type TFORM_Arr    is array (Positive range <>) of Unbounded_String;
 
 	type Result_Rec(HDU : HDU_Type;
@@ -25,8 +25,8 @@ package Strict is
 				NAXISArr : Positive_Arr(1 .. NAXIS_Last);
                                 case HDU is
                                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
-                                	PCOUNT : Natural;
-                                        GCOUNT : Positive;
+                                	PCOUNT : Keyword_Record.FNatural;
+                                        GCOUNT : Keyword_Record.FPositive;
 
 					case HDU is
 					when STANDARD_TABLE | STANDARD_BINTABLE =>

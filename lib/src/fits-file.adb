@@ -52,12 +52,13 @@ with Ada.Unchecked_Deallocation;
 
 with Strict;
 with Formulas;
-with Keyword_Record;    use Keyword_Record;
+with Keyword_Record;  use Keyword_Record;
 
 
 package body FITS.File is
 
 	package TIO renames Ada.Text_IO;
+	package KW renames Keyword_Record;
    
    ---------------
    -- FITS.File :
@@ -411,11 +412,11 @@ package body FITS.File is
         -- they always must check presence of the variable fields and 
         -- call external funcs accordingly
 function  Calc_DataUnit_Size_blocks  
-                (Res : in Strict.Result_Rec) return Natural
+                (Res : in Strict.Result_Rec) return KW.FNatural
 is
-	Size_bits : Natural;
+	Size_bits : KW.FNatural;
 
-	BitsPerBlock : constant Positive := (2880*8);
+	BitsPerBlock : constant KW.FPositive := (2880*8);
 		-- FIXME generic FITS-constant: move elsewhere
 begin
 	case(Res.HDU) is
@@ -480,7 +481,7 @@ end  Calc_DataUnit_Size_blocks;
    is 
 	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
    begin
-        return Calc_DataUnit_Size_blocks(PSize);
+        return Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
    end DU_Size_blocks;
 
   function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
@@ -488,7 +489,7 @@ end  Calc_DataUnit_Size_blocks;
 	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
    begin
         return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
-               + Calc_DataUnit_Size_blocks(PSize);
+               + Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
    end HDU_Size_blocks;
 
 
@@ -506,7 +507,7 @@ is
         CurHDUNum : Positive;
         HeaderStart : SIO.Positive_Count;
         Blk : Card_Block;
-        HDUSize_blocks : Positive;
+        HDUSize_blocks : KW.FPositive;
         CardNum : Natural;
         CurBlkNum : Natural := 0; -- none read yet
 begin
@@ -540,12 +541,13 @@ begin
  			TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Strict.HDU_Type'Image(PSize.HDU));
 
-                 	HDUSize_blocks := Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
-					+ Calc_DataUnit_Size_blocks(PSize);
+                 	HDUSize_blocks := KW.FPositive(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
+					+ Calc_DataUnit_Size_blocks(PSize); 
+					-- FIXME conversion for HeaderUnit
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
-                                        & Positive'Image(HDUSize_blocks));
+                                        & KW.FPositive'Image(HDUSize_blocks));
 
                 -- move to next HDU
 
