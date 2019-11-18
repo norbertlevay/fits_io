@@ -39,3 +39,24 @@ end Keyword_Record;
 --	function To_Float  (Value : String) return Float;
 --	function To_Complex_Integer(Value : String) return ???;
 --	function To_Complex_Float  (Value : String) return ???;
+--
+--
+-- Notes of FInteger:
+   -- FITS numeric types are prefixed with F...
+   --  
+   -- 1. deriving from file-system representation (Stream_IO):
+   -- subtype FNatural  is SIO.Count;
+   -- subtype FPositive is SIO.Positive_Count;
+   -- FIXME check-out difference; this also possible:
+   -- type FPositive is new SIO.Count
+   --  
+   -- 2. deriving from FITS-Standard:
+--   type    FInteger  is new Long_Long_Integer;-- non-portable: Long_Long_Integer size is not guaranteed,
+                                                -- can change from machine to machine and compiler will                                                -- build the code (which might crash)
+ --  type    FInteger  is range -(2**63) .. +(2**63 - 1);-- 64bit portable, guaranteed to be 64bit or will not compile
+  -- subtype FNatural  is FInteger range 0 .. FInteger'Last;
+  -- subtype FPositive is FNatural range 1 .. FNatural'Last;
+   -- FIXME only FNatural and FPositive used in code. FInteger serves only as base.
+   -- FIXME rename them to FITS.Count FITS.Positive_Count
+
+

@@ -3,13 +3,13 @@ with Ada.Text_IO,
      Ada.Float_Text_IO,
      Ada.Unchecked_Deallocation,
      FITS,
-     FITS.File,
+     File,
      System,
      Ada.Streams.Stream_IO;
 
 use
      FITS,
-     FITS.File,
+     File,
      System,
      Ada.Streams.Stream_IO;
 

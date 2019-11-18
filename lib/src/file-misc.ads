@@ -1,7 +1,7 @@
 
 -- hogh level block/HDU copying
 
-package FITS.File.Misc is
+package File.Misc is
 
    --  
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks
@@ -22,4 +22,4 @@ package FITS.File.Misc is
                        ChunkSize_blocks : in Positive := 10);
 
 
-end FITS.File.Misc;
+end File.Misc;

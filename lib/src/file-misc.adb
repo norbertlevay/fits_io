@@ -1,7 +1,7 @@
 
 -- hogh level block/HDU copying
 
-package body FITS.File.Misc is
+package body File.Misc is
 
    -- low-level copy in bigger chunks then one block for speed
    -- [FITS ???] suggests copying in chunks of 10 Blocks
@@ -56,4 +56,4 @@ package body FITS.File.Misc is
    end Copy_HDU;
 
 
-end FITS.File.Misc;
+end File.Misc;

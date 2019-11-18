@@ -37,6 +37,8 @@
 with Interfaces;
 with Ada.Streams.Stream_IO;
 
+with Keyword_Record; use Keyword_Record; -- FInteger needed
+
 package FITS is
 
    type Byte is mod 256;
@@ -46,10 +48,6 @@ package FITS is
    CardSize : constant Positive := 80;
    -- [FITS Sects. 3.3.1, 4.4.1]
 
-   subtype Card_Type is String(1..CardSize);
-   -- makes sure index start with 1
-
-   ENDCard   : constant Card_Type := ( 1=>'E', 2=>'N', 3=>'D', others => ' ');
    EmptyCard : constant Card_Type := (others => ' ');
 
    CardsCntInBlock : constant Positive := 36;
@@ -60,25 +58,6 @@ package FITS is
    pragma Pack (Card_Block); -- not guaranteed ??
    pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
                               
-
-   -- FITS numeric types are prefixed with F...
-   --
-   -- 1. deriving from file-system representation (Stream_IO):
-   -- subtype FNatural  is SIO.Count;
-   -- subtype FPositive is SIO.Positive_Count;
-   -- FIXME check-out difference; this also possible:
-   -- type FPositive is new SIO.Count
-   --
-   -- 2. deriving from FITS-Standard:
---   type    FInteger  is new Long_Long_Integer;-- non-portable: Long_Long_Integer size is not guaranteed,
-                                                -- can change from machine to machine and compiler will
-                                                -- build the code (which might crash)
-   type    FInteger  is range -(2**63) .. +(2**63 - 1);-- 64bit portable, guaranteed to be 64bit or will not compile
-   subtype FNatural  is FInteger range 0 .. FInteger'Last;
-   subtype FPositive is FNatural range 1 .. FNatural'Last;
-   -- FIXME only FNatural and FPositive used in code. FInteger serves only as base.
-   -- FIXME rename them to FITS.Count FITS.Positive_Count
-
 
    subtype NAXIS_Type is Positive range 1 .. 999;
    -- [FITS, Sect 4.4.1]

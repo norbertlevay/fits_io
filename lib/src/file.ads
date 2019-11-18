@@ -104,11 +104,14 @@
 
 
 with Ada.Streams.Stream_IO;
---with FITS.Header; use FITS.Header;-- Max20
 
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 
-package FITS.File is
+with Keyword_Record; use Keyword_Record; -- FPositive needed
+
+with FITS; use FITS;
+
+package File is
 
    package SIO renames Ada.Streams.Stream_IO;
 
@@ -233,4 +236,4 @@ private
 	
 	function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive;	
 
-end FITS.File;
+end File;

@@ -55,7 +55,7 @@ with Formulas;
 with Keyword_Record;  use Keyword_Record;
 
 
-package body FITS.File is
+package body File is
 
 	package TIO renames Ada.Text_IO;
 	package KW renames Keyword_Record;
@@ -569,5 +569,5 @@ end Set_Index;
 
 
 
-end FITS.File;
+end File;
 

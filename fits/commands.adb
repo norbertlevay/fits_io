@@ -6,11 +6,11 @@ with Ada.Characters.Latin_1;
 with System;
 with System.Storage_Elements;
 
-with FITS;        use FITS;
-with FITS.File;   use FITS.File;
-with FITS.File.Misc;   use FITS.File.Misc;
---with FITS.Header; use FITS.Header;
+with FITS;      use FITS;
+with File;   	use File;
+with File.Misc; use File.Misc;
 
+with Keyword_Record; use Keyword_Record; -- FPositive needed
 
 package body Commands is
 
