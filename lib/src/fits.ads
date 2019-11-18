@@ -45,20 +45,6 @@ package FITS is
    for Byte'Size use 8;
    -- [FITS] defines Byte as 8-bit
 
-   CardSize : constant Positive := 80;
-   -- [FITS Sects. 3.3.1, 4.4.1]
-
-   EmptyCard : constant Card_Type := (others => ' ');
-
-   CardsCntInBlock : constant Positive := 36;
-   type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
-   type Card_Arr   is array (Positive range <>)                 of Card_Type;
---   for Card_Arr'Size use Card_Arr'Length*(CardSize);
--- FIXME how to guarantee these Arrs are packed OR do we need to guarantee ?
-   pragma Pack (Card_Block); -- not guaranteed ??
-   pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
-                              
-
    type Data_Type is
        (UInt8,   Int16,
         Int32,   Int64,

@@ -119,6 +119,16 @@ package File is
    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
     -- [FITS 3.1 Overall file structure]
 
+   CardsCntInBlock : constant Positive := 36;
+   type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
+   type Card_Arr   is array (Positive range <>)                 of Card_Type;
+--   for Card_Arr'Size use Card_Arr'Length*(CardSize);
+-- FIXME how to guarantee these Arrs are packed OR do we need to guarantee ?
+   pragma Pack (Card_Block); -- not guaranteed ??
+   pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
+
+
+
    -----------------------------
    -- Read/Write Header Cards --
    -----------------------------

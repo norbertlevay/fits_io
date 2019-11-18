@@ -6,8 +6,10 @@
 
 package Keyword_Record is
 
-subtype Card_Type is String(1..80);
-ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+	subtype Card_Type is String(1..80);
+	ENDCard   : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+	EmptyCard : constant Card_Type := (others => ' ');
+
 
         type    FInteger  is range -(2**63) .. +(2**63 - 1); 
         -- 64bit portable, guaranteed to be 64bit or will not compile
