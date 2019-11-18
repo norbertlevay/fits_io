@@ -478,14 +478,14 @@ end  Calc_DataUnit_Size_blocks;
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
    function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
    is 
-	PSize : Strict.Result_Rec := Strict.Get;
+	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
    begin
         return Calc_DataUnit_Size_blocks(PSize);
    end DU_Size_blocks;
 
   function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
    is 
-	PSize : Strict.Result_Rec := Strict.Get;
+	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
    begin
         return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
                + Calc_DataUnit_Size_blocks(PSize);
