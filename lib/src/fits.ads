@@ -59,15 +59,6 @@ package FITS is
    pragma Pack (Card_Arr);   -- FIXME this is only suggestion to compiler
                               
 
-   subtype NAXIS_Type is Positive range 1 .. 999;
-   -- [FITS, Sect 4.4.1]
-   type NAXIS_Arr is array (NAXIS_Type range <>) of FPositive;
-
-   -- [FITS 4.2.3 Integer number]:
-   -- FITS poses no limit on max value of Integer / NAXISn.
-   -- So max value NAXISn will be implementation limited:
-   -- 0 .. FPositive'Last
-
    type Data_Type is
        (UInt8,   Int16,
         Int32,   Int64,

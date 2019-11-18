@@ -212,12 +212,13 @@ package body File is
    -- REFACTOR for final
 
    procedure To_Coords (Offset    : in  FPositive;
-                        MaxCoords : in  NAXIS_Arr;
-                        Coords    : out NAXIS_Arr)
+                        MaxCoords : in  Strict.Positive_Arr;
+                        Coords    : out Strict.Positive_Arr)
    is
-      Sizes : NAXIS_Arr := MaxCoords;
-      Divs :  NAXIS_Arr := MaxCoords;
-      Rems :  NAXIS_Arr := MaxCoords;
+	use Strict;
+      Sizes : Strict.Positive_Arr := MaxCoords;
+      Divs :  Strict.Positive_Arr := MaxCoords;
+      Rems :  Strict.Positive_Arr := MaxCoords;
       -- FIXME these inits are needed only to eliminate Ada error
       -- find other solution
    begin
@@ -259,10 +260,10 @@ package body File is
 
 
    procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  NAXIS_Arr)
+                             MaxCoords : in  Strict.Positive_Arr)
    is
 
-     function  multiply (MaxCoords : in  NAXIS_Arr) return FPositive
+     function  multiply (MaxCoords : in  Strict.Positive_Arr) return FPositive
      is
       Accu  : FPositive := 1;
      begin
@@ -277,7 +278,7 @@ package body File is
 
     IArrLen : FPositive := multiply(MaxCoords);
     IArr    : Item_Arr(1..IArrLen);
-    Coord   : NAXIS_Arr := MaxCoords;
+    Coord   : Strict.Positive_Arr := MaxCoords;
 
     DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
     ItemSize : constant Positive := Item'Size/Unsigned_8'Size;

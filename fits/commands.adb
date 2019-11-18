@@ -99,7 +99,7 @@ package body Commands is
   Tab : Character := Ada.Characters.Latin_1.HT;
  begin
   TIO.Put_Line("Limits imposed by implementation and/or the system:");
-  TIO.Put_Line("Max NAXIS  :" & Tab & Positive'Image(NAXIS_Type'Last));
+  TIO.Put_Line("Max NAXIS  :" & Tab & FIndex'Image(FIndex'Last));
   TIO.Put_Line("Max NAXISn :" & Tab & FPositive'Image(FPositive'Last));
   TIO.Put_Line("Max File size :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
   TIO.Put_Line("Max DataUnit size :" & Tab & "???" );

@@ -10,7 +10,7 @@ package Strict is
 		CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
-	type Positive_Arr is array (Positive range <>) of Keyword_Record.FPositive;
+	type Positive_Arr is array (Keyword_Record.FIndex range <>) of Keyword_Record.FPositive;
 	type TFORM_Arr    is array (Positive range <>) of Unbounded_String;
 
 	type Result_Rec(HDU : HDU_Type;

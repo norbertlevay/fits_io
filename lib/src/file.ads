@@ -108,7 +108,7 @@ with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 
 with Keyword_Record; use Keyword_Record; -- FPositive needed
-
+with Strict; -- Positive_Arr needed
 with FITS; use FITS;
 
 package File is
@@ -191,9 +191,9 @@ package File is
    generic
     type Item is private;
 --    type Item_Arr is array (FPositive range <>) of Item;
-    with function Element (Coord : in NAXIS_Arr) return Item;
+    with function Element (Coord : in Strict.Positive_Arr) return Item;
    procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  NAXIS_Arr);
+                             MaxCoords : in  Strict.Positive_Arr);
    -- Item is any of FITS.UInt8 ... FITS.Float64
    -- Notes:
    -- Write_Data writes the complete DataUnit
@@ -210,7 +210,7 @@ package File is
       XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
       CardsCnt : FPositive;       -- number of cards in this Header
       BITPIX   : Integer;             -- data type
-      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
+      NAXISn   : Strict.Positive_Arr(1..NAXIS); -- data dimensions
    end record;
 
    function  Get (FitsFile : in  SIO.File_Type)
