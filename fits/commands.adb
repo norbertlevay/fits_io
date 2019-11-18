@@ -9,7 +9,7 @@ with System.Storage_Elements;
 with FITS;        use FITS;
 with FITS.File;   use FITS.File;
 with FITS.File.Misc;   use FITS.File.Misc;
-with FITS.Header; use FITS.Header;
+--with FITS.Header; use FITS.Header;
 
 
 package body Commands is
@@ -29,7 +29,7 @@ package body Commands is
   procedure Print_HDU_Info (Index   : in Positive;
                             HDUInfo : in HDU_Info_Type)
   is
-      FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
+      FreeSlotCnt : Natural := 0;-- FIXME Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
   begin
 

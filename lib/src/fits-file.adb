@@ -372,7 +372,9 @@ package body FITS.File is
                         -- convert rec
     
                         HDUInfo.XTENSION := Max20.To_Bounded_String(
-			      Strict.HDU_Type'Image(Psize.HDU));-- FIXME convert HDUType to string
+					Strict.HDU_Type'Image(Psize.HDU));
+					-- FIXME PSize.HSU is enum: 20 length might not be enough
+					-- find other solution then Bounded_String??
                         HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
                         HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 

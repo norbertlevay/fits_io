@@ -104,7 +104,9 @@
 
 
 with Ada.Streams.Stream_IO;
-with FITS.Header; use FITS.Header;-- Max20
+--with FITS.Header; use FITS.Header;-- Max20
+
+with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 
 package FITS.File is
 
@@ -198,6 +200,8 @@ package FITS.File is
    -----------------------
    -- FITS file content --
    -----------------------
+   package Max20 is
+        new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
 
    type HDU_Info_Type(NAXIS : Positive) is record
       XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
