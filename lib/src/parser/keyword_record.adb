@@ -164,7 +164,7 @@ package body Keyword_Record is
 	function Take_Index(Root : in String; Card : in Card_Type) return Natural
 	is
 	begin
-		return To_Integer( Card(Root'Length + 1 .. 8) );	
+		return Integer'Value( Card(Root'Length + 1 .. 8) );	
 	end Take_Index;
 
 
