@@ -60,9 +60,9 @@ type State_Type is
 
         Name         	: State_Name;
         XTENSION_Val 	: XT_Type;
-        NAXIS_Val    	: Natural;
+        NAXIS_Val    	: KW.FIndex;
         NAXIS1_Val 	: Natural;
-        TFIELDS_Val  	: Natural;
+        TFIELDS_Val  	: KW.FIndex;
 
 	-- Mandatory
         SIMPLE   : CardValue(20);
@@ -215,7 +215,7 @@ end Is_Primary;
 		then
 			Set(State.NAXIS, Card);
 
-			State.NAXIS_Val := KW.To_Integer(State.NAXIS.Value);
+			State.NAXIS_Val := KW.To_FIndex(State.NAXIS.Value);
 
 			-- from Primary
 
@@ -274,7 +274,7 @@ end Is_Primary;
 		then
 			Set(State.TFIELDS, Card);
 
-			State.TFIELDS_Val := KW.To_Integer(State.TFIELDS.Value);
+			State.TFIELDS_Val := KW.To_FIndex(State.TFIELDS.Value);
 
 			case(State.XTENSION_Val) is
 				when ASCII_TABLE | BIN_TABLE =>
