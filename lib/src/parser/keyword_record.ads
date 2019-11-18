@@ -3,10 +3,6 @@
 
 package Keyword_Record is
 
-type Positive_Arr is array (Positive range <>) of Positive;
--- FIXME Formulas & FA_Prim/Ext need it; where to declare?
-
-
 subtype Card_Type is String(1..80);
 ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
 

@@ -3,7 +3,7 @@ with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
-with Keyword_Record;
+with Keyword_Record; -- Card_Type needed
 
 --
 -- Finite Automaton
@@ -691,9 +691,9 @@ end Is_Primary;
 
 
 
-	function Get_TBCOLn return KW.Positive_Arr
+	function Get_TBCOLn return Strict.Positive_Arr
 	is
-		Arr : KW.Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+		Arr : Strict.Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
 	begin
 		for I in 1 .. State.TFIELDS_Val
 		loop

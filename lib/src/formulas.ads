@@ -6,7 +6,7 @@
 
 --with FITSlib.Header; use FITSlib.Header;
 
-with Keyword_Record;
+with Strict; -- Positive_Arr needed
 
 package Formulas is
 
@@ -26,14 +26,14 @@ package Formulas is
 	
 	function PrimaryImage_DataSize_bits
 		(BITPIX : Integer;
-		 NAXIS  : Keyword_Record.Positive_Arr) return Positive;
+		 NAXIS  : Strict.Positive_Arr) return Positive;
 
 
 	-- implements [FITS] Eq(2)
 	
 	function ConformingExtension_DataSize_bits
 		(BITPIX : Integer;
-		 NAXIS  : Keyword_Record.Positive_Arr;
+		 NAXIS  : Strict.Positive_Arr;
 		 PCOUNT : Natural;
 		 GCOUNT : Positive) return Positive;
 
@@ -42,7 +42,7 @@ package Formulas is
 
 	 function RandomGroups_DataSize_bits
 		(BITPIX : Integer;
-		 NAXIS  : Keyword_Record.Positive_Arr;
+		 NAXIS  : Strict.Positive_Arr;
 		 PCOUNT : Natural;
 		 GCOUNT : Positive) return Positive;
 

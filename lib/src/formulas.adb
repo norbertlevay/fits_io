@@ -1,8 +1,7 @@
 
 
 
---with Ada.Text_IO;
-
+with Strict; -- Positive_Arr needed
 
 package body Formulas is
 
@@ -10,7 +9,7 @@ package body Formulas is
 
         function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Keyword_Record.Positive_Arr) return Positive
+                 NAXIS  : Strict.Positive_Arr) return Positive
 	is
 		Nbits : Positive := 1;
 	begin
@@ -31,7 +30,7 @@ package body Formulas is
  
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Keyword_Record.Positive_Arr;
+                 NAXIS  : Strict.Positive_Arr;
                  PCOUNT : Natural;
                  GCOUNT : Positive) return Positive
 	is
@@ -50,11 +49,11 @@ package body Formulas is
 	
 	function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Keyword_Record.Positive_Arr;
+                 NAXIS  : Strict.Positive_Arr;
                  PCOUNT : Natural;
                  GCOUNT : Positive) return Positive
 	is
-		NAXISCopy : Keyword_Record.Positive_Arr := NAXIS;
+		NAXISCopy : Strict.Positive_Arr := NAXIS;
 	begin
 		
 		-- in RandomGroups NAXIS1 = 0

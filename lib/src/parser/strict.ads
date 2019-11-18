@@ -1,7 +1,7 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Keyword_Record;
+with Keyword_Record; -- Card_Type needed
 
 package Strict is
 
@@ -9,8 +9,9 @@ package Strict is
 		(NO_DATA, IMAGE, RANDOM_GROUPS, -- Primary
 		CONFORMING_EXTENSION,
 		STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
-	
-	type TFORM_Arr is array (Positive range <>) of Unbounded_String;
+
+	type Positive_Arr is array (Positive range <>) of Positive;
+	type TFORM_Arr    is array (Positive range <>) of Unbounded_String;
 
 	type Result_Rec(HDU : HDU_Type;
 			NAXIS_Last   : Natural;
@@ -21,7 +22,7 @@ package Strict is
 
                         case HDU is
                         when IMAGE .. STANDARD_BINTABLE  =>
-				NAXISArr : Keyword_Record.Positive_Arr(1 .. NAXIS_Last);
+				NAXISArr : Positive_Arr(1 .. NAXIS_Last);
                                 case HDU is
                                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
                                 	PCOUNT : Natural;
@@ -32,7 +33,7 @@ package Strict is
 						TFORMn : TFORM_Arr(1..TFIELDS_Last);
 						case HDU is
 						when STANDARD_TABLE =>
-					     	TBCOLn : Keyword_Record.Positive_Arr(1..TFIELDS_Last);
+					     	TBCOLn : Positive_Arr(1..TFIELDS_Last);
 						when others => null;
 						end case;
 				 	when others => null;
