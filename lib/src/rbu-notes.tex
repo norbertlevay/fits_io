@@ -79,4 +79,25 @@ the lib implementation), whether needed or not ?
 E.g. convert Header on disk -> records in mem. As much records 
 as is implemented in the lib. How about user-extendeabiity then ?
 
+__________________________________________________
+Design:
+
+File
+|
+|
+|
+Parser
+|
+| \
+|  \
+|   \
+|    \
+|     \
+|      \
+|       \
+|        \
+Formulas  Keyword_Records  <-- bottom: does not depend on any internal modules, only external language and libs
+________________________________ internal ^
+-------------------------------- external ˇ
+
 
