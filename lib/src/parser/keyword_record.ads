@@ -14,16 +14,18 @@ ENDCard  : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
         subtype FNatural  is FInteger range 0 .. FInteger'Last;
         subtype FPositive is FNatural range 1 .. FNatural'Last;
 
+	subtype FIndex is Integer range 0 .. 999;
 	
 	function To_Boolean(Value : String) return Boolean;
 	function To_Integer(Value : String) return Integer;
+	function To_FIndex(Value : String) return FIndex;
 	function To_String (Value : String) return String;
 	
 
 	function Match_Key(Key : in String; Card : in Card_Type) return Boolean;
 	function Match_Indexed_Key(Root : in String; Card : in Card_Type) return Boolean;
 
-	function Take_Index(Root : in String; Card : in Card_Type) return Natural;
+	function Take_Index(Root : in String; Card : in Card_Type) return FIndex;
 
 	Invalid_Card_Value : exception;
 

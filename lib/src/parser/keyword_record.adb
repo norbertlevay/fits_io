@@ -79,6 +79,13 @@ package body Keyword_Record is
 	begin
 		return Integer'Value(Value);
 	end To_Integer;
+
+
+	function To_FIndex(Value : String) return FIndex
+	is
+	begin
+		return Findex'Value(Value);
+	end To_FIndex;
 	
 	
 	
@@ -161,10 +168,10 @@ package body Keyword_Record is
 	end Match_Indexed_Key;
 
 
-	function Take_Index(Root : in String; Card : in Card_Type) return Natural
+	function Take_Index(Root : in String; Card : in Card_Type) return FIndex
 	is
 	begin
-		return Integer'Value( Card(Root'Length + 1 .. 8) );	
+		return To_FIndex( Card(Root'Length + 1 .. 8) );	
 	end Take_Index;
 
 
