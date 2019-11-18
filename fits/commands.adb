@@ -26,10 +26,25 @@ package body Commands is
    TIO.Put_Line ("HDU#" & Tab & "Extension " & Tab & " Cards" & Tab & "Data");
   end Print_Headline;
 
+
+-- originally was in FITS.Header
+   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   is  
+    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    -- explicit conversion ok: mod < CardsCntInBlock = 36;
+   begin
+    if FreeSlotCnt /= 0 then
+      FreeSlotCnt := CardsCntInBlock - FreeSlotCnt;
+    end if;
+    return FreeSlotCnt;
+   end Free_Card_Slots;
+
+
+
   procedure Print_HDU_Info (Index   : in Positive;
                             HDUInfo : in HDU_Info_Type)
   is
-      FreeSlotCnt : Natural := 0;-- FIXME Free_Card_Slots(HDUInfo.CardsCnt);
+      FreeSlotCnt : Natural := Free_Card_Slots(HDUInfo.CardsCnt);
       Tab : Character := Ada.Characters.Latin_1.HT;
   begin
 
