@@ -11,10 +11,10 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with FITS;        use FITS;
-with FITS.Header; use FITS.Header;
-with FITS.File;   use FITS.File;
-
+with FITS;   use FITS;
+with File;   use File;
+with Keyword_Record; use Keyword_Record; -- FPositive needed
+with Strict; use Strict; -- Positive_Arr needed
 
 procedure create
 is
@@ -26,40 +26,26 @@ is
 
  -- Describe the Data
 
- RowsCnt : constant FPositive := 600;-- = ColumnLength
- ColsCnt : constant FPositive := 400;-- = Row   Length
+ RowsCnt : constant FPositive := 500;-- = ColumnLength
+ ColsCnt : constant FPositive := 500;-- = Row   Length
 
- MaxCoords : constant NAXIS_Arr := (RowsCnt,ColsCnt);
+ MaxCoords : constant Positive_Arr := (RowsCnt,ColsCnt);
 
  -- Prepare the Header
 
  -- Card => Key Value Comment
  Cards : Card_Arr :=  (
-   To_Card (Max_8.To_Bounded_String("SIMPLE"),
-            Max20.To_Bounded_String("T"),
-            Max48.To_Bounded_String("Standard FITS file")),
-
-   To_Card (Max_8.To_Bounded_String("BITPIX"),
-            Max20.To_Bounded_String("8"),
-            Max48.To_Bounded_String("Unsigned 8-bit integer data")),
-
-   To_Card (Max_8.To_Bounded_String("NAXIS"),
-            Max20.To_Bounded_String("2"),
-            Max48.To_Bounded_String("2-dimensional image")),
-
-   To_Card (Max_8.To_Bounded_String("NAXIS1"),
-            Max20.To_Bounded_String("600"),
-            Max48.To_Bounded_String("rows")),
-
-   To_Card (Max_8.To_Bounded_String("NAXIS2"),
-            Max20.To_Bounded_String("400"),
-            Max48.To_Bounded_String("columns")),
+"SIMPLE  =                     T / Standard FITS FIle                            ",
+"BITPIX  =                     8 / Standard FITS FIle                            ",
+"NAXIS   =                     2 / Standard FITS FIle                            ",
+"NAXIS1  =                   500 / Standard FITS FIle                            ",
+"NAXIS2  =                   500 / Standard FITS FIle                            ",
    ENDCard
    );
 
  -- Define the Data
 
- function Squares (Coord : in NAXIS_Arr) return Unsigned_8
+ function Squares (Coord : in Positive_Arr) return Unsigned_8
  is
  begin
   return Unsigned_8(Coord(1)*Coord(2) mod 256);

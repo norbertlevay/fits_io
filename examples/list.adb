@@ -14,7 +14,7 @@ with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
 
 
-with FITS_IO.File;   --use FITS_IO.File;
+with File;   use File;
 with Ada.Strings.Unbounded;
 
 procedure list
@@ -24,7 +24,6 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  package CLI renames Ada.Command_Line;
  package SU  renames Ada.Strings.Unbounded;
- package FIO renames FITS_IO.File;
 
  InFileName : SU.Unbounded_String; 
  InFile     : SIO.File_Type;
@@ -46,11 +45,11 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
      declare
-       -- FIXME tbd later: HDUInfo : HDU_Info := FITS_IO.File.List.Get(InFile);
+       HDUInfo : HDU_Info_Type := Get(InFile);
      begin
        TIO.Put_Line(Positive'Image(HDUNum));
        HDUNum := HDUNum + 1;
-       FIO.Set_Index(InFile, HDUNum);
+       Set_Index(InFile, HDUNum);
      end;
    end loop;
 

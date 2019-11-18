@@ -1,5 +1,5 @@
 
-INCDIR=../lib/src
+INCDIR=-I../lib/src -I../lib/src/parser
 LIBDIR=../lib
 LIB=fits_io
 
@@ -7,9 +7,9 @@ LIB=fits_io
 #-gnat05
 #-gnat05
 all:
-	gnatmake -g -gnat12 -we create.adb  -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
-	gnatmake -g -gnat12 -we convert.adb -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
-	gnatmake -g -gnat12 -we list.adb    -I$(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfitsio_io -bargs -E #-largs -static
+	gnatmake -g -gnat12 -we create.adb  $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g -gnat12 -we convert.adb $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
+	gnatmake -g -gnat12 -we list.adb    $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 
 
 clean:

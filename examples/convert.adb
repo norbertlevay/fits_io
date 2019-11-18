@@ -17,15 +17,27 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with FITS;        use FITS;
-with FITS.Header; use FITS.Header;
-with FITS.File;   use FITS.File;
-
+with FITS;   use FITS;
+with File;   use File;
+with Keyword_Record; use Keyword_Record;
+with Strict; use Strict; -- Positive_Arr needed
 
 procedure convert
 is
 
  package SIO renames Ada.Streams.Stream_IO;
+
+ function DU_Count(NAXISn : Positive_Arr) return FNatural
+ is
+	Cnt : FNatural := 1;
+ begin
+	for I in NAXISn'Range
+        loop
+		Cnt := Cnt * NAXISn(I);
+	end loop;
+	return Cnt;
+ end DU_Count;
+
 
  OutFileName : constant String := Command_Name & ".fits";
  OutFile     : SIO.File_Type;
@@ -46,9 +58,7 @@ is
  procedure Write_Data is new gen_Write_Data(Data_Arr => Float32_Arr);
 
  BITPIXFloat64Card : Card_Type :=
-   To_Card (Max_8.To_Bounded_String("BITPIX"),
-            Max20.To_Bounded_String("-32"),
-            Max48.To_Bounded_String("Float 32 Data Type"));
+"BITPIX  =                   -32 / Standard FITS FIle                            ";
 
  Nb   : FPositive;
  Nrem : FNatural;
@@ -72,7 +82,7 @@ begin
   HDUInfo : HDU_Info_Type := Get(InFile);
  begin
   BITPIX := HDUInfo.BITPIX;
-  DUSize := DU_Size (HDUInfo.NAXISn);
+  DUSize := DU_Count (HDUInfo.NAXISn);
  end;
 
  -- write Header
