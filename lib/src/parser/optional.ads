@@ -9,6 +9,7 @@ type Bounded_String_8_Arr  is array (Positive range <>) of Bounded_String_8.Boun
 
 
 subtype Card_Type is String(1..80); -- temporary later use common Card_Type
+ENDCard : constant Card_Type := ('E','N','D', others => ' ');
 type Card_Arr is array (Positive range <>) of Card_Type;
 
 function Init (Keys : in Bounded_String_8_Arr) return Positive;
