@@ -391,6 +391,40 @@ package body File is
 
    end Get;
 
+
+
+
+   function  Get_Cards (FitsFile : in  SIO.File_Type;
+                       Keys : in Optional.Bounded_String_8_Arr)
+      return Card_Arr
+   is
+ 	HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
+     	CardNum : Natural;
+        Card : String(1..80);
+
+	CurBlkNum : Natural := 0; -- none read yet
+	Blk : Card_Block;
+   begin
+        CardNum := Optional.Init(Keys);
+        loop
+		Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
+                CardNum := Optional.Next(CardNum, Card);
+                exit when (CardNum = 0); 
+        end loop;
+
+
+	declare
+		Cards : Card_Arr := Optional.Get_Cards;
+	begin
+		return Cards;
+	end;
+
+   end Get_Cards;
+
+
+
+
+
    --
    -- Set file index to HDU start given by HDUNum
    --
