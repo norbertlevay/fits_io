@@ -17,6 +17,8 @@ with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
 with File;   use File;
 with Ada.Strings.Unbounded;
 
+with Optional; --use Keyword_Record;
+
 procedure reserved_keys
 is
 
@@ -45,9 +47,15 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
      declare
-       Cards : Card_Arr := Get_Cards(InFile, Reserved_Keys);
+       Cards : Optional.Card_Arr := Get_Cards(InFile, File.Reserved_Keys);
      begin
-       TIO.Put_Line(Positive'Image(HDUNum));
+       TIO.Put_Line("RESKEYS: HDU# " & Positive'Image(HDUNum));
+	for I in Cards'Range
+	loop
+		TIO.Put_Line("RESKEYS: >" & Cards(I) & "<" );
+	end loop;
+
+
        HDUNum := HDUNum + 1;
        Set_Index(InFile, HDUNum);
      end;

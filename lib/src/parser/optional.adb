@@ -22,6 +22,7 @@ is
 begin
 	K_Last := Keys'Last;
 	K(1..K_Last) := Keys;
+	C_Last := 0;
 
 	return 1;
 end Init;
