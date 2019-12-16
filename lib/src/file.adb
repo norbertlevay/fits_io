@@ -601,6 +601,86 @@ begin
 
 end Set_Index;
 
+--
+-- Data access
+-- assume File_Index points to DataUnit'First element
+--
+
+-- from Coords and Cube dimensions (MaxCOords) calc
+-- offset in data-element count
+function To_Offset (Coords    : in  Strict.Positive_Arr;
+                     MaxCoords : in  Strict.Positive_Arr)
+   return FPositive
+ is
+  Offset : FPositive;
+  Sizes  : Strict.Positive_Arr := MaxCoords;
+ begin
+  if Coords'Length /= MaxCoords'Length
+  then
+   null;
+   -- raise exception <-- needed this if ?
+   -- no, check only high level inputs, this is not direct API call
+   -- assume if code corrct, it is corrct here
+  end if;
+
+  --  
+  -- generate size of each plane
+  --  
+  declare
+    Accu  : FPositive := 1;
+  begin
+    for I in MaxCoords'First .. (MaxCoords'Last - 1)
+    loop
+     Accu := Accu * MaxCoords(I);
+     Sizes(I) := Accu;
+     -- FIXME Acc is not needed, init Sizes(1):=1 and use Sizes
+    end loop;
+  end;
+
+  Offset := Coords(1);
+  for I in (Coords'First + 1) .. Coords'Last
+  loop
+   Offset := Offset + (Coords(I) - 1) * Sizes(I - 1); 
+  end loop;
+
+  return Offset;
+ end To_Offset;
+
+
+
+-- read one data element at coordinates 'Coords'
+-- from cube of dimensions 'MaxCoords'
+generic
+	type T is private; -- UInt_8 Int_16 ... Float_32 Float_64
+function Element_Value
+		(File : File_Type; 
+		DUStart   : in SIO.Positive_Count;
+		Coords    : in Strict.Positive_Arr;
+		MaxCoords : in Strict.Positive_Arr)
+ return T;
+
+function Element_Value
+		(File : File_Type; 
+		DUStart   : in SIO.Positive_Count;
+		Coords    : in Strict.Positive_Arr;
+		MaxCoords : in Strict.Positive_Arr) 
+		-- MaxCoords is HDU_Info_Type.NAXISn() 
+ return T
+is
+	tt : T;
+	-- calc Offset from Coord	
+	Offset : FInteger := To_Offset(Coords, MaxCoords);
+	DataElementSize : FInteger := T'Size / Ada.Streams.Stream_Element'Size;
+	-- FIXME check if not divisable
+begin
+	-- move to Offset
+	Set_Index(File, DUStart + SIO.Positive_Count(DataElementSize * Offset));
+					-- FIXME explicit conversions
+	-- read tt
+	T'Read(Stream(File), tt);
+	-- FIXME check is Endianness handled
+	return tt;
+end Element_Value;
 
 
 
