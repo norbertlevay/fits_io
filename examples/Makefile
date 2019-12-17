@@ -15,3 +15,11 @@ all:
 
 clean:
 	rm -f convert.fit b~convert.ad? convert create.fits create b~create.ad? list b~list.ad? reserved_keys b~reserved_keys.ad?  *.ali *.o *~
+
+
+
+run:
+	./create
+	fitsheader create.fits
+	fits2bitmap create.fits
+	gio open create.png

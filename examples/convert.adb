@@ -89,11 +89,15 @@ begin
 
  Set_Index(InFile, 1);
  loop
-  Card := Read_Card(InFile);
+  -- Card := Read_Card(InFile);
+  Card_Type'Read(SIO.Stream(InFile),Card);
+
   if(Card(1..6) = "BITPIX") then
-    Write_Card(OutFile, BITPIXFloat64Card);
+    -- Write_Card(OutFile, BITPIXFloat64Card);
+    Card_Type'Write(SIO.Stream(OutFile),BITPIXFloat64Card);
   else
-    Write_Card(OutFile, Card);
+    -- Write_Card(OutFile, Card);
+    Card_Type'Write(SIO.Stream(OutFile),Card);
   end if;
   exit when Card = ENDCard;
  end loop;

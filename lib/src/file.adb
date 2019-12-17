@@ -290,6 +290,10 @@ package body File is
     for I in IArr'Range
     loop
      To_Coords (I, MaxCoords, Coord);
+
+  --TIO.Put_Line("DBG " & FPositive'Image(Coord(1)) & " " & FPositive'Image(Coord(2)));
+
+
      IArr(I) := Element (Coord);
     end loop;
 

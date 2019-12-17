@@ -49,7 +49,9 @@ is
  function Squares (Coord : in Positive_Arr) return Unsigned_8
  is
  begin
-  return Unsigned_8(Coord(1)*Coord(2) mod 256);
+  --Put_Line("DBG " & Positive'Image(Coord'Length));
+  --Put_Line("DBG " & FPositive'Image(Coord(Coord'First)) & " " & FPositive'Image(Coord(Coord'Last)));
+  return Unsigned_8(Coord(Coord'First)*Coord(Coord'Last) mod 256);
  end Squares;
 
  procedure Write_Data_UInt8 is
@@ -66,7 +68,8 @@ begin
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
  -- write Header
- Write_Cards(File, Cards);
+-- Write_Cards(File, Cards);
+ Card_Arr'Write(SIO.Stream(File),Cards);
  Write_Padding(File,SIO.Index(File),HeaderPadValue);
 
  -- write Data
