@@ -1,3 +1,43 @@
+--
+-- Implementation notes:
+--
+-- Set_Index allows positioning in the stream if the media allows it
+-- (for files yes, for network maybe?, for pipes?, for stdin stdout?).
+--
+-- FIXME shouldn't FitsFile : File_Type be 'in out' ? we update the Index...
+-- File_Type is Access. Nevertheless verify in out...
+--
+-- General API problem: which API call should move the file-index ?
+--   And how to convey info where the new file-index points ?
+--
+-- Re-consider API:
+--   Offset in Set_Index() should be in 'Read() 'Write().
+--   Motivation:
+--   concept of Block is part of the FITS standard.
+--   This API would support read/write in blocks -
+--   e.g. always guarantee naturally correct size and fill-in areas.
+--   If Offset is in Set_Index only Stream_IO is supported.
+--   Interfaces like Direct_IO(Block) are not.
+--   E.g. such new API:
+--   procedure Stream(File_Type; HDUNum) <- position to begining of HDU
+--   procedure used for 'Read (FITSStream, FITS_Data_Type, Offset )
+--   procedure used for 'Write(FITSStream, FITS_Data_Type, Offset )
+--
+--   Possible at all(?): 'Read/'Write are pre-defined Stream attributes with 2 param only(?)
+--
+--   Drawback:
+--   Read/Write of DataUnit would need to calculate Header size
+--   at first call of multiple writes. Successive writes can be
+--   done directly by Stream: 'Write/'Read(FITSStream, Data).
+--   After first read/write we are correctly positioned, and read/write
+--   move the file pointer.
+--   For multiple writes (reads) to (from) continuous area,
+--   a client would do:
+--   FIST_Data_Type'Write(FITS, Data(1), Offset); <-- func from FITS package with initial positioning
+--   FIST_Data_Type'Write(FITS, Data(2) );        <-- func from Stream_IO, only write, no positioning
+--   FIST_Data_Type'Write(FITS, Data(3) );
+--   ... n-times
+--
 
 with Ada.Text_IO;
 
@@ -7,6 +47,8 @@ with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
+
+--with FITS.Header; use FITS.Header;
 
 with Strict;
 with Formulas;
@@ -66,6 +108,106 @@ package body File is
     UInt8_Arr'Write(SIO.Stream(FitsFile),PadArr);
    end Write_Padding;
 
+
+   function  Read_Card  (FitsFile  : in  SIO.File_Type)
+     return Card_Type
+   is
+     Card : Card_Type;
+   begin
+     Card_Type'Read(Stream(FitsFile),Card);
+     return Card;
+   end Read_Card;
+
+   function  Read_Cards (FitsFile  : in  SIO.File_Type)
+     return Card_Block
+   is
+     CardBlock : Card_Block;
+   begin
+     Card_Block'Read(Stream(FitsFile),CardBlock);
+     return CardBlock;
+   end Read_Cards;
+
+   procedure Write_Card  (FitsFile : in SIO.File_Type;
+                          Card     : in Card_Type)
+   is
+   begin
+     Card_Type'Write(Stream(FitsFile),Card);
+   end Write_Card;
+   pragma Inline (Write_Card);
+
+   procedure Write_Cards (FitsFile : in SIO.File_Type;
+                          Cards    : in Card_Arr)
+   is
+   begin
+     Card_Arr'Write(Stream(FitsFile),Cards);
+   end Write_Cards;
+   pragma Inline (Write_Cards);
+
+
+   -- Read Data
+--   procedure gen_Read_Data (FitsFile : in  SIO.File_Type;
+--                            Data     : in out Data_Arr)
+--   is
+--   begin
+--     Data_Arr'Read(Stream(FitsFile),Data);
+--   end gen_Read_Data;
+--   pragma Inline (gen_Read_Data);
+
+--   procedure Read_Data is new genRead_Data(UInt8_Arr);
+--   procedure Read_Data is new genRead_Data(Int16_Arr);
+--   procedure Read_Data is new genRead_Data(Int32_Arr);
+--   procedure Read_Data is new genRead_Data(Int64_Arr);
+--   procedure Read_Data is new genRead_Data(Float32_Arr);
+--   procedure Read_Data is new genRead_Data(Float64_Arr);
+--
+
+--   procedure Read_Data (FitsFile : in  SIO.File_Type;
+--                        Data     : in out UInt8_Arr)
+--   is
+--   begin
+--     UInt8_Arr'Read(Stream(FitsFile),Data);
+--   end Read_Data;
+--   pragma Inline (Read_Data);
+
+--   procedure Read_Data (FitsFile : in  SIO.File_Type;
+--                        Data     : in out Float32_Arr)
+--   is
+--   begin
+--     Float32_Arr'Read(Stream(FitsFile),Data);
+--   end Read_Data;
+--   pragma Inline (Read_Data);
+
+--   procedure gen_Write_Data (FitsFile : in SIO.File_Type;
+--                             Data     : in Data_Arr)
+--   is
+--   begin
+--     Data_Arr'Write(Stream(FitsFile),Data);
+--   end gen_Write_Data;
+--   pragma Inline (gen_Write_Data);
+
+
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in UInt8_Arr)
+--   is
+--   begin
+--     UInt8_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
+
+   -- ... for all types ...
+
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in Float32_Arr)
+--   is
+--   begin
+--     Float32_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
+
+--   procedure Write_Data (FitsFile : in SIO.File_Type;
+--                         Data     : in Float64_Arr)
+--   is
+--   begin
+--     Float64_Arr'Write(Stream(FitsFile),Data);
+--   end Write_Data;
 
    -- REFACTOR for final
 

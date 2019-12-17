@@ -54,8 +54,8 @@ is
  InBuffer   : UInt8_Arr  (1 .. BufferSize);
  OutBuffer  : Float32_Arr(1 .. BufferSize);
 
- procedure Read_Data  is new gen_Read_Data (Data_Arr => UInt8_Arr);
- procedure Write_Data is new gen_Write_Data(Data_Arr => Float32_Arr);
+-- procedure Read_Data  is new gen_Read_Data (Data_Arr => UInt8_Arr);
+-- procedure Write_Data is new gen_Write_Data(Data_Arr => Float32_Arr);
 
  BITPIXFloat64Card : Card_Type :=
 "BITPIX  =                   -32 / Standard FITS FIle                            ";
@@ -116,22 +116,28 @@ begin
 
  for I in 1 .. Nb
  loop
-  Read_Data(InFile,InBuffer);
+  -- Read_Data(InFile,InBuffer);
+  UInt8_Arr'Read(SIO.Stream(InFile),InBuffer);
+
   -- convert
   for I in InBuffer'Range
   loop
    OutBuffer(I) := Float_32(InBuffer(I));
   end loop;
-  Write_Data(OutFile,OutBuffer);
+  -- Write_Data(OutFile,OutBuffer);
+  Float32_Arr'Write(SIO.Stream(OutFile),OutBuffer);
+
  end loop;
 
- Read_Data(InFile,InBuffer(1..Nrem));
+ -- Read_Data(InFile,InBuffer(1..Nrem));
+ UInt8_Arr'Read(SIO.Stream(InFile),InBuffer(1..Nrem));
  -- convert
  for I in 1..Nrem
  loop
   OutBuffer(I) := Float_32(InBuffer(I));
  end loop;
- Write_Data(OutFile,OutBuffer(1..Nrem));
+ -- Write_Data(OutFile,OutBuffer(1..Nrem));
+ Float32_Arr'Write(SIO.Stream(OutFile),OutBuffer(1..Nrem));
  LastWrittenIdx := SIO.Index(OutFile);
  -- Index to StreamElement (after) the last written one
 
