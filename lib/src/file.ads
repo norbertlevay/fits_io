@@ -139,22 +139,22 @@ package File is
    -- ** FITS standard guarantees that a healthy FITS file has at least
    -- ** 36 cards from start.
 
-   function Read_Card  (FitsFile  : in  SIO.File_Type)
-     return Card_Type;
+--   function Read_Card  (FitsFile  : in  SIO.File_Type)
+  --   return Card_Type;
 
-   function Read_Cards (FitsFile  : in  SIO.File_Type)
-     return Card_Block;
+--   function Read_Cards (FitsFile  : in  SIO.File_Type)
+  --   return Card_Block;
 
    -- Write cards one-by-one or in block of any number of
    -- cards as suitable to generate them.
    -- ** FITS standard mandates: Header must be
    -- ** closed be END-card and padded (Write_Padding).
 
-   procedure Write_Card  (FitsFile : in SIO.File_Type;
-                          Card     : in Card_Type);
+--   procedure Write_Card  (FitsFile : in SIO.File_Type;
+  --                        Card     : in Card_Type);
 
-   procedure Write_Cards (FitsFile : in SIO.File_Type;
-                          Cards    : in Card_Arr);
+ --  procedure Write_Cards (FitsFile : in SIO.File_Type;
+   --                       Cards    : in Card_Arr);
 
 
    -------------------------------
