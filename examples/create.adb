@@ -36,11 +36,11 @@ is
 
  -- Card => Key Value Comment
  Cards : Card_Arr :=  (
-"SIMPLE  =                     T / Standard FITS FIle                            ",
-"BITPIX  =                     8 / Standard FITS FIle                            ",
-"NAXIS   =                     2 / Standard FITS FIle                            ",
-"NAXIS1  =                   500 / Standard FITS FIle                            ",
-"NAXIS2  =                   500 / Standard FITS FIle                            ",
+"SIMPLE  =                    T / Standard FITS FIle                             ",
+"BITPIX  =                    8 / Standard FITS FIle                             ",
+"NAXIS   =                    2 / Standard FITS FIle                             ",
+"NAXIS1  =                  500 / Standard FITS FIle                             ",
+"NAXIS2  =                  500 / Standard FITS FIle                             ",
    ENDCard
    );
 
