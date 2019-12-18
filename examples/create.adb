@@ -12,7 +12,7 @@ with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;
 
 with FITS;   use FITS;
-with File;   use File;
+with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record; -- FPositive needed
 with Strict; use Strict; -- Positive_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed 

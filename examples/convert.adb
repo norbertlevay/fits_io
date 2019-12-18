@@ -19,6 +19,7 @@ with Ada.Streams.Stream_IO;
 
 with FITS;   use FITS;
 with File;   use File;
+with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
 with Strict; use Strict; -- Positive_Arr needed
 
@@ -26,6 +27,7 @@ procedure convert
 is
 
  package SIO renames Ada.Streams.Stream_IO;
+ use SIO;
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
  is
@@ -55,7 +57,7 @@ is
  OutBuffer  : Float32_Arr(1 .. BufferSize);
 
  BITPIXFloat64Card : Card_Type :=
-"BITPIX  =                   -32 / Standard FITS FIle                            ";
+"BITPIX  =                  -32 / Standard FITS FIle                             ";
 
  Nb   : FPositive;
  Nrem : FNatural;
@@ -84,7 +86,7 @@ begin
 
  -- write Header
 
- Set_Index(InFile, 1);
+ Set_Index(InFile, Positive(1));
  loop
   Card_Type'Read(SIO.Stream(InFile),Card);
 

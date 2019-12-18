@@ -23,3 +23,8 @@ run:
 	fitsheader create.fits
 	fits2bitmap create.fits
 	gio open create.png
+	./convert create.fits
+	fitsheader convert.fits
+	fits2bitmap convert.fits
+	gio open convert.png
+
