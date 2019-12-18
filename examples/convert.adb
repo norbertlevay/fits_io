@@ -76,14 +76,6 @@ begin
 
  -- FIXME now only Primary HDU, later consider other HDUs
 
- -- interpret header: DataUnit length and type needed
- declare
-  HDUInfo : HDU_Info_Type := Get(InFile);
- begin
-  BITPIX := HDUInfo.BITPIX;
-  DUSize := DU_Count (HDUInfo.NAXISn);
- end;
-
  -- write Header
 
  Set_Index(InFile, Positive(1));
@@ -101,6 +93,20 @@ begin
  -- Index to StreamElement (after) the last written one
 
  Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
+ -- NOTE also make sure InFile Padding is skipped: now 
+ -- Get() reads by Blocks
+
+ SIO.Set_Index(InFile,1);
+ -- interpret header: DataUnit length and type needed
+ declare
+  HDUInfo : HDU_Info_Type := Get(InFile);
+ begin
+  BITPIX := HDUInfo.BITPIX;
+  DUSize := DU_Count (HDUInfo.NAXISn);
+ end;
+
+
+
 
  -- write Data
 
