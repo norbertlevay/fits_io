@@ -44,6 +44,12 @@ package File.Misc is
 
 
 
+  function  DU_Size_blocks (FitsFile : in SIO.File_Type) return FNatural; 
+        -- used in commands
+
+
+
+
    ---------------------------
    -- Ops on two FITS-files --
    ---------------------------
@@ -65,6 +71,7 @@ package File.Misc is
                        OutFits : in SIO.File_Type;
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10);
+
 
 
 end File.Misc;

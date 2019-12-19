@@ -58,13 +58,9 @@ package body File is
    end Read_Card;
 
 
-
-
-
-
-
-   function  Get (FitsFile : in SIO.File_Type) return HDU_Info_Type
-   is
+-- read info help in Mandatory keys of the Header
+  function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec
+  is
 		HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
                 CardNum : Natural;
                 Card : String(1..80);
@@ -82,26 +78,37 @@ package body File is
                 -- calc HDU size
 
                 declare
-                        PSize   : Strict.Result_Rec := Strict.Get;
-                        HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
+                        PSize : Strict.Result_Rec := Strict.Get;
                 begin
-                        -- convert rec
-    
-                        HDUInfo.XTENSION := Max20.To_Bounded_String(
+			return PSize;
+                end;
+
+   end Get_Mandatory;
+
+
+
+
+
+
+   function  Get (FitsFile : in SIO.File_Type) return HDU_Info_Type
+   is
+	PSize   : Strict.Result_Rec := Get_Mandatory(FitsFile);
+	HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
+   begin
+	HDUInfo.XTENSION := Max20.To_Bounded_String(
 					Strict.HDU_Type'Image(Psize.HDU));
 					-- FIXME PSize.HSU is enum: 20 length might not be enough
 					-- find other solution then Bounded_String??
-                        HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
-                        HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
+	HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
+	HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
-			-- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
-                        for I in HDUInfo.NAXISn'Range
-                        loop
-                                HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
-                        end loop;
+	-- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
+        for I in HDUInfo.NAXISn'Range
+        loop
+        	HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
+        end loop;
 
-                        return HDUInfo;
-                end;
+        return HDUInfo;
 
    end Get;
 
@@ -191,55 +198,6 @@ begin
 
 end  Calc_DataUnit_Size_blocks;
 
-
-
-
-
-
--- read info help in Mandatory keys of the Header
-  function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec
-  is
-		HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
-                CardNum : Natural;
-                Card : String(1..80);
-
-                CurBlkNum : Natural := 0; -- none read yet
-                Blk : Card_Block;
-   begin
-                CardNum := Strict.Reset_State;
-                loop
-                        Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
-                        CardNum := Strict.Next(CardNum, Card);
-                        exit when (CardNum = 0); 
-                end loop;
-
-                -- calc HDU size
-
-                declare
-                        PSize : Strict.Result_Rec := Strict.Get;
-                begin
-			return PSize;
-                end;
-
-   end Get_Mandatory;
-
-
-	
--- these two replace size calc funcs in .Misc subpackage Copy_HDU()
-   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
-   is 
-	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
-   begin
-        return Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
-   end DU_Size_blocks;
-
-  function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
-   is 
-	PSize : Strict.Result_Rec := Get_Mandatory(FitsFile);
-   begin
-        return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
-               + Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
-   end HDU_Size_blocks;
 
 
 

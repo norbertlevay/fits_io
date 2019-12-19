@@ -344,7 +344,7 @@ package body Commands is
    -- so now file index points to DataUnit start
    -- B, copy the DataUnit (first get the size and then copy)
    SIO.Set_Index(InFits,InIdx);-- position to Header start
-   DUSize_blocks := FInteger(DU_Size_blocks (InFits)); -- FIXME explicit conversion
+   DUSize_blocks := DU_Size_blocks (InFits);
    Copy_Blocks(InFits,OutFits,DUSize_blocks,400);
 
    -- copy the rest of the file

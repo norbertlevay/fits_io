@@ -90,13 +90,16 @@ package File is
 
 
 
-   -- Misc FIXME
-
-	function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Positive;	
-	-- used in commands
 private
-	-- for Misc subpackage
+
+        function  Calc_HeaderUnit_Size_blocks
+                (CardsCount : in Positive) 
+                return Positive;
 	
-	function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive;	
+	function  Calc_DataUnit_Size_blocks  
+                (Res : in Strict.Result_Rec) return Keyword_Record.FNatural;
+
+	function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec;
+
 
 end File;
