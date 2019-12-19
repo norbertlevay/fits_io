@@ -18,6 +18,7 @@ with File;   use File;
 with Ada.Strings.Unbounded;
 
 with Optional; --use Keyword_Record;
+with Optional.Reserved;   use Optional.Reserved;
 
 procedure reserved_keys
 is
@@ -47,7 +48,7 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
      declare
-       Cards : Optional.Card_Arr := Read_Header(InFile, File.Reserved_Keys);
+       Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Reserved_Keys);
      begin
        TIO.Put_Line("RESKEYS: HDU# " & Positive'Image(HDUNum));
 	for I in Cards'Range
