@@ -34,7 +34,7 @@ package File is
       NAXISn   : Strict.Positive_Arr(1..NAXIS); -- data dimensions
    end record;
 
-   function  Get (FitsFile : in  SIO.File_Type)
+   function Read_Header (FitsFile : in  SIO.File_Type)
       return HDU_Info_Type;
 
 
@@ -74,7 +74,7 @@ package File is
    Reserved_Keys : constant Optional.Bounded_String_8_Arr :=
 	(Descriptive_Keys & Observation_Keys & Biblio_Keys & Array_Keys);
 
-   function  Get_Cards (FitsFile : in  SIO.File_Type;
+   function  Read_Header (FitsFile : in  SIO.File_Type;
 			Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr;
 -- FIXME consider returning also position at which the card was in the Header
@@ -99,7 +99,7 @@ private
 	function  Calc_DataUnit_Size_blocks  
                 (Res : in Strict.Result_Rec) return Keyword_Record.FNatural;
 
-	function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec;
+	function  Read_Header (FitsFile : in SIO.File_Type) return Strict.Result_Rec;
 
 
 end File;

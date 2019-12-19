@@ -81,7 +81,7 @@ package body Commands is
    while not SIO.End_Of_File(FitsFile)
     loop
      declare
-      HDUInfo : HDU_Info_Type := Get(FitsFile);
+      HDUInfo : HDU_Info_Type := Read_Header(FitsFile);
      begin
       Print_HDU_Info(HDUNum,HDUInfo);
       HDUNum := HDUNum + 1;

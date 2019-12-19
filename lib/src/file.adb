@@ -59,7 +59,7 @@ package body File is
 
 
 -- read info help in Mandatory keys of the Header
-  function  Get_Mandatory (FitsFile : in SIO.File_Type) return Strict.Result_Rec
+  function  Read_Header (FitsFile : in SIO.File_Type) return Strict.Result_Rec
   is
 		HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
                 CardNum : Natural;
@@ -83,16 +83,16 @@ package body File is
 			return PSize;
                 end;
 
-   end Get_Mandatory;
+   end Read_Header;
 
 
 
 
 
 
-   function  Get (FitsFile : in SIO.File_Type) return HDU_Info_Type
+   function  Read_Header (FitsFile : in SIO.File_Type) return HDU_Info_Type
    is
-	PSize   : Strict.Result_Rec := Get_Mandatory(FitsFile);
+	PSize   : Strict.Result_Rec := Read_Header(FitsFile);
 	HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
    begin
 	HDUInfo.XTENSION := Max20.To_Bounded_String(
@@ -110,12 +110,12 @@ package body File is
 
         return HDUInfo;
 
-   end Get;
+   end Read_Header;
 
 
 
 
-   function  Get_Cards (FitsFile : in  SIO.File_Type;
+   function  Read_Header (FitsFile : in  SIO.File_Type;
                        Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr
    is
@@ -140,7 +140,7 @@ package body File is
 		return Cards;
 	end;
 
-   end Get_Cards;
+   end Read_Header;
 
 
 

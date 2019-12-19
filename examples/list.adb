@@ -45,7 +45,7 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
      declare
-       HDUInfo : HDU_Info_Type := Get(InFile);
+       HDUInfo : HDU_Info_Type := Read_Header(InFile);
      begin
        TIO.Put_Line(Positive'Image(HDUNum));
        HDUNum := HDUNum + 1;

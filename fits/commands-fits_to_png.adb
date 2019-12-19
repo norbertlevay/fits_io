@@ -368,7 +368,7 @@ use  Interfaces;
   SIO.Open(FitsFile,SIO.In_File,FitsFileName);
 
   declare
-     HDUInfo  : HDU_Info_Type := Get(FitsFile);
+     HDUInfo  : HDU_Info_Type := Read_Header(FitsFile);
      DataType : constant Data_Type     := To_DataType(HDUInfo.BITPIX);
      W        : constant Dimension     := Integer(HDUInfo.NAXISn(1));
      H        : constant Dimension     := Integer(HDUInfo.NAXISn(2));
