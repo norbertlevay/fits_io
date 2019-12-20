@@ -1,7 +1,6 @@
 
--- high level block/HDU copying
 
-with Data; use Data;
+with Image; use Image;
 
 package File.Misc is
 
@@ -23,9 +22,9 @@ package File.Misc is
    -- Write_Padding puts PadValue from FileOffset until end of the block.
    -- If Block is filled up, Write_Padding does nothing.
 
-   ---------------------
-   -- Read/Write Data --
-   ---------------------
+   ---------------------------
+   -- Read/Write Image Data --
+   ---------------------------
 
    -- FIXME notes on Item (Item_Arr) below:
    --       e.g. no need to define arrays as in FITS.ads
@@ -55,6 +54,8 @@ package File.Misc is
    ---------------------------
    -- Ops on two FITS-files --
    ---------------------------
+
+   -- high level block/HDU copying
 
    --  
    -- copy NBlocks from current index position in chunks of ChunkSize_blocks

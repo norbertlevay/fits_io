@@ -3,7 +3,7 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-with Data; use Data; -- UInt_8_Arr needed for Padding
+with Image; use Image; -- UInt_8_Arr needed for Padding
 
 
 package body File.Misc is
@@ -130,7 +130,7 @@ package body File.Misc is
     DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
     ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
     PadUInt8 : constant UInt8_Arr(1 .. FPositive(DPadCnt*ItemSize)) := (others => 0);
---    for Padding'Size use DPadCnt*(FITS.Data.Unsigned_8'Size);
+--    for Padding'Size use DPadCnt*(Image.Unsigned_8'Size);
 -- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
    begin
 

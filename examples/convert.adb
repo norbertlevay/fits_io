@@ -17,7 +17,7 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with Data;   use Data;
+with Image;   use Image;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;

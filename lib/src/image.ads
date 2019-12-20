@@ -5,7 +5,7 @@ with Ada.Streams.Stream_IO;
 
 with Keyword_Record; use Keyword_Record; -- FInteger needed
 
-package Data is
+package Image is
 
    type Data_Type is
        (UInt8,   Int16,
@@ -56,5 +56,5 @@ package Data is
    type Float32_Arr is array ( FPositive range <> ) of Float_32;
    type Float64_Arr is array ( FPositive range <> ) of Float_64;
 
-end Data;
+end Image;
 

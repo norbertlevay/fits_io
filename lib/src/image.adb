@@ -4,7 +4,7 @@ with System; use  System;
 
 with FITS; -- Byte-type needed
 
-package body Data is
+package body Image is
 
 
    -- Endianness support
@@ -96,5 +96,5 @@ package body Data is
    -- we need to separate BITPIX and FitsData_Type definition because
    -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
 
-end Data;
+end Image;
 
