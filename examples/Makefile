@@ -1,6 +1,6 @@
 
 INCDIR=-I../lib/src -I../lib/src/parser
-LIBDIR=../lib
+LIBDIR=../lib/lib
 LIB=fits_io
 
 # removed: errored: function can have only in params

@@ -4,7 +4,7 @@ library project fits_io is
    for Object_Dir use "obj";
    for Library_Name use "fits_io";
    for Library_Kind use "static";
-   for Library_Dir use ".";
+   for Library_Dir use "lib";
 end fits_io;
 
 
