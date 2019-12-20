@@ -2,9 +2,9 @@
 with Ada.Unchecked_Conversion;
 with System; use  System;
 
+with FITS; -- Byte-type needed
 
-
-package body FITS is
+package body Data is
 
 
    -- Endianness support
@@ -15,7 +15,7 @@ package body FITS is
 
    procedure Revert_Bytes( Data : in out Data_Type )
    is
-     Size_Bytes : Positive := Data_Type'Size / Byte'Size;
+     Size_Bytes : Positive := Data_Type'Size / FITS.Byte'Size;
      type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
 
      function Data_To_Arr is
@@ -96,5 +96,5 @@ package body FITS is
    -- we need to separate BITPIX and FitsData_Type definition because
    -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
 
-end FITS;
+end Data;
 

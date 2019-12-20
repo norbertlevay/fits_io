@@ -2,13 +2,13 @@
 with Ada.Text_IO,
      Ada.Float_Text_IO,
      Ada.Unchecked_Deallocation,
-     FITS,
+     Data,
      File,
      System,
      Ada.Streams.Stream_IO;
 
 use
-     FITS,
+     Data,
      File,
      System,
      Ada.Streams.Stream_IO;
@@ -185,21 +185,20 @@ use  Interfaces;
  -- All other FITS-integer types are signed. If those need unsigned range,
  -- an offset (BZERO key?) needs to be applied on them.
  procedure Convert_FITS_UInt8_To_PNG_8bit
---           (Data : in     UInt8Arr_Type;      -- FITS data
-           (Data : in     UInt8_Arr;      -- FITS data
+           (DataArr : in     UInt8_Arr;      -- FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
-  dd    : FITS.Unsigned_8;
+  dd    : Data.Unsigned_8;
  begin
 
 --  for dd of Data  <-- This is Ada2012 feature
-  for ix in Data'Range
+  for ix in DataArr'Range
   loop
 
-    dd := Data(ix);
+    dd := DataArr(ix);
 
     Img(wi,hi) := GreyPixel_8bit_Type(dd);
                  -- FIXME explicit conversion
@@ -216,8 +215,7 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_8bit
---           (Data : in     Float32Arr_Type;    -- FITS data
-           (Data : in     Float32_Arr;    -- FITS data
+           (DataArr : in     Float32_Arr;    -- FITS data
             Min, Max :    Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_8bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)            -- Image/Data width
@@ -225,16 +223,16 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Float_32;
+   Val   : Data.Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
 
 --  for Val of Data <--iterator is Ada2012 only
-  for ix in Data'Range
+  for ix in DataArr'Range
    loop
 
-     Val := Data(ix);
+     Val := DataArr(ix);
 
      Img.all(hi,wi) := GreyPixel_8bit_Type(Factor * (Val - Min));
 
@@ -250,8 +248,7 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_16bit
---           (Data : in     Float32Arr_Type;     -- FITS data
-           (Data : in     Float32_Arr;     -- FITS data
+           (DataArr : in     Float32_Arr;     -- FITS data
             Min, Max : Float_32; -- Min Max vals in FITS data
             Img  : in out GreyImage_16bit_Ptr; -- PNG pixels (the image)
             W    : in     Natural)             -- Image/Data width
@@ -259,16 +256,16 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Float_32;
+   Val   : Data.Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
 
 --  for Val of Data <--iterator is Ada2012 only
-  for ix in Data'Range
+  for ix in DataArr'Range
    loop
 
-     Val := Data(ix);
+     Val := DataArr(ix);
 
      Img.all(hi,wi) := GreyPixel_16bit_Type(Factor * (Val - Min));
 
@@ -285,13 +282,12 @@ use  Interfaces;
 
    -- find minimum and maximum value of the Float32 data array
    procedure Find_MinMax_Float32
---              (F32Arr : in  Float32Arr_Type;
               (F32Arr : in  Float32_Arr;
                Min    : out Float_32;
                Max    : out Float_32)
    is  
      type MyFloat is new Float_32;
-     D   : FITS.Float_32;
+     D   : Data.Float_32;
    begin
 
      Min := Float_32'Large;
@@ -314,8 +310,7 @@ use  Interfaces;
 
 
  procedure Convert_FITS_Float32_To_PNG_24rgb
---           (Data : in     Float32Arr_Type;    -- FITS data
-           (Data : in     Float32_Arr;    -- FITS data
+           (DataArr : in     Float32_Arr;    -- FITS data
             Min, Max : Float_32; -- Min Max vals in FITS data
 -- FIXME img should be IN or OUT or IN OUT ? It is a pointer type
             Img  : in out RGBImage_24bit_Ptr; -- PNG pixels (the image)
@@ -324,7 +319,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : FITS.Float_32;
+   Val   : Data.Float_32;
    flast  : Float_32 :=
             Float_32(RGBPixel_24bit_Type'Last);
  begin
@@ -340,10 +335,10 @@ use  Interfaces;
 
 --  for Val of Data
 --   loop
-  for ix in Data'Range
+  for ix in DataArr'Range
    loop
 
-     Val := Data(ix);
+     Val := DataArr(ix);
 
      Img.all(hi,wi) := RGBPixel_24bit_Type( Factor * (Val - Min) );
              --  and RGBPixel_24bit_Type(16#00FF_FFFF#); -- <--FIXME do we need this ? Pixel is defined 24bit!

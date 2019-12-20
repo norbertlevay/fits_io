@@ -3,6 +3,8 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
+with Data; use Data; -- UInt_8_Arr needed for Padding
+
 
 package body File.Misc is
 

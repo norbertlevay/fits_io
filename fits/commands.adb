@@ -6,7 +6,8 @@ with Ada.Characters.Latin_1;
 with System;
 with System.Storage_Elements;
 
-with FITS;      use FITS;
+--with FITS;      use FITS;
+with Data;      use Data;
 with File;   	use File;
 with File.Misc; use File.Misc;
 

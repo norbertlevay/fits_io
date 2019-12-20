@@ -1,5 +1,7 @@
 
--- hogh level block/HDU copying
+-- high level block/HDU copying
+
+with Data; use Data;
 
 package File.Misc is
 
