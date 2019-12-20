@@ -30,7 +30,16 @@ package Image is
    -- [FITS] defines BigEndian for all numeric types in file
    -- revert byte order when reading/writing from/to FITS file
 
-   -- FIXME BZERO use not implemented/not parsed??
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+
+
+
+private
 
    procedure Float32_Read_BigEndian
     		(S    : access Ada.Streams.Root_Stream_Type'Class;
@@ -42,19 +51,6 @@ package Image is
 
    for Float_32'Read  use Float32_Read_BigEndian;
    for Float_32'Write use Float32_Write_BigEndian;
-   -- FIXME Optimization: Endianess: do efficient IO reading/writing
-   --       all array at once (as tech-note on adacore: ada-streams-write-all-array-at-one-call.pdf),
-   --       and handle endianness on all array in memory, rather then each
-   --       data element separately
-
-
-
-   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
-   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
-   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
-   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
-   type Float32_Arr is array ( FPositive range <> ) of Float_32;
-   type Float64_Arr is array ( FPositive range <> ) of Float_64;
 
 end Image;
 

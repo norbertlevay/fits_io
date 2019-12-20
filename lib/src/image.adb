@@ -6,8 +6,12 @@ with FITS; -- Byte-type needed
 
 package body Image is
 
-
    -- Endianness support
+   
+   -- NOTE Optimization on Endianess: read/write Data-Block
+   --       at once (as tech-note on adacore: ada-streams-write-all-array-at-one-call.pdf),
+   --       and handle endianness on all array in memory, rather then each
+   --       data element separately
 
    generic
      type Data_Type is private;
@@ -35,6 +39,9 @@ package body Image is
      Data := Arr_To_Data(ArrO);
 
    end Revert_Bytes;
+
+
+   -- Endianness applied to FITS-types
 
    procedure Float32_Read_BigEndian
     		(S    : access Ada.Streams.Root_Stream_Type'Class;
