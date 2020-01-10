@@ -22,6 +22,7 @@ package Keyword_Record is
 	function To_Integer(Value : String) return FInteger;
 	function To_FIndex(Value : String) return FIndex;
 	function To_String (Value : String) return String;
+	function To_Float (Value : String) return Float;
 	
 
 	function Match_Key(Key : in String; Card : in Card_Type) return Boolean;

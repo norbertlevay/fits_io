@@ -118,7 +118,7 @@ package body Keyword_Record is
 	function To_Float  (Value : String) return Float
 	is
 	begin
-		return 0.0;
+		return Float'Value(Value);
 	end To_Float;
 
 --	function To_ComplexInteger(Value : String) return ???;
