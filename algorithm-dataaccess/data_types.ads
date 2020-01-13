@@ -69,6 +69,10 @@ package Data_Float64 is new Data(T => Float_64);
 -- Physical - Raw data converion
 -- NOTE merge with package Data above ??
 
+-- NOTE: 
+-- A, PhysVal type Float: below is Int-Float Float-Float conversions
+-- B, PhysVal type Integer: still missing Integer-data signed-unsigned converions (see Tab11)
+
 generic
   type TD is range <>; -- any signed integer type
   type TF is digits <>; -- any floating point type

@@ -25,6 +25,8 @@ BITPIX   	BZERO 	BSCALE		Note
  <0 (Float64)	yes	yes		phys is Float64 use Eq(3)
 
 E.g. implement:
-1, for all integer types Signed-Unsigned conversions
+1, PhysVal type Integer: implement for all integer types Signed-Unsigned conversions (flip highest bit)
+
+2, PhysVal type Float:
 2a, for all integer-float combinations: Eq(3) as generic: BSCALE BZERO-> Float types,  BLANK & Data -> Integer types
 2b, for     float  -float combinations: Eq(3) as generic: BSCALE BZERO-> Float types,  Data -> Float types
