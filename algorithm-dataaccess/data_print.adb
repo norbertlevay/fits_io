@@ -87,6 +87,10 @@ is
 	TIO.Put_Line("DATAMAX " & Float'Image(R.DATAMAX));
  end Put_Phys_Value_Scaling;
 
+function Physical_Value is
+        new Physical_Value_From_Float(TFp => Data_Types.Float_32, TFd => Data_Types.Float_32);
+
+
 
 begin
 
@@ -164,7 +168,8 @@ begin
  loop
 	Put(Positive'Image(I) & ":" 
 		& Data_Types.Float_32'Image(BlockF32(I))
-		& " / " & Float'Image( Physical_Value(PhysValScale.BZERO, PhysValScale.BSCALE, Float(BlockF32(I)))   ) ); -- <----- BITPIX dependent
+		& " / " & Data_Types.Float_32'Image( Physical_Value
+					(Data_Types.Float_32(PhysValScale.BZERO), Data_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;
  

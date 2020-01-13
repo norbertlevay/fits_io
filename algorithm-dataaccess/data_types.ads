@@ -66,5 +66,25 @@ package Data_Float32 is new Data(T => Float_32);
 package Data_Float64 is new Data(T => Float_64);
 
 
+-- Physical - Raw data converion
+-- NOTE merge with package Data above ??
+
+generic
+  type TD is range <>; -- any signed integer type
+  type TF is digits <>; -- any floating point type
+			-- FIXME applies to IEEE_Float_nn as well ??
+function Physical_Value_From_Int(BZERO : in TF; BSCALE : in TF; BLANK : in TD; Data : in TD) return TF;
+-- for integer data in HDU
+
+
+
+
+generic
+  type TFp is digits <>; -- any floating point type
+  type TFd is digits <>; -- any floating point type
+			-- FIXME applies to IEEE_Float_nn as well ??
+function Physical_Value_From_Float(BZERO : in TFp; BSCALE : in TFp; Data : in TFd) return TFd;
+-- for Float data in HDU
+
 end Data_Types;
 

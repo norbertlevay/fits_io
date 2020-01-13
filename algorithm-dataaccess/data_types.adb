@@ -120,6 +120,57 @@ package body Data_Types is
    end Float32_Write_BigEndian;
 
 
+  -- Physical-Raw value conversions
+
+function Physical_Value_From_Int
+	(BZERO : in TF; 
+	BSCALE : in TF; 
+	BLANK : in TD;
+	Data  : in TD) return TF
+is
+  D : TF := TF(Data);
+begin
+--  if (Data = BLANK) return NaN; end if;
+  return BZERO + BSCALE * D; 
+end Physical_Value_From_Int;
+
+
+function Physical_Value_From_Float(BZERO : in TFp; BSCALE : in TFp; Data : in TFd) return TFd
+is
+begin
+  return TFd(BZERO) + TFd(BSCALE) * Data;
+end Physical_Value_From_Float;
+
+
+-- these instantiations should be done by application (not this library)
+-- if put to ads as-is will produce: "cannot instantiate before body seen"
+
+-- Phys vals from Int data:
+
+function Physical_Value is  
+        new Physical_Value_From_Int(TF => Float_32, TD => Integer_32);
+function Physical_Value is  
+        new Physical_Value_From_Int(TF => Float_32, TD => Integer_16);
+function Physical_Value is  
+        new Physical_Value_From_Int(TF => Float_64, TD => Integer_32);
+function Physical_Value is  
+        new Physical_Value_From_Int(TF => Float_64, TD => Integer_16);
+
+
+-- Phys vals from Float data:
+
+function Physical_Value is  
+        new Physical_Value_From_Float(TFp => Float_32, TFd => Float_64);
+function Physical_Value is  
+        new Physical_Value_From_Float(TFp => Float_64, TFd => Float_32);
+-- FIXME are below needed: (should we write generic with one type and so without conversion) - compiler smart enough to recognize no need for converions?
+function Physical_Value is  
+        new Physical_Value_From_Float(TFp => Float_32, TFd => Float_32);
+function Physical_Value is  
+        new Physical_Value_From_Float(TFp => Float_64, TFd => Float_64);
+
+
+
 
 
 

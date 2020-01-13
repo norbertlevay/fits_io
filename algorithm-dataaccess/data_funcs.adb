@@ -63,12 +63,12 @@ end Set_File_Block_Index;
 
 
 
- function Physical_Value ( BZERO : Float; BSCALE : Float; ArrValue : Float)
+ function Physical_ValueOFF ( BZERO : Float; BSCALE : Float; ArrValue : Float)
 	return Float
  is
  begin
 	return BZERO + BSCALE * ArrValue;
- end Physical_Value;
+ end Physical_ValueOFF;
 
 
 end Data_Funcs;
