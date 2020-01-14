@@ -12,7 +12,7 @@ package TIO renames Ada.Text_IO;
 package SIO renames Ada.Streams.Stream_IO;
 
 
-BlockUInt8 : UInt8.Block := (others => 0);
+--BlockUInt8 : UInt8.Block := (others => 0);
 BlockInt16 : Int16.Block := (others => 0);
 BlockInt32 : Int32.Block := (others => 0);
 BlockInt64 : Int64.Block := (others => 0);
@@ -23,8 +23,8 @@ File : SIO.File_Type;
 
 begin
 
-Put("UInt8  : "& Positive'Image(BlockUInt8'First));
-Put_Line(" - " & Positive'Image(BlockUInt8'Last));
+--Put("UInt8  : "& Positive'Image(BlockUInt8'First));
+--Put_Line(" - " & Positive'Image(BlockUInt8'Last));
 
 Put("Int16  : "& Positive'Image(BlockInt16'First));
 Put_Line(" - " & Positive'Image(BlockInt16'Last));

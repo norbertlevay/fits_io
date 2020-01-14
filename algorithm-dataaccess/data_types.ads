@@ -4,8 +4,10 @@
 with Interfaces;	use Interfaces;
 with Ada.Streams;
 
-with Generic_Data_Types;
-with Generic_Value;
+--with Generic_Data_Types;
+--with Generic_Value;
+with Generic_Data_Integer;
+with Generic_Data_Float;
 
 
 package Data_Types is
@@ -49,41 +51,27 @@ package Data_Types is
 
 -- 2, Data Block definitions
 
-package UInt8 is new Generic_Data_Types(T => Unsigned_8);
-package Int16 is new Generic_Data_Types(T => Integer_16);
-package Int32 is new Generic_Data_Types(T => Integer_32);
-package Int64 is new Generic_Data_Types(T => Integer_64);
+--package UInt8 is new Generic_Data_Integer(T => Unsigned_8);
+package Int16 is new Generic_Data_Integer(T => Integer_16);
+package Int32 is new Generic_Data_Integer(T => Integer_32);
+package Int64 is new Generic_Data_Integer(T => Integer_64);
 
-package F32 is new Generic_Data_Types(T => Float_32);
-package F64 is new Generic_Data_Types(T => Float_64);
-
-
+package F32 is new Generic_Data_Float(T => Float_32);
+package F64 is new Generic_Data_Float(T => Float_64);
 
 
 
--- 3, Physical - Raw data converion
 
 
--- from Int data:
+-- 3, Array-Physical data conversions
 
-function Physical_Value is  
-        new Generic_Value.Physical_From_Int(TF => Float_32, TD => Integer_32);
-function Physical_Value is  
-        new Generic_Value.Physical_From_Int(TF => Float_32, TD => Integer_16);
-function Physical_Value is  
-        new Generic_Value.Physical_From_Int(TF => Float_64, TD => Integer_32);
-function Physical_Value is  
-        new Generic_Value.Physical_From_Int(TF => Float_64, TD => Integer_16);
+function Physical_Value_F32 is new Int32.Physical(TF => Float_32);
+function Physical_Value_F32 is new Int16.Physical(TF => Float_32);
+function Physical_Value_F64 is new Int32.Physical(TF => Float_64);
+function Physical_Value_F64 is new Int16.Physical(TF => Float_64);
 
--- from Float data:
-
-function Physical_Value is  
-        new Generic_Value.Physical_From_Float(TF => Float_32);
-function Physical_Value is  
-        new Generic_Value.Physical_From_Float(TF => Float_64);
-
-
-
+-- FIXME support all combinations ? 
+-- Standard says only Int16->Float32 is commonly used (others make no sense).
 
 end Data_Types;
 

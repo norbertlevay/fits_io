@@ -163,7 +163,7 @@ begin
  loop
 	Put(Positive'Image(I) & ":" 
 		& Data_Types.Float_32'Image(BlockF32(I))
-		& " / " & Data_Types.Float_32'Image( Data_Types.Physical_Value
+		& " / " & Data_Types.Float_32'Image( Data_Types.F32.Physical
 					(Data_Types.Float_32(PhysValScale.BZERO), Data_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;
