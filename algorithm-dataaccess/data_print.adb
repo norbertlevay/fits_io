@@ -24,7 +24,7 @@ with Optional.Reserved;
 with Keyword_Record;
 
 with Data_Funcs; use Data_Funcs;
-with Data_Types; use Data_Types;
+with Data_Types;
 
 procedure data_print
 is
@@ -54,7 +54,7 @@ is
  Off_In_DU : Positive;
  DU_Start  : Positive;
 
- BlockF32 : Data_Float32.Block;
+ BlockF32 : Data_Types.Float32.Block;
 
 
 
@@ -154,7 +154,7 @@ begin
 
  -- read and use one block data
 
- Data_Float32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
+ Data_Types.Float32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
 
  Put_Line("After BlockT'Read: " & Positive'Image( File_Block_Index(InFile)));
 
@@ -163,7 +163,7 @@ begin
  loop
 	Put(Positive'Image(I) & ":" 
 		& Data_Types.Float_32'Image(BlockF32(I))
-		& " / " & Data_Types.Float_32'Image( Physical_Value
+		& " / " & Data_Types.Float_32'Image( Data_Types.Physical_Value
 					(Data_Types.Float_32(PhysValScale.BZERO), Data_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;

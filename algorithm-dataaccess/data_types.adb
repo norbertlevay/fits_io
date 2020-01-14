@@ -4,7 +4,9 @@ with System; use  System;
 -- DBG only with Ada.Text_IO; use Ada.Text_IO;
 
 --with FITS; -- Byte-type needed
-with Generic_Data_Types; use Generic_Data_Types;
+with Generic_Data_Types;
+
+
 
 
 package body Data_Types is
@@ -16,15 +18,13 @@ package body Data_Types is
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : out Integer_32 )
    is  
-     procedure I32_Revert_Bytes is
-       new Revert_Bytes( Data_Type => Integer_32 );
    begin
 
      Interfaces.Integer_32'Read(S,Interfaces.Integer_32(Data));
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       I32_Revert_Bytes(Data);
+       Int32.Revert_Bytes(Data);
      end if;
 
    end Int32_Read_BigEndian;
@@ -33,14 +33,12 @@ package body Data_Types is
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : in Integer_32 )
    is
-     procedure I32_Revert_Bytes is
-       new Revert_Bytes( Data_Type => Integer_32 );
      DD : Integer_32 := Integer_32(Data);
    begin
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       I32_Revert_Bytes(DD);
+       Int32.Revert_Bytes(DD);
      end if;
 
      Interfaces.Integer_32'Write(S,Interfaces.Integer_32(DD));
@@ -56,15 +54,13 @@ package body Data_Types is
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : out Float_32 )
    is  
-     procedure F32_Revert_Bytes is
-       new Revert_Bytes( Data_Type => Float_32 );
    begin
 
      Interfaces.IEEE_Float_32'Read(S,Interfaces.IEEE_Float_32(Data));
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       F32_Revert_Bytes(Data);
+       Float32.Revert_Bytes(Data);
      end if;
 
    end Float32_Read_BigEndian;
@@ -73,14 +69,12 @@ package body Data_Types is
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : in Float_32 )
    is
-     procedure F32_Revert_Bytes is
-       new Revert_Bytes( Data_Type => Float_32 );
      DD : Float_32 := Float_32(Data);
    begin
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       F32_Revert_Bytes(DD);
+       Float32.Revert_Bytes(DD);
      end if;
 
      Interfaces.IEEE_Float_32'Write(S,Interfaces.IEEE_Float_32(DD));

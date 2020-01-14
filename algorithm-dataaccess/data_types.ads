@@ -4,7 +4,9 @@
 with Interfaces;	use Interfaces;
 with Ada.Streams;
 
-with Generic_Data_Types; use Generic_Data_Types;
+with Generic_Data_Types;
+with Generic_Value;
+
 
 package Data_Types is
 
@@ -47,13 +49,13 @@ package Data_Types is
 
 -- 2, Data Block definitions
 
-package Data_UInt8 is new Data(T => Unsigned_8);
-package Data_Int16 is new Data(T => Integer_16);
-package Data_Int32 is new Data(T => Integer_32);
-package Data_Int64 is new Data(T => Integer_64);
+package UInt8 is new Generic_Data_Types(T => Unsigned_8);
+package Int16 is new Generic_Data_Types(T => Integer_16);
+package Int32 is new Generic_Data_Types(T => Integer_32);
+package Int64 is new Generic_Data_Types(T => Integer_64);
 
-package Data_Float32 is new Data(T => Float_32);
-package Data_Float64 is new Data(T => Float_64);
+package Float32 is new Generic_Data_Types(T => Float_32);
+package Float64 is new Generic_Data_Types(T => Float_64);
 
 
 
@@ -65,28 +67,20 @@ package Data_Float64 is new Data(T => Float_64);
 -- from Int data:
 
 function Physical_Value is  
-        new Physical_Value_From_Int(TF => Float_32, TD => Integer_32);
+        new Generic_Value.Physical_From_Int(TF => Float_32, TD => Integer_32);
 function Physical_Value is  
-        new Physical_Value_From_Int(TF => Float_32, TD => Integer_16);
+        new Generic_Value.Physical_From_Int(TF => Float_32, TD => Integer_16);
 function Physical_Value is  
-        new Physical_Value_From_Int(TF => Float_64, TD => Integer_32);
+        new Generic_Value.Physical_From_Int(TF => Float_64, TD => Integer_32);
 function Physical_Value is  
-        new Physical_Value_From_Int(TF => Float_64, TD => Integer_16);
+        new Generic_Value.Physical_From_Int(TF => Float_64, TD => Integer_16);
 
 -- from Float data:
 
 function Physical_Value is  
-        new Physical_Value_From_Float(TFp => Float_32, TFd => Float_64);
+        new Generic_Value.Physical_From_Float(TF => Float_32);
 function Physical_Value is  
-        new Physical_Value_From_Float(TFp => Float_64, TFd => Float_32);
-function Physical_Value is  
-        new Physical_Value_From_Float(TFp => Float_32, TFd => Float_32);
-function Physical_Value is  
-        new Physical_Value_From_Float(TFp => Float_64, TFd => Float_64);
--- FIXME are above two needed? : 
--- should we write generic with one type and so without conversion ? 
--- is compiler smart enough to recognize no need for converions?
-
+        new Generic_Value.Physical_From_Float(TF => Float_64);
 
 
 
