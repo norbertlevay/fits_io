@@ -15,6 +15,10 @@ package Data_Types is
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
 
+  generic
+     type Data_Type is private;
+   procedure Revert_Bytes( Data : in out Data_Type );
+
 
 
    procedure Int32_Read_BigEndian

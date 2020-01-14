@@ -8,10 +8,6 @@ with FITS; -- Byte-type needed
 
 package body Data_Types is
 
-  generic
-     type Data_Type is private;
-   procedure Revert_Bytes( Data : in out Data_Type );
-
    procedure Revert_Bytes( Data : in out Data_Type )
    is  
      Size_Bytes : Positive := Data_Type'Size / FITS.Byte'Size;
