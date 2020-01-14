@@ -12,12 +12,12 @@ package TIO renames Ada.Text_IO;
 package SIO renames Ada.Streams.Stream_IO;
 
 
-BlockUInt8 : UInt8.Block;
-BlockInt16 : Int16.Block;
-BlockInt32 : Int32.Block := (others => 720);
-BlockInt64 : Int64.Block;
-BlockFloat32 : F32.Block;
-BlockFloat64 : F64.Block;
+BlockUInt8 : UInt8.Block := (others => 0);
+BlockInt16 : Int16.Block := (others => 0);
+BlockInt32 : Int32.Block := (others => 0);
+BlockInt64 : Int64.Block := (others => 0);
+BlockFloat32 : F32.Block := (others => 0.0);
+BlockFloat64 : F64.Block := (others => 0.0);
 
 File : SIO.File_Type;
 

@@ -61,15 +61,5 @@ begin
 	SIO.Set_Index(File, SIO_Index);
 end Set_File_Block_Index;
 
-
-
- function Physical_ValueOFF ( BZERO : Float; BSCALE : Float; ArrValue : Float)
-	return Float
- is
- begin
-	return BZERO + BSCALE * ArrValue;
- end Physical_ValueOFF;
-
-
 end Data_Funcs;
 

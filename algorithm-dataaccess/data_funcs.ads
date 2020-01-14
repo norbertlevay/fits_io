@@ -25,11 +25,5 @@ procedure Set_File_Block_Index
 -- Set func moves SIO file Index to first element 
 -- of the block given ba Block_Index
 
-
--- [FITS eq(3)] Scaling data values in IMAGE arrays
-function Physical_ValueOFF ( BZERO : Float; BSCALE : Float; ArrValue : Float) return Float; 
--- FIXME incorrect types; should use Float_32 etc...
-
-
 end Data_Funcs;
 
