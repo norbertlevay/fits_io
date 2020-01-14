@@ -87,11 +87,6 @@ is
 	TIO.Put_Line("DATAMAX " & Float'Image(R.DATAMAX));
  end Put_Phys_Value_Scaling;
 
-function Physical_Value is
-        new Physical_Value_From_Float(TFp => Data_Types.Float_32, TFd => Data_Types.Float_32);
-
-
-
 begin
 
  if(Argument_Count /= 1) 
