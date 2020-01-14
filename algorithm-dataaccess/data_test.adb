@@ -16,8 +16,8 @@ BlockUInt8 : UInt8.Block;
 BlockInt16 : Int16.Block;
 BlockInt32 : Int32.Block := (others => 720);
 BlockInt64 : Int64.Block;
-BlockFloat32 : Float32.Block;
-BlockFloat64 : Float64.Block;
+BlockFloat32 : F32.Block;
+BlockFloat64 : F64.Block;
 
 File : SIO.File_Type;
 

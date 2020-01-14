@@ -54,7 +54,7 @@ is
  Off_In_DU : Positive;
  DU_Start  : Positive;
 
- BlockF32 : Data_Types.Float32.Block;
+ BlockF32 : Data_Types.F32.Block;
 
 
 
@@ -154,7 +154,7 @@ begin
 
  -- read and use one block data
 
- Data_Types.Float32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
+ Data_Types.F32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
 
  Put_Line("After BlockT'Read: " & Positive'Image( File_Block_Index(InFile)));
 

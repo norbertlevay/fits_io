@@ -54,8 +54,8 @@ package Int16 is new Generic_Data_Types(T => Integer_16);
 package Int32 is new Generic_Data_Types(T => Integer_32);
 package Int64 is new Generic_Data_Types(T => Integer_64);
 
-package Float32 is new Generic_Data_Types(T => Float_32);
-package Float64 is new Generic_Data_Types(T => Float_64);
+package F32 is new Generic_Data_Types(T => Float_32);
+package F64 is new Generic_Data_Types(T => Float_64);
 
 
 

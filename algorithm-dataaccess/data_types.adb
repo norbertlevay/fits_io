@@ -60,7 +60,7 @@ package body Data_Types is
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       Float32.Revert_Bytes(Data);
+       F32.Revert_Bytes(Data);
      end if;
 
    end Float32_Read_BigEndian;
@@ -74,7 +74,7 @@ package body Data_Types is
 
      if System.Default_Bit_Order = System.LOW_ORDER_FIRST
      then
-       Float32.Revert_Bytes(DD);
+       F32.Revert_Bytes(DD);
      end if;
 
      Interfaces.IEEE_Float_32'Write(S,Interfaces.IEEE_Float_32(DD));
