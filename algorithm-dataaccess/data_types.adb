@@ -131,6 +131,7 @@ is
   D : TF := TF(Data);
 begin
 --  if (Data = BLANK) return NaN; end if;
+--  See IEEE 748 standard what bit-pattern is NaN and use that
   return BZERO + BSCALE * D; 
 end Physical_Value_From_Int;
 

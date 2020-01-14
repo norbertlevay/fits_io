@@ -1,3 +1,7 @@
+-- TODO:
+-- implement Optional for IndexedKeys (arrays)
+
+
 
 with Ada.Strings.Bounded; 	use Ada.Strings.Bounded;
 
