@@ -1,6 +1,6 @@
 
 
-
+with Ada.Streams;
 
 generic
   type T is digits <>; -- any floating point type
@@ -25,7 +25,20 @@ package Generic_Data_Float is
 
 function Physical(BZERO : in T; BSCALE : in T; Data : in T) return T; 
 
+private
+    
+   -- Endianness by Block       
 
+   procedure T_Read_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : out Block );
+
+   procedure T_Write_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : in Block );
+
+  for Block'Read  use T_Read_BigEndian;
+  for Block'Write use T_Write_BigEndian;
 
 end Generic_Data_Float;
 
