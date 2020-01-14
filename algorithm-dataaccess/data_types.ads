@@ -22,15 +22,8 @@ package Data_Types is
    type Float_64   is new Interfaces.IEEE_Float_64;
 
 
+
    -- 1, Endianness
-
-   procedure Int32_Read_BigEndian
-                (S    : access Ada.Streams.Root_Stream_Type'Class;
-                 Data : out Integer_32 );
-
-   procedure Int32_Write_BigEndian
-                (S    : access Ada.Streams.Root_Stream_Type'Class;
-                 Data : in Integer_32 );
 
    procedure Float32_Read_BigEndian
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
@@ -40,26 +33,24 @@ package Data_Types is
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : in Float_32 );
 
-   for Integer_32'Read  use Int32_Read_BigEndian;
-   for Integer_32'Write use Int32_Write_BigEndian;
-
    for Float_32'Read  use Float32_Read_BigEndian;
    for Float_32'Write use Float32_Write_BigEndian;
 
-
+-- NOTE Int32 endianness implemened in generic_data_integers over all blocks
+-- FIXME review the two implementations
 
 
 -- 2, Data Block definitions
 
---package UInt8 is new Generic_Data_Integer(T => Unsigned_8);
+-- FIXME UInt8: implement separately Ada generic accpets only Signed
+-- or convert Unsigned -> Signed before instantiating???
+-- package UInt8 is new Generic_Data_Integer(T => Unsigned_8);
 package Int16 is new Generic_Data_Integer(T => Integer_16);
 package Int32 is new Generic_Data_Integer(T => Integer_32);
 package Int64 is new Generic_Data_Integer(T => Integer_64);
 
 package F32 is new Generic_Data_Float(T => Float_32);
 package F64 is new Generic_Data_Float(T => Float_64);
-
-
 
 
 

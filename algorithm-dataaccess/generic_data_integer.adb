@@ -1,10 +1,13 @@
 
 with Ada.Unchecked_Conversion;
 with Interfaces;
+with System; use System;
 
 with FITS; -- Byte-type needed
 
--- DBG only with Ada.Text_IO; use Ada.Text_IO;
+--with Ada.Text_IO; use Ada.Text_IO;
+
+with Ada.Streams.Stream_IO;
 
 
 package body Generic_Data_Integer is
@@ -35,6 +38,62 @@ package body Generic_Data_Integer is
 
 
 
+  procedure T_Read_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : out Block ) 
+   is 
+	type SBlock is array (1 .. 2880) of Ada.Streams.Stream_Element;
+	function S_To_D is
+        	new Ada.Unchecked_Conversion(Source => SBlock, Target => Block);
+	sb : SBlock;
+   begin
+     -- Put_Line("T_Read_BigEndian");
+
+     SBlock'Read(S,sb);
+     Data := S_To_D(sb);
+
+     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+     then
+	for I in Block'Range
+	loop
+    	   Revert_Bytes(Data(I));
+	end loop;
+     end if;
+
+   end T_Read_BigEndian;
+
+
+   procedure T_Write_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : in Block ) 
+   is
+	DD : Block := Data;-- Revert_Bytes is in out This func is in only
+
+	type SBlock is array (1 .. 2880) of Ada.Streams.Stream_Element;
+	function D_To_S is
+        	new Ada.Unchecked_Conversion(Source => Block, Target => SBlock);
+   begin
+     -- Put_Line("T_Write_BigEndian");
+
+     if System.Default_Bit_Order = System.LOW_ORDER_FIRST
+     then
+	for I in Block'Range
+	loop
+	       Revert_Bytes(DD(I));
+	end loop;
+     end if;
+
+     declare
+	ob : SBlock := D_To_S(DD);
+     begin
+     	SBlock'Write(S,ob);
+     end;
+
+   end T_Write_BigEndian;
+
+
+
+-- Value conversions
 
 function Physical
         (BZERO : in TF; 
