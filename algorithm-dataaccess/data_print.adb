@@ -11,7 +11,7 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with Image;   use Image;
+--with Image;   use Image;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
@@ -24,7 +24,7 @@ with Optional.Reserved;
 with Keyword_Record;
 
 with Data_Funcs; use Data_Funcs;
-with Data_Types;
+with Data_Types; use Data_Types;
 
 procedure data_print
 is
@@ -54,9 +54,7 @@ is
  Off_In_DU : Positive;
  DU_Start  : Positive;
 
- BlockF32 : Data_Types.F32.Block;
-
-
+ BlockF32 : F32.Data.Block;
 
  subtype Key_Type   is String(1..8);
  subtype Value_Type is String(1..20);
@@ -154,7 +152,7 @@ begin
 
  -- read and use one block data
 
- Data_Types.F32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
+ F32.Data.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
 
  Put_Line("After BlockT'Read: " & Positive'Image( File_Block_Index(InFile)));
 

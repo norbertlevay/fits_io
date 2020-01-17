@@ -12,12 +12,12 @@ package TIO renames Ada.Text_IO;
 package SIO renames Ada.Streams.Stream_IO;
 
 
---BlockUInt8 : UInt8.Block := (others => 0);
-BlockInt16 : Int16.Block := (others => 0);
-BlockInt32 : Int32.Block := (others => 0);
-BlockInt64 : Int64.Block := (others => 0);
-BlockFloat32 : F32.Block := (others => 0.0);
-BlockFloat64 : F64.Block := (others => 0.0);
+BlockUInt8 : UInt8.Data.Block := (others => 0);
+BlockInt16 : Int16.Data.Block := (others => 0);
+BlockInt32 : Int32.Data.Block := (others => 0);
+BlockInt64 : Int64.Data.Block := (others => 0);
+BlockFloat32 : F32.Data.Block := (others => 0.0);
+BlockFloat64 : F64.Data.Block := (others => 0.0);
 
 File : SIO.File_Type;
 
@@ -57,7 +57,7 @@ end loop;
 
 -- write file
 SIO.Create(File, SIO.Out_File, "BlockInt32.dat");
-Int32.Block'Write(SIO.Stream(File), BlockInt32);
+Int32.Data.Block'Write(SIO.Stream(File), BlockInt32);
 SIO.Close(File);
 
 -- reset values
@@ -65,7 +65,7 @@ BlockInt32 := (others => -1);
 
 -- read file
 SIO.Open(File, SIO.In_File, "BlockInt32.dat");
-Int32.Block'Read(SIO.Stream(File), BlockInt32);
+Int32.Data.Block'Read(SIO.Stream(File), BlockInt32);
 SIO.Close(File);
 
 

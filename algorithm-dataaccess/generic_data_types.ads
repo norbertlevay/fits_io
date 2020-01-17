@@ -1,6 +1,7 @@
 -- TODO
 -- Physical_Value type Integer: implement Signed-Unsigned conversion [FITS Tab 11]
 
+with Ada.Streams;
 
 generic
   type T is private; -- any type of known size at compile time (definite and unlimited)
@@ -18,7 +19,18 @@ package Generic_Data_Types is
 
 -- 2, Endianness
 
-   procedure Revert_Bytes( Data : in out T );
+private
+    
+   procedure T_Read_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : out Block );
+
+   procedure T_Write_BigEndian
+                (S    : access Ada.Streams.Root_Stream_Type'Class;
+                 Data : in Block );
+
+  for Block'Read  use T_Read_BigEndian;
+  for Block'Write use T_Write_BigEndian;
 
 end Generic_Data_Types;
 

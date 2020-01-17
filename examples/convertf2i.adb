@@ -16,7 +16,7 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with Image;   use Image;
+--with Image;   use Image;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
@@ -117,8 +117,8 @@ begin
  -- read write sequentially by Blocks
 
  declare
-  InBlock  : Data_Types.F32.Block;
-  OutBlock : Data_Types.Int16.Block;
+  InBlock  : Data_Types.F32.Data.Block;
+  OutBlock : Data_Types.Int16.Data.Block;
   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
   Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), 4);
@@ -128,7 +128,7 @@ begin
  begin
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
-		Data_Types.F32.Block'Read(SIO.Stream(InFile),InBlock);
+		F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
 		for K in InBlock'Range
 		loop
 			F32Value := InBlock(K);
@@ -144,7 +144,7 @@ begin
 
 			if L > OutBlock'Last 
 			then
-				Data_Types.Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+				Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
 				L := 1;
 			end if;
 
@@ -153,7 +153,7 @@ begin
 
 	-- Last Block of InFIle
 	
-	Data_Types.F32.Block'Read(SIO.Stream(InFile),InBlock);
+	F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
 	for K in 1 .. Last_Data_Element_In_Block
 	loop
 		F32Value := InBlock(K);
@@ -169,7 +169,7 @@ begin
 
 		if L > OutBlock'Last 
 		then
-			Data_Types.Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+			Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
 			L := 1;
 		end if;
 
@@ -182,7 +182,7 @@ begin
 		loop
 			OutBlock(LL) := 0;
 		end loop;
-		Data_Types.Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+		Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
 	end if;
  end;
 
