@@ -15,7 +15,7 @@ all:
 
 
 clean:
-	rm -f convert.fit b~convert.ad? convertf2i convert create.fits create b~create.ad? list b~list.ad? reserved_keys b~reserved_keys.ad?  *.ali *.o *~
+	rm -f convert.fit b~convert.ad? convertf2i convert create.fits convert.fits convertf2i.fits create b~create.ad? list b~list.ad? reserved_keys b~reserved_keys.ad?  *.ali *.o *~
 
 
 

@@ -119,19 +119,20 @@ begin
  declare
   InBlock  : Data_Types.F32.Block;
   OutBlock : Data_Types.Int16.Block;
-  DUSize_blocks : Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
+  DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
+  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), 4);
   F32Value : Data_Types.Float_32;
   I16Value : Data_Types.Integer_16;
   L : Positive := 1;
  begin
-	for I in 1 .. DUSize_Blocks
+	for I in 1 .. (DUSize_Blocks - 1)
 	loop
 		Data_Types.F32.Block'Read(SIO.Stream(InFile),InBlock);
 		for K in InBlock'Range
 		loop
 			F32Value := InBlock(K);
-			
+
 			-- convert
 			I16Value := Data_Types.Integer_16(F32Value);
 			-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
@@ -144,11 +145,34 @@ begin
 			if L > OutBlock'Last 
 			then
 				Data_Types.Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-
 				L := 1;
 			end if;
 
 		end loop;
+	end loop;
+
+	-- Last Block of InFIle
+	
+	Data_Types.F32.Block'Read(SIO.Stream(InFile),InBlock);
+	for K in 1 .. Last_Data_Element_In_Block
+	loop
+		F32Value := InBlock(K);
+			
+		-- convert
+		I16Value := Data_Types.Integer_16(F32Value);
+		-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
+		-- calculate BZERO BSCALE (and BLANK if needed)
+
+		-- store converted
+		OutBlock(L) := I16Value;
+		L := L + 1;
+
+		if L > OutBlock'Last 
+		then
+			Data_Types.Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+			L := 1;
+		end if;
+
 	end loop;
 
 	-- write padding if needed
