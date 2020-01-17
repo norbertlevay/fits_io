@@ -1,7 +1,7 @@
 -- TODO
 -- Physical_Value type Integer: implement Signed-Unsigned conversion
 
-with Interfaces;	use Interfaces;
+with Interfaces;	--use Interfaces;
 
 
 -- Alternative A:
