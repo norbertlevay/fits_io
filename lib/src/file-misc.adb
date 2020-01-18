@@ -3,10 +3,13 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-with Image; use Image; -- UInt_8_Arr needed for Padding
+with Data_Types; use Data_Types; -- UInt_8_Arr needed for Padding
 
 
 package body File.Misc is
+
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+	-- use to write Padding
 
    StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
@@ -45,6 +48,7 @@ package body File.Misc is
        Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
     PadLength : constant Natural :=
        Natural(BlockSize_bytes) - FillCnt + 1;
+
 
     PadArr    : constant UInt8_Arr(1 .. FPositive(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!

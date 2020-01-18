@@ -6,7 +6,6 @@ with Ada.Characters.Latin_1;
 with System;
 with System.Storage_Elements;
 
---with Image;     use Image;
 with File;   	use File;
 with File.Misc; use File.Misc;
 

@@ -1,6 +1,6 @@
 
 
-with Image; use Image;
+with Data_Types; use Data_Types;
 
 package File.Misc is
 
