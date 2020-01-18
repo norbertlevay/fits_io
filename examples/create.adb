@@ -37,7 +37,7 @@ is
  -- Card => Key Value Comment
  Cards : Card_Arr :=  (
 "SIMPLE  =                    T / Standard FITS FIle                             ",
-"BITPIX  =                    8 / Standard FITS FIle                             ",
+"BITPIX  =                  -32 / Standard FITS FIle                             ",
 "NAXIS   =                    2 / Standard FITS FIle                             ",
 "NAXIS1  =                  500 / Standard FITS FIle                             ",
 "NAXIS2  =                  500 / Standard FITS FIle                             ",
@@ -46,14 +46,14 @@ is
 
  -- Define the Data
 
- function Squares (Coord : in Positive_Arr) return Unsigned_8
+ function Squares (Coord : in Positive_Arr) return Float_32
  is
  begin
-  return Unsigned_8(Coord(Coord'First)*Coord(Coord'Last) mod 256);
+  return Float_32(Coord(Coord'First)*Coord(Coord'Last) mod 256);
  end Squares;
 
- procedure Write_Data_UInt8 is
-       new Write_DataUnit(Unsigned_8,Squares);
+ procedure Write_Data_F32 is
+       new Write_DataUnit(Float_32,Squares);
 
 begin
 
@@ -70,7 +70,7 @@ begin
  Write_Padding(File,SIO.Index(File),HeaderPadValue);
 
  -- write Data
- Write_Data_UInt8(File, MaxCoords);
+ Write_Data_F32(File, MaxCoords);
 
  SIO.Close(File);
 

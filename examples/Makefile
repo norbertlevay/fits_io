@@ -9,7 +9,6 @@ LIB=fits_io
 all:
 	gnatmake -g -gnat12 -we create.adb  $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 	gnatmake -g -gnat12 -we convert.adb $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
-	gnatmake -g -gnat12 -we convertf2i.adb $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 	gnatmake -g -gnat12 -we list.adb    $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 	gnatmake -g -gnat12 -we reserved_keys.adb    $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
 	gnatmake -g -gnat12 -we data_test.adb    $(INCDIR) -aL$(LIBDIR) -aO$(LIBDIR) -largs -lfits_io -bargs -E #-largs -static
@@ -17,7 +16,7 @@ all:
 
 
 clean:
-	rm -f convert.fit b~convert.ad? convertf2i convert create.fits convert.fits convertf2i.fits create b~create.ad? list b~list.ad? reserved_keys b~reserved_keys.ad?  *.ali *.o *~
+	rm -f convert.fits convert create.fits create list reserved_keys b~*.ad?  *.ali *.o *~
 
 
 
@@ -30,8 +29,4 @@ run:
 	fitsheader convert.fits
 	fits2bitmap convert.fits
 	gio open convert.png
-	./convertf2i convert.fits
-	fitsheader convertf2i.fits
-	fits2bitmap convertf2i.fits
-	gio open convertf2i.png
 

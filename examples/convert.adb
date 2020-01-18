@@ -1,8 +1,7 @@
 --
--- Example convert data to Float_64 type
+-- Example convert FLoat32 -> Int16
 --
--- FIXME: assume Primary HDU. What if othe HDU is IMAGE type too?
--- FIXME: Float_64 no Endianness fix, use Float_32 now
+-- FIXME: assume Primary HDU. What if other HDU is IMAGE type too?
 --
 -- demonstrate usage if data unit is "big":
 -- all data will not fit into memory, needs to be processed
@@ -17,11 +16,14 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with Data_Types;   use Data_Types;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
 with Strict; use Strict; -- Positive_Arr needed
+
+-- new Data interface
+with Data_Types; use Data_Types;
+with Data_Funcs; use Data_Funcs;
 
 procedure convert
 is
@@ -52,29 +54,14 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
-        -- FIXME are below array definitions useful? acceptable?
-        -- see example/convert.adb vs example/convertf2i.adb
-        -- Standard says FITS file si always a set of 2880byte blocks
-   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
-   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
-   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
-   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
-   type Float32_Arr is array ( FPositive range <> ) of Float_32;
-   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+ BITPIXnewCard : Card_Type :=
+"BITPIX  =                   16 / Standard FITS FIle                             ";
+ BZEROCard : Card_Type :=
+"BZERO   =                    0 / Standard FITS FIle                             ";
+ BSCALECard : Card_Type :=
+"BSCALE  =                  1.0 / Standard FITS FIle                             ";
+-- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
 
-
-
-
-
- BufferSize : constant FPositive := 4*1024;
- InBuffer   : UInt8_Arr  (1 .. BufferSize);
- OutBuffer  : Float32_Arr(1 .. BufferSize);
-
- BITPIXFloat64Card : Card_Type :=
-"BITPIX  =                  -32 / Standard FITS FIle                             ";
-
- Nb   : FPositive;
- Nrem : FNatural;
 
  LastWrittenIdx : SIO.Positive_Count;
 begin
@@ -97,11 +84,18 @@ begin
   Card_Type'Read(SIO.Stream(InFile),Card);
 
   if(Card(1..6) = "BITPIX") then
-    Card_Type'Write(SIO.Stream(OutFile),BITPIXFloat64Card);
+    Card_Type'Write(SIO.Stream(OutFile),BITPIXnewCard);
   else
     Card_Type'Write(SIO.Stream(OutFile),Card);
   end if;
-  exit when Card = ENDCard;
+ 
+  if(Card(1..6) = "NAXIS2") then
+    Card_Type'Write(SIO.Stream(OutFile),BZEROCard);
+    Card_Type'Write(SIO.Stream(OutFile),BSCALECard);
+  end if; 
+
+
+ exit when Card = ENDCard;
  end loop;
  LastWrittenIdx := SIO.Index(OutFile);
  -- Index to StreamElement (after) the last written one
@@ -119,41 +113,77 @@ begin
   DUSize := DU_Count (HDUInfo.NAXISn);
  end;
 
+ -- read write sequentially by Blocks
 
+ declare
+  InBlock  : Data_Types.F32.Data.Block;
+  OutBlock : Data_Types.Int16.Data.Block;
+  DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
+  -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
+  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), 4);
+  F32Value : Data_Types.Float_32;
+  I16Value : Data_Types.Integer_16;
+  L : Positive := 1;
+ begin
+	for I in 1 .. (DUSize_Blocks - 1)
+	loop
+		F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
+		for K in InBlock'Range
+		loop
+			F32Value := InBlock(K);
 
+			-- convert
+			I16Value := Data_Types.Integer_16(F32Value);
+			-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
+			-- calculate BZERO BSCALE (and BLANK if needed)
 
- -- write Data
+			-- store converted
+			OutBlock(L) := I16Value;
+			L := L + 1;
 
- -- FIXME this below should be done 6x for every possible
- --       data (BITPIX) in InFile -> use generic?!!
+			if L > OutBlock'Last 
+			then
+				Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+				L := 1;
+			end if;
 
- Nb   := DUSize / BufferSize;
- Nrem := DUSize rem BufferSize;
+		end loop;
+	end loop;
 
- for I in 1 .. Nb
- loop
-  UInt8_Arr'Read(SIO.Stream(InFile),InBuffer);
+	-- Last Block of InFIle
+	
+	F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
+	for K in 1 .. Last_Data_Element_In_Block
+	loop
+		F32Value := InBlock(K);
+			
+		-- convert
+		I16Value := Data_Types.Integer_16(F32Value);
+		-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
+		-- calculate BZERO BSCALE (and BLANK if needed)
 
-  -- convert
-  for I in InBuffer'Range
-  loop
-   OutBuffer(I) := Float_32(InBuffer(I));
-  end loop;
-  Float32_Arr'Write(SIO.Stream(OutFile),OutBuffer);
+		-- store converted
+		OutBlock(L) := I16Value;
+		L := L + 1;
 
- end loop;
+		if L > OutBlock'Last 
+		then
+			Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+			L := 1;
+		end if;
 
- UInt8_Arr'Read(SIO.Stream(InFile),InBuffer(1..Nrem));
- -- convert
- for I in 1..Nrem
- loop
-  OutBuffer(I) := Float_32(InBuffer(I));
- end loop;
- Float32_Arr'Write(SIO.Stream(OutFile),OutBuffer(1..Nrem));
- LastWrittenIdx := SIO.Index(OutFile);
- -- Index to StreamElement (after) the last written one
+	end loop;
 
- Write_Padding(OutFile, LastWrittenIdx, DataPadValue);
+	-- write padding if needed
+	if L /= 1
+	then 
+		for LL in L .. OutBlock'Last
+		loop
+			OutBlock(LL) := 0;
+		end loop;
+		Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+	end if;
+ end;
 
  SIO.Close(OutFile);
  SIO.Close(InFile);
