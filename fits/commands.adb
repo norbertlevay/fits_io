@@ -6,7 +6,7 @@ with Ada.Characters.Latin_1;
 with System;
 with System.Storage_Elements;
 
-with Image;     use Image;
+--with Image;     use Image;
 with File;   	use File;
 with File.Misc; use File.Misc;
 
@@ -15,6 +15,38 @@ with Keyword_Record; use Keyword_Record; -- FPositive needed
 package body Commands is
 
    package TIO renames Ada.Text_IO;
+
+
+  type Data_Type is
+       (UInt8,   Int16,
+        Int32,   Int64,
+        Float32, Float64);
+   -- [FITS, Sect 4.4.1.1 Table 8]
+
+--   function  To_DataType (BITPIX : in Integer) return Data_Type;
+   --  
+   -- convert BITPIX keyword from Header to internal Data_Type
+   --  
+   function  To_DataType (BITPIX : in Integer) return Data_Type
+   is  
+    bp : Data_Type;
+   begin
+    case BITPIX is
+    when   8 => bp := UInt8;
+    when  16 => bp := Int16;
+    when  32 => bp := Int32;
+    when  64 => bp := Int64;
+    when -32 => bp := Float32;
+    when -64 => bp := Float64;
+    when others =>
+     null;
+     -- FIXME raise exception "out of range"
+     -- BITPIX is read from file, can be "whatever"
+    end case;
+    return bp; 
+   end To_DataType;
+   -- we need to separate BITPIX and FitsData_Type definition because
+   -- Ada does not allow enumeration values to be negative (as needed for FloatNM)
 
  --
  -- List HDU sizes. For Header: number of cards (and empty slots),
