@@ -2,13 +2,15 @@
 with Ada.Text_IO,
      Ada.Float_Text_IO,
      Ada.Unchecked_Deallocation,
-     Image,
+--     Image,
+     Data_Types,
      File,
      System,
      Ada.Streams.Stream_IO;
 
 use
-     Image,
+--     Image,
+     Data_Types,
      File,
      System,
      Ada.Streams.Stream_IO;
@@ -181,6 +183,20 @@ use  Interfaces;
 -- conversions from FITS data to PNG pixels
 --
 
+        -- FIXME are below array definitions useful? acceptable?
+        -- see example/convert.adb vs example/convertf2i.adb
+        -- Standard says FITS file si always a set of 2880byte blocks
+   type UInt8_Arr   is array ( FPositive range <> ) of Data_Types.Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Data_Types.Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Data_Types.Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Data_Types.Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Data_Types.Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Data_Types.Float_64;
+
+
+
+
+
  -- Note: see [FITS] 8bit BITPIX type is UNSIGNED.
  -- All other FITS-integer types are signed. If those need unsigned range,
  -- an offset (BZERO key?) needs to be applied on them.
@@ -191,7 +207,7 @@ use  Interfaces;
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
-  dd    : Image.Unsigned_8;
+  dd    : Data_Types.Unsigned_8;
  begin
 
 --  for dd of Data  <-- This is Ada2012 feature
@@ -223,7 +239,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Image.Float_32;
+   Val   : Data_Types.Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
@@ -256,7 +272,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Image.Float_32;
+   Val   : Data_Types.Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
@@ -287,7 +303,7 @@ use  Interfaces;
                Max    : out Float_32)
    is  
      type MyFloat is new Float_32;
-     D   : Image.Float_32;
+     D   : Data_Types.Float_32;
    begin
 
      Min := Float_32'Large;
@@ -319,7 +335,7 @@ use  Interfaces;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Image.Float_32;
+   Val   : Data_Types.Float_32;
    flast  : Float_32 :=
             Float_32(RGBPixel_24bit_Type'Last);
  begin

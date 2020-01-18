@@ -53,6 +53,20 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
+        -- FIXME are below array definitions useful? acceptable?
+        -- see example/convert.adb vs example/convertf2i.adb
+        -- Standard says FITS file si always a set of 2880byte blocks
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+
+
+
+
+
  BufferSize : constant FPositive := 4*1024;
  InBuffer   : UInt8_Arr  (1 .. BufferSize);
  OutBuffer  : Float32_Arr(1 .. BufferSize);
