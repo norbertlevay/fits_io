@@ -4,6 +4,8 @@
 with Interfaces;	--use Interfaces;
 with Generic_Data_Types;
 
+with Keyword_Record; use Keyword_Record; -- FInteger needed
+
 -- Alternative A:
 -- division by DataTypes (for Size calc only) vs DataValues (for Int-Float conversions)
 --with Generic_Data_Types;
@@ -29,6 +31,19 @@ package Data_Types is
 
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
+
+
+	-- FIXME are below array definitions useful? acceptable?
+	-- see example/convert.adb vs example/convertf2i.adb
+	-- Standard says FITS file si always a set of 2880byte blocks
+   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of Float_64;
+
+
 
    -- 1, Data Block definitions
 

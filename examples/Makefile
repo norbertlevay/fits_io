@@ -1,5 +1,5 @@
 
-INCDIR=-I../lib/src -I../lib/src/parser -I../algorithm-dataaccess
+INCDIR=-I../lib/src -I../lib/src/parser -I../lib/src/data
 LIBDIR=../lib/lib
 LIB=fits_io
 
