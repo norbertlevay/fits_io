@@ -1,0 +1,26 @@
+project examples is
+
+   for Languages use ("Ada");
+-- FIXME dont build the library in lib/src   
+   --for Source_Dirs use (".");
+   for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/data");
+   for Object_Dir use "obj";
+   for Exec_Dir use ".";
+   for Main use ("create.adb","convert.adb",
+		"list.adb","reserved_keys.adb",
+		"data_test.adb","data_print.adb");
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-gnat12");
+   end Compiler;
+
+   package Linker is
+      for Default_Switches ("ada") use ("-L../lib/lib -lfits_io");
+   end Linker;
+
+   package Builder is
+      for Default_Switches ("ada") use ("-g","-s", "-gnatQ");
+   end Builder;
+
+end examples;
+
