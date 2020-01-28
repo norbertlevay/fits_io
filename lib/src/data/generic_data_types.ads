@@ -2,10 +2,13 @@
 -- Physical_Value type Integer: implement Signed-Unsigned conversion [FITS Tab 11]
 
 with Ada.Streams;
+with Ada.Streams.Stream_IO;
 
 generic
   type T is private; -- any type of known size at compile time (definite and unlimited)
 package Generic_Data_Types is
+
+ package SIO renames Ada.Streams.Stream_IO;
 
  -- 1, Data Block definition (always 2880 bytes)
 
@@ -15,6 +18,14 @@ package Generic_Data_Types is
  -- FIXME how-to: should refuse to instantiate for T if above division is not without reminder
  -- FIXME how-to: guarantee that array is packed for any T
 
+
+ -- FIXME cannot be in this module becausse padding is number constant but T is private generic
+ -- should write padding separately ? or move to generic_int generic_float duplicated ??
+ generic
+  with function Element (Offset_In_Data_Unit : in Positive) return T;
+ procedure Write_Data_Unit (File : in SIO.File_Type;
+                            DataElementCount : in Positive);
+-- write all Data plus Padding
 
 
 -- 2, Endianness

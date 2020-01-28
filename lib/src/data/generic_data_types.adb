@@ -4,6 +4,7 @@ with Interfaces;
 with System; use System;
 
 with Ada.Streams;
+with Data_Funcs; use Data_Funcs;
 
 with FITS; -- Byte-type needed
 
@@ -11,6 +12,61 @@ with FITS; -- Byte-type needed
 
 
 package body Generic_Data_Types is
+
+  -- Write Data Unit
+
+ procedure Write_Data_Unit (File : in SIO.File_Type;
+                            DataElementCount : in Positive)
+ is
+ -- O : Positive;
+  B : Block;
+  T_Size_bytes : constant Positive := T'SIze / 8; 
+  CountOfBlocks       : constant Positive := DU_Block_Index(DataElementCount, T_Size_bytes);
+  OffsetToLastElement : constant Positive := Offset_In_Block(DataElementCount, T_Size_bytes);
+  OffInDU : Positive := 1;
+ begin
+
+  -- write all except last block
+
+  for NB in 1 .. (CountOfBlocks - 1)
+  loop
+
+    for O in 1 .. N
+    loop
+      B(O) := Element(OffInDU);
+      OffInDU := OffInDU + 1;
+    end loop;
+
+    Block'Write(SIO.Stream(File), B); 
+
+  end loop;
+
+  -- write last block's data
+
+  for O in 1 .. OffsetToLastElement
+  loop
+    B(O) := Element(OffInDU);
+    OffInDU := OffInDU + 1;
+  end loop;
+
+  -- write padding
+
+  for OffsetInDU in (OffsetToLastElement+1) .. N
+  loop
+    null;
+    -- B(O) := T(0); -- FIXME not possible generic T is private not a number
+  end loop;
+ 
+  Block'Write(SIO.Stream(File), B);
+
+ end Write_Data_Unit;
+
+
+
+
+
+
+  -- Endianness
 
    procedure Revert_Bytes( Data : in out T )
    is 

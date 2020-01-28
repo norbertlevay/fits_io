@@ -27,10 +27,10 @@ is
 
  -- Describe the Data
 
- RowsCnt : constant FPositive := 500;-- = ColumnLength
- ColsCnt : constant FPositive := 500;-- = Row   Length
+ RowsCnt : constant Positive := 500;-- = ColumnLength
+ ColsCnt : constant Positive := 500;-- = Row   Length
 
- MaxCoords : constant Positive_Arr := (RowsCnt,ColsCnt);
+-- MaxCoords : constant Positive_Arr := (FPositive(RowsCnt),ColsCnt);
 
  -- Prepare the Header
 
@@ -46,21 +46,17 @@ is
    ENDCard
    );
 
- -- Define the Data
 
- function Squares (Coord : in Positive_Arr) return Float_32
+ function SomeData(OffInDU : Positive) return Float_32
  is
-	PRes : FNatural :=  Coord(Coord'First)*Coord(Coord'Last) mod 256;
-	FRes : Float_32 := Float_32(PRes);
  begin
+   return Float_32(OffInDU mod 256);
+ end SomeData;
 
- --  Put_Line(FNatural'Image(PRes) & " vs " & Float_32'Image(FRes));
+ procedure F32_Write_Data_Unit is
+       new Data_Types.F32.Data.Write_Data_Unit(SomeData);
 
-  return FRes;
- end Squares;
-
- procedure Write_Data_F32 is
-       new Write_DataUnit(Float_32,Squares);
+ NDataElems : constant Positive := RowsCnt*ColsCnt;
 
 begin
 
@@ -76,8 +72,9 @@ begin
  Card_Arr'Write(SIO.Stream(File),Cards);
  Write_Padding(File,SIO.Index(File),HeaderPadValue);
 
- -- write Data
- Write_Data_F32(File, MaxCoords);
+ -- write Data sequentially
+
+ F32_Write_Data_Unit(File, NDataElems);
 
  SIO.Close(File);
 
