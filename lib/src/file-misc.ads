@@ -22,26 +22,6 @@ package File.Misc is
    -- Write_Padding puts PadValue from FileOffset until end of the block.
    -- If Block is filled up, Write_Padding does nothing.
 
-   ---------------------------
-   -- Read/Write Image Data --
-   ---------------------------
-
-   -- FIXME notes on Item (Item_Arr) below:
-   --       e.g. no need to define arrays as in FITS.ads
-   --       instantation can be done by types rather then array types
-   --       Q: How to guarantee then that the Item_Arr array would be packed?
-   --       A: At instation the supplied array must be packed.
-   --          No represantation clauses allowed in generic
-   --
-   generic
-    type Item is private;
---    type Item_Arr is array (FPositive range <>) of Item;
-    with function Element (Coord : in Strict.Positive_Arr) return Item;
-   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  Strict.Positive_Arr);
-   -- Item is any of FITS.UInt8 ... FITS.Float64
-   -- Write_Data adds DataUnit padding after last Item written
-
 
 
 

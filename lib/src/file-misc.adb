@@ -110,48 +110,6 @@ package body File.Misc is
 
 
 
-   procedure Write_DataUnit (FitsFile  : in  SIO.File_Type;
-                             MaxCoords : in  Strict.Positive_Arr)
-   is
-
-     function  multiply (MaxCoords : in  Strict.Positive_Arr) return FPositive
-     is
-      Accu  : FPositive := 1;
-     begin
-      for I in MaxCoords'Range
-      loop
-       Accu := Accu * MaxCoords(I);
-      end loop;
-      return Accu;
-     end multiply;
-
-    type Item_Arr is array (FPositive range <>) of Item;
-
-    IArrLen : FPositive := multiply(MaxCoords);
-    IArr    : Item_Arr(1..IArrLen);
-    Coord   : Strict.Positive_Arr := MaxCoords;
-
-    DPadCnt  : constant Positive  := 2880 - Natural(IArrLen mod FPositive(2880));
-    ItemSize : constant Positive := Item'Size/Unsigned_8'Size;
-    PadUInt8 : constant UInt8_Arr(1 .. FPositive(DPadCnt*ItemSize)) := (others => 0);
---    for Padding'Size use DPadCnt*(Image.Unsigned_8'Size);
--- FIXME How to guarantee that arrays are packed OR do we need to guarantee ?
-   begin
-
-    for I in IArr'Range
-    loop
-     To_Coords (I, MaxCoords, Coord);
-     IArr(I) := Element (Coord);
-    end loop;
-
-    Item_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,IArr);
-    UInt8_Arr'Write(Ada.Streams.Stream_IO.Stream(FitsFile) ,PadUInt8);
-
-    -- FIXME write by Blocks
-
-   end Write_DataUnit;
-
-
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
    function  DU_Size_blocks (FitsFile : in SIO.File_Type) return FNatural
    is  
