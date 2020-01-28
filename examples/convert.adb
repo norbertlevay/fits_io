@@ -55,11 +55,11 @@ is
  DUSize : FPositive;
 
  BITPIXnewCard : Card_Type :=
-"BITPIX  =                   16 / Standard FITS FIle                             ";
- BZEROCard : Card_Type :=
-"BZERO   =                    0 / Standard FITS FIle                             ";
+"BITPIX  =                   16 /                                                ";
  BSCALECard : Card_Type :=
-"BSCALE  =                  1.0 / Standard FITS FIle                             ";
+"BSCALE  =          0.003891051 / floating point value                           ";
+ BZEROCard : Card_Type :=
+"BZERO   =        127.501945525 / floating point value                           ";
 -- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
 
 
@@ -89,7 +89,7 @@ begin
     Card_Type'Write(SIO.Stream(OutFile),Card);
   end if;
  
-  if(Card(1..6) = "NAXIS2") then
+  if(Card(1..7) = "DATAMAX") then
     Card_Type'Write(SIO.Stream(OutFile),BZEROCard);
     Card_Type'Write(SIO.Stream(OutFile),BSCALECard);
   end if; 
@@ -124,6 +124,10 @@ begin
   F32Value : Data_Types.Float_32;
   I16Value : Data_Types.Integer_16;
   L : Positive := 1;
+
+  BSCALE : constant Data_Types.Float_32 :=   0.003891051;
+  BZERO  : constant Data_Types.Float_32 := 127.501945525;
+  F32Temp : Data_Types.Float_32;
  begin
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -131,11 +135,18 @@ begin
 		for K in InBlock'Range
 		loop
 			F32Value := InBlock(K);
-
+			
 			-- convert
-			I16Value := Data_Types.Integer_16(K*I rem (2**16)/2);--F32Value);
+			
+			F32Temp  := (F32Value - BZERO) / BSCALE;
+			I16Value := Data_Types.Integer_16( F32Temp );
 			-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
 			-- calculate BZERO BSCALE (and BLANK if needed)
+
+--			Put_Line(
+--				Data_Types.Float_32'Image(F32Value) 
+--				&" vs "& Data_Types.Float_32'Image(F32Temp) 
+--				&" vs "& Data_Types.Integer_16'Image(I16Value));
 
 			-- store converted
 			OutBlock(L) := I16Value;

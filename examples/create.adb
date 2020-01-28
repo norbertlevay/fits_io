@@ -37,10 +37,12 @@ is
  -- Card => Key Value Comment
  Cards : Card_Arr :=  (
 "SIMPLE  =                    T / Standard FITS FIle                             ",
-"BITPIX  =                  -32 / Standard FITS FIle                             ",
-"NAXIS   =                    2 / Standard FITS FIle                             ",
-"NAXIS1  =                  500 / Standard FITS FIle                             ",
-"NAXIS2  =                  500 / Standard FITS FIle                             ",
+"BITPIX  =                  -32 /                                                ",
+"NAXIS   =                    2 /                                                ",
+"NAXIS1  =                  500 /                                                ",
+"NAXIS2  =                  500 /                                                ",
+"DATAMIN =                    0 /                                                ",
+"DATAMAX =                  255 /                                                ",
    ENDCard
    );
 
@@ -48,8 +50,13 @@ is
 
  function Squares (Coord : in Positive_Arr) return Float_32
  is
+	PRes : FNatural :=  Coord(Coord'First)*Coord(Coord'Last) mod 256;
+	FRes : Float_32 := Float_32(PRes);
  begin
-  return Float_32(Coord(Coord'First)*Coord(Coord'Last) mod 256);
+
+ --  Put_Line(FNatural'Image(PRes) & " vs " & Float_32'Image(FRes));
+
+  return FRes;
  end Squares;
 
  procedure Write_Data_F32 is
