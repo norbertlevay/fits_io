@@ -13,7 +13,7 @@ function DU_Block_Index
         return Positive;
 function Offset_In_Block
                 (Offset_In_Data_Unit    : in Positive;
-                Data_Size_bytes         : in Positive) 
+                Data_Elems_In_Block     : in Positive) 
         return Positive;
 
 

@@ -166,7 +166,7 @@ begin
  New_Line;
  
  -- access & print element with Index 1000
- Off_In_Block := Offset_In_Block(1000, abs(BITPIX));   -- <---- BITPIX dependent 
+ Off_In_Block := Offset_In_Block(1000, F32.Data.N); 
  Put_Line(Positive'Image(Off_In_Block) & ":" & Data_Types.Float_32'Image(BlockF32(Off_in_block))); -- <----- BITPIX dependent
 
 

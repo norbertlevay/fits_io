@@ -120,7 +120,7 @@ begin
   OutBlock : Data_Types.Int16.Data.Block;
   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
-  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), 4);
+  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), Data_Types.F32.Data.N);
   F32Value : Data_Types.Float_32;
   I16Value : Data_Types.Integer_16;
   L : Positive := 1;

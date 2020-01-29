@@ -26,13 +26,11 @@ end DU_Block_Index;
 
 function Offset_In_Block
 		(Offset_In_Data_Unit 	: in Positive;
-		Data_Size_bytes 	: in Positive) 
+		Data_Elems_In_Block 	: in Positive) 
 	return Positive
 is
-Off_bytes : Positive := Offset_In_Data_Unit * Data_Size_bytes;
 begin
-	return (1 + (Off_bytes - 1) mod BlockSize_bytes) / Data_Size_bytes;
--- FIXME return value is bytes or dataElem count?? 
+	return 1 + (Offset_In_Data_Unit - 1) mod Data_Elems_In_Block;
 end Offset_In_Block;
 
 

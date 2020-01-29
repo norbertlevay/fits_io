@@ -72,14 +72,14 @@ begin
  declare
   F32Block  : Data_Types.F32.Data.Block;
   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
-  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), 4);
+  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), Data_Types.F32.Data.N);
 
   F32Value : Data_Types.Float_32;
   B_Min    : Data_Types.Float_32 := Data_Types.Float_32'Last;
   B_Max    : Data_Types.Float_32 := Data_Types.Float_32'First;
  begin
 
-        Put_Line("LastELEM: " & Positive'Image(Last_Data_Element_In_Block));
+--        Put_Line("LastELEM: " & Positive'Image(Last_Data_Element_In_Block));
 
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -105,7 +105,7 @@ begin
 
  SIO.Close(InFile);
 
- Put_Line("done." & Float_32'Image(Float_32'Last));
+ Put_Line("done.");
 
 
  exception
