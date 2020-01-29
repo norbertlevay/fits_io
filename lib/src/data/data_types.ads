@@ -58,11 +58,7 @@ package Data_Types is
 
    -- 2, Array-Physical data conversions
 
-   function Physical_Value_F32 is new Int32.Physical(TF => Float_32);
    function Physical_Value_F32 is new Int16.Physical(TF => Float_32);
-   function Physical_Value_F64 is new Int32.Physical(TF => Float_64);
-   function Physical_Value_F64 is new Int16.Physical(TF => Float_64);
-   -- FIXME support all combinations ? 
    -- Standard says only Int16->Float32 is commonly used (others make no sense).
 
 -- not used:
