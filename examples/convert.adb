@@ -169,7 +169,8 @@ begin
 		F32Value := InBlock(K);
 			
 		-- convert
-		I16Value := Data_Types.Integer_16(K rem (2**16)/2);--F32Value);
+		F32Temp  := (F32Value - BZERO) / BSCALE;
+		I16Value := Data_Types.Integer_16(F32Temp);
 		-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
 		-- calculate BZERO BSCALE (and BLANK if needed)
 
