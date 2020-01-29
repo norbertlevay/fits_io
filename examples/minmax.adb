@@ -26,6 +26,7 @@ with Data_Types; use Data_Types;
 with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Float;
+with Generic_Data_Types;
 
 procedure minmax
 is
@@ -52,59 +53,59 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
-
- -- Find Min Max values in DataUnit
- -- implemented by generic for Float types
- -- FIXME do the same for Integers
-
  generic
---  type T is digits <>;
-  with package Floats is new Generic_Data_Float(<>);
- package MinMax is
-  procedure Find_MinMax(F : SIO.File_Type; Min : out Floats.T; Max : out Floats.T);
- end MinMax;
+  type T is private;
+  B_Min, B_Max : in T; -- init values
+  with function "<" (L : in T; R : in T) return Boolean;
+  with function ">" (L : in T; R : in T) return Boolean;
+ procedure DU_MinMax(F : SIO.File_Type; Min : out T; Max : out T);
 
- package body MinMax is
-  procedure Find_MinMax(F : SIO.File_Type; Min : out Floats.T; Max : out Floats.T)
-  is
-   FBlock  : Floats.Data.Block;
-   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),Floats.T'Size/8);
-   Last_Data_Element_In_Block : constant Positive := 
-					Offset_In_Block(Positive(DUSize), Floats.Data.N);
-
-  FValue : Floats.T;
-  B_Min    : Floats.T := Floats.T'Last;
-  B_Max    : Floats.T := Floats.T'First;
-  use Floats;
-  begin
- 	for I in 1 .. (DUSize_Blocks - 1)
+ procedure DU_MinMax(F : SIO.File_Type; Min : out T; Max : out T)
+ is
+   package gen is new Generic_Data_Types (T => T);
+   function gen_Min is new gen.Min("<");
+   function gen_Max is new gen.Max(">");
+   gBlock  : gen.Block;
+   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
+   Last_Data_Element_In_Block : constant Positive :=  
+                                        Offset_In_Block(Positive(DUSize), gen.N);
+  gValue : T;
+  lMin : T := B_Min;
+  lMax : T := B_Max;
+ begin
+  	for I in 1 .. (DUSize_Blocks - 1)
 	loop
-		Floats.Data.Block'Read(SIO.Stream(F),FBlock);
-		B_Min := Floats.Min(FBlock, B_Min);
-		B_Max := Floats.Max(FBlock, B_Max);
+		gen.Block'Read(SIO.Stream(F),gBlock);
+		lMin := gen_Min(gBlock, lMin);
+		lMax := gen_Max(gBlock, lMax);
 	end loop;
 
 	-- Last Block of InFIle
 	
-	Floats.Data.Block'Read(SIO.Stream(F),FBlock);
+	gen.Block'Read(SIO.Stream(F),gBlock);
 	for K in 1 .. (Last_Data_Element_In_Block)
 	loop
-		FValue := FBlock(K);
-		if(FValue < B_Min) then B_Min := FValue; end if;
-		if(FValue > B_Max) then B_Max := FValue; end if;
+		gValue := gBlock(K);
+		if(gValue < lMin) then lMin := gValue; end if;
+		if(gValue > lMax) then lMax := gValue; end if;
 	end loop;
 
-	Min := B_Min;
-	Max := B_Max;
+	Min := lMin;
+	Max := lMax;
 
- 	Put_Line("Min: " & Floats.T'Image(B_Min));
- 	Put_Line("Max: " & Floats.T'Image(B_Max));
-  end Find_MinMax;
- end MinMax;
+ end DU_MinMax;
 
- package FMinMax is new MinMax(Floats => Data_Types.F32);
- FMin, FMax : Float_32;
+ procedure F32_MinMax is 
+    new DU_MinMax(Float_32, Float_32'Last, Float_32'First, "<", ">");
 
+ procedure I32_MinMax is 
+   new DU_MinMax(Integer_32, Integer_32'Last, Integer_32'First, "<", ">");
+ procedure I16_MinMax is 
+   new DU_MinMax(Integer_16, Integer_16'Last, Integer_16'First, "<", ">");
+
+ F32Min, F32Max : Float_32;
+ I32Min, I32Max : Integer_32;
+ I16Min, I16Max : Integer_16;
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -124,10 +125,23 @@ begin
 
 
  -- read data sequntially by blocks
- FMinMax.Find_MinMax(InFile, FMin, Fmax);
- Put_Line("F Min: " & Float_32'Image(FMin));
- Put_Line("F Max: " & Float_32'Image(FMax));
  
+ if(BITPIX = -32)
+ then
+  F32_MinMax(InFile, F32Min, F32Max);
+  Put_Line("F32 Min: " & Float_32'Image(F32Min));
+  Put_Line("F32 Max: " & Float_32'Image(F32Max));
+ elsif(BITPIX = 32)
+ then
+  I32_MinMax(InFile, I32Min, I32Max);
+  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
+  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
+ elsif(BITPIX = 16)
+ then
+  I16_MinMax(InFile, I16Min, I16Max);
+  Put_Line("I16 Min: " & Integer_16'Image(I16Min));
+  Put_Line("I16 Max: " & Integer_16'Image(I16Max));
+ end if;
 
  SIO.Close(InFile);
 

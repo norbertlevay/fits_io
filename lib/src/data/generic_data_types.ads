@@ -14,7 +14,14 @@ package Generic_Data_Types is
  Block_Size : constant Positive := 2880*8;
  N : constant Positive := Block_Size / T'Size;
  type Block is array (Positive range 1 .. N) of T;
- 
+
+ generic
+  with function "<" (L : in T; R : in T) return Boolean; 
+ function Min(B : in Block; B_Min : in T) return T;
+
+ generic
+  with function ">" (L : in T; R : in T) return Boolean; 
+ function Max(B : in Block; B_Max : in T) return T;
 
 
  -- 2, Endianness

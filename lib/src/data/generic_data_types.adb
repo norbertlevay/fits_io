@@ -13,6 +13,38 @@ with FITS; -- Byte-type needed
 
 package body Generic_Data_Types is
 
+ function Min(B : in Block; B_Min : in T) return T
+ is
+  Min : T := B_Min;
+ begin
+  for I in Block'Range
+  loop
+    if ( B(I) < Min )
+    then
+      Min := B(I);
+    end if;
+  end loop;
+  return Min;
+ end Min;
+
+ function Max(B : in Block; B_Max : in T) return T
+ is
+  Max : T := B_Max;
+ begin
+  for I in Block'Range
+  loop
+    if ( B(I) > Max)
+    then
+      Max := B(I);
+    end if;
+  end loop;
+  return Max;
+ end Max;
+
+
+
+
+
 
   -- Endianness
 
