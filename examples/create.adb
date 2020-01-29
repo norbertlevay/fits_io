@@ -54,7 +54,7 @@ is
  end SomeData;
 
  procedure F32_Write_Data_Unit is
-       new Data_Types.F32.Data.Write_Data_Unit(SomeData);
+       new Write_Data_Unit(Float_32,SomeData);
 
  NDataElems : constant Positive := RowsCnt*ColsCnt;
 

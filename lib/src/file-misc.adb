@@ -4,7 +4,8 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with Data_Types; use Data_Types; -- UInt_8_Arr needed for Padding
-
+with Generic_Data_Types;
+with Data_Funcs; use Data_Funcs;
 
 package body File.Misc is
 
@@ -106,6 +107,62 @@ package body File.Misc is
     --
     Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
    end To_Coords;
+
+
+  -- Write Data Unit
+
+ procedure Write_Data_Unit (File : in SIO.File_Type;
+                            DataElementCount : in Positive)
+ is
+
+  package AnyType is new Generic_Data_Types(T => T);
+
+  B : AnyType.Block;
+  T_Size_bytes : constant Positive := T'SIze / 8;  
+  CountOfBlocks       : constant Positive := DU_Block_Index(DataElementCount, T_Size_bytes);
+  OffsetToLastElement : constant Positive := Offset_In_Block(DataElementCount, T_Size_bytes);
+  OffInDU : Positive := 1;
+ begin
+
+  -- write all except last block
+
+  for NB in 1 .. (CountOfBlocks - 1)
+  loop
+
+    for O in 1 .. AnyType.N
+    loop
+      B(O) := Element(OffInDU);
+      OffInDU := OffInDU + 1;
+    end loop;
+
+    AnyType.Block'Write(SIO.Stream(File), B); 
+
+  end loop;
+
+  -- write last block's data
+
+  for O in 1 .. OffsetToLastElement
+  loop
+    B(O) := Element(OffInDU);
+    OffInDU := OffInDU + 1;
+  end loop;
+
+  -- write padding
+
+  for O in (OffsetToLastElement+1) .. AnyType.N
+  loop
+    B(O) := T(0); -- FIXME now only signed integer type possible failes with floats
+		  -- NOTE make type independent: write in Stream Elements type ??
+  end loop;
+
+  AnyType.Block'Write(SIO.Stream(File), B);
+
+ end Write_Data_Unit;
+
+
+
+
+
 
 
 

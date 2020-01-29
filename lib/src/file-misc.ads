@@ -22,6 +22,13 @@ package File.Misc is
    -- Write_Padding puts PadValue from FileOffset until end of the block.
    -- If Block is filled up, Write_Padding does nothing.
 
+ 
+ generic
+  type T is digits <>; -- float types only
+  with function Element (Offset_In_Data_Unit : in Positive) return T;
+ procedure Write_Data_Unit (File : in SIO.File_Type;
+                            DataElementCount : in Positive);
+ -- write all Data plus Padding
 
 
 
