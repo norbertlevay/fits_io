@@ -2,6 +2,8 @@
 -- high level block/HDU copying
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+-- with Ada.Unchecked_Conversion;
+-- with Interfaces;
 
 with Data_Types; use Data_Types; -- UInt_8_Arr needed for Padding
 with Generic_Data_Types;
@@ -151,8 +153,25 @@ package body File.Misc is
 
   for O in (OffsetToLastElement+1) .. AnyType.N
   loop
-    B(O) := T(0); -- FIXME now only signed integer type possible failes with floats
-		  -- NOTE make type independent: write in Stream Elements type ??
+    B(O) := PadValue;
+
+-- type-independent implementation commented out: PadValue generic param implementation 
+-- prefered because 
+-- A, it does not require Unchecked_Conversion 
+-- and 
+-- B, IEEE-float standard guarantees that bit pattern of +0.0 floats is always zeros which 
+-- is the same as Pad-value in DataUnit in FITS
+--
+--    declare
+--     Size_Bytes : constant Positive := T'Size / Interfaces.Unsigned_8'Size;
+--     type ArrU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
+--     function Arr_To_Data is
+--       new Ada.Unchecked_Conversion(Source => ArrU8, Target => T); 
+--     Padding : ArrU8 := (others => 0);
+--    begin
+--      B(O) := Arr_To_Data(Padding);
+--    end;
+
   end loop;
 
   AnyType.Block'Write(SIO.Stream(File), B);

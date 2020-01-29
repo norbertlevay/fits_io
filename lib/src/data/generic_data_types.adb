@@ -50,6 +50,7 @@ package body Generic_Data_Types is
                  Data : out Block )
    is  
         type SBlock is array (1 .. 2880) of Ada.Streams.Stream_Element;
+	-- FIXME Stream_Element'Size might not be 8 (then 2880 is not correct)
         function S_To_D is
                 new Ada.Unchecked_Conversion(Source => SBlock, Target => Block);
         sb : SBlock;

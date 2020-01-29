@@ -54,7 +54,9 @@ is
  end SomeData;
 
  procedure F32_Write_Data_Unit is
-       new Write_Data_Unit(Float_32,SomeData);
+       new Write_Data_Unit(Float_32,0.0,SomeData);
+ -- NOTE IEEE float represents +0.0 as signbit=0 Exp=0 Fraction=0 e.g. fully zero bit array
+ -- which is the same as defineition of Pad Value for Daua Unit in FITS standard
 
  NDataElems : constant Positive := RowsCnt*ColsCnt;
 

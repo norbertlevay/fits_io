@@ -24,7 +24,8 @@ package File.Misc is
 
  
  generic
-  type T is digits <>; -- float types only
+  type T is private; -- any type with size known at compile-time
+  PadValue : T; -- zero bit pattern for all types in Data Unit
   with function Element (Offset_In_Data_Unit : in Positive) return T;
  procedure Write_Data_Unit (File : in SIO.File_Type;
                             DataElementCount : in Positive);
