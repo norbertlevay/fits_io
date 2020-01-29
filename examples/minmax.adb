@@ -106,6 +106,10 @@ is
  F32Min, F32Max : Float_32;
  I32Min, I32Max : Integer_32;
  I16Min, I16Max : Integer_16;
+
+ BSCALE : constant Data_Types.Float_32 :=   0.003891051;
+ BZERO  : constant Data_Types.Float_32 := 127.501945525;
+
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -141,6 +145,8 @@ begin
   I16_MinMax(InFile, I16Min, I16Max);
   Put_Line("I16 Min: " & Integer_16'Image(I16Min));
   Put_Line("I16 Max: " & Integer_16'Image(I16Max));
+  Put_Line("F32 Min: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Min)));
+  Put_Line("F32 Max: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Max)));
  end if;
 
  SIO.Close(InFile);
