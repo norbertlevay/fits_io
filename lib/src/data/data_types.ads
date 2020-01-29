@@ -47,8 +47,8 @@ package Data_Types is
 --			BLANK : in Unsigned_8; Data : in Unsigned_8) return TF;
 -- can be done if needed -> will be needed For Signed-Unsigned conversions Tab11		
    end UInt8;
-   
-   
+
+
    package Int16 is new Generic_Data_Integer(T => Integer_16);
    package Int32 is new Generic_Data_Integer(T => Integer_32);
    package Int64 is new Generic_Data_Integer(T => Integer_64);
@@ -65,5 +65,9 @@ package Data_Types is
    -- FIXME support all combinations ? 
    -- Standard says only Int16->Float32 is commonly used (others make no sense).
 
+-- not used:
+--   F32_NaN : constant Float_32 := Float_32(16#FFFFFFFF#);
+--   F64_NaN : constant Float_64 := Float_64(16#FFFFFFFFFFFFFFFF#);
+ 
 end Data_Types;
 

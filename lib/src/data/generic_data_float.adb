@@ -1,12 +1,5 @@
 
-with Ada.Unchecked_Conversion;
-with Interfaces;
-with System; use System;
-
--- DBG only with Ada.Text_IO; use Ada.Text_IO;
-
-with FITS; -- Byte-type needed
-
+-- with Ada.Text_IO; use Ada.Text_IO;
 
 package body Generic_Data_Float is
 

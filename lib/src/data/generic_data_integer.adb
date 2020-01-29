@@ -1,17 +1,8 @@
 
-with Ada.Unchecked_Conversion;
-with Interfaces;
-with System; use System;
-
-with FITS; -- Byte-type needed
-
 --with Ada.Text_IO; use Ada.Text_IO;
-
-with Ada.Streams.Stream_IO;
-
+with Ada.Exceptions; use Ada.Exceptions;
 
 package body Generic_Data_Integer is
-
 
 -- Value conversions
 
@@ -23,9 +14,14 @@ function Physical
 is
   D : TF := TF(Data);
 begin
---  if (Data = BLANK) return NaN; end if;
---  FIXME See IEEE 748 standard what bit-pattern is NaN and explicitely use that
+
+  if (Data = BLANK)
+  then
+	Raise_Exception(Undefined_Value'Identity, "BLANK encountered");
+  end if;
+ 
   return BZERO + BSCALE * D;  
+
 end Physical;
 
 
