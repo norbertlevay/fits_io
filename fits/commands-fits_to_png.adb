@@ -2,14 +2,12 @@
 with Ada.Text_IO,
      Ada.Float_Text_IO,
      Ada.Unchecked_Deallocation,
---     Image,
      Data_Types,
      File,
      System,
      Ada.Streams.Stream_IO;
 
 use
---     Image,
      Data_Types,
      File,
      System,
@@ -18,8 +16,8 @@ use
 with PNG_IO;
 use  PNG_IO;
 
-with Interfaces;
-use  Interfaces;
+--with Interfaces;
+--use  Interfaces;
 
 -- Note: print Float with 2 digits in front, 15 digits after decimal, 3 digits exponent
 --     Ada.Float_Text_IO.Put(Float(MaxPixelF32), 2, 15, 3);
@@ -67,7 +65,7 @@ use  Interfaces;
 
  -- grey (8bit) image
 
- type GreyPixel_8bit_Type is new Interfaces.Unsigned_8;
+ type GreyPixel_8bit_Type is new Unsigned_8;
 
  type GreyImage_8bit_Type is
    array (Natural range <>, Natural range <>) of GreyPixel_8bit_Type;
@@ -82,7 +80,7 @@ use  Interfaces;
 
  -- grey (16bit) image
 
- type GreyPixel_16bit_Type is new Interfaces.Unsigned_16;
+ type GreyPixel_16bit_Type is new Unsigned_16;
 
  type GreyImage_16bit_Type is
    array (Natural range <>, Natural range <>) of GreyPixel_16bit_Type;
@@ -97,7 +95,7 @@ use  Interfaces;
 
  -- RGB (24bit 'Truecolor') image
 
- type RGBPixel_24bit_Type is new Interfaces.Unsigned_32;
+ type RGBPixel_24bit_Type is new Unsigned_32;
 
  type RGBImage_24bit_Type is
    array (Natural range <>, Natural range <>) of RGBPixel_24bit_Type;

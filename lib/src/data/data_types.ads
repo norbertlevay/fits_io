@@ -32,22 +32,20 @@ package Data_Types is
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
 
+   -- complementary types (after conversion array-value -> physical-value)
+
+   type Integer_8   is new Interfaces.Integer_8;
+   type Unsigned_16 is new Interfaces.Unsigned_16;
+   type Unsigned_32 is new Interfaces.Unsigned_32;
+   type Unsigned_64 is new Interfaces.Unsigned_64;
+
 
    -- 1, Data Block definitions
 
-   -- FIXME UInt8: implement separately Ada generic accpets only Signed
-   -- or convert Unsigned -> Signed before instantiating???
-   -- package UInt8 is new Generic_Data_Integer(T => Unsigned_8);
-   
    package UInt8 is
 	package Data is new Generic_Data_Types( T => Unsigned_8 );
---   	generic
---    	 type TF is digits <>; -- any floating point type
---   	function Physical(BZERO : in TF; BSCALE : in TF; 
---			BLANK : in Unsigned_8; Data : in Unsigned_8) return TF;
--- can be done if needed -> will be needed For Signed-Unsigned conversions Tab11		
+	function To_Signed(D : in Unsigned_8) return Integer_8;
    end UInt8;
-
 
    package Int16 is new Generic_Data_Integer(T => Integer_16);
    package Int32 is new Generic_Data_Integer(T => Integer_32);
@@ -56,14 +54,16 @@ package Data_Types is
    package F32 is new Generic_Data_Float(T => Float_32);
    package F64 is new Generic_Data_Float(T => Float_64);
 
+
    -- 2, Array-Physical data conversions
 
-   function Physical_Value_F32 is new Int16.Physical(TF => Float_32);
-   -- Standard says only Int16->Float32 is commonly used (others make no sense).
+   function F32_Physical_Value is new Int16.Physical_Value(TF => Float_32);
+   function F32_Physical_Value is new Int32.Physical_Value(TF => Float_32);
+   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_32);
+   -- if Tab11 applies: these serve for Singed<->Unsigned conversions
+   --  (do explicit cast of the return value to Integer if needed)
+   -- if not Tab11 values then: scale to store floats as integers 
+   --  (NOTE: Standard says only Int16<->Float32 is commonly used)
 
--- not used:
---   F32_NaN : constant Float_32 := Float_32(16#FFFFFFFF#);
---   F64_NaN : constant Float_64 := Float_64(16#FFFFFFFFFFFFFFFF#);
- 
 end Data_Types;
 

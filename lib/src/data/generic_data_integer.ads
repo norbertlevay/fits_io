@@ -13,7 +13,7 @@ package Generic_Data_Integer is
 
  generic
    type TF is digits <>; -- any floating point type
- function Physical(BZERO : in TF; BSCALE : in TF; BLANK : in T; Data : in T) return TF;
+ function Physical_Value(BZERO : in TF; BSCALE : in TF; BLANK : in T; Array_Value : in T) return TF;
  -- Phys-Arr value conversions
 
  Undefined_Value : exception;

@@ -6,23 +6,26 @@ package body Generic_Data_Integer is
 
 -- Value conversions
 
-function Physical
+function Physical_Value
         (BZERO : in TF; 
         BSCALE : in TF; 
         BLANK : in T; 
-        Data  : in T) return TF
+        Array_Value  : in T) return TF
 is
-  D : TF := TF(Data);
+  D : TF := TF(Array_Value);
 begin
 
-  if (Data = BLANK)
+  if (Array_Value = BLANK)
   then
 	Raise_Exception(Undefined_Value'Identity, "BLANK encountered");
   end if;
  
   return BZERO + BSCALE * D;  
 
-end Physical;
-
+end Physical_Value;
+ -- NOTE: alternative BLANK handling return NaN
+ --   F32_NaN : constant Float_32 := Float_32(16#FFFFFFFF#);
+ --   F64_NaN : constant Float_64 := Float_64(16#FFFFFFFFFFFFFFFF#);
+ -- In Ada prefered is excpetion, NaN can still be returned in exception handler
 
 end Generic_Data_Integer;

@@ -6,10 +6,10 @@ package body Generic_Data_Float is
 
 -- Value conversions
 
-function Physical(BZERO : in T; BSCALE : in T; Data : in T) return T
+function Physical_Value(BZERO : in T; BSCALE : in T; Array_Value : in T) return T
 is
 begin
-  return BZERO + BSCALE * Data;
-end Physical;
+  return BZERO + BSCALE * Array_Value;
+end Physical_Value;
 
 end Generic_Data_Float;
