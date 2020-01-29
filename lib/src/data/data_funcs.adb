@@ -31,7 +31,8 @@ function Offset_In_Block
 is
 Off_bytes : Positive := Offset_In_Data_Unit * Data_Size_bytes;
 begin
-	return 1 + (Off_bytes - 1) mod BlockSize_bytes; 
+	return (1 + (Off_bytes - 1) mod BlockSize_bytes) / Data_Size_bytes;
+-- FIXME return value is bytes or dataElem count?? 
 end Offset_In_Block;
 
 

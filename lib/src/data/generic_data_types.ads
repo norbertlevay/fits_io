@@ -18,7 +18,6 @@ package Generic_Data_Types is
  -- FIXME how-to: should refuse to instantiate for T if above division is not without reminder
  -- FIXME how-to: guarantee that array is packed for any T
 
-
  
 -- 2, Endianness
 

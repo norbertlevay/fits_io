@@ -14,7 +14,6 @@ with FITS; -- Byte-type needed
 package body Generic_Data_Types is
 
 
-
   -- Endianness
 
    procedure Revert_Bytes( Data : in out T )

@@ -11,6 +11,9 @@ package Generic_Data_Integer is
  package Data is new Generic_Data_Types( T => T );
  -- Data Block definition and endianness
 
+ function Min(B : in Data.Block; B_Min : in T) return T;
+ function Max(B : in Data.Block; B_Max : in T) return T;
+
  generic
    type TF is digits <>; -- any floating point type
  function Physical_Value(BZERO : in TF; BSCALE : in TF; BLANK : in T; Array_Value : in T) return TF;
