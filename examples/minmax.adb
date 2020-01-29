@@ -67,7 +67,8 @@ begin
   DUSize := DU_Count (HDUInfo.NAXISn);
  end;
 
- -- read write sequentially by Blocks
+
+ -- read data sequntially by blocks
 
  declare
   F32Block  : Data_Types.F32.Data.Block;
@@ -78,8 +79,6 @@ begin
   B_Min    : Data_Types.Float_32 := Data_Types.Float_32'Last;
   B_Max    : Data_Types.Float_32 := Data_Types.Float_32'First;
  begin
-
---        Put_Line("LastELEM: " & Positive'Image(Last_Data_Element_In_Block));
 
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -93,7 +92,6 @@ begin
 	F32.Data.Block'Read(SIO.Stream(InFile),F32Block);
 	for K in 1 .. (Last_Data_Element_In_Block)
 	loop
-	--	Put(Positive'Image(K)&" ");
 		F32Value := F32Block(K);
 		if(F32Value < B_Min) then B_Min := F32Value; end if;
 		if(F32Value > B_Max) then B_Max := F32Value; end if;
