@@ -25,6 +25,8 @@ with Strict; use Strict; -- Positive_Arr needed
 with Data_Types; use Data_Types;
 with Data_Funcs; use Data_Funcs;
 
+with Generic_Data_Float;
+
 procedure minmax
 is
 
@@ -50,6 +52,59 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
+
+ -- Find Min Max values in DataUnit
+ -- implemented by generic for Float types
+ -- FIXME do the same for Integers
+
+ generic
+--  type T is digits <>;
+  with package Floats is new Generic_Data_Float(<>);
+ package MinMax is
+  procedure Find_MinMax(F : SIO.File_Type; Min : out Floats.T; Max : out Floats.T);
+ end MinMax;
+
+ package body MinMax is
+  procedure Find_MinMax(F : SIO.File_Type; Min : out Floats.T; Max : out Floats.T)
+  is
+   FBlock  : Floats.Data.Block;
+   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),Floats.T'Size/8);
+   Last_Data_Element_In_Block : constant Positive := 
+					Offset_In_Block(Positive(DUSize), Floats.Data.N);
+
+  FValue : Floats.T;
+  B_Min    : Floats.T := Floats.T'Last;
+  B_Max    : Floats.T := Floats.T'First;
+  use Floats;
+  begin
+ 	for I in 1 .. (DUSize_Blocks - 1)
+	loop
+		Floats.Data.Block'Read(SIO.Stream(F),FBlock);
+		B_Min := Floats.Min(FBlock, B_Min);
+		B_Max := Floats.Max(FBlock, B_Max);
+	end loop;
+
+	-- Last Block of InFIle
+	
+	Floats.Data.Block'Read(SIO.Stream(F),FBlock);
+	for K in 1 .. (Last_Data_Element_In_Block)
+	loop
+		FValue := FBlock(K);
+		if(FValue < B_Min) then B_Min := FValue; end if;
+		if(FValue > B_Max) then B_Max := FValue; end if;
+	end loop;
+
+	Min := B_Min;
+	Max := B_Max;
+
+ 	Put_Line("Min: " & Floats.T'Image(B_Min));
+ 	Put_Line("Max: " & Floats.T'Image(B_Max));
+  end Find_MinMax;
+ end MinMax;
+
+ package FMinMax is new MinMax(Floats => Data_Types.F32);
+ FMin, FMax : Float_32;
+
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -69,37 +124,10 @@ begin
 
 
  -- read data sequntially by blocks
-
- declare
-  F32Block  : Data_Types.F32.Data.Block;
-  DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
-  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), Data_Types.F32.Data.N);
-
-  F32Value : Data_Types.Float_32;
-  B_Min    : Data_Types.Float_32 := Data_Types.Float_32'Last;
-  B_Max    : Data_Types.Float_32 := Data_Types.Float_32'First;
- begin
-
-	for I in 1 .. (DUSize_Blocks - 1)
-	loop
-		F32.Data.Block'Read(SIO.Stream(InFile),F32Block);
-		B_Min := F32.Min(F32Block, B_Min);
-		B_Max := F32.Max(F32Block, B_Max);
-	end loop;
-
-	-- Last Block of InFIle
-	
-	F32.Data.Block'Read(SIO.Stream(InFile),F32Block);
-	for K in 1 .. (Last_Data_Element_In_Block)
-	loop
-		F32Value := F32Block(K);
-		if(F32Value < B_Min) then B_Min := F32Value; end if;
-		if(F32Value > B_Max) then B_Max := F32Value; end if;
-	end loop;
-
- 	Put_Line("Min: " & Float_32'Image(B_Min));
- 	Put_Line("Max: " & Float_32'Image(B_Max));
- end;
+ FMinMax.Find_MinMax(InFile, FMin, Fmax);
+ Put_Line("F Min: " & Float_32'Image(FMin));
+ Put_Line("F Max: " & Float_32'Image(FMax));
+ 
 
  SIO.Close(InFile);
 
