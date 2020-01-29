@@ -59,7 +59,7 @@ package Data_Types is
 
    function F32_Physical_Value is new Int16.Physical_Value(TF => Float_32);
    function F32_Physical_Value is new Int32.Physical_Value(TF => Float_32);
-   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_32);
+   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_64);
    -- if Tab11 applies: these serve for Singed<->Unsigned conversions
    --  (do explicit cast of the return value to Integer if needed)
    -- if not Tab11 values then: scale to store floats as integers 
