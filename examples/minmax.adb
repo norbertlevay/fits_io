@@ -13,8 +13,9 @@ with Ada.Command_Line; use Ada.Command_Line;
 
 with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
-
+with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
+with Interfaces;
 
 with File;   use File;
 with File.Misc;   use File.Misc;
@@ -65,6 +66,27 @@ is
  begin
   return BZERO + BSCALE * Va; 
  end Convert_Value;
+
+ generic
+  type Tin  is (<>); -- any discrete type
+  type Tout is (<>); -- any discrete type
+ function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
+ function Conv_Signed_Unsigned(Vin : in Tin) return Tout
+ is
+   type BArr is array (1 .. Tin'Size) of Boolean;
+   pragma Pack (BArr);
+   function Tin2BArr  is new Ada.Unchecked_Conversion(Tin,BArr);
+   function BArr2Tout is new Ada.Unchecked_Conversion(BArr,Tout);
+   Arr : BArr := Tin2BArr(Vin);
+ begin
+  -- convert sign-unsigned by flipping MSB bit
+  Arr(Arr'Last) := not Arr(Arr'Last);
+  return BArr2Tout(Arr);
+ end Conv_Signed_Unsigned;
+
+ function I16_To_U16 is new Conv_Signed_Unsigned(Integer_16, Unsigned_16);
+
+
 
  -- access array values 
 
@@ -152,6 +174,12 @@ is
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
+
+ Put_Line("CC -32768 : " & Unsigned_16'Image(I16_To_U16(-32768)) );
+ Put_Line("CC     -1 : " & Unsigned_16'Image(I16_To_U16(-1)) );
+ Put_Line("CC      0 : " & Unsigned_16'Image(I16_To_U16(0)) );
+ Put_Line("CC      1 : " & Unsigned_16'Image(I16_To_U16(1)) );
+ Put_Line("CC  32767 : " & Unsigned_16'Image(I16_To_U16(+32767)) );
 
  SIO.Open   (InFile,  SIO.In_File,  InFileName);
 
