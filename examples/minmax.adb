@@ -53,6 +53,21 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
+ -- convert array values to physical values
+ -- FIXME add BLANK or make another implementation with BLANK param-> BLANK is optional
+ generic
+  type Tp is private; -- physical-value type
+  with function "*" (L, R : in Tp) return Tp;
+  with function "+" (L, R : in Tp) return Tp;
+ function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in Tp) return Tp;
+ function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in Tp) return Tp
+ is
+ begin
+  return BZERO + BSCALE * Va; 
+ end Convert_Value;
+
+ -- access array values 
+
  generic
   type T is private;
   B_Min, B_Max : in T; -- init values
