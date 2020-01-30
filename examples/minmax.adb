@@ -21,6 +21,9 @@ with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
 with Strict; use Strict; -- Positive_Arr needed
+with Optional;
+with Optional.Reserved; use Optional.Reserved;
+
 
 -- new Data interface
 with Data_Types; use Data_Types;
@@ -171,10 +174,11 @@ is
 
  -- instantiations
 
+ BZERO, BSCALE : Float_32;
+ -- will be filled in by Analyze_Array_Keys()
+
  function Conv_Int16_To_F32(Va : Integer_16 ) return Float_32
  is
-  BSCALE : constant Data_Types.Float_32 :=   0.003891051;
-  BZERO  : constant Data_Types.Float_32 := 127.501945525;
   BLANK  : constant Integer_16 := 0; -- FIXME not in use
  begin
    return I16_To_F32(BZERO, BSCALE, BLANK, Va);
@@ -183,8 +187,6 @@ is
 
  function Conv_F32_PhysValue(Va : Float_32 ) return Float_32
  is
-  BSCALE : constant Data_Types.Float_32 := 1.0;
-  BZERO  : constant Data_Types.Float_32 := 0.0;
  begin
    return F32_PhysValue(BZERO,BSCALE, Va);
  end Conv_F32_PhysValue;
@@ -195,11 +197,21 @@ is
    return Va;
  end I32_Null_Conv;
 
+ function F32_Null_Conv(Va : Float_32 ) return Float_32
+ is
+ begin
+   return Va;
+ end F32_Null_Conv;
+
+
+
+procedure F32_MinMax_NullConv is 
+ new DU_MinMax(Float_32, Float_32, F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
 
 procedure F32_MinMax is 
  new DU_MinMax(Float_32, Float_32, Conv_F32_PhysValue, Float_32'Last, Float_32'First, "<", ">");
 
-procedure I32_MinMax is 
+procedure I32_MinMax_NullConv is 
  new DU_MinMax(Integer_32, Integer_32, I32_Null_Conv, Integer_32'Last, Integer_32'First, "<", ">");
 
 procedure I16_MinMax_I16F32 is 
@@ -211,6 +223,57 @@ procedure I16_MinMax_I16F32 is
  F32Min, F32Max : Float_32;
  I32Min, I32Max : Integer_32;
 
+ -- analyze array keys
+
+ ArrKeysGiven : Boolean;
+
+ -- FIXME this should operate on Value-strings rather then converted floats
+ function Is_Tab11(BZERO : Float_32; BSCALE : Float_32) return Boolean
+ is
+ begin
+  if((BSCALE = 1.0) AND 
+     ((BZERO = -128.0) OR
+      (BZERO = 32768.0) OR
+      (BZERO = Float_32(2**31)) OR
+      (BZERO = Float_32(2**63)))	)
+  then
+   return True;
+  else
+   return False;
+  end if;
+ end Is_Tab11;
+
+ function Analyze_Array_Keys( Cards : Optional.Card_Arr; 
+				BZERO : out Float_32; 
+				BSCALE : out Float_32 ) return Boolean
+ is
+  BZfound : Boolean := False;
+  BSfound : Boolean := False;
+  Tab11found : Boolean := False;
+ begin
+   for I in Cards'Range
+   loop
+     Put_Line("RESKEYS: >" & Cards(I) & "<" );
+     if(Cards(I)(1..5) = "BZERO")
+     then
+	BZfound := True;
+	BZERO := Float_32'Value((Cards(I)(11..30)));
+     elsif(Cards(I)(1..6) = "BSCALE")
+     then
+	BSfound := True;
+	BSCALE := Float_32'Value((Cards(I)(11..30)));
+     end if;
+   end loop;
+
+   if(BZfound AND BSfound)
+   then
+    Tab11found := Is_Tab11(BZERO,BSCALE);
+    Put_Line("BZERO  :" & Float_32'Image(BZERO)); 
+    Put_Line("BSCALE :" & Float_32'Image(BSCALE)); 
+   end if;
+   return BZfound AND BSfound;
+ end Analyze_Array_Keys;
+
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
@@ -220,7 +283,7 @@ begin
  Put_Line("CC      0 : " & Unsigned_16'Image(I16_To_U16(0)) );
  Put_Line("CC      1 : " & Unsigned_16'Image(I16_To_U16(1)) );
  Put_Line("CC  32767 : " & Unsigned_16'Image(I16_To_U16(+32767)) );
-
+ 
  SIO.Open   (InFile,  SIO.In_File,  InFileName);
 
  -- FIXME now only Primary HDU, later consider other HDUs
@@ -234,24 +297,59 @@ begin
   DUSize := DU_Count (HDUInfo.NAXISn);
  end;
 
+ -- reset to File start
+ SIO.Set_Index(InFile,1);
 
- -- read data sequntially by blocks
+ declare
+   Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
+ begin
+   ArrKeysGiven := Analyze_Array_Keys(Cards, BZERO, BSCALE);
+ end;
+
+
+ -- read data sequentially by blocks
  
  if(BITPIX = -32)
  then
-  F32_MinMax(InFile, F32Min, F32Max);
+
+  if(ArrKeysGiven) 
+  then
+   F32_MinMax(InFile, F32Min, F32Max);-- PhysVal = BZERO + BSCALE*ArrVal
+ else
+   F32_MinMax_NullConv(InFile, F32Min, F32Max);-- PhysVal = ArrVal
+  end if;
   Put_Line("F32 Min: " & Float_32'Image(F32Min));
   Put_Line("F32 Max: " & Float_32'Image(F32Max));
+ 
  elsif(BITPIX = 32)
  then
-  I32_MinMax(InFile, I32Min, I32Max);
-  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
-  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
+
+  if(ArrKeysGiven) 
+  then
+   null;-- FIXME instantiate, sign conversion
+  else
+   I32_MinMax_NullConv(InFile, I32Min, I32Max); -- PhysValue = ArrValue
+   Put_Line("I32 Min: " & Integer_32'Image(I32Min));
+   Put_Line("I32 Max: " & Integer_32'Image(I32Max));
+ end if;
+
  elsif(BITPIX = 16)
  then
-  I16_MinMax_I16F32(InFile, F32Min, F32Max);
-  Put_Line("I16F32 Min: " & Float_32'Image(F32Min));
-  Put_Line("I16F32 Max: " & Float_32'Image(F32Max));
+
+  if(ArrKeysGiven) 
+  then
+   if(Is_Tab11(BZERO,BSCALE))
+   then
+    null; -- FIXME sign conversion instantiate
+   else
+    I16_MinMax_I16F32(InFile, F32Min, F32Max);-- Float32 stored as Int16
+    Put_Line("I16F32 Min: " & Float_32'Image(F32Min));
+    Put_Line("I16F32 Max: " & Float_32'Image(F32Max));
+   end if;
+  else
+   null; -- FIXME instantiate, PhysVal = ArrVal 
+  end if;
+
  end if;
 
  SIO.Close(InFile);
