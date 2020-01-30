@@ -70,29 +70,43 @@ is
 
  generic
   type T is private;
-  B_Min, B_Max : in T; -- init values
-  with function "<" (L : in T; R : in T) return Boolean;
-  with function ">" (L : in T; R : in T) return Boolean;
- procedure DU_MinMax(F : SIO.File_Type; Min : out T; Max : out T);
+  type Tp is private;
+  BZERO : Tp;
+  BSCALE : Tp;
+  with function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in T) return Tp;
+  B_Min, B_Max : in Tp; -- init values
+  with function "<" (L : in Tp; R : in Tp) return Boolean;
+  with function ">" (L : in Tp; R : in Tp) return Boolean;
+ procedure DU_MinMax(F : SIO.File_Type; Min : out Tp; Max : out Tp);
 
- procedure DU_MinMax(F : SIO.File_Type; Min : out T; Max : out T)
+ procedure DU_MinMax(F : SIO.File_Type; Min : out Tp; Max : out Tp)
  is
    package gen is new Generic_Data_Types (T => T);
-   function gen_Min is new gen.Min("<");
-   function gen_Max is new gen.Max(">");
+--   function gen_Min is new gen.Min("<");
+--   function gen_Max is new gen.Max(">");
    gBlock  : gen.Block;
    DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
    Last_Data_Element_In_Block : constant Positive :=  
                                         Offset_In_Block(Positive(DUSize), gen.N);
   gValue : T;
-  lMin : T := B_Min;
-  lMax : T := B_Max;
+  lMin : Tp := B_Min;
+  lMax : Tp := B_Max;
+  pVal : Tp;
  begin
   	for I in 1 .. (DUSize_Blocks - 1)
 	loop
-		gen.Block'Read(SIO.Stream(F),gBlock);
-		lMin := gen_Min(gBlock, lMin);
-		lMax := gen_Max(gBlock, lMax);
+--		gen.Block'Read(SIO.Stream(F),gBlock);
+--		lMin := gen_Min(gBlock, lMin);
+--		lMax := gen_Max(gBlock, lMax);
+
+	        gen.Block'Read(SIO.Stream(F),gBlock);
+        	for K in 1 .. gen.N
+        	loop
+                	gValue := gBlock(K);
+ 			pVal := Convert_Value(BZERO,BSCALE,gValue);
+                	if(pVal < lMin) then lMin := pVal; end if;
+                	if(pVal > lMax) then lMax := pVal; end if;
+        	end loop;
 	end loop;
 
 	-- Last Block of InFIle
@@ -101,8 +115,9 @@ is
 	for K in 1 .. (Last_Data_Element_In_Block)
 	loop
 		gValue := gBlock(K);
-		if(gValue < lMin) then lMin := gValue; end if;
-		if(gValue > lMax) then lMax := gValue; end if;
+ 		pVal := Convert_Value(BZERO,BSCALE,gValue);
+		if(pVal < lMin) then lMin := pVal; end if;
+		if(pVal > lMax) then lMax := pVal; end if;
 	end loop;
 
 	Min := lMin;
@@ -110,20 +125,29 @@ is
 
  end DU_MinMax;
 
- procedure F32_MinMax is 
-    new DU_MinMax(Float_32, Float_32'Last, Float_32'First, "<", ">");
+ -- instantiations
 
- procedure I32_MinMax is 
-   new DU_MinMax(Integer_32, Integer_32'Last, Integer_32'First, "<", ">");
+ function Conv_Int16_To_F32(BZERO : Float_32; BSCALE : Float_32; Va : Integer_16 ) return Float_32
+ is
+   Vt : Float_32 := Float_32(Va);
+ begin
+   return BZERO + BSCALE * Vt;
+ end Conv_Int16_To_F32;
+
+ BSCALE : constant Data_Types.Float_32 :=   0.003891051;
+ BZERO  : constant Data_Types.Float_32 := 127.501945525;
+
+ --procedure F32_MinMax is 
+   -- new DU_MinMax(Float_32, Float_32'Last, Float_32'First, "<", ">");
+
+-- procedure I32_MinMax is 
+  -- new DU_MinMax(Integer_32, Integer_32'Last, Integer_32'First, "<", ">");
  procedure I16_MinMax is 
-   new DU_MinMax(Integer_16, Integer_16'Last, Integer_16'First, "<", ">");
+   new DU_MinMax(Integer_16, Float_32, BZERO, BSCALE, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
  F32Min, F32Max : Float_32;
  I32Min, I32Max : Integer_32;
  I16Min, I16Max : Integer_16;
-
- BSCALE : constant Data_Types.Float_32 :=   0.003891051;
- BZERO  : constant Data_Types.Float_32 := 127.501945525;
 
 begin
 
@@ -145,23 +169,25 @@ begin
 
  -- read data sequntially by blocks
  
- if(BITPIX = -32)
+-- if(BITPIX = -32)
+-- then
+--  F32_MinMax(InFile, F32Min, F32Max);
+--  Put_Line("F32 Min: " & Float_32'Image(F32Min));
+--  Put_Line("F32 Max: " & Float_32'Image(F32Max));
+-- elsif(BITPIX = 32)
+-- then
+--  I32_MinMax(InFile, I32Min, I32Max);
+--  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
+--  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
+ if(BITPIX = 16)
  then
-  F32_MinMax(InFile, F32Min, F32Max);
-  Put_Line("F32 Min: " & Float_32'Image(F32Min));
-  Put_Line("F32 Max: " & Float_32'Image(F32Max));
- elsif(BITPIX = 32)
- then
-  I32_MinMax(InFile, I32Min, I32Max);
-  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
-  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
- elsif(BITPIX = 16)
- then
-  I16_MinMax(InFile, I16Min, I16Max);
-  Put_Line("I16 Min: " & Integer_16'Image(I16Min));
-  Put_Line("I16 Max: " & Integer_16'Image(I16Max));
-  Put_Line("F32 Min: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Min)));
-  Put_Line("F32 Max: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Max)));
+  I16_MinMax(InFile, F32Min, F32Max);
+  Put_Line("F32phys Min: " & Float_32'Image(F32Min));
+  Put_Line("F32phys Max: " & Float_32'Image(F32Max));
+--  Put_Line("I16 Min: " & Integer_16'Image(I16Min));
+--  Put_Line("I16 Max: " & Integer_16'Image(I16Max));
+--  Put_Line("F32 Min: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Min)));
+--  Put_Line("F32 Max: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Max)));
  end if;
 
  SIO.Close(InFile);
