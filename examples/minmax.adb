@@ -191,18 +191,21 @@ is
    return F32_PhysValue(BZERO,BSCALE, Va);
  end Conv_F32_PhysValue;
 
- function I32_Null_Conv(Va : Integer_32 ) return Integer_32
+ -- no conversions
+ 
+ generic
+  type T is private;
+ function Null_Conv(Vin : in T) return T;
+ function Null_Conv(Vin : in T) return T
  is
  begin
-   return Va;
- end I32_Null_Conv;
+  return Vin;
+ end Null_Conv;
 
- function F32_Null_Conv(Va : Float_32 ) return Float_32
- is
- begin
-   return Va;
- end F32_Null_Conv;
-
+ function I16_Null_Conv is new Null_Conv(Integer_16);
+ function I32_Null_Conv is new Null_Conv(Integer_32);
+ function F32_Null_Conv is new Null_Conv(Float_32);
+ 
 
 
 procedure F32_MinMax_NullConv is 
@@ -217,11 +220,16 @@ procedure I32_MinMax_NullConv is
 procedure I16_MinMax_I16F32 is 
  new DU_MinMax(Integer_16, Float_32, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
+procedure I16_MinMax_NullConv is 
+ new DU_MinMax(Integer_16, Integer_16, I16_Null_Conv, Integer_16'Last, Integer_16'First, "<", ">");
+
+
 
  -- store results 
 
  F32Min, F32Max : Float_32;
  I32Min, I32Max : Integer_32;
+ I16Min, I16Max : Integer_16;
 
  -- analyze array keys
 
@@ -347,7 +355,9 @@ begin
     Put_Line("I16F32 Max: " & Float_32'Image(F32Max));
    end if;
   else
-   null; -- FIXME instantiate, PhysVal = ArrVal 
+   I16_MinMax_NullConv(InFile, I16Min, I16Max);-- Float32 stored as Int16
+   Put_Line("I16 Min: " & Integer_16'Image(I16Min));
+   Put_Line("I16 Max: " & Integer_16'Image(I16Max));
   end if;
 
  end if;
