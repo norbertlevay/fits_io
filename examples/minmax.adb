@@ -65,7 +65,36 @@ is
  -- D, BITPIX Float		      	=> PhysVal = Convert_Float_Value( ArrVal )
  -- other combinations for case C not supported
 
+ -- general conversion works on all BITPIX-types
+ -- yielding physical value in F32 or F64
+ -- NOTE not efficient it is executed even if no conversion needed
+ -- assuming defaults BZERO=0.0 BSCALE=1.0
+ -- On the other hand reduces number of instatiations ehich explodes assuming
+ -- all type combinations and BZERO BSCALE (BLANK) presence or not in Header
+
  generic
+  type TF is digits <>; -- any floating point type
+  type TI is range <>;  -- any signed integer 
+ function Convert_Value(BZERO : in TF; BSCALE : in TF; Va : in TI) return TF;
+ function Convert_Value(BZERO : in TF; BSCALE : in TF; Va : in TI) return TF
+ is
+ begin
+  return BZERO + BSCALE * TF(Va); 
+ end Convert_Value;
+
+ -- FIXME function U8_To_F32 write manually
+ function I16_To_F32 is new Convert_Value(Float_32, Integer_16);
+ function I32_To_F32 is new Convert_Value(Float_32, Integer_32);
+ function I64_To_F32 is new Convert_Value(Float_32, Integer_64); -- FIXME ??
+
+ -- FIXME function U8_To_F64 write manually
+ function I16_To_F64 is new Convert_Value(Float_64, Integer_16);
+ function I32_To_F64 is new Convert_Value(Float_64, Integer_32);
+ function I64_To_F64 is new Convert_Value(Float_64, Integer_64);
+
+ -- optimized varinats separately for float and integer
+
+generic
   type T is digits <>; -- any floating point type
  function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T;
  function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T
