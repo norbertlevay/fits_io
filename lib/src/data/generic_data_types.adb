@@ -41,7 +41,11 @@ package body Generic_Data_Types is
   return Max;
  end Max;
 
-
+ function Physical_Value(BZERO : in TF; BSCALE : in TF; Va : in T) return TF
+ is
+ begin
+  return BZERO + BSCALE * To_TF(Va);
+ end Physical_Value;
 
 
 

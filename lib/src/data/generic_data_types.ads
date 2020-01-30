@@ -23,6 +23,10 @@ package Generic_Data_Types is
   with function ">" (L : in T; R : in T) return Boolean; 
  function Max(B : in Block; B_Max : in T) return T;
 
+ generic
+  type TF is digits <>;
+  with function To_TF(P : in T) return TF;
+ function Physical_Value(BZERO : in TF; BSCALE : in TF; Va : in T) return TF;
 
  -- 2, Endianness
 
