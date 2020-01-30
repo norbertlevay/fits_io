@@ -72,19 +72,6 @@ is
  end Convert_Float_Value;
 
 
- function I16_To_F32(BZERO : in Float_32; BSCALE : in Float_32; 
-                     BLANK : in Integer_16; Va : in Integer_16) return Float_32
- is
-  function loc_I16_To_F32 is new Convert_Float_Value(Float_32);
- begin
-  if(BLANK = Va)
-  then
-    null; -- Raise exception Undefined Value
-  end if;
-  return loc_I16_To_F32(BZERO, BSCALE, Float_32(Va)); 
- end I16_To_F32;
-
-
  generic
   type Tin  is (<>); -- any discrete type
   type Tout is (<>); -- any discrete type
@@ -102,8 +89,28 @@ is
   return BArr2Tout(Arr);
  end Conv_Signed_Unsigned;
 
- function I16_To_U16 is new Conv_Signed_Unsigned(Integer_16, Unsigned_16);
 
+ -- all types FITS v3
+
+ function U8_To_I8   is new Conv_Signed_Unsigned(Unsigned_8, Integer_8);
+ function I16_To_U16 is new Conv_Signed_Unsigned(Integer_16, Unsigned_16);
+ function I32_To_U32 is new Conv_Signed_Unsigned(Integer_32, Unsigned_32);
+ function I64_To_U64 is new Conv_Signed_Unsigned(Integer_32, Unsigned_32);
+
+ function F32_PhysValue is new Convert_Float_Value(Float_32);
+ function F64_PhysValue is new Convert_Float_Value(Float_64);
+
+ function I16_To_F32(BZERO : in Float_32; BSCALE : in Float_32; 
+                     BLANK : in Integer_16; Va : in Integer_16) return Float_32
+ is
+  function loc_I16_To_F32 is new Convert_Float_Value(Float_32);
+ begin
+  if(BLANK = Va)
+  then
+    null; -- Raise exception Undefined Value
+  end if;
+  return loc_I16_To_F32(BZERO, BSCALE, Float_32(Va)); 
+ end I16_To_F32;
 
 
  -- access array values 
@@ -111,9 +118,8 @@ is
  generic
   type T is private;
   type Tp is private;
-  BZERO : Tp;
-  BSCALE : Tp;
-  with function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in T) return Tp;
+  with function Convert_Value(Va : in T) return Tp;
+
   B_Min, B_Max : in Tp; -- init values
   with function "<" (L : in Tp; R : in Tp) return Boolean;
   with function ">" (L : in Tp; R : in Tp) return Boolean;
@@ -122,8 +128,6 @@ is
  procedure DU_MinMax(F : SIO.File_Type; Min : out Tp; Max : out Tp)
  is
    package gen is new Generic_Data_Types (T => T);
---   function gen_Min is new gen.Min("<");
---   function gen_Max is new gen.Max(">");
    gBlock  : gen.Block;
    DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
    Last_Data_Element_In_Block : constant Positive :=  
@@ -143,7 +147,7 @@ is
         	for K in 1 .. gen.N
         	loop
                 	gValue := gBlock(K);
- 			pVal := Convert_Value(BZERO,BSCALE,gValue);
+ 			pVal := Convert_Value(gValue);
                 	if(pVal < lMin) then lMin := pVal; end if;
                 	if(pVal > lMax) then lMax := pVal; end if;
         	end loop;
@@ -155,7 +159,7 @@ is
 	for K in 1 .. (Last_Data_Element_In_Block)
 	loop
 		gValue := gBlock(K);
- 		pVal := Convert_Value(BZERO,BSCALE,gValue);
+ 		pVal := Convert_Value(gValue);
 		if(pVal < lMin) then lMin := pVal; end if;
 		if(pVal > lMax) then lMax := pVal; end if;
 	end loop;
@@ -167,27 +171,45 @@ is
 
  -- instantiations
 
- function Conv_Int16_To_F32(BZERO : Float_32; BSCALE : Float_32; Va : Integer_16 ) return Float_32
+ function Conv_Int16_To_F32(Va : Integer_16 ) return Float_32
  is
-   Vt : Float_32 := Float_32(Va);
+  BSCALE : constant Data_Types.Float_32 :=   0.003891051;
+  BZERO  : constant Data_Types.Float_32 := 127.501945525;
+  BLANK  : constant Integer_16 := 0; -- FIXME not in use
  begin
-   return BZERO + BSCALE * Vt;
+   return I16_To_F32(BZERO, BSCALE, BLANK, Va);
  end Conv_Int16_To_F32;
 
- BSCALE : constant Data_Types.Float_32 :=   0.003891051;
- BZERO  : constant Data_Types.Float_32 := 127.501945525;
 
- --procedure F32_MinMax is 
-   -- new DU_MinMax(Float_32, Float_32'Last, Float_32'First, "<", ">");
+ function Conv_F32_PhysValue(Va : Float_32 ) return Float_32
+ is
+  BSCALE : constant Data_Types.Float_32 := 1.0;
+  BZERO  : constant Data_Types.Float_32 := 0.0;
+ begin
+   return F32_PhysValue(BZERO,BSCALE, Va);
+ end Conv_F32_PhysValue;
 
--- procedure I32_MinMax is 
-  -- new DU_MinMax(Integer_32, Integer_32'Last, Integer_32'First, "<", ">");
- procedure I16_MinMax is 
-   new DU_MinMax(Integer_16, Float_32, BZERO, BSCALE, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
+ function I32_Null_Conv(Va : Integer_32 ) return Integer_32
+ is
+ begin
+   return Va;
+ end I32_Null_Conv;
+
+
+procedure F32_MinMax is 
+ new DU_MinMax(Float_32, Float_32, Conv_F32_PhysValue, Float_32'Last, Float_32'First, "<", ">");
+
+procedure I32_MinMax is 
+ new DU_MinMax(Integer_32, Integer_32, I32_Null_Conv, Integer_32'Last, Integer_32'First, "<", ">");
+
+procedure I16_MinMax_I16F32 is 
+ new DU_MinMax(Integer_16, Float_32, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
+
+
+ -- store results 
 
  F32Min, F32Max : Float_32;
  I32Min, I32Max : Integer_32;
- I16Min, I16Max : Integer_16;
 
 begin
 
@@ -215,25 +237,21 @@ begin
 
  -- read data sequntially by blocks
  
--- if(BITPIX = -32)
--- then
---  F32_MinMax(InFile, F32Min, F32Max);
---  Put_Line("F32 Min: " & Float_32'Image(F32Min));
---  Put_Line("F32 Max: " & Float_32'Image(F32Max));
--- elsif(BITPIX = 32)
--- then
---  I32_MinMax(InFile, I32Min, I32Max);
---  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
---  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
- if(BITPIX = 16)
+ if(BITPIX = -32)
  then
-  I16_MinMax(InFile, F32Min, F32Max);
-  Put_Line("F32phys Min: " & Float_32'Image(F32Min));
-  Put_Line("F32phys Max: " & Float_32'Image(F32Max));
---  Put_Line("I16 Min: " & Integer_16'Image(I16Min));
---  Put_Line("I16 Max: " & Integer_16'Image(I16Max));
---  Put_Line("F32 Min: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Min)));
---  Put_Line("F32 Max: " & Float_32'Image(BZERO + BSCALE * Float_32(I16Max)));
+  F32_MinMax(InFile, F32Min, F32Max);
+  Put_Line("F32 Min: " & Float_32'Image(F32Min));
+  Put_Line("F32 Max: " & Float_32'Image(F32Max));
+ elsif(BITPIX = 32)
+ then
+  I32_MinMax(InFile, I32Min, I32Max);
+  Put_Line("I32 Min: " & Integer_32'Image(I32Min));
+  Put_Line("I32 Max: " & Integer_32'Image(I32Max));
+ elsif(BITPIX = 16)
+ then
+  I16_MinMax_I16F32(InFile, F32Min, F32Max);
+  Put_Line("I16F32 Min: " & Float_32'Image(F32Min));
+  Put_Line("I16F32 Max: " & Float_32'Image(F32Max));
  end if;
 
  SIO.Close(InFile);
