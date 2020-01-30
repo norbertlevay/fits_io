@@ -54,18 +54,36 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
- -- convert array values to physical values
- -- FIXME add BLANK or make another implementation with BLANK param-> BLANK is optional
+ -- Value conversions: Array -> Physical value
+
+ -- A, BZERO BSCALE (BLANK) not given 	=> PhysVal = ArrVal
+ -- B, BITPIX IntNN and Tab11         	=> PhysVal = Conv_Signed_Unsigned( ArrVal )
+ -- C, BITPIX Int16 and not Tab11     	=> PhysVal = I16_To_F32( ArrVal )
+ -- D, BITPIX Float		      	=> PhysVal = Convert_Float_Value( ArrVal )
+ -- other combinations for case C not supported
+
  generic
-  type Tp is private; -- physical-value type
-  with function "*" (L, R : in Tp) return Tp;
-  with function "+" (L, R : in Tp) return Tp;
- function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in Tp) return Tp;
- function Convert_Value(BZERO : in Tp; BSCALE : in Tp; Va : in Tp) return Tp
+  type T is digits <>; -- any floating point type
+ function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T;
+ function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T
  is
  begin
   return BZERO + BSCALE * Va; 
- end Convert_Value;
+ end Convert_Float_Value;
+
+
+ function I16_To_F32(BZERO : in Float_32; BSCALE : in Float_32; 
+                     BLANK : in Integer_16; Va : in Integer_16) return Float_32
+ is
+  function loc_I16_To_F32 is new Convert_Float_Value(Float_32);
+ begin
+  if(BLANK = Va)
+  then
+    null; -- Raise exception Undefined Value
+  end if;
+  return loc_I16_To_F32(BZERO, BSCALE, Float_32(Va)); 
+ end I16_To_F32;
+
 
  generic
   type Tin  is (<>); -- any discrete type
