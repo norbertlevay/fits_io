@@ -323,12 +323,14 @@ begin
   if(ArrKeysGiven) 
   then
    F32_MinMax(InFile, F32Min, F32Max);-- PhysVal = BZERO + BSCALE*ArrVal
- else
+   Put_Line("F32Conv Min: " & Float_32'Image(F32Min));
+   Put_Line("F32Conv Max: " & Float_32'Image(F32Max));
+  else
    F32_MinMax_NullConv(InFile, F32Min, F32Max);-- PhysVal = ArrVal
+   Put_Line("F32 Min: " & Float_32'Image(F32Min));
+   Put_Line("F32 Max: " & Float_32'Image(F32Max));
   end if;
-  Put_Line("F32 Min: " & Float_32'Image(F32Min));
-  Put_Line("F32 Max: " & Float_32'Image(F32Max));
- 
+
  elsif(BITPIX = 32)
  then
 
