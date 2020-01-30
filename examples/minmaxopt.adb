@@ -1,11 +1,9 @@
 --
--- Example convert FLoat32 -> Int16
 --
 -- FIXME: assume Primary HDU. What if other HDU is IMAGE type too?
 --
--- demonstrate usage if data unit is "big":
--- all data will not fit into memory, needs to be processed
--- in chunks.
+-- contains optimizations like Conv_Signed_Unsigned
+-- and hanling all special cases: BZERO,BSCALE in Header or not etc...
 
 
 with Ada.Text_IO;      use Ada.Text_IO;
@@ -32,7 +30,7 @@ with Data_Funcs; use Data_Funcs;
 with Generic_Data_Float;
 with Generic_Data_Types;
 
-procedure minmax
+procedure minmaxopt
 is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -147,14 +145,9 @@ generic
 
  -- access array values 
 
- BZERO, BSCALE : Float_32;
- -- will be filled in by Analyze_Array_Keys()
-
  generic
   type T is private;
   type Tp is private;
-  type TF is digits <>;
-  with function Conv_TF(P : in T) return TF;
   with function Convert_Value(Va : in T) return Tp;
 
   B_Min, B_Max : in Tp; -- init values
@@ -166,7 +159,6 @@ generic
  is
    package gen is new Generic_Data_Types (T => T);
    gBlock  : gen.Block;
-   function T_Physical_Value is new gen.Physical_Value(TF => TF, To_TF => Conv_TF);
    DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
    Last_Data_Element_In_Block : constant Positive :=  
                                         Offset_In_Block(Positive(DUSize), gen.N);
@@ -174,7 +166,6 @@ generic
   lMin : Tp := B_Min;
   lMax : Tp := B_Max;
   pVal : Tp;
-  FVal : TF;
  begin
   	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -187,7 +178,6 @@ generic
         	loop
                 	gValue := gBlock(K);
  			pVal := Convert_Value(gValue);
- 			FVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
                 	if(pVal < lMin) then lMin := pVal; end if;
                 	if(pVal > lMax) then lMax := pVal; end if;
         	end loop;
@@ -200,7 +190,6 @@ generic
 	loop
 		gValue := gBlock(K);
  		pVal := Convert_Value(gValue);
- 		FVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
 		if(pVal < lMin) then lMin := pVal; end if;
 		if(pVal > lMax) then lMax := pVal; end if;
 	end loop;
@@ -211,6 +200,9 @@ generic
  end DU_MinMax;
 
  -- instantiations
+
+ BZERO, BSCALE : Float_32;
+ -- will be filled in by Analyze_Array_Keys()
 
  function Conv_Int16_To_F32(Va : Integer_16 ) return Float_32
  is
@@ -240,27 +232,23 @@ generic
  function I16_Null_Conv is new Null_Conv(Integer_16);
  function I32_Null_Conv is new Null_Conv(Integer_32);
  function F32_Null_Conv is new Null_Conv(Float_32);
-
- function I32_To_F32(P:Integer_32) return Float_32
- is begin return Float_32(P); end I32_to_F32;
-
- function I16_To_F32(P:Integer_16) return Float_32
- is begin return Float_32(P); end I16_to_F32;
  
+
+
 procedure F32_MinMax_NullConv is 
- new DU_MinMax(Float_32, Float_32, Float_32, F32_Null_Conv   ,F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
+ new DU_MinMax(Float_32, Float_32, F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
 
 procedure F32_MinMax is 
- new DU_MinMax(Float_32, Float_32, Float_32, F32_Null_Conv, Conv_F32_PhysValue, Float_32'Last, Float_32'First, "<", ">");
+ new DU_MinMax(Float_32, Float_32, Conv_F32_PhysValue, Float_32'Last, Float_32'First, "<", ">");
 
 procedure I32_MinMax_NullConv is 
- new DU_MinMax(Integer_32, Integer_32, Float_32, I32_To_F32 ,I32_Null_Conv, Integer_32'Last, Integer_32'First, "<", ">");
+ new DU_MinMax(Integer_32, Integer_32, I32_Null_Conv, Integer_32'Last, Integer_32'First, "<", ">");
 
 procedure I16_MinMax_I16F32 is 
- new DU_MinMax(Integer_16, Float_32, Float_32, I16_To_F32, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
+ new DU_MinMax(Integer_16, Float_32, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
 procedure I16_MinMax_NullConv is 
- new DU_MinMax(Integer_16, Integer_16, Float_32, I16_To_F32, I16_Null_Conv, Integer_16'Last, Integer_16'First, "<", ">");
+ new DU_MinMax(Integer_16, Integer_16, I16_Null_Conv, Integer_16'Last, Integer_16'First, "<", ">");
 
 
 
@@ -425,5 +413,5 @@ begin
       -- Do the same manually, use:
       -- addr2line -e ./fits addr1 addr2 ...
      end;
-end minmax;
+end minmaxopt;
 
