@@ -9,21 +9,27 @@ with Ada.Streams.Stream_IO;
 
 generic
   type T is private; -- Data Block def
-  type TF is digits <>;  -- Phys val conversion
-  BZERO  : in out TF;
-  BSCALE : in out TF;
-  with function To_TF(P : in T) return TF; -- Phys Val conversion
+  type TF is digits <>;
 package Generic_Data_Unit is
 
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
+ 
+ generic
+  BZERO  : in out TF;
+  BSCALE : in out TF;
+  with function To_TF(P : in T) return TF;
+function All_Physical_Value(Va : in T) return TF;
+-- use when BLANK not available
 
- function Physical_Value(Va : in T) return TF;
+ generic
+  BZERO  : in out TF;
+  BSCALE : in out TF;
+  BLANK  : in out T;
+  with function To_TF(P : in T) return TF;
+function Int_Physical_Value(Va : in T) return TF;
+-- use when BLANK available
 
--- generic
---  type TInt is range <>;
---  BLANK : TInt;
--- function Physical_Value(Va : in TInt) return TF;
 
 -- Sequential access
 

@@ -105,12 +105,40 @@ is
 -- Data Unit
 
 -- FIXME check these conversions like I64->F64 loss of precision??
-package F64_DU is new Generic_Data_Unit(Float_64,  Float_64, BZERO_F64, BSCALE_F64, F64_Null_Conv);
-package I64_DU is new Generic_Data_Unit(Integer_64,Float_64, BZERO_F64, BSCALE_F64, I64_To_F64);
-package F32_DU is new Generic_Data_Unit(Float_32,  Float_32, BZERO, BSCALE, F32_Null_Conv);
-package I32_DU is new Generic_Data_Unit(Integer_32,Float_32, BZERO, BSCALE, I32_To_F32);
-package I16_DU is new Generic_Data_Unit(Integer_16,Float_32, BZERO, BSCALE, I16_To_F32);
-package U8_DU  is new Generic_Data_Unit(Unsigned_8,Float_32, BZERO, BSCALE, U8_To_F32);
+package F64_DU is new Generic_Data_Unit(Float_64, Float_64);
+package I64_DU is new Generic_Data_Unit(Integer_64, Float_64);
+package F32_DU is new Generic_Data_Unit(Float_32, Float_32);
+package I32_DU is new Generic_Data_Unit(Integer_32, Float_32);
+package I16_DU is new Generic_Data_Unit(Integer_16, FLoat_32);
+package U8_DU  is new Generic_Data_Unit(Unsigned_8, Float_32);
+
+-- FIXME reconsider: if BLANK available integer DU's below should have
+-- yet another variant with BLANK and ultimately all down to Ixx_MinMax()
+-- because BLANK is optional and cannot have default we do not know in advance whether available
+
+function F64_Phys_Val is new F64_DU.All_Physical_Value(BZERO_F64, BSCALE_F64, F64_Null_Conv);
+function I64_Phys_Val is new I64_DU.All_Physical_Value(BZERO_F64, BSCALE_F64, I64_To_F64);
+function F32_Phys_Val is new F32_DU.All_Physical_Value(BZERO, BSCALE, F32_Null_Conv);
+function I32_Phys_Val is new I32_DU.All_Physical_Value(BZERO, BSCALE, I32_To_F32);
+function I16_Phys_Val is new I16_DU.All_Physical_Value(BZERO, BSCALE, I16_To_F32);
+function U8_Phys_Val  is new  U8_DU.All_Physical_Value(BZERO, BSCALE, U8_To_F32);
+
+-- variants with BLANK
+
+BLANK_I64 : Integer_64;
+BLANK_I32 : Integer_32;
+BLANK_I16 : Integer_16;
+BLANK_U8  : Unsigned_8;
+function I64_Phys_Val_wBLANK is
+	new I64_DU.Int_Physical_Value(BZERO_F64, BSCALE_F64, BLANK_I64, I64_To_F64);
+function I32_Phys_Val_wBLANK is
+	new I32_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_I32, I32_To_F32);
+function I16_Phys_Val_wBLANK is
+	new I16_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_I16, I16_To_F32);
+function U8_Phys_Val_wBLANK is
+	new U8_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_U8, U8_To_F32);
+
+-- FIXME should all above go to V3_Types ? nneds to be done once
 
  -- store results 
 
@@ -119,13 +147,16 @@ package U8_DU  is new Generic_Data_Unit(Unsigned_8,Float_32, BZERO, BSCALE, U8_T
 
 -- prepare Element() callback for Read_Array_Value()
 
+-- FIXME this only no-BLANK variant
+
 generic
  with package DU is new Generic_Data_Unit(<>);
+ with function Phys_Val(Va : DU.T) return DU.TF;
  Min, Max : in out DU.TF;
 procedure MinMax(V : in DU.T);
 procedure MinMax(V : in DU.T)
 is
- Vph : DU.TF := DU.Physical_Value(V);
+ Vph : DU.TF := Phys_Val(V);
  use DU;
 begin
  if(Vph < Min) then Min := Vph; end if; 
@@ -134,22 +165,22 @@ end MinMax;
 
 -- MinMax funcs
 
-procedure F64_MinMax_Elem is new MinMax(F64_DU,F64Min,F64Max);
+procedure F64_MinMax_Elem is new MinMax(F64_DU, F64_Phys_Val, F64Min,F64Max);
 procedure F64_MinMax is new F64_DU.Read_Array_Values(F64_MinMax_Elem);
 
-procedure F32_MinMax_Elem is new MinMax(F32_DU,F32Min,F32Max);
+procedure F32_MinMax_Elem is new MinMax(F32_DU, F32_Phys_Val, F32Min,F32Max);
 procedure F32_MinMax is new F32_DU.Read_Array_Values(F32_MinMax_Elem);
 
-procedure I64_MinMax_Elem is new MinMax(I64_DU,F64Min,F64Max);
+procedure I64_MinMax_Elem is new MinMax(I64_DU, I64_Phys_Val, F64Min,F64Max);
 procedure I64_MinMax is new I64_DU.Read_Array_Values(I64_MinMax_Elem);
 
-procedure I32_MinMax_Elem is new MinMax(I32_DU,F32Min,F32Max);
+procedure I32_MinMax_Elem is new MinMax(I32_DU, I32_Phys_Val, F32Min,F32Max);
 procedure I32_MinMax is new I32_DU.Read_Array_Values(I32_MinMax_Elem);
 
-procedure I16_MinMax_Elem is new MinMax(I16_DU,F32Min,F32Max);
+procedure I16_MinMax_Elem is new MinMax(I16_DU, I16_Phys_Val, F32Min,F32Max);
 procedure I16_MinMax is new I16_DU.Read_Array_Values(I16_MinMax_Elem);
 
-procedure U8_MinMax_Elem is new MinMax(U8_DU,F32Min,F32Max);
+procedure U8_MinMax_Elem is new MinMax(U8_DU, U8_Phys_Val, F32Min,F32Max);
 procedure U8_MinMax is new U8_DU.Read_Array_Values(U8_MinMax_Elem);
 
 
