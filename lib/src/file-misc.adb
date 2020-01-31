@@ -6,7 +6,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Interfaces;
 
 with Data_Types; use Data_Types; -- UInt_8_Arr needed for Padding
-with Generic_Data_Types;
+with Generic_Data_Block;
 with Data_Funcs; use Data_Funcs;
 
 package body File.Misc is
@@ -117,7 +117,7 @@ package body File.Misc is
                             DataElementCount : in Positive)
  is
 
-  package AnyType is new Generic_Data_Types(T => T);
+  package AnyType is new Generic_Data_Block(T => T);
 
   B : AnyType.Block;
   T_Size_bytes : constant Positive := T'SIze / 8;  

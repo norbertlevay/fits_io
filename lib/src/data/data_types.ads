@@ -2,7 +2,7 @@
 -- Physical_Value type Integer: implement Signed-Unsigned conversion
 
 with Interfaces;	--use Interfaces;
-with Generic_Data_Types;
+with Generic_Data_Block;
 
 with Keyword_Record; use Keyword_Record; -- FInteger needed
 
@@ -43,7 +43,7 @@ package Data_Types is
    -- 1, Data Block definitions
 
    package UInt8 is
-	package Data is new Generic_Data_Types( T => Unsigned_8 );
+	package Data is new Generic_Data_Block( T => Unsigned_8 );
 	function To_Signed(D : in Unsigned_8) return Integer_8;
    end UInt8;
 
@@ -57,9 +57,9 @@ package Data_Types is
 
    -- 2, Array-Physical data conversions
 
-   function F32_Physical_Value is new Int16.Physical_Value(TF => Float_32);
-   function F32_Physical_Value is new Int32.Physical_Value(TF => Float_32);
-   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_64);
+--   function F32_Physical_Value is new Int16.Physical_Value(TF => Float_32);
+--   function F32_Physical_Value is new Int32.Physical_Value(TF => Float_32);
+--   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_64);
    -- if Tab11 applies: these serve for Singed<->Unsigned conversions
    --  (do explicit cast of the return value to Integer if needed)
    -- if not Tab11 values then: scale to store floats as integers 

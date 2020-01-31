@@ -29,8 +29,7 @@ with Optional.Reserved; use Optional.Reserved;
 with Data_Types; use Data_Types;
 with Data_Funcs; use Data_Funcs;
 
-with Generic_Data_Float;
-with Generic_Data_Types;
+with Generic_Data_Block;
 
 procedure minmax
 is
@@ -75,7 +74,7 @@ is
 
  procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF)
  is
-   package gen is new Generic_Data_Types (T => T);
+   package gen is new Generic_Data_Block (T => T);
    gBlock  : gen.Block;
    function T_Physical_Value is new gen.Physical_Value(TF => TF, To_TF => Conv_TF);
    DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);

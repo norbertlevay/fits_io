@@ -7,7 +7,7 @@ with Ada.Streams;
 
 generic
   type T is private; -- any type of known size at compile time (definite and unlimited)
-package Generic_Data_Types is
+package Generic_Data_Block is
 
  -- 1, Data Block definition (always 2880 bytes)
 
@@ -15,14 +15,7 @@ package Generic_Data_Types is
  N : constant Positive := Block_Size / T'Size;
  type Block is array (Positive range 1 .. N) of T;
 
- generic
-  with function "<" (L : in T; R : in T) return Boolean; 
- function Min(B : in Block; B_Min : in T) return T;
-
- generic
-  with function ">" (L : in T; R : in T) return Boolean; 
- function Max(B : in Block; B_Max : in T) return T;
-
+ 
  generic
   type TF is digits <>;
   with function To_TF(P : in T) return TF;
@@ -46,5 +39,5 @@ private
   for Block'Read  use T_Read_BigEndian;
   for Block'Write use T_Write_BigEndian;
 
-end Generic_Data_Types;
+end Generic_Data_Block;
 

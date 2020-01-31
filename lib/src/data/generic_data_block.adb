@@ -11,35 +11,7 @@ with FITS; -- Byte-type needed
 -- DBG only with Ada.Text_IO; use Ada.Text_IO;
 
 
-package body Generic_Data_Types is
-
- function Min(B : in Block; B_Min : in T) return T
- is
-  Min : T := B_Min;
- begin
-  for I in Block'Range
-  loop
-    if ( B(I) < Min )
-    then
-      Min := B(I);
-    end if;
-  end loop;
-  return Min;
- end Min;
-
- function Max(B : in Block; B_Max : in T) return T
- is
-  Max : T := B_Max;
- begin
-  for I in Block'Range
-  loop
-    if ( B(I) > Max)
-    then
-      Max := B(I);
-    end if;
-  end loop;
-  return Max;
- end Max;
+package body Generic_Data_Block is
 
  function Physical_Value(BZERO : in TF; BSCALE : in TF; Va : in T) return TF
  is
@@ -135,4 +107,4 @@ package body Generic_Data_Types is
 
    end T_Write_BigEndian;
 
-end Generic_Data_Types;
+end Generic_Data_Block;
