@@ -20,13 +20,21 @@ package Generic_Data_Unit is
 
  function Physical_Value(Va : in T) return TF;
 
+-- generic
+--  type TInt is range <>;
+--  BLANK : TInt;
+-- function Physical_Value(Va : in TInt) return TF;
 
+-- sequential access
 
 generic
-  B_Min, B_Max : in TF; -- init values
-  with function "<" (L : in TF; R : in TF) return Boolean;
-  with function ">" (L : in TF; R : in TF) return Boolean;
- procedure MinMax(F : SIO.File_Type; DUSize : in Positive; Min : out TF; Max : out TF);
+  with procedure Element (V : in T);
+procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
+-- call Physical_Value in Element to access physical values
+
+
+
+
 
 
 end Generic_Data_Unit;

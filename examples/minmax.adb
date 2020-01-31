@@ -112,20 +112,46 @@ package I32_DU is new Generic_Data_Unit(Integer_32,Float_32, BZERO, BSCALE, I32_
 package I16_DU is new Generic_Data_Unit(Integer_16,Float_32, BZERO, BSCALE, I16_To_F32);
 package U8_DU  is new Generic_Data_Unit(Unsigned_8,Float_32, BZERO, BSCALE, U8_To_F32);
 
--- MinMax func
-
-procedure F64_MinMax is new F64_DU.MinMax(Float_64'Last, Float_64'First, "<", ">");
-procedure I64_MinMax is new I64_DU.MinMax(Float_64'Last, Float_64'First, "<", ">");
-procedure F32_MinMax is new F32_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
-procedure I32_MinMax is new I32_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
-procedure I16_MinMax is new I16_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
-procedure U8_MinMax  is new U8_DU.MinMax (Float_32'Last, Float_32'First, "<", ">");
-
-
  -- store results 
 
  F32Min, F32Max : Float_32;
  F64Min, F64Max : Float_64;
+
+-- prepare Element() callback for Read_Array_Value()
+
+generic
+ with package DU is new Generic_Data_Unit(<>);
+ Min, Max : in out DU.TF;
+procedure MinMax(V : in DU.T);
+procedure MinMax(V : in DU.T)
+is
+ Vph : DU.TF := DU.Physical_Value(V);
+ use DU;
+begin
+ if(Vph < Min) then Min := Vph; end if; 
+ if(Vph > Max) then Max := Vph; end if; 
+end MinMax;
+
+-- MinMax funcs
+
+procedure F64_MinMax_Elem is new MinMax(F64_DU,F64Min,F64Max);
+procedure F64_MinMax is new F64_DU.Read_Array_Values(F64_MinMax_Elem);
+
+procedure F32_MinMax_Elem is new MinMax(F32_DU,F32Min,F32Max);
+procedure F32_MinMax is new F32_DU.Read_Array_Values(F32_MinMax_Elem);
+
+procedure I64_MinMax_Elem is new MinMax(I64_DU,F64Min,F64Max);
+procedure I64_MinMax is new I64_DU.Read_Array_Values(I64_MinMax_Elem);
+
+procedure I32_MinMax_Elem is new MinMax(I32_DU,F32Min,F32Max);
+procedure I32_MinMax is new I32_DU.Read_Array_Values(I32_MinMax_Elem);
+
+procedure I16_MinMax_Elem is new MinMax(I16_DU,F32Min,F32Max);
+procedure I16_MinMax is new I16_DU.Read_Array_Values(I16_MinMax_Elem);
+
+procedure U8_MinMax_Elem is new MinMax(U8_DU,F32Min,F32Max);
+procedure U8_MinMax is new U8_DU.Read_Array_Values(U8_MinMax_Elem);
+
 
  -- analyze array keys
 
@@ -195,10 +221,10 @@ begin
  
  if(BITPIX = -64)
  then
-   F64_MinMax(InFile, DUSize, F64Min, F64Max);
+   F64_MinMax(InFile, DUSize);
  elsif(BITPIX = 64)
  then
-   I64_MinMax(InFile, DUSize, F64Min, F64Max);
+   I64_MinMax(InFile, DUSize);
  end if;
 
  Put_Line("F64 Min: " & Float_64'Image(F64Min));
@@ -208,16 +234,16 @@ begin
  
  if(BITPIX = -32)
  then
-   F32_MinMax(InFile, DUSize, F32Min, F32Max);
+   F32_MinMax(InFile, DUSize);
  elsif(BITPIX = 32)
  then
-   I32_MinMax(InFile, DUSize, F32Min, F32Max);
+   I32_MinMax(InFile, DUSize);
  elsif(BITPIX = 16)
  then
-   I16_MinMax(InFile, DUSize, F32Min, F32Max);
+   I16_MinMax(InFile, DUSize);
  elsif(BITPIX = 8)
  then
-   U8_MinMax(InFile, DUSize, F32Min, F32Max);
+   U8_MinMax(InFile, DUSize);
  end if;
 
  Put_Line("F32 Min: " & Float_32'Image(F32Min));

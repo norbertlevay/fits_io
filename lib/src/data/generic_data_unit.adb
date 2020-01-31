@@ -7,7 +7,8 @@ with Keyword_Record; use Keyword_Record; -- FNatural needed
 
 package body Generic_Data_Unit is
 
-  package gen is new Generic_Data_Block (T => T); 
+ package gen is new Generic_Data_Block (T => T); 
+
 
  function Physical_Value(Va : in T) return TF
  is
@@ -16,13 +17,8 @@ package body Generic_Data_Unit is
  end Physical_Value;
 
 
-
- procedure MinMax(F : SIO.File_Type;
-	     	DUSize : in Positive; 
-	     	Min : out TF; Max : out TF) 
- is
-
-
+procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive)
+is
    -- define Data Block
    gBlock  : gen.Block;
 
@@ -32,19 +28,15 @@ package body Generic_Data_Unit is
                                         Offset_In_Block(Positive(DUSize), gen.N);
   -- local vars
   gValue : T;
-  lMin : TF := B_Min;
-  lMax : TF := B_Max;
-  pVal : TF; 
  begin
+
         for I in 1 .. (DUSize_Blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
                 for K in 1 .. gen.N
                 loop
                         gValue := gBlock(K);
-                        pVal := Physical_Value(gValue);
-                        if(pVal < lMin) then lMin := pVal; end if;
-                        if(pVal > lMax) then lMax := pVal; end if;
+                        Element(gValue);
                 end loop;
         end loop;
 
@@ -54,15 +46,14 @@ package body Generic_Data_Unit is
         for K in 1 .. (Last_Data_Element_In_Block)
         loop
                 gValue := gBlock(K);
-                pVal := Physical_Value(gValue);
-                if(pVal < lMin) then lMin := pVal; end if;
-                if(pVal > lMax) then lMax := pVal; end if;
+                Element(gValue);
         end loop;
 
-        Min := lMin;
-        Max := lMax;
+end Read_Array_Values;
 
- end MinMax;
+
+
+
 
 
 
