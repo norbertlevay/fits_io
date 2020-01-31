@@ -57,112 +57,23 @@ is
  BITPIX : Integer;
  DUSize : FPositive;
 
- -- Value conversions: Array -> Physical value
-
- -- A, BZERO BSCALE (BLANK) not given 	=> PhysVal = ArrVal
- -- B, BITPIX IntNN and Tab11         	=> PhysVal = Conv_Signed_Unsigned( ArrVal )
- -- C, BITPIX Int16 and not Tab11     	=> PhysVal = I16_To_F32( ArrVal )
- -- D, BITPIX Float		      	=> PhysVal = Convert_Float_Value( ArrVal )
- -- other combinations for case C not supported
-
- -- general conversion works on all BITPIX-types
- -- yielding physical value in F32 or F64
- -- NOTE not efficient it is executed even if no conversion needed
- -- assuming defaults BZERO=0.0 BSCALE=1.0
- -- On the other hand reduces number of instatiations ehich explodes assuming
- -- all type combinations and BZERO BSCALE (BLANK) presence or not in Header
-
- generic
-  type TF is digits <>; -- any floating point type
-  type TI is range <>;  -- any signed integer 
- function Convert_Value(BZERO : in TF; BSCALE : in TF; Va : in TI) return TF;
- function Convert_Value(BZERO : in TF; BSCALE : in TF; Va : in TI) return TF
- is
- begin
-  return BZERO + BSCALE * TF(Va); 
- end Convert_Value;
-
- -- FIXME function U8_To_F32 write manually
- function I16_To_F32 is new Convert_Value(Float_32, Integer_16);
- function I32_To_F32 is new Convert_Value(Float_32, Integer_32);
- function I64_To_F32 is new Convert_Value(Float_32, Integer_64); -- FIXME ??
-
- -- FIXME function U8_To_F64 write manually
- function I16_To_F64 is new Convert_Value(Float_64, Integer_16);
- function I32_To_F64 is new Convert_Value(Float_64, Integer_32);
- function I64_To_F64 is new Convert_Value(Float_64, Integer_64);
-
- -- optimized varinats separately for float and integer
-
-generic
-  type T is digits <>; -- any floating point type
- function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T;
- function Convert_Float_Value(BZERO : in T; BSCALE : in T; Va : in T) return T
- is
- begin
-  return BZERO + BSCALE * Va; 
- end Convert_Float_Value;
-
-
- generic
-  type Tin  is (<>); -- any discrete type
-  type Tout is (<>); -- any discrete type
- function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
- function Conv_Signed_Unsigned(Vin : in Tin) return Tout
- is
-   type BArr is array (1 .. Tin'Size) of Boolean;
-   pragma Pack (BArr);
-   function Tin2BArr  is new Ada.Unchecked_Conversion(Tin,BArr);
-   function BArr2Tout is new Ada.Unchecked_Conversion(BArr,Tout);
-   Arr : BArr := Tin2BArr(Vin);
- begin
-  -- convert sign-unsigned by flipping MSB bit
-  Arr(Arr'Last) := not Arr(Arr'Last);
-  return BArr2Tout(Arr);
- end Conv_Signed_Unsigned;
-
-
- -- all types FITS v3
-
- function U8_To_I8   is new Conv_Signed_Unsigned(Unsigned_8, Integer_8);
- function I16_To_U16 is new Conv_Signed_Unsigned(Integer_16, Unsigned_16);
- function I32_To_U32 is new Conv_Signed_Unsigned(Integer_32, Unsigned_32);
- function I64_To_U64 is new Conv_Signed_Unsigned(Integer_32, Unsigned_32);
-
- function F32_PhysValue is new Convert_Float_Value(Float_32);
- function F64_PhysValue is new Convert_Float_Value(Float_64);
-
- function I16_To_F32(BZERO : in Float_32; BSCALE : in Float_32; 
-                     BLANK : in Integer_16; Va : in Integer_16) return Float_32
- is
-  function loc_I16_To_F32 is new Convert_Float_Value(Float_32);
- begin
-  if(BLANK = Va)
-  then
-    null; -- Raise exception Undefined Value
-  end if;
-  return loc_I16_To_F32(BZERO, BSCALE, Float_32(Va)); 
- end I16_To_F32;
-
-
  -- access array values 
 
- BZERO, BSCALE : Float_32;
+ BZERO  : Float_32 := 0.0;
+ BSCALE : Float_32 := 1.0;
  -- will be filled in by Analyze_Array_Keys()
 
  generic
   type T is private;
-  type Tp is private;
   type TF is digits <>;
   with function Conv_TF(P : in T) return TF;
-  with function Convert_Value(Va : in T) return Tp;
 
-  B_Min, B_Max : in Tp; -- init values
-  with function "<" (L : in Tp; R : in Tp) return Boolean;
-  with function ">" (L : in Tp; R : in Tp) return Boolean;
- procedure DU_MinMax(F : SIO.File_Type; Min : out Tp; Max : out Tp);
+  B_Min, B_Max : in TF; -- init values
+  with function "<" (L : in TF; R : in TF) return Boolean;
+  with function ">" (L : in TF; R : in TF) return Boolean;
+ procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF);
 
- procedure DU_MinMax(F : SIO.File_Type; Min : out Tp; Max : out Tp)
+ procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF)
  is
    package gen is new Generic_Data_Types (T => T);
    gBlock  : gen.Block;
@@ -171,10 +82,9 @@ generic
    Last_Data_Element_In_Block : constant Positive :=  
                                         Offset_In_Block(Positive(DUSize), gen.N);
   gValue : T;
-  lMin : Tp := B_Min;
-  lMax : Tp := B_Max;
-  pVal : Tp;
-  FVal : TF;
+  lMin : TF := B_Min;
+  lMax : TF := B_Max;
+  pVal : TF;
  begin
   	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -186,8 +96,7 @@ generic
         	for K in 1 .. gen.N
         	loop
                 	gValue := gBlock(K);
- 			pVal := Convert_Value(gValue);
- 			FVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
+ 			pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
                 	if(pVal < lMin) then lMin := pVal; end if;
                 	if(pVal > lMax) then lMax := pVal; end if;
         	end loop;
@@ -199,8 +108,7 @@ generic
 	for K in 1 .. (Last_Data_Element_In_Block)
 	loop
 		gValue := gBlock(K);
- 		pVal := Convert_Value(gValue);
- 		FVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
+ 		pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
 		if(pVal < lMin) then lMin := pVal; end if;
 		if(pVal > lMax) then lMax := pVal; end if;
 	end loop;
@@ -211,22 +119,6 @@ generic
  end DU_MinMax;
 
  -- instantiations
-
- function Conv_Int16_To_F32(Va : Integer_16 ) return Float_32
- is
-  BLANK  : constant Integer_16 := 0; -- FIXME not in use
- begin
-   return I16_To_F32(BZERO, BSCALE, BLANK, Va);
- end Conv_Int16_To_F32;
-
-
- function Conv_F32_PhysValue(Va : Float_32 ) return Float_32
- is
- begin
-   return F32_PhysValue(BZERO,BSCALE, Va);
- end Conv_F32_PhysValue;
-
- -- no conversions
  
  generic
   type T is private;
@@ -237,66 +129,65 @@ generic
   return Vin;
  end Null_Conv;
 
- function I16_Null_Conv is new Null_Conv(Integer_16);
- function I32_Null_Conv is new Null_Conv(Integer_32);
  function F32_Null_Conv is new Null_Conv(Float_32);
+ function F64_Null_Conv is new Null_Conv(Float_64);
 
- function I32_To_F32(P:Integer_32) return Float_32
- is begin return Float_32(P); end I32_to_F32;
+ generic
+  type TI is range <>;
+  type TF is digits <>;
+ function Int_To_Float(P:in TI) return TF;
+ function Int_To_Float(P:in TI) return TF
+ is
+ begin
+  return TF(P);
+ end Int_To_Float;
 
- function I16_To_F32(P:Integer_16) return Float_32
- is begin return Float_32(P); end I16_to_F32;
- 
-procedure F32_MinMax_NullConv is 
- new DU_MinMax(Float_32, Float_32, Float_32, F32_Null_Conv   ,F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
+ function I32_To_F32 is new Int_To_Float(Integer_32, Float_32);
+ function I16_To_F32 is new Int_To_Float(Integer_16, Float_32);
+ function U8_To_F32(P:Unsigned_8) return Float_32
+  is begin return Float_32(P); end U8_to_F32;
+
+ function I64_To_F64 is new Int_To_Float(Integer_64, Float_64);
+ function I32_To_F64 is new Int_To_Float(Integer_32, Float_64);
+ function I16_To_F64 is new Int_To_Float(Integer_16, Float_64);
+ function U8_To_F64(P:Unsigned_8) return Float_64
+  is begin return Float_64(P); end U8_to_F64;
+
+
+procedure F64_MinMax is 
+ new DU_MinMax(Float_64, Float_64, F64_Null_Conv, Float_64'Last, Float_64'First, "<", ">");
+
+procedure I64_MinMax is 
+ new DU_MinMax(Integer_64, Float_64, I64_To_F64, Float_64'Last, Float_64'First, "<", ">");
+
 
 procedure F32_MinMax is 
- new DU_MinMax(Float_32, Float_32, Float_32, F32_Null_Conv, Conv_F32_PhysValue, Float_32'Last, Float_32'First, "<", ">");
+ new DU_MinMax(Float_32, Float_32, F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
 
-procedure I32_MinMax_NullConv is 
- new DU_MinMax(Integer_32, Integer_32, Float_32, I32_To_F32 ,I32_Null_Conv, Integer_32'Last, Integer_32'First, "<", ">");
+procedure I32_MinMax is 
+ new DU_MinMax(Integer_32, Float_32, I32_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
-procedure I16_MinMax_I16F32 is 
- new DU_MinMax(Integer_16, Float_32, Float_32, I16_To_F32, Conv_Int16_To_F32, Float_32'Last, Float_32'First, "<", ">");
+procedure I16_MinMax is 
+ new DU_MinMax(Integer_16, Float_32, I16_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
-procedure I16_MinMax_NullConv is 
- new DU_MinMax(Integer_16, Integer_16, Float_32, I16_To_F32, I16_Null_Conv, Integer_16'Last, Integer_16'First, "<", ">");
-
-
+procedure U8_MinMax is 
+ new DU_MinMax(Unsigned_8, Float_32, U8_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
  -- store results 
 
  F32Min, F32Max : Float_32;
- I32Min, I32Max : Integer_32;
- I16Min, I16Max : Integer_16;
+ F64Min, F64Max : Float_64;
 
  -- analyze array keys
 
  ArrKeysGiven : Boolean;
 
- -- FIXME this should operate on Value-strings rather then converted floats
- function Is_Tab11(BZERO : Float_32; BSCALE : Float_32) return Boolean
- is
- begin
-  if((BSCALE = 1.0) AND 
-     ((BZERO = -128.0) OR
-      (BZERO = 32768.0) OR
-      (BZERO = Float_32(2**31)) OR
-      (BZERO = Float_32(2**63)))	)
-  then
-   return True;
-  else
-   return False;
-  end if;
- end Is_Tab11;
-
  function Analyze_Array_Keys( Cards : Optional.Card_Arr; 
-				BZERO : out Float_32; 
-				BSCALE : out Float_32 ) return Boolean
+			      BZERO  : in out Float_32; 
+			      BSCALE : in out Float_32 ) return Boolean
  is
   BZfound : Boolean := False;
   BSfound : Boolean := False;
-  Tab11found : Boolean := False;
  begin
    for I in Cards'Range
    loop
@@ -310,27 +201,17 @@ procedure I16_MinMax_NullConv is
 	BSfound := True;
 	BSCALE := Float_32'Value((Cards(I)(11..30)));
      end if;
+     -- FIXME parse BLANK
    end loop;
 
-   if(BZfound AND BSfound)
-   then
-    Tab11found := Is_Tab11(BZERO,BSCALE);
-    Put_Line("BZERO  :" & Float_32'Image(BZERO)); 
-    Put_Line("BSCALE :" & Float_32'Image(BSCALE)); 
-   end if;
-   return BZfound AND BSfound;
+  return BZfound AND BSfound;
  end Analyze_Array_Keys;
 
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
 
- Put_Line("CC -32768 : " & Unsigned_16'Image(I16_To_U16(-32768)) );
- Put_Line("CC     -1 : " & Unsigned_16'Image(I16_To_U16(-1)) );
- Put_Line("CC      0 : " & Unsigned_16'Image(I16_To_U16(0)) );
- Put_Line("CC      1 : " & Unsigned_16'Image(I16_To_U16(1)) );
- Put_Line("CC  32767 : " & Unsigned_16'Image(I16_To_U16(+32767)) );
- 
+
  SIO.Open   (InFile,  SIO.In_File,  InFileName);
 
  -- FIXME now only Primary HDU, later consider other HDUs
@@ -343,7 +224,7 @@ begin
   BITPIX := HDUInfo.BITPIX;
   DUSize := DU_Count (HDUInfo.NAXISn);
  end;
-
+ 
  -- reset to File start
  SIO.Set_Index(InFile,1);
 
@@ -353,55 +234,46 @@ begin
    ArrKeysGiven := Analyze_Array_Keys(Cards, BZERO, BSCALE);
  end;
 
-
+ Put_Line("BZERO  :" & Float_32'Image(BZERO)); 
+ Put_Line("BSCALE :" & Float_32'Image(BSCALE)); 
+ 
  -- read data sequentially by blocks
+
+ if ( abs BITPIX > 32 )
+ then
+ 
+ if(BITPIX = -64)
+ then
+   F64_MinMax(InFile, F64Min, F64Max);
+ elsif(BITPIX = 64)
+ then
+   I64_MinMax(InFile, F64Min, F64Max);
+ end if;
+
+ Put_Line("F64 Min: " & Float_64'Image(F64Min));
+ Put_Line("F64 Max: " & Float_64'Image(F64Max));
+
+ else
  
  if(BITPIX = -32)
  then
-
-  if(ArrKeysGiven) 
-  then
-   F32_MinMax(InFile, F32Min, F32Max);-- PhysVal = BZERO + BSCALE*ArrVal
-   Put_Line("F32Conv Min: " & Float_32'Image(F32Min));
-   Put_Line("F32Conv Max: " & Float_32'Image(F32Max));
-  else
-   F32_MinMax_NullConv(InFile, F32Min, F32Max);-- PhysVal = ArrVal
-   Put_Line("F32 Min: " & Float_32'Image(F32Min));
-   Put_Line("F32 Max: " & Float_32'Image(F32Max));
-  end if;
-
+   F32_MinMax(InFile, F32Min, F32Max);
  elsif(BITPIX = 32)
  then
-
-  if(ArrKeysGiven) 
-  then
-   null;-- FIXME instantiate, sign conversion
-  else
-   I32_MinMax_NullConv(InFile, I32Min, I32Max); -- PhysValue = ArrValue
-   Put_Line("I32 Min: " & Integer_32'Image(I32Min));
-   Put_Line("I32 Max: " & Integer_32'Image(I32Max));
- end if;
-
+   I32_MinMax(InFile, F32Min, F32Max);
  elsif(BITPIX = 16)
  then
+   I16_MinMax(InFile, F32Min, F32Max);
+ elsif(BITPIX = 8)
+ then
+   U8_MinMax(InFile, F32Min, F32Max);
+ end if;
 
-  if(ArrKeysGiven) 
-  then
-   if(Is_Tab11(BZERO,BSCALE))
-   then
-    null; -- FIXME sign conversion instantiate
-   else
-    I16_MinMax_I16F32(InFile, F32Min, F32Max);-- Float32 stored as Int16
-    Put_Line("I16F32 Min: " & Float_32'Image(F32Min));
-    Put_Line("I16F32 Max: " & Float_32'Image(F32Max));
-   end if;
-  else
-   I16_MinMax_NullConv(InFile, I16Min, I16Max);-- Float32 stored as Int16
-   Put_Line("I16 Min: " & Integer_16'Image(I16Min));
-   Put_Line("I16 Max: " & Integer_16'Image(I16Max));
-  end if;
+ Put_Line("F32 Min: " & Float_32'Image(F32Min));
+ Put_Line("F32 Max: " & Float_32'Image(F32Max));
 
  end if;
+
 
  SIO.Close(InFile);
 
