@@ -10,7 +10,7 @@ with Ada.Streams.Stream_IO;
 generic
   type T is private; -- Data Block def
   type TF is digits <>;  -- Phys val conversion
-  BZERO, BSCALE : TF;
+  BZERO, BSCALE : in out TF;
   with function Conv_TF(P : in T) return TF; -- Phys Val conversion
 package Generic_Data_Unit is
 
@@ -22,7 +22,7 @@ generic
   B_Min, B_Max : in TF; -- init values
   with function "<" (L : in TF; R : in TF) return Boolean;
   with function ">" (L : in TF; R : in TF) return Boolean;
- procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF);
+ procedure MinMax(F : SIO.File_Type; DUSize : in Positive; Min : out TF; Max : out TF);
 
 
 end Generic_Data_Unit;

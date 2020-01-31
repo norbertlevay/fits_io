@@ -55,71 +55,18 @@ is
  -- FIXME might raise excpetion before Usage written
 
  BITPIX : Integer;
- DUSize : FPositive;
+ DUSize : Positive;
 
  -- access array values 
 
  BZERO  : Float_32 := 0.0;
  BSCALE : Float_32 := 1.0;
+ BZERO_F64  : Float_64 := 0.0;-- FIXME needed F64 because generic_data_unit has these as in out
+ BSCALE_F64 : Float_64 := 1.0; -- so 64bit variants require memory too
  -- will be filled in by Analyze_Array_Keys()
 
- generic
-  type T is private; -- Data Block def
-  type TF is digits <>;  -- Phys val conversion
-  with function Conv_TF(P : in T) return TF; -- Phys Val conversion
-
-  -- params for MinMax algorithm
-  B_Min, B_Max : in TF; -- init values
-  with function "<" (L : in TF; R : in TF) return Boolean;
-  with function ">" (L : in TF; R : in TF) return Boolean;
- procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF);
-
- procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF)
- is
-   -- define Data Block
-   package gen is new Generic_Data_Block (T => T);
-   gBlock  : gen.Block;
-   function T_Physical_Value is new gen.Physical_Value(TF => TF, To_TF => Conv_TF);
-
-   -- calc data array limits
-   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
-   Last_Data_Element_In_Block : constant Positive :=  
-                                        Offset_In_Block(Positive(DUSize), gen.N);
-  -- local vars
-  gValue : T;
-  lMin : TF := B_Min;
-  lMax : TF := B_Max;
-  pVal : TF;
- begin
-  	for I in 1 .. (DUSize_Blocks - 1)
-	loop
-	        gen.Block'Read(SIO.Stream(F),gBlock);
-        	for K in 1 .. gen.N
-        	loop
-                	gValue := gBlock(K);
- 			pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
-                	if(pVal < lMin) then lMin := pVal; end if;
-                	if(pVal > lMax) then lMax := pVal; end if;
-        	end loop;
-	end loop;
-
-	-- Last Block of InFile
-	
-	gen.Block'Read(SIO.Stream(F),gBlock);
-	for K in 1 .. (Last_Data_Element_In_Block)
-	loop
-		gValue := gBlock(K);
- 		pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
-		if(pVal < lMin) then lMin := pVal; end if;
-		if(pVal > lMax) then lMax := pVal; end if;
-	end loop;
-
-	Min := lMin;
-	Max := lMax;
-
- end DU_MinMax;
-
  -- instantiations
+ -- FIXME should these go to V3_Types ??
  
  generic
   type T is private;
@@ -155,24 +102,25 @@ is
   is begin return Float_64(P); end U8_to_F64;
 
 
-procedure F64_MinMax is 
- new DU_MinMax(Float_64, Float_64, F64_Null_Conv, Float_64'Last, Float_64'First, "<", ">");
+-- Data Unit
 
-procedure I64_MinMax is 
- new DU_MinMax(Integer_64, Float_64, I64_To_F64, Float_64'Last, Float_64'First, "<", ">");
+-- FIXME check these conversions like I64->F64 loss of precision??
+package F64_DU is new Generic_Data_Unit(Float_64,  Float_64, BZERO_F64, BSCALE_F64, F64_Null_Conv);
+package I64_DU is new Generic_Data_Unit(Integer_64,Float_64, BZERO_F64, BSCALE_F64, I64_To_F64);
+package F32_DU is new Generic_Data_Unit(Float_32,  Float_32, BZERO, BSCALE, F32_Null_Conv);
+package I32_DU is new Generic_Data_Unit(Integer_32,Float_32, BZERO, BSCALE, I32_To_F32);
+package I16_DU is new Generic_Data_Unit(Integer_16,Float_32, BZERO, BSCALE, I16_To_F32);
+package U8_DU  is new Generic_Data_Unit(Unsigned_8,Float_32, BZERO, BSCALE, U8_To_F32);
 
+-- MinMax func
 
-procedure F32_MinMax is 
- new DU_MinMax(Float_32, Float_32, F32_Null_Conv, Float_32'Last, Float_32'First, "<", ">");
+procedure F64_MinMax is new F64_DU.MinMax(Float_64'Last, Float_64'First, "<", ">");
+procedure I64_MinMax is new I64_DU.MinMax(Float_64'Last, Float_64'First, "<", ">");
+procedure F32_MinMax is new F32_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
+procedure I32_MinMax is new I32_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
+procedure I16_MinMax is new I16_DU.MinMax(Float_32'Last, Float_32'First, "<", ">");
+procedure U8_MinMax  is new U8_DU.MinMax (Float_32'Last, Float_32'First, "<", ">");
 
-procedure I32_MinMax is 
- new DU_MinMax(Integer_32, Float_32, I32_To_F32, Float_32'Last, Float_32'First, "<", ">");
-
-procedure I16_MinMax is 
- new DU_MinMax(Integer_16, Float_32, I16_To_F32, Float_32'Last, Float_32'First, "<", ">");
-
-procedure U8_MinMax is 
- new DU_MinMax(Unsigned_8, Float_32, U8_To_F32, Float_32'Last, Float_32'First, "<", ">");
 
  -- store results 
 
@@ -197,10 +145,12 @@ procedure U8_MinMax is
      then
 	BZfound := True;
 	BZERO := Float_32'Value((Cards(I)(11..30)));
+	BZERO_F64 := Float_64(BZERO); -- FIXME find betted solution
      elsif(Cards(I)(1..6) = "BSCALE")
      then
 	BSfound := True;
 	BSCALE := Float_32'Value((Cards(I)(11..30)));
+	BSCALE_F64 := Float_64(BSCALE); -- FIXME find betted solution
      end if;
      -- FIXME parse BLANK
    end loop;
@@ -223,7 +173,7 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
   BITPIX := HDUInfo.BITPIX;
-  DUSize := DU_Count (HDUInfo.NAXISn);
+  DUSize := Positive(DU_Count (HDUInfo.NAXISn));
  end;
  
  -- reset to File start
@@ -245,10 +195,10 @@ begin
  
  if(BITPIX = -64)
  then
-   F64_MinMax(InFile, F64Min, F64Max);
+   F64_MinMax(InFile, DUSize, F64Min, F64Max);
  elsif(BITPIX = 64)
  then
-   I64_MinMax(InFile, F64Min, F64Max);
+   I64_MinMax(InFile, DUSize, F64Min, F64Max);
  end if;
 
  Put_Line("F64 Min: " & Float_64'Image(F64Min));
@@ -258,16 +208,16 @@ begin
  
  if(BITPIX = -32)
  then
-   F32_MinMax(InFile, F32Min, F32Max);
+   F32_MinMax(InFile, DUSize, F32Min, F32Max);
  elsif(BITPIX = 32)
  then
-   I32_MinMax(InFile, F32Min, F32Max);
+   I32_MinMax(InFile, DUSize, F32Min, F32Max);
  elsif(BITPIX = 16)
  then
-   I16_MinMax(InFile, F32Min, F32Max);
+   I16_MinMax(InFile, DUSize, F32Min, F32Max);
  elsif(BITPIX = 8)
  then
-   U8_MinMax(InFile, F32Min, F32Max);
+   U8_MinMax(InFile, DUSize, F32Min, F32Max);
  end if;
 
  Put_Line("F32 Min: " & Float_32'Image(F32Min));

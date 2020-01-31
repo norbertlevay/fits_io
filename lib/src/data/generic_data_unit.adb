@@ -7,28 +7,17 @@ with Keyword_Record; use Keyword_Record; -- FNatural needed
 
 package body Generic_Data_Unit is
 
+  package gen is new Generic_Data_Block (T => T); 
 
 
- procedure DU_MinMax(F : SIO.File_Type; Min : out TF; Max : out TF) 
+
+ procedure MinMax(F : SIO.File_Type;
+	     	DUSize : in Positive; 
+	     	Min : out TF; Max : out TF) 
  is
-
-  function DU_Count(NAXISn : Positive_Arr) return FNatural
-  is
-        Cnt : FNatural := 1;
-  begin
-        for I in NAXISn'Range
-        loop
-                Cnt := Cnt * NAXISn(I);
-        end loop;
-        return Cnt;
-  end DU_Count;
-
-  DUSize : Positive;
-
 
 
    -- define Data Block
-   package gen is new Generic_Data_Block (T => T); 
    gBlock  : gen.Block;
    function T_Physical_Value is new gen.Physical_Value(TF => TF, To_TF => Conv_TF);
 
@@ -68,7 +57,7 @@ package body Generic_Data_Unit is
         Min := lMin;
         Max := lMax;
 
- end DU_MinMax;
+ end MinMax;
 
 
 
