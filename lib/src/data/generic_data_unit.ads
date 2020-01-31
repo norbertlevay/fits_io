@@ -25,16 +25,28 @@ package Generic_Data_Unit is
 --  BLANK : TInt;
 -- function Physical_Value(Va : in TInt) return TF;
 
--- sequential access
+-- Sequential access
 
 generic
   with procedure Element (V : in T);
 procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 -- call Physical_Value in Element to access physical values
+-- FIXME consider: new param DUStart so forcing caller to make 
+-- sure that File.Index is set to start of DU
 
 
 
 
+
+-- Random access
+
+type T_Arr is array (Integer range <>) of T;
+procedure Read_Array_Value(F : SIO.File_Type;
+		DUStart : in SIO.Positive_Count; 
+		Offset  : in Positive;
+		Count   : in Positive :=1;
+		Value  : out T_Arr) is null;
+-- FIXME not implemented
 
 
 end Generic_Data_Unit;
