@@ -31,12 +31,91 @@ with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Block;
 with Generic_Data_Unit;
+with Generic_Data_Value; use Generic_Data_Value;
 
 procedure minmax
 is
 
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
+
+ -- experimental
+ -- code blocks which access values (need only position and sizes) use: type T is private;
+ -- code blocks which operate on Values and do computations use numeric types (digits, range, mod)
+
+ generic
+  type TF is digits <>;
+  with procedure Element(V : in TF);
+ procedure Read_Float_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Float_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+   package FDU is new Generic_Data_Unit(T => TF, TF => TF);
+   procedure RFV is new FDU.Read_Array_Values(Element);
+ begin
+   RFV(F, DUSize);  
+ end Read_Float_Values;
+
+ generic
+  type TI is range <>;
+  type TF is digits <>;-- obsolete if Physical_Value removed from genDataUnit
+  with procedure Element(V : in TI);
+ procedure Read_Integer_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Integer_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+   package FDU is new Generic_Data_Unit(T => TI, TF => TF);
+   procedure RFV is new FDU.Read_Array_Values(Element);
+ begin
+   RFV(F, DUSize);  
+ end Read_Integer_Values;
+
+  
+ generic
+  type TM is mod <>; -- any modular type a.k.a. unsigned
+  with procedure Element(V : in TM);
+ procedure Read_Unsigned_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Unsigned_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+   package FDU is new Generic_Data_Unit(T => TM, TF => Float_32);
+   procedure RFV is new FDU.Read_Array_Values(Element);
+ begin
+   RFV(F, DUSize);  
+ end Read_Unsigned_Values;
+
+
+generic
+ type T is private;
+ Min, Max : in out T;
+ with function "<" (L : T; R : T) return Boolean;
+ with function ">" (L : T; R : T) return Boolean;
+procedure cbMinMax(V : in T);
+procedure cbMinMax(V : in T)
+is
+ Vph : T;-- := Phys_Val(V);
+-- use DU;
+begin
+ if(Vph < Min) then Min := Vph; end if; 
+ if(Vph > Max) then Max := Vph; end if; 
+end cbMinMax;
+
+ generic
+  type TI is range <>;
+  Min, Max : in out TI;
+ procedure IntElement(V : in TI);
+ procedure IntElement(V : in TI)
+ is
+  procedure IntMinMax is new cbMinMax(TI, Min, Max, "<",">");
+ begin
+  IntMinMax(V); 
+ end IntElement;
+
+ -- instantiate MinMax algorithm on I16
+
+ I16_Min : Integer_16 := Integer_16'Last;
+ I16_Max : Integer_16 := Integer_16'First;
+ procedure I16_Elem        is new IntElement(Integer_16, I16_Min, I16_Max); 
+ procedure I16_Read_Values is new Read_Integer_Values(Integer_16, Float_32, I16_Elem);
+
+-- END experiment
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
  is
@@ -65,78 +144,31 @@ is
  BSCALE_F64 : Float_64 := 1.0; -- so 64bit variants require memory too
  -- will be filled in by Analyze_Array_Keys()
 
- -- instantiations
- -- FIXME should these go to V3_Types ??
- 
- generic
-  type T is private;
- function Null_Conv(Vin : in T) return T;
- function Null_Conv(Vin : in T) return T
- is
- begin
-  return Vin;
- end Null_Conv;
+ -- Phyiscal Value from Array Value
 
- function F32_Null_Conv is new Null_Conv(Float_32);
- function F64_Null_Conv is new Null_Conv(Float_64);
+-- use Generic_Data_Value module:
+function F64_Phys_Val is new Physical_Value_From_Float(Float_64, BZERO_F64, BSCALE_F64);
+function I64_Phys_Val is new Physical_Value_From_Int(Integer_64, Float_64, BZERO_F64, BSCALE_F64);
+function F32_Phys_Val is new Physical_Value_From_Float(Float_32, BZERO, BSCALE);
+function I32_Phys_Val is new Physical_Value_From_Int(Integer_32, Float_32, BZERO, BSCALE);
+function I16_Phys_Val is new Physical_Value_From_Int(Integer_16, Float_32, BZERO, BSCALE);
+function U8_Phys_Val  is new Physical_Value_From_UInt(Unsigned_8, Float_32,BZERO, BSCALE);
 
- generic
-  type TI is range <>;
-  type TF is digits <>;
- function Int_To_Float(P:in TI) return TF;
- function Int_To_Float(P:in TI) return TF
- is
- begin
-  return TF(P);
- end Int_To_Float;
-
- function I32_To_F32 is new Int_To_Float(Integer_32, Float_32);
- function I16_To_F32 is new Int_To_Float(Integer_16, Float_32);
- function U8_To_F32(P:Unsigned_8) return Float_32
-  is begin return Float_32(P); end U8_to_F32;
-
- function I64_To_F64 is new Int_To_Float(Integer_64, Float_64);
- function I32_To_F64 is new Int_To_Float(Integer_32, Float_64);
- function I16_To_F64 is new Int_To_Float(Integer_16, Float_64);
- function U8_To_F64(P:Unsigned_8) return Float_64
-  is begin return Float_64(P); end U8_to_F64;
-
-
--- Data Unit
-
--- FIXME check these conversions like I64->F64 loss of precision??
-package F64_DU is new Generic_Data_Unit(Float_64, Float_64);
-package I64_DU is new Generic_Data_Unit(Integer_64, Float_64);
-package F32_DU is new Generic_Data_Unit(Float_32, Float_32);
-package I32_DU is new Generic_Data_Unit(Integer_32, Float_32);
-package I16_DU is new Generic_Data_Unit(Integer_16, FLoat_32);
-package U8_DU  is new Generic_Data_Unit(Unsigned_8, Float_32);
-
--- FIXME reconsider: if BLANK available integer DU's below should have
--- yet another variant with BLANK and ultimately all down to Ixx_MinMax()
--- because BLANK is optional and cannot have default we do not know in advance whether available
-
-function F64_Phys_Val is new F64_DU.All_Physical_Value(BZERO_F64, BSCALE_F64, F64_Null_Conv);
-function I64_Phys_Val is new I64_DU.All_Physical_Value(BZERO_F64, BSCALE_F64, I64_To_F64);
-function F32_Phys_Val is new F32_DU.All_Physical_Value(BZERO, BSCALE, F32_Null_Conv);
-function I32_Phys_Val is new I32_DU.All_Physical_Value(BZERO, BSCALE, I32_To_F32);
-function I16_Phys_Val is new I16_DU.All_Physical_Value(BZERO, BSCALE, I16_To_F32);
-function U8_Phys_Val  is new  U8_DU.All_Physical_Value(BZERO, BSCALE, U8_To_F32);
-
--- variants with BLANK
+-- variants with BLANK FIXME not in use !
 
 BLANK_I64 : Integer_64;
 BLANK_I32 : Integer_32;
 BLANK_I16 : Integer_16;
 BLANK_U8  : Unsigned_8;
 function I64_Phys_Val_wBLANK is
-	new I64_DU.Int_Physical_Value(BZERO_F64, BSCALE_F64, BLANK_I64, I64_To_F64);
+  new Physical_Value_From_Int_With_BLANK(Integer_64, Float_64, BZERO_F64, BSCALE_F64, BLANK_I64);
 function I32_Phys_Val_wBLANK is
-	new I32_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_I32, I32_To_F32);
+  new Physical_Value_From_Int_With_BLANK(Integer_32, Float_32, BZERO, BSCALE, BLANK_I32);
 function I16_Phys_Val_wBLANK is
-	new I16_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_I16, I16_To_F32);
-function U8_Phys_Val_wBLANK is
-	new U8_DU.Int_Physical_Value(BZERO, BSCALE, BLANK_U8, U8_To_F32);
+  new Physical_Value_From_Int_With_BLANK(Integer_16, Float_32, BZERO, BSCALE, BLANK_I16);
+function U8_Phys_Val_wBLANK  is
+  new Physical_Value_From_UInt_With_BLANK(Unsigned_8, Float_32,BZERO, BSCALE, BLANK_U8);
+
 
 -- FIXME should all above go to V3_Types ? nneds to be done once
 
@@ -162,6 +194,16 @@ begin
  if(Vph < Min) then Min := Vph; end if; 
  if(Vph > Max) then Max := Vph; end if; 
 end MinMax;
+
+-- Data Unit
+
+-- FIXME check these conversions like I64->F64 loss of precision??
+package F64_DU is new Generic_Data_Unit(Float_64, Float_64);
+package I64_DU is new Generic_Data_Unit(Integer_64, Float_64);
+package F32_DU is new Generic_Data_Unit(Float_32, Float_32);
+package I32_DU is new Generic_Data_Unit(Integer_32, Float_32);
+package I16_DU is new Generic_Data_Unit(Integer_16, FLoat_32);
+package U8_DU  is new Generic_Data_Unit(Unsigned_8, Float_32);
 
 -- MinMax funcs
 
