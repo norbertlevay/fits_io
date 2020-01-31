@@ -1,11 +1,11 @@
 
-library project fits_io is
+library project fitslib is
    for Source_Dirs use ("src","src/parser","src/data");
    for Object_Dir use "obj";
    for Library_Name use "fits_io";
    for Library_Kind use "static";
    for Library_Dir use "lib";
-end fits_io;
+end fitslib;
 
 
 
