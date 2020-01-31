@@ -10,12 +10,16 @@ with Ada.Streams.Stream_IO;
 generic
   type T is private; -- Data Block def
   type TF is digits <>;  -- Phys val conversion
-  BZERO, BSCALE : in out TF;
-  with function Conv_TF(P : in T) return TF; -- Phys Val conversion
+  BZERO  : in out TF;
+  BSCALE : in out TF;
+  with function To_TF(P : in T) return TF; -- Phys Val conversion
 package Generic_Data_Unit is
 
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
+
+ function Physical_Value(Va : in T) return TF;
+
 
 
 generic

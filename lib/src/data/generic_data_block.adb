@@ -13,12 +13,6 @@ with FITS; -- Byte-type needed
 
 package body Generic_Data_Block is
 
- function Physical_Value(BZERO : in TF; BSCALE : in TF; Va : in T) return TF
- is
- begin
-  return BZERO + BSCALE * To_TF(Va);
- end Physical_Value;
-
 
 
 

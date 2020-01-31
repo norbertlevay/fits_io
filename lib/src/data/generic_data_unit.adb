@@ -9,6 +9,12 @@ package body Generic_Data_Unit is
 
   package gen is new Generic_Data_Block (T => T); 
 
+ function Physical_Value(Va : in T) return TF
+ is
+ begin
+  return BZERO + BSCALE * To_TF(Va);
+ end Physical_Value;
+
 
 
  procedure MinMax(F : SIO.File_Type;
@@ -19,7 +25,6 @@ package body Generic_Data_Unit is
 
    -- define Data Block
    gBlock  : gen.Block;
-   function T_Physical_Value is new gen.Physical_Value(TF => TF, To_TF => Conv_TF);
 
    -- calc data array limits
    DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
@@ -37,7 +42,7 @@ package body Generic_Data_Unit is
                 for K in 1 .. gen.N
                 loop
                         gValue := gBlock(K);
-                        pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
+                        pVal := Physical_Value(gValue);
                         if(pVal < lMin) then lMin := pVal; end if;
                         if(pVal > lMax) then lMax := pVal; end if;
                 end loop;
@@ -49,7 +54,7 @@ package body Generic_Data_Unit is
         for K in 1 .. (Last_Data_Element_In_Block)
         loop
                 gValue := gBlock(K);
-                pVal := T_Physical_Value(TF(BZERO),TF(BSCALE),gValue);
+                pVal := Physical_Value(gValue);
                 if(pVal < lMin) then lMin := pVal; end if;
                 if(pVal > lMax) then lMax := pVal; end if;
         end loop;

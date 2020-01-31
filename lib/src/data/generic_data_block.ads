@@ -15,11 +15,6 @@ package Generic_Data_Block is
  type Block is array (Positive range 1 .. N) of T;
  pragma Pack (Block);
  
- generic
-  type TF is digits <>;
-  with function To_TF(P : in T) return TF;
- function Physical_Value(BZERO : in TF; BSCALE : in TF; Va : in T) return TF;
-
  -- 2, Endianness
 
 private
