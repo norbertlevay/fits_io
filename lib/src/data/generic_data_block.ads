@@ -1,6 +1,5 @@
  
 -- FIXME how-to: should refuse to instantiate for T if not in 2880 without gap
--- FIXME how-to: guarantee that Block-array is packed for any T
 
 
 with Ada.Streams;
@@ -14,7 +13,7 @@ package Generic_Data_Block is
  Block_Size : constant Positive := 2880*8;
  N : constant Positive := Block_Size / T'Size;
  type Block is array (Positive range 1 .. N) of T;
-
+ pragma Pack (Block);
  
  generic
   type TF is digits <>;
