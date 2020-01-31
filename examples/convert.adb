@@ -116,12 +116,12 @@ begin
  -- read write sequentially by Blocks
 
  declare
-  InBlock  : V3_Types.F32.Data.Block;
-  OutBlock : V3_Types.Int16.Data.Block;
+  InBlock  : V3_Types.F32.Block;
+  OutBlock : V3_Types.Int16.Block;
   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
   Last_Data_Element_In_Block : constant Positive := 
-		Offset_In_Block(Positive(DUSize), V3_Types.F32.Data.N);
+		Offset_In_Block(Positive(DUSize), V3_Types.F32.N);
   F32Value : V3_Types.Float_32;
   I16Value : V3_Types.Integer_16;
   L : Positive := 1;
@@ -132,7 +132,7 @@ begin
  begin
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
-		F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
+		F32.Block'Read(SIO.Stream(InFile),InBlock);
 		for K in InBlock'Range
 		loop
 			F32Value := InBlock(K);
@@ -155,7 +155,7 @@ begin
 
 			if L > OutBlock'Last 
 			then
-				Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+				Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
 				L := 1;
 			end if;
 
@@ -164,7 +164,7 @@ begin
 
 	-- Last Block of InFIle
 	
-	F32.Data.Block'Read(SIO.Stream(InFile),InBlock);
+	F32.Block'Read(SIO.Stream(InFile),InBlock);
 	for K in 1 .. Last_Data_Element_In_Block
 	loop
 		F32Value := InBlock(K);
@@ -181,7 +181,7 @@ begin
 
 		if L > OutBlock'Last 
 		then
-			Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+			Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
 			L := 1;
 		end if;
 
@@ -194,7 +194,7 @@ begin
 		loop
 			OutBlock(LL) := 0;
 		end loop;
-		Int16.Data.Block'Write(SIO.Stream(OutFile),OutBlock);
+		Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
 	end if;
  end;
 

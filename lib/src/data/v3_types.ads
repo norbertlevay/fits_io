@@ -1,26 +1,11 @@
 
 -- Types as of FITS Standard Version 3
 
--- Utility package: instantiates generics for all 
--- types defined by FITS Standard Version3
+-- Utility package: 
+-- instantiates generics for all types defined by FITS Standard Version3
 
-with Interfaces;	--use Interfaces;
+with Interfaces;
 with Generic_Data_Block;
-
-with Keyword_Record; use Keyword_Record; -- FInteger needed
-
--- Alternative A:
--- division by DataTypes (for Size calc only) vs DataValues (for Int-Float conversions)
---with Generic_Data_Types;
---with Generic_Value;
-
--- Alternative B:
--- division by Int vs Float: generic includes Value Conversions and hides Endianness (per Block)
--- misses UInt8 -> only Signed integers allowed -> how go around this ?? FIXME
--- implements twice the same code on Endianness: for INts and for FLoats - but principally 
--- Float _could_ be different on Endianness -> so accept duplications of code as special case?
-with Generic_Data_Integer;
-with Generic_Data_Float;
 
 
 package V3_Types is
@@ -43,30 +28,14 @@ package V3_Types is
    type Unsigned_64 is new Interfaces.Unsigned_64;
 
 
-   -- 1, Data Block definitions
+   -- provides data Block type for all V3-types
 
-   package UInt8 is
-	package Data is new Generic_Data_Block( T => Unsigned_8 );
-	function To_Signed(D : in Unsigned_8) return Integer_8;
-   end UInt8;
-
-   package Int16 is new Generic_Data_Integer(T => Integer_16);
-   package Int32 is new Generic_Data_Integer(T => Integer_32);
-   package Int64 is new Generic_Data_Integer(T => Integer_64);
-
-   package F32 is new Generic_Data_Float(T => Float_32);
-   package F64 is new Generic_Data_Float(T => Float_64);
-
-
-   -- 2, Array-Physical data conversions
-
---   function F32_Physical_Value is new Int16.Physical_Value(TF => Float_32);
---   function F32_Physical_Value is new Int32.Physical_Value(TF => Float_32);
---   function F64_Physical_Value is new Int64.Physical_Value(TF => Float_64);
-   -- if Tab11 applies: these serve for Singed<->Unsigned conversions
-   --  (do explicit cast of the return value to Integer if needed)
-   -- if not Tab11 values then: scale to store floats as integers 
-   --  (NOTE: Standard says only Int16<->Float32 is commonly used)
-
+   package UInt8 is new Generic_Data_Block(T => Unsigned_8);
+   package Int16 is new Generic_Data_Block(T => Integer_16);
+   package Int32 is new Generic_Data_Block(T => Integer_32);
+   package Int64 is new Generic_Data_Block(T => Integer_64);
+   package F32   is new Generic_Data_Block(T => Float_32);
+   package F64   is new Generic_Data_Block(T => Float_64);
+ 
 end V3_Types;
 

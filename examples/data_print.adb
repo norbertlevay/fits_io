@@ -53,7 +53,7 @@ is
  Off_In_DU : Positive;
  DU_Start  : Positive;
 
- BlockF32 : F32.Data.Block;
+ BlockF32 : F32.Block;
 
  subtype Key_Type   is String(1..8);
  subtype Value_Type is String(1..20);
@@ -151,22 +151,23 @@ begin
 
  -- read and use one block data
 
- F32.Data.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
+ F32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
 
  Put_Line("After BlockT'Read: " & Positive'Image( File_Block_Index(InFile)));
 
  -- print all block
  for I in BlockF32'Range
  loop
-	Put(Positive'Image(I) & ":" 
-		& V3_Types.Float_32'Image(BlockF32(I))
-		& " / " & V3_Types.Float_32'Image( V3_Types.F32.Physical_Value
-					(V3_Types.Float_32(PhysValScale.BZERO), V3_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
+   null; -- FIXME F32.Physical_Value is generic now needs instance...
+--	Put(Positive'Image(I) & ":" 
+--		& V3_Types.Float_32'Image(BlockF32(I))
+--		& " / " & V3_Types.Float_32'Image( V3_Types.F32.Physical_Value
+--					(V3_Types.Float_32(PhysValScale.BZERO), V3_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;
  
  -- access & print element with Index 1000
- Off_In_Block := Offset_In_Block(1000, F32.Data.N); 
+ Off_In_Block := Offset_In_Block(1000, F32.N); 
  Put_Line(Positive'Image(Off_In_Block) & ":" & V3_Types.Float_32'Image(BlockF32(Off_in_block))); -- <----- BITPIX dependent
 
 
