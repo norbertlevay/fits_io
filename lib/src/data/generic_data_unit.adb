@@ -10,25 +10,6 @@ package body Generic_Data_Unit is
  package gen is new Generic_Data_Block (T => T); 
 
 
- function All_Physical_Value(Va : in T) return TF
- is
- begin
-  return BZERO + BSCALE * To_TF(Va);
- end All_Physical_Value;
-
- function Int_Physical_Value(Va : in T) return TF
- is
-  function PhysVal is new All_Physical_Value(BZERO, BSCALE, To_TF);
- begin
-  if(BLANK = Va)
-  then
-    null;
-  end if;
-  --return BZERO + BSCALE * To_TF(Va);
-  return PhysVal(Va);
- end Int_Physical_Value;
-
-
 
 
 
