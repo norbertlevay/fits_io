@@ -1,5 +1,8 @@
--- TODO
--- Physical_Value type Integer: implement Signed-Unsigned conversion
+
+-- Types as of FITS Standard Version 3
+
+-- Utility package: instantiates generics for all 
+-- types defined by FITS Standard Version3
 
 with Interfaces;	--use Interfaces;
 with Generic_Data_Block;
@@ -20,7 +23,7 @@ with Generic_Data_Integer;
 with Generic_Data_Float;
 
 
-package Data_Types is
+package V3_Types is
 
    -- data types as of FITS Standard version 3
 
@@ -65,5 +68,5 @@ package Data_Types is
    -- if not Tab11 values then: scale to store floats as integers 
    --  (NOTE: Standard says only Int16<->Float32 is commonly used)
 
-end Data_Types;
+end V3_Types;
 

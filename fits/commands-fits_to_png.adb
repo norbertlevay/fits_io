@@ -2,13 +2,13 @@
 with Ada.Text_IO,
      Ada.Float_Text_IO,
      Ada.Unchecked_Deallocation,
-     Data_Types,
+     V3_Types,
      File,
      System,
      Ada.Streams.Stream_IO;
 
 use
-     Data_Types,
+     V3_Types,
      File,
      System,
      Ada.Streams.Stream_IO;
@@ -184,12 +184,12 @@ use  PNG_IO;
         -- FIXME are below array definitions useful? acceptable?
         -- see example/convert.adb vs example/convertf2i.adb
         -- Standard says FITS file si always a set of 2880byte blocks
-   type UInt8_Arr   is array ( FPositive range <> ) of Data_Types.Unsigned_8;
-   type Int16_Arr   is array ( FPositive range <> ) of Data_Types.Integer_16;
-   type Int32_Arr   is array ( FPositive range <> ) of Data_Types.Integer_32;
-   type Int64_Arr   is array ( FPositive range <> ) of Data_Types.Integer_64;
-   type Float32_Arr is array ( FPositive range <> ) of Data_Types.Float_32;
-   type Float64_Arr is array ( FPositive range <> ) of Data_Types.Float_64;
+   type UInt8_Arr   is array ( FPositive range <> ) of V3_Types.Unsigned_8;
+   type Int16_Arr   is array ( FPositive range <> ) of V3_Types.Integer_16;
+   type Int32_Arr   is array ( FPositive range <> ) of V3_Types.Integer_32;
+   type Int64_Arr   is array ( FPositive range <> ) of V3_Types.Integer_64;
+   type Float32_Arr is array ( FPositive range <> ) of V3_Types.Float_32;
+   type Float64_Arr is array ( FPositive range <> ) of V3_Types.Float_64;
 
 
 
@@ -205,7 +205,7 @@ use  PNG_IO;
  is
   wi    : Natural := 0;
   hi    : Natural := 0;
-  dd    : Data_Types.Unsigned_8;
+  dd    : V3_Types.Unsigned_8;
  begin
 
 --  for dd of Data  <-- This is Ada2012 feature
@@ -237,7 +237,7 @@ use  PNG_IO;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Data_Types.Float_32;
+   Val   : V3_Types.Float_32;
  begin
 
   Factor := GreyPixel_8bit_Type_Last / (Max - Min);
@@ -270,7 +270,7 @@ use  PNG_IO;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Data_Types.Float_32;
+   Val   : V3_Types.Float_32;
  begin
 
   Factor := GreyPixel_16bit_Type_Last / (Max - Min);
@@ -301,7 +301,7 @@ use  PNG_IO;
                Max    : out Float_32)
    is  
      type MyFloat is new Float_32;
-     D   : Data_Types.Float_32;
+     D   : V3_Types.Float_32;
    begin
 
      Min := Float_32'Large;
@@ -333,7 +333,7 @@ use  PNG_IO;
    wi    : Natural := 0;
    hi    : Natural := 0;
    Factor : Float_32;
-   Val   : Data_Types.Float_32;
+   Val   : V3_Types.Float_32;
    flast  : Float_32 :=
             Float_32(RGBPixel_24bit_Type'Last);
  begin

@@ -22,7 +22,7 @@ with Keyword_Record; use Keyword_Record;
 with Strict; use Strict; -- Positive_Arr needed
 
 -- new Data interface
-with Data_Types; use Data_Types;
+with V3_Types; use V3_Types;
 with Data_Funcs; use Data_Funcs;
 
 procedure convert
@@ -116,18 +116,19 @@ begin
  -- read write sequentially by Blocks
 
  declare
-  InBlock  : Data_Types.F32.Data.Block;
-  OutBlock : Data_Types.Int16.Data.Block;
+  InBlock  : V3_Types.F32.Data.Block;
+  OutBlock : V3_Types.Int16.Data.Block;
   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
-  Last_Data_Element_In_Block : constant Positive := Offset_In_Block(Positive(DUSize), Data_Types.F32.Data.N);
-  F32Value : Data_Types.Float_32;
-  I16Value : Data_Types.Integer_16;
+  Last_Data_Element_In_Block : constant Positive := 
+		Offset_In_Block(Positive(DUSize), V3_Types.F32.Data.N);
+  F32Value : V3_Types.Float_32;
+  I16Value : V3_Types.Integer_16;
   L : Positive := 1;
 
-  BSCALE : constant Data_Types.Float_32 :=   0.003891051;
-  BZERO  : constant Data_Types.Float_32 := 127.501945525;
-  F32Temp : Data_Types.Float_32;
+  BSCALE : constant V3_Types.Float_32 :=   0.003891051;
+  BZERO  : constant V3_Types.Float_32 := 127.501945525;
+  F32Temp : V3_Types.Float_32;
  begin
 	for I in 1 .. (DUSize_Blocks - 1)
 	loop
@@ -139,14 +140,14 @@ begin
 			-- convert
 			
 			F32Temp  := (F32Value - BZERO) / BSCALE;
-			I16Value := Data_Types.Integer_16( F32Temp );
+			I16Value := V3_Types.Integer_16( F32Temp );
 			-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
 			-- calculate BZERO BSCALE (and BLANK if needed)
 
 --			Put_Line(
---				Data_Types.Float_32'Image(F32Value) 
---				&" vs "& Data_Types.Float_32'Image(F32Temp) 
---				&" vs "& Data_Types.Integer_16'Image(I16Value));
+--				V3_Types.Float_32'Image(F32Value) 
+--				&" vs "& V3_Types.Float_32'Image(F32Temp) 
+--				&" vs "& V3_Types.Integer_16'Image(I16Value));
 
 			-- store converted
 			OutBlock(L) := I16Value;
@@ -170,7 +171,7 @@ begin
 			
 		-- convert
 		F32Temp  := (F32Value - BZERO) / BSCALE;
-		I16Value := Data_Types.Integer_16(F32Temp);
+		I16Value := V3_Types.Integer_16(F32Temp);
 		-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
 		-- calculate BZERO BSCALE (and BLANK if needed)
 

@@ -24,7 +24,7 @@ with Optional.Reserved; use Optional.Reserved;
 
 
 -- new Data interface
-with Data_Types; use Data_Types;
+with V3_Types; use V3_Types;
 with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Block;

@@ -23,7 +23,7 @@ with Optional.Reserved;
 with Keyword_Record;
 
 with Data_Funcs; use Data_Funcs;
-with Data_Types; use Data_Types;
+with V3_Types; use V3_Types;
 
 procedure data_print
 is
@@ -159,15 +159,15 @@ begin
  for I in BlockF32'Range
  loop
 	Put(Positive'Image(I) & ":" 
-		& Data_Types.Float_32'Image(BlockF32(I))
-		& " / " & Data_Types.Float_32'Image( Data_Types.F32.Physical_Value
-					(Data_Types.Float_32(PhysValScale.BZERO), Data_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
+		& V3_Types.Float_32'Image(BlockF32(I))
+		& " / " & V3_Types.Float_32'Image( V3_Types.F32.Physical_Value
+					(V3_Types.Float_32(PhysValScale.BZERO), V3_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;
  
  -- access & print element with Index 1000
  Off_In_Block := Offset_In_Block(1000, F32.Data.N); 
- Put_Line(Positive'Image(Off_In_Block) & ":" & Data_Types.Float_32'Image(BlockF32(Off_in_block))); -- <----- BITPIX dependent
+ Put_Line(Positive'Image(Off_In_Block) & ":" & V3_Types.Float_32'Image(BlockF32(Off_in_block))); -- <----- BITPIX dependent
 
 
  SIO.Close(InFile);

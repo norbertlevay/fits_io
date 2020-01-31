@@ -4,7 +4,7 @@ with Ada.Text_IO.Text_Streams;
 with Ada.Streams.Stream_IO;
 
 with Interfaces;
-with Data_Types; use Data_Types;
+with V3_Types; use V3_Types;
 
 procedure data_test is
 
@@ -50,7 +50,7 @@ Put_Line(" - " & Positive'Image(BlockFloat64'Last));
 -- fill in data
 for I in BlockInt32'Range
 loop
- BlockInt32(I) := Data_Types.Integer_32(I);
+ BlockInt32(I) := V3_Types.Integer_32(I);
 end loop;
 
 
@@ -72,7 +72,7 @@ SIO.Close(File);
 -- print to screen
 for I in BlockInt32'Range
 loop
- Put(Data_Types.Integer_32'Image(BlockInt32(I)));
+ Put(V3_Types.Integer_32'Image(BlockInt32(I)));
 end loop;
 New_Line;
 

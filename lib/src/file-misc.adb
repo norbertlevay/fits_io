@@ -5,13 +5,13 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Ada.Unchecked_Conversion;
 -- with Interfaces;
 
-with Data_Types; use Data_Types; -- UInt_8_Arr needed for Padding
 with Generic_Data_Block;
 with Data_Funcs; use Data_Funcs;
+with V3_Types;
 
 package body File.Misc is
 
-   type UInt8_Arr   is array ( FPositive range <> ) of Unsigned_8;
+   type UInt8_Arr   is array ( FPositive range <> ) of V3_Types.Unsigned_8;
 	-- use to write Padding
 
    StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
@@ -44,7 +44,7 @@ package body File.Misc is
    -- as described in Sect. 3.3.2.
    procedure Write_Padding(FitsFile : in SIO.File_Type;
                            From     : in SIO.Positive_Count;
-                           PadValue : in Unsigned_8)
+                           PadValue : in V3_Types.Unsigned_8)
    is  
 
     FillCnt   : constant Natural :=
