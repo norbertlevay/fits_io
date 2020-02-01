@@ -82,6 +82,69 @@ is
  end Read_Unsigned_Values;
 
 
+-- BEG 1 try return Physical values
+
+ generic
+  type Tarr is mod <>; 
+  type Tphs is digits <>; 
+  BZERO, BSCALE : in out Tphs;
+  with procedure Element(V : in Tphs);
+  with function "+" (L,R : in Tphs) return Tphs;
+  with function "*" (L,R : in Tphs) return Tphs;
+ procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+   procedure LocElement(V : in Tarr)
+   is
+    function PhysFromFloat is new Physical_Value(Tphs, BZERO, BSCALE,"*","+");
+   begin
+    Element(PhysFromFloat(Tphs(V)));-- <- This conversion
+-- supplied as generic arg func then both Ta Tp can be private - only one code needed, 
+-- If conversion left here in code -> needs this code repeated for combinationes of Taa Tphs
+--
+-- digits-digits -> Floats    scaling  always check NaN <- not recommended but used in practise
+-- X range-range   -> Integers  scaling  <- No point in scaling
+-- X mod-mod       -> Unsigneds scaling  <- No point in scaling
+-- FOR ABOVE THREE USE ONE CODE WITH PRIVATE -> there is no conversion needed
+-- range-mod mod-range -> integer sign converionsin
+-- digits-range -> I16->F32                         
+-- digits-mod   -> U? ->F32  makes sense ???
+-- -- except floats all other twice: with/without BLANK
+   end LocElement;
+   package FDU is new Generic_Data_Unit(T => Tarr);
+   procedure RFV is new FDU.Read_Array_Values(LocElement);
+ begin
+   RFV(F, DUSize);  
+ end Read_Physical_Values;
+ -- NOTE all Array    Val types: F64 F32 I64 I32 I16 U8
+ -- NOTE all Physical Val types: F64 F32 I64 I32 I16 U8, U64 U32 U16 I8
+
+ -- above in lib
+ -- below user in application
+ 
+ generic
+  type T is private;
+  Min, Max : in out T;
+  with function "<" (L,R : in T) return Boolean;
+  with function ">" (L,R : in T) return Boolean;
+ procedure ElemMinMax(V : in T);
+ procedure ElemMinMax(V : in T)
+ is
+ begin
+   if(V < Min) then Min := V; end if;
+   if(V > Max) then Max := V; end if;
+ end ElemMinMax;
+
+ BZEROF32  : Float_32;
+ BSCALEF32 : Float_32;
+ MinF32 : Float_32;
+ MaxF32 : Float_32;
+ procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32, "<", ">");
+ procedure I16F32_ReadPhysVal is
+  new Read_Physical_Values(Integer_16,Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*");
+
+ -- END 1 experiment
+
 generic
  type T is private;
  Min, Max : in out T;

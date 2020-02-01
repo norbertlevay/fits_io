@@ -3,11 +3,23 @@
 
 package body Generic_Data_Value is
 
+ -- gen for any type
+ 
+ function Physical_Value(Va : in T) return T
+ is
+ begin
+  -- FIXME here check for NaN -> if found raise exception Undefined_Value (like BLANK)
+  return BZERO + BSCALE * Va;
+ end Physical_Value;
 
+
+
+ -- for each type category
 
  function Physical_Value_From_Float(Va : in TF) return TF
  is
  begin
+  -- FIXME here check for NaN -> if found raise exception Undefined_Value (like BLANK)
   return BZERO + BSCALE * Va;
  end Physical_Value_From_Float;
 

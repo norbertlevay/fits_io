@@ -1,8 +1,30 @@
 
+-- implement for all types:
+--
+--    PhysVal = BZERO + BSCALE * ArrVal
+--
+-- handle undefined values (BLANK or NaN): raise exception Undefined_Value
 
+-- use type categories
+--
+-- digits : Float_nn
+-- range  : Integer_nn
+-- mod    : Unsigned_nn
 
 package Generic_Data_Value is
- 
+
+ -- any type
+
+ generic
+  type T is private;
+  BZERO  : in out T;
+  BSCALE : in out T;
+  with function "*" (L, R : in T) return T;
+  with function "+" (L, R : in T) return T;
+function Physical_Value(Va : in T) return T;
+
+
+ -- explict for each type-categora 
 
  generic
   type TF is digits <>;
