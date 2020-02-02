@@ -1,9 +1,11 @@
 
-
+with FITS;
 with Generic_Data_Block;
 with Data_Funcs;  use Data_Funcs;
 with Strict; use Strict; -- Positive_Arr needed
 with Keyword_Record; use Keyword_Record; -- FNatural needed
+
+with Generic_Data_Value; use Generic_Data_Value;
 
 package body Generic_Data_Unit is
 
@@ -46,6 +48,50 @@ is
         end loop;
 
 end Read_Array_Values;
+
+
+
+
+
+ -- Physical values
+
+ procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+
+   procedure LocArrVal(V : in T)
+   is  
+    function PhysVal is new Physical_Value(T, Tout, BZERO, BSCALE, "+","*","+");
+   begin
+    Physical_Elem(PhysVal(V));
+   end LocArrVal;
+
+--   package genDU is new Generic_Data_Unit(T => Tin);
+   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+
+ begin
+   ReadArrVals(F, DUSize);  
+ end Read_Physical_Values;
+
+
+
+ procedure Read_Checked_Physical_Values(F : SIO.File_Type; DUSize : in Positive)
+ is
+
+   procedure LocArrVal(V : in T)
+   is  
+    function PhysVal is new Checked_Physical_Value(T, Tout, BZERO, BSCALE, BLANK, "+","*","+");
+   begin
+    Physical_Elem(PhysVal(V));
+   end LocArrVal;
+
+--   package genDU is new Generic_Data_Unit(T => Tin);
+   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+
+ begin
+   ReadArrVals(F, DUSize);  
+ end Read_Checked_Physical_Values;
+
+
 
 
 

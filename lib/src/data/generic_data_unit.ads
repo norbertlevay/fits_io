@@ -20,9 +20,34 @@ package Generic_Data_Unit is
 generic
   with procedure Element (V : in T);
 procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
--- call Physical_Value in Element to access physical values
 -- FIXME consider: new param DUStart so forcing caller to make 
 -- sure that File.Index is set to start of DU
+
+
+ generic
+--  type Tin  is private;
+  type Tout is private;
+  BZERO  : in out Tout;
+  BSCALE : in out Tout;
+  with procedure Physical_Elem(V : in Tout);
+  with function "+" (L, R : in Tout) return Tout;
+  with function "*" (L, R : in Tout) return Tout;
+  with function "+" (R : in T) return Tout;
+ procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive);
+
+
+ generic
+--  type Tin  is private;
+  type Tout is private;
+  BZERO  : in out Tout;
+  BSCALE : in out Tout;
+  BLANK  : in out T;
+  with procedure Physical_Elem(V : in Tout);
+  with function "+" (L, R : in Tout) return Tout;
+  with function "*" (L, R : in Tout) return Tout;
+  with function "+" (R : in T) return Tout;
+ procedure Read_Checked_Physical_Values(F : SIO.File_Type; DUSize : in Positive);
+
 
 
 
