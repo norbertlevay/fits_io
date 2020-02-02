@@ -100,6 +100,21 @@ is
   new UI8_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
 
 
+ -- example of signed-unsigned conversion
+
+ BZEROU16  : Unsigned_16 := 0;
+ BSCALEU16 : Unsigned_16 := 1;
+ MinU16 : Unsigned_16 := Unsigned_16'Last;
+ MaxU16 : Unsigned_16 := Unsigned_16'First;
+ procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16, "<", ">");
+
+ function "+" (R : Integer_16) return Unsigned_16 is begin return Unsigned_16(R); end "+";
+ -- FIXME overflow check fails here 
+ procedure I16_MinMax_U16 is
+  new I16_DU.Read_Physical_Values(Unsigned_16, BZEROU16, BSCALEU16, U16_ElemMinMax, "+","*","+");
+
+
+
  -- info from Header
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
@@ -140,11 +155,13 @@ is
 	BZfound := True;
 	BZERO := Float_32'Value((Cards(I)(11..30)));
 	BZEROF64 := Float_64(BZEROF32); -- FIXME find betted solution
+	BZEROU16 := Unsigned_16(BZEROF32);
      elsif(Cards(I)(1..6) = "BSCALE")
      then
 	BSfound := True;
 	BSCALE := Float_32'Value((Cards(I)(11..30)));
 	BSCALEF64 := Float_64(BSCALEF32); -- FIXME find betted solution
+	BSCALEU16 := Unsigned_16(BSCALEF32);
      end if;
      -- FIXME parse BLANK
    end loop;
@@ -209,6 +226,9 @@ begin
  elsif(BITPIX = 16)
  then
    I16_MinMax(InFile, DUSize);
+   -- I16_MinMax_U16(InFile, DUSize); FIXME fails with overflow on I16->U16 conversion
+   Put_Line("U16 Min: " & Unsigned_16'Image(MinU16));
+   Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16));
  elsif(BITPIX = 8)
  then
    U8_MinMax(InFile, DUSize);
