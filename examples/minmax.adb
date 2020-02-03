@@ -108,12 +108,17 @@ is
  MaxU16 : Unsigned_16 := Unsigned_16'First;
  procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16, "<", ">");
 
- function "+" (R : Integer_16) return Unsigned_16 is begin return Unsigned_16(R); end "+";
- -- FIXME overflow check fails here 
+ function "+" (R : Integer_16) return Unsigned_16
+ is 
+ begin
+   if(R < 0) then return (Unsigned_16'Last + 1) - Unsigned_16(abs R);
+   else           return Unsigned_16(R);
+   end if;
+ end "+";
+ -- NOTE map Int-negative values to 'upper-half'/mid-last Unsigned range
+ -- First: -1 -> 64353  Last: -32768->32768
  procedure I16_MinMax_U16 is
   new I16_DU.Read_Physical_Values(Unsigned_16, BZEROU16, BSCALEU16, U16_ElemMinMax, "+","*","+");
-
-
 
  -- info from Header
 
@@ -170,16 +175,19 @@ is
   return BZfound AND BSfound;
  end Analyze_Array_Keys;
 
+ HDUStart : Positive := 1;
+ -- FIXME now only Primary HDU, later consider other HDUs
 begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
 
- SIO.Open   (InFile,  SIO.In_File,  InFileName);
+ SIO.Open(InFile,  SIO.In_File,  InFileName);
 
- -- FIXME now only Primary HDU, later consider other HDUs
+ Set_File_Block_Index(InFile,HDUStart);
 
- Set_File_Block_Index(InFile,1);
- -- interpret header: DataUnit length and type needed
+
+ -- interpret header: DataUnit length and type needed, also store DUStart
+
  declare
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
@@ -191,8 +199,8 @@ begin
  Put_Line("DU Start [blocks] :" & Positive'Image(DUStart)); 
  Put_Line("DU Size  [element count]:" & Positive'Image(DUSize)); 
 
- -- reset to File start
- Set_File_Block_Index(InFile,1);
+ -- reset to HDU start
+ Set_File_Block_Index(InFile,HDUStart);
 
  declare
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
@@ -230,9 +238,10 @@ begin
  elsif(BITPIX = 16)
  then
    I16_MinMax(InFile, DUSize);
-   -- I16_MinMax_U16(InFile, DUSize); FIXME fails with overflow on I16->U16 conversion
-   Put_Line("U16 Min: " & Unsigned_16'Image(MinU16));
-   Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16));
+   Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
+   I16_MinMax_U16(InFile, DUSize); -- FIXME fails with overflow on I16->U16 conversion
+   Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
+   Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
  elsif(BITPIX = 8)
  then
    U8_MinMax(InFile, DUSize);
