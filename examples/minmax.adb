@@ -135,6 +135,7 @@ is
 
  BITPIX : Integer;
  DUSize : Positive;
+ DUStart : Positive;
 
  -- analyze array keys
 
@@ -173,22 +174,25 @@ begin
 
  Put_Line("Usage  " & Command_Name & " <file name>");
 
-
  SIO.Open   (InFile,  SIO.In_File,  InFileName);
 
  -- FIXME now only Primary HDU, later consider other HDUs
 
- SIO.Set_Index(InFile,1);
+ Set_File_Block_Index(InFile,1);
  -- interpret header: DataUnit length and type needed
  declare
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
+  DUStart := File_Block_Index(InFile);
+  DUSize  := Positive(DU_Count (HDUInfo.NAXISn));
   BITPIX := HDUInfo.BITPIX;
-  DUSize := Positive(DU_Count (HDUInfo.NAXISn));
  end;
  
+ Put_Line("DU Start [blocks] :" & Positive'Image(DUStart)); 
+ Put_Line("DU Size  [element count]:" & Positive'Image(DUSize)); 
+
  -- reset to File start
- SIO.Set_Index(InFile,1);
+ Set_File_Block_Index(InFile,1);
 
  declare
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
