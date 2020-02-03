@@ -27,27 +27,33 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
  generic
 --  type Tin  is private;
   type Tout is private;
-  BZERO  : in out Tout;
-  BSCALE : in out Tout;
-  with procedure Physical_Elem(V : in Tout);
+ with procedure Physical_Elem(V : in Tout);
   with function "+" (L, R : in Tout) return Tout;
   with function "*" (L, R : in Tout) return Tout;
   with function "+" (R : in T) return Tout;
- procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Physical_Values
+		(F : SIO.File_Type; 
+		DUSize : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout);
 
 
  generic
 --  type Tin  is private;
   type Tout is private;
-  BZERO  : in out Tout;
-  BSCALE : in out Tout;
   with function  Is_Undefined(V : in T) return Boolean;
   with procedure Undefined_Value(V : in T);
   with procedure Physical_Elem(V : in Tout);
   with function "+" (L, R : in Tout) return Tout;
   with function "*" (L, R : in Tout) return Tout;
   with function "+" (R : in T) return Tout;
- procedure Read_Checked_Physical_Values(F : SIO.File_Type; DUSize : in Positive);
+ procedure Read_Checked_Physical_Values
+		(F : SIO.File_Type;
+		DUSize : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout);
+
+
 
 
 

@@ -105,26 +105,26 @@ is
  -- MinMax for all array types
 
  procedure F64_MinMax is
-  new F64_DU.Read_Physical_Values(Float_64, BZEROF64, BSCALEF64, F64_ElemMinMax, "+","*","+");
+  new F64_DU.Read_Physical_Values(Float_64, F64_ElemMinMax, "+","*","+");
 
  procedure F32_MinMax is
-  new F32_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
+  new F32_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
 
  function "+" (R : Integer_64) return Float_64 is begin return Float_64(R); end "+";
  procedure I64_MinMax is
-  new I64_DU.Read_Physical_Values(Float_64, BZEROF64, BSCALEF64, F64_ElemMinMax, "+","*","+");
+  new I64_DU.Read_Physical_Values(Float_64, F64_ElemMinMax, "+","*","+");
 
  function "+" (R : Integer_32) return Float_32 is begin return Float_32(R); end "+";
  procedure I32_MinMax is
-  new I32_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
+  new I32_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
 
  function "+" (R : Integer_16) return Float_32 is begin return Float_32(R); end "+";
  procedure I16_MinMax is
-  new I16_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
+  new I16_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
 
  function "+" (R : Unsigned_8) return Float_32 is begin return Float_32(R); end "+";
  procedure U8_MinMax is
-  new UI8_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
+  new UI8_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
 
  -- example handling undefined value (I16 only)
 
@@ -142,7 +142,7 @@ is
  is begin return V = BLANKI16; end I16_Is_BLANK;
 
  procedure I16_Checked_MinMax is
-  new I16_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, 
+  new I16_DU.Read_Checked_Physical_Values(Float_32, 
       I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax, "+","*","+");
 
  -- example undefined Float value
@@ -171,7 +171,7 @@ is
  -- FIXME do this as generic
 
  procedure F32_Checked_MinMax is
-  new F32_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, 
+  new F32_DU.Read_Checked_Physical_Values(Float_32, 
       F32_Is_NaN, F32_UndefVal, F32_ElemMinMax, "+","*","+");
 
 
@@ -193,7 +193,7 @@ is
  -- NOTE map Int-negative values to 'upper-half'/mid-last Unsigned range
  -- First: -1 -> 64353  Last: -32768->32768
  procedure I16_MinMax_U16 is
-  new I16_DU.Read_Physical_Values(Unsigned_16, BZEROU16, BSCALEU16, U16_ElemMinMax, "+","*","+");
+  new I16_DU.Read_Physical_Values(Unsigned_16, U16_ElemMinMax, "+","*","+");
 
  -- info from Header
 
@@ -306,10 +306,10 @@ begin
  
  if(BITPIX = -64)
  then
-   F64_MinMax(InFile, DUSize);
+   F64_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
  elsif(BITPIX = 64)
  then
-   I64_MinMax(InFile, DUSize);
+   I64_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
  end if;
 
  Put_Line("F64 Min: " & Float_64'Image(MinF64));
@@ -319,25 +319,27 @@ begin
  
  if(BITPIX = -32)
  then
-   F32_Checked_MinMax(InFile, DUSize);
+   -- F32_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   F32_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(BITPIX = 32)
  then
-   I32_MinMax(InFile, DUSize);
+   I32_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
  elsif(BLfound AND (BITPIX = 16))
  then
-   I16_Checked_MinMax(InFile, DUSize);
+   --I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   I16_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(not BLfound AND (BITPIX = 16))
  then
-   I16_MinMax(InFile, DUSize);
+   I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
-   I16_MinMax_U16(InFile, DUSize); -- FIXME fails with overflow on I16->U16 conversion
+   I16_MinMax_U16(InFile, DUSize, BZEROU16, BSCALEU16); 
    Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
    Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
  elsif(BITPIX = 8)
  then
-   U8_MinMax(InFile, DUSize);
+   U8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
  end if;
 
  Put_Line("F32 Min: " & Float_32'Image(MinF32));

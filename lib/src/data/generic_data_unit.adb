@@ -55,7 +55,11 @@ end Read_Array_Values;
 
  -- Physical values
 
- procedure Read_Physical_Values(F : SIO.File_Type; DUSize : in Positive)
+ procedure Read_Physical_Values
+                 (F : SIO.File_Type;
+                 DUSize : in Positive;
+                 BZERO  : in Tout;
+                 BSCALE : in Tout)
  is
 
    procedure LocArrVal(V : in T)
@@ -73,7 +77,11 @@ end Read_Array_Values;
 
 
 
- procedure Read_Checked_Physical_Values(F : SIO.File_Type; DUSize : in Positive)
+ procedure Read_Checked_Physical_Values
+                (F : SIO.File_Type;
+                DUSize : in Positive;
+                BZERO  : in Tout;
+                BSCALE : in Tout)
  is
 
    procedure LocArrVal(V : in T)
