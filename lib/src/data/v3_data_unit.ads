@@ -31,6 +31,7 @@ package I32_DU is new Generic_Data_Unit(Integer_32);
 package I16_DU is new Generic_Data_Unit(Integer_16);
 package UI8_DU is new Generic_Data_Unit(Unsigned_8);
 
+
 -- Floats, scaling Vphys = BZERO + BSCALE * Varr
 
 generic
@@ -70,6 +71,17 @@ generic
  with procedure Element(V : in Float_32);
 procedure UI8F32_Read_Physical_Values
 	(F : SIO.File_Type; DUSize : in Positive; BZERO  : in Float_32; BSCALE : in Float_32);
+
+
+-- sign conversions
+
+generic
+ with procedure Element(V : in Unsigned_16);
+procedure I16U16_Read_Physical_Values
+	(F : SIO.File_Type; DUSize : in Positive; BZERO  : in Unsigned_16; BSCALE : in Unsigned_16);
+
+-- FIXME add I32U32 I64U64 UI8I8
+
 
 end V3_Data_Unit;
 

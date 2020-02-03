@@ -81,6 +81,15 @@ is
  MaxF64 : Float_64 := Float_64'First;
  procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64, "<", ">");
 
+ -- example of signed-unsigned conversion
+
+ BZEROU16  : Unsigned_16 := 0;
+ BSCALEU16 : Unsigned_16 := 1;
+ MinU16 : Unsigned_16 := Unsigned_16'Last;
+ MaxU16 : Unsigned_16 := Unsigned_16'First;
+ procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16, "<", ">");
+
+
 
  -- MinMax for all array types
 
@@ -91,6 +100,8 @@ is
  procedure I32_MinMax is new I32F64_Read_Physical_Values(F64_ElemMinMax);
  procedure I16_MinMax is new I16F32_Read_Physical_Values(F32_ElemMinMax);
  procedure UI8_MinMax is new UI8F32_Read_Physical_Values(F32_ElemMinMax);
+
+ procedure U16_MinMax is new I16U16_Read_Physical_Values(U16_ElemMinMax);
 
 
  -- example handling undefined value (I16 only)
@@ -143,25 +154,6 @@ is
       F32_Is_NaN, F32_UndefVal, F32_ElemMinMax, "+","*","+");
 
 
- -- example of signed-unsigned conversion
-
- BZEROU16  : Unsigned_16 := 0;
- BSCALEU16 : Unsigned_16 := 1;
- MinU16 : Unsigned_16 := Unsigned_16'Last;
- MaxU16 : Unsigned_16 := Unsigned_16'First;
- procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16, "<", ">");
-
- function "+" (R : Integer_16) return Unsigned_16
- is 
- begin
-   if(R < 0) then return (Unsigned_16'Last + 1) - Unsigned_16(abs R);
-   else           return Unsigned_16(R);
-   end if;
- end "+";
- -- NOTE map Int-negative values to 'upper-half'/mid-last Unsigned range
- -- First: -1 -> 64353  Last: -32768->32768
- procedure I16_MinMax_U16 is
-  new I16_DU.Read_Physical_Values(Unsigned_16, U16_ElemMinMax, "+","*","+");
 
  -- info from Header
 
@@ -302,7 +294,7 @@ begin
  then
    I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
-   I16_MinMax_U16(InFile, DUSize, BZEROU16, BSCALEU16); 
+   U16_MinMax(InFile, DUSize, BZEROU16, BSCALEU16); 
    Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
    Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
  elsif(BITPIX = 8)

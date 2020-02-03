@@ -95,6 +95,29 @@ begin
 end UI8F32_Read_Physical_Values;
 
 
+-- sign conversions
+procedure I16U16_Read_Physical_Values
+        (F : SIO.File_Type;
+	DUSize : in Positive;
+	BZERO  : in Unsigned_16;
+	BSCALE : in Unsigned_16)
+is
+function "+" (R : Integer_16) return Unsigned_16
+ is  
+ begin
+   if(R < 0) then return (Unsigned_16'Last + 1) - Unsigned_16(abs R); 
+   else           return Unsigned_16(R);
+   end if;
+ end "+";
+ -- NOTE map Int-negative values to 'upper-half'/mid-last Unsigned range
+ -- First: -1 -> 64353  Last: -32768->32768
+ procedure U16_Read is
+  new I16_DU.Read_Physical_Values(Unsigned_16, Element, "+","*","+");
+begin
+ U16_Read(F, DUSize, BZERO, BSCALE);
+end I16U16_Read_Physical_Values;
+
+
 
 
 end V3_Data_Unit;
