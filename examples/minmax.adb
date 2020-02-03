@@ -102,6 +102,9 @@ is
 
  -- example of signed-unsigned conversion
 
+ BLfound : Boolean := False; -- FIXME must be reset before each Header read
+ BLANKI64 : Integer_64;
+
  BZEROU16  : Unsigned_16 := 0;
  BSCALEU16 : Unsigned_16 := 1;
  MinU16 : Unsigned_16 := Unsigned_16'Last;
@@ -153,23 +156,28 @@ is
   BZfound : Boolean := False;
   BSfound : Boolean := False;
  begin
+   BLfound := False;
    for I in Cards'Range
    loop
      Put_Line("RESKEYS: >" & Cards(I) & "<" );
      if(Cards(I)(1..5) = "BZERO")
      then
-	BZfound := True;
 	BZERO := Float_32'Value((Cards(I)(11..30)));
-	BZEROF64 := Float_64(BZEROF32); -- FIXME find betted solution
-	BZEROU16 := Unsigned_16(BZEROF32);
+	BZEROF64 := Float_64(BZEROF32); -- FIXME is global!!
+	BZEROU16 := Unsigned_16(BZEROF32);-- FIXME is global!!
+	BZfound := True;
      elsif(Cards(I)(1..6) = "BSCALE")
      then
-	BSfound := True;
 	BSCALE := Float_32'Value((Cards(I)(11..30)));
-	BSCALEF64 := Float_64(BSCALEF32); -- FIXME find betted solution
-	BSCALEU16 := Unsigned_16(BSCALEF32);
+	BSCALEF64 := Float_64(BSCALEF32); -- FIXME global var!!
+	BSCALEU16 := Unsigned_16(BSCALEF32); -- FIXME global var !!
+	BSfound := True;
+     elsif(Cards(I)(1..5) = "BLANK")
+     then
+        -- FIXME global vars!!
+	BLANKI64 := Integer_64'Value((Cards(I)(11..30))); -- FIXME not ok for UI8 data
+	BLfound := True;
      end if;
-     -- FIXME parse BLANK
    end loop;
 
   return BZfound AND BSfound;
@@ -208,6 +216,10 @@ begin
    ArrKeysGiven := Analyze_Array_Keys(Cards, BZEROF32, BSCALEF32);
  end;
 
+ if(BLfound = True)
+ then
+   Put_Line("BLANK  :" & Integer_64'Image(BLANKI64)); 
+ end if;
  Put_Line("BZERO  :" & Float_32'Image(BZEROF32)); 
  Put_Line("BSCALE :" & Float_32'Image(BSCALEF32)); 
  
