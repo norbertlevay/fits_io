@@ -27,6 +27,7 @@ with Optional.Reserved; use Optional.Reserved;
 
 -- new Data interface
 with V3_Types; use V3_Types;
+with V3_Data_Unit; use V3_Data_Unit;
 with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Block;
@@ -80,51 +81,17 @@ is
  MaxF64 : Float_64 := Float_64'First;
  procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64, "<", ">");
 
- -- Data Unit for Arra types
- package F64_DU is new Generic_Data_Unit(Float_64);
- package I64_DU is new Generic_Data_Unit(Integer_64);
- package F32_DU is new Generic_Data_Unit(Float_32);
- package I32_DU is new Generic_Data_Unit(Integer_32);
- package I16_DU is new Generic_Data_Unit(Integer_16);
- package UI8_DU is new Generic_Data_Unit(Unsigned_8);
- -- FIXME reconsider: all package generic or each procedure generic but not őackage
 
- -- NOTE on conversions: 
- --
- -- Integers -> Float : no range and no loss-of-precision problems (except I64) (?)
- -- UI8..I16  (3 and 5 digits) -> F32 (6 digits)
- -- I32 (10 digits)            -> F64 (15 digits)
- -- I64 (19 digits)            -> F64 : range ok, but 4-digits lost
- -- 
- -- Float -> Integers : always check range -> or handle Constraint_Error
- -- if range ok then:
- -- F64 (15 digits) -> I64 (19 digits) 
- -- F32 (6 digits)  -> I32 (10 digits) 
- -- F32 (6 digits)  -> I16 ( 5 digits) : ~ 1 digit lost but half memory space needed
- 
  -- MinMax for all array types
 
- procedure F64_MinMax is
-  new F64_DU.Read_Physical_Values(Float_64, F64_ElemMinMax, "+","*","+");
+ procedure F64_MinMax is new F64F64_Read_Physical_Values(F64_ElemMinMax);
+ procedure F32_MinMax is new F32F32_Read_Physical_Values(F32_ElemMinMax);
 
- procedure F32_MinMax is
-  new F32_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
+ procedure I64_MinMax is new I64F64_Read_Physical_Values(F64_ElemMinMax);
+ procedure I32_MinMax is new I32F64_Read_Physical_Values(F64_ElemMinMax);
+ procedure I16_MinMax is new I16F32_Read_Physical_Values(F32_ElemMinMax);
+ procedure UI8_MinMax is new UI8F32_Read_Physical_Values(F32_ElemMinMax);
 
- function "+" (R : Integer_64) return Float_64 is begin return Float_64(R); end "+";
- procedure I64_MinMax is
-  new I64_DU.Read_Physical_Values(Float_64, F64_ElemMinMax, "+","*","+");
-
- function "+" (R : Integer_32) return Float_32 is begin return Float_32(R); end "+";
- procedure I32_MinMax is
-  new I32_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
-
- function "+" (R : Integer_16) return Float_32 is begin return Float_32(R); end "+";
- procedure I16_MinMax is
-  new I16_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
-
- function "+" (R : Unsigned_8) return Float_32 is begin return Float_32(R); end "+";
- procedure U8_MinMax is
-  new UI8_DU.Read_Physical_Values(Float_32, F32_ElemMinMax, "+","*","+");
 
  -- example handling undefined value (I16 only)
 
@@ -141,6 +108,7 @@ is
  function I16_Is_BLANK(V : Integer_16) return Boolean
  is begin return V = BLANKI16; end I16_Is_BLANK;
 
+ function "+" (R : Integer_16) return Float_32 is begin return Float_32(R); end "+";
  procedure I16_Checked_MinMax is
   new I16_DU.Read_Checked_Physical_Values(Float_32, 
       I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax, "+","*","+");
@@ -324,7 +292,7 @@ begin
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(BITPIX = 32)
  then
-   I32_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   I32_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
  elsif(BLfound AND (BITPIX = 16))
  then
    --I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
@@ -339,7 +307,7 @@ begin
    Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
  elsif(BITPIX = 8)
  then
-   U8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   UI8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
  end if;
 
  Put_Line("F32 Min: " & Float_32'Image(MinF32));
