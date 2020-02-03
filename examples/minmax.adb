@@ -36,6 +36,18 @@ with Generic_Data_Value; use Generic_Data_Value;
 procedure minmax
 is
 
+ procedure print_ranges
+ is
+ begin
+  Put_Line("Float_64: " & Float_64'Image(Float_64'First)  & " - " & Float_64'Image(Float_64'Last));
+  Put_Line("Float_32: " & Float_32'Image(Float_32'First)  & " - " & Float_32'Image(Float_32'Last));
+  Put_Line("Int_64: " & Integer_64'Image(Integer_64'First)  & " - " & Integer_64'Image(Integer_64'Last));
+  Put_Line("Int_32: " & Integer_32'Image(Integer_32'First)  & " - " & Integer_32'Image(Integer_32'Last));
+  Put_Line("Int_16: " & Integer_16'Image(Integer_16'First)  & " - " & Integer_16'Image(Integer_16'Last));
+  Put_Line("UInt_8: " & Unsigned_8'Image(Unsigned_8'First)  & " - " & Unsigned_8'Image(Unsigned_8'Last));
+ end print_ranges;
+
+
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
@@ -322,6 +334,7 @@ begin
 
  SIO.Close(InFile);
 
+ print_ranges;
  Put_Line("done.");
 
 
