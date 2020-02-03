@@ -39,8 +39,8 @@ is
  procedure print_ranges
  is
  begin
-  Put_Line("Float_64: " & Float_64'Image(Float_64'First)  & " - " & Float_64'Image(Float_64'Last));
-  Put_Line("Float_32: " & Float_32'Image(Float_32'First)  & " - " & Float_32'Image(Float_32'Last));
+  Put_Line("Float_64: " & Natural'Image(Float_64'Digits) & " -> " & Float_64'Image(Float_64'First)  & " - " & Float_64'Image(Float_64'Last));
+  Put_Line("Float_32: " & Natural'Image(Float_32'Digits) & " -> " & Float_32'Image(Float_32'First)  & " - " & Float_32'Image(Float_32'Last));
   Put_Line("Int_64: " & Integer_64'Image(Integer_64'First)  & " - " & Integer_64'Image(Integer_64'Last));
   Put_Line("Int_32: " & Integer_32'Image(Integer_32'First)  & " - " & Integer_32'Image(Integer_32'Last));
   Put_Line("Int_16: " & Integer_16'Image(Integer_16'First)  & " - " & Integer_16'Image(Integer_16'Last));
@@ -144,6 +144,7 @@ is
  is
   function F32_To_U32 is new Ada.Unchecked_Conversion(Float_32, Unsigned_32);
   VM : Unsigned_32 := F32_To_U32(V);
+-- NOTE attribs exits: T'Exponent T'Fraction
   NaN_Exp : constant Unsigned_32 := 16#7F800000#;
   Exp   : Unsigned_32 := VM and 16#7F800000#;
   Fract : Unsigned_32 := VM and 16#007FFFFF#;
