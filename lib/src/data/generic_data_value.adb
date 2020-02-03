@@ -18,7 +18,6 @@ package body Generic_Data_Value is
   if(BLANK = Va)
   then
     Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
-    null; -- FIXME raise exception Undefined_Value
   end if;
   return PhysVal(Va);
  end Checked_Physical_Value;

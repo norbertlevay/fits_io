@@ -43,6 +43,7 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
   BSCALE : in out Tout;
   BLANK  : in out T;
   with procedure Physical_Elem(V : in Tout);
+  with procedure Undefined_Value(V : in T);
   with function "+" (L, R : in Tout) return Tout;
   with function "*" (L, R : in Tout) return Tout;
   with function "+" (R : in T) return Tout;

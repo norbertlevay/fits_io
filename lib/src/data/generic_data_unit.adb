@@ -65,7 +65,6 @@ end Read_Array_Values;
     Physical_Elem(PhysVal(V));
    end LocArrVal;
 
---   package genDU is new Generic_Data_Unit(T => Tin);
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
 
  begin
@@ -82,9 +81,10 @@ end Read_Array_Values;
     function PhysVal is new Checked_Physical_Value(T, Tout, BZERO, BSCALE, BLANK, "+","*","+");
    begin
     Physical_Elem(PhysVal(V));
+    exception 
+      when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value(V);
    end LocArrVal;
 
---   package genDU is new Generic_Data_Unit(T => Tin);
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
 
  begin

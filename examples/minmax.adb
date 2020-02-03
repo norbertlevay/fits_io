@@ -54,11 +54,13 @@ is
    if(V > Max) then Max := V; end if;
  end ElemMinMax;
 
+
  BZEROF32  : Float_32 := 0.0;
  BSCALEF32 : Float_32 := 1.0;
  MinF32 : Float_32 := Float_32'Last;
  MaxF32 : Float_32 := Float_32'First;
  procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32, "<", ">");
+
 
  BZEROF64  : Float_64 := 0.0;
  BSCALEF64 : Float_64 := 1.0;
@@ -99,11 +101,23 @@ is
  procedure U8_MinMax is
   new UI8_DU.Read_Physical_Values(Float_32, BZEROF32, BSCALEF32, F32_ElemMinMax, "+","*","+");
 
+ -- example handling undefined value (I16 only)
+
+ BLfound  : Boolean := False; -- FIXME must be reset before each Header read
+ BLANKI16 : Integer_16;
+ UndefValCnt : Natural := 0; -- FIXME miust be reset at each Header read start
+
+ procedure I16_UndefVal(V : in Integer_16)
+ is
+ begin
+  UndefValCnt := UndefValCnt + 1;
+ end I16_UndefVal;
+
+ procedure I16_Checked_MinMax is
+  new I16_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, BLANKI16,
+      F32_ElemMinMax, I16_UndefVal, "+","*","+");
 
  -- example of signed-unsigned conversion
-
- BLfound : Boolean := False; -- FIXME must be reset before each Header read
- BLANKI64 : Integer_64;
 
  BZEROU16  : Unsigned_16 := 0;
  BSCALEU16 : Unsigned_16 := 1;
@@ -157,6 +171,7 @@ is
   BSfound : Boolean := False;
  begin
    BLfound := False;
+   UndefValCnt := 0;
    for I in Cards'Range
    loop
      Put_Line("RESKEYS: >" & Cards(I) & "<" );
@@ -175,7 +190,7 @@ is
      elsif(Cards(I)(1..5) = "BLANK")
      then
         -- FIXME global vars!!
-	BLANKI64 := Integer_64'Value((Cards(I)(11..30))); -- FIXME not ok for UI8 data
+	BLANKI16 := Integer_16'Value((Cards(I)(11..30))); -- FIXME not ok for UI8 data
 	BLfound := True;
      end if;
    end loop;
@@ -185,7 +200,10 @@ is
 
  HDUStart : Positive := 1;
  -- FIXME now only Primary HDU, later consider other HDUs
-begin
+
+-------------------------------------------------------------------------------
+-- MAIN -------------------------------------------- MAIN ---------------------
+begin 
 
  Put_Line("Usage  " & Command_Name & " <file name>");
 
@@ -218,7 +236,7 @@ begin
 
  if(BLfound = True)
  then
-   Put_Line("BLANK  :" & Integer_64'Image(BLANKI64)); 
+   Put_Line("BLANK  :" & Integer_16'Image(BLANKI16)); 
  end if;
  Put_Line("BZERO  :" & Float_32'Image(BZEROF32)); 
  Put_Line("BSCALE :" & Float_32'Image(BSCALEF32)); 
@@ -247,7 +265,11 @@ begin
  elsif(BITPIX = 32)
  then
    I32_MinMax(InFile, DUSize);
- elsif(BITPIX = 16)
+ elsif(BLfound AND (BITPIX = 16))
+ then
+   I16_Checked_MinMax(InFile, DUSize);
+   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+ elsif(not BLfound AND (BITPIX = 16))
  then
    I16_MinMax(InFile, DUSize);
    Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
