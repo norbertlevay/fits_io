@@ -88,6 +88,19 @@ is
  package I16_DU is new Generic_Data_Unit(Integer_16);
  package UI8_DU is new Generic_Data_Unit(Unsigned_8);
  -- FIXME reconsider: all package generic or each procedure generic but not őackage
+
+ -- NOTE on conversions: 
+ --
+ -- Integers -> Float : no range and no loss-of-precision problems (except I64) (?)
+ -- UI8..I16  (3 and 5 digits) -> F32 (6 digits)
+ -- I32 (10 digits)            -> F64 (15 digits)
+ -- I64 (19 digits)            -> F64 : range ok, but 4-digits lost
+ -- 
+ -- Float -> Integers : always check range -> or handle Constraint_Error
+ -- if range ok then:
+ -- F64 (15 digits) -> I64 (19 digits) 
+ -- F32 (6 digits)  -> I32 (10 digits) 
+ -- F32 (6 digits)  -> I16 ( 5 digits) : ~ 1 digit lost but half memory space needed
  
  -- MinMax for all array types
 
