@@ -15,7 +15,7 @@ package body Generic_Data_Value is
  is
   function PhysVal is new Physical_Value(Tin,Tout,BZERO,BSCALE,"+","*","+");
  begin
-  if(BLANK = Va)
+  if(Is_Undefined(Va))
   then
     Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
   end if;

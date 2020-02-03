@@ -78,7 +78,7 @@ end Read_Array_Values;
 
    procedure LocArrVal(V : in T)
    is  
-    function PhysVal is new Checked_Physical_Value(T, Tout, BZERO, BSCALE, BLANK, "+","*","+");
+    function PhysVal is new Checked_Physical_Value(T, Tout, BZERO, BSCALE, Is_Undefined, "+","*","+");
    begin
     Physical_Elem(PhysVal(V));
     exception 

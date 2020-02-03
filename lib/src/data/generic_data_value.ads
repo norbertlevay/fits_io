@@ -28,7 +28,7 @@ function Physical_Value(Va : in Tin) return Tout;
   type Tout is private;
   BZERO  : in out Tout;
   BSCALE : in out Tout;
-  BLANK  : in out Tin;
+  with function Is_Undefined(Va : in Tin) return Boolean;
   with function "+" (L, R : in Tout) return Tout;
   with function "*" (L, R : in Tout) return Tout;
   with function "+" (R : in Tin) return Tout;

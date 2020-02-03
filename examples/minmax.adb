@@ -113,9 +113,41 @@ is
   UndefValCnt := UndefValCnt + 1;
  end I16_UndefVal;
 
+ function I16_Is_BLANK(V : Integer_16) return Boolean
+ is begin return V = BLANKI16; end I16_Is_BLANK;
+
  procedure I16_Checked_MinMax is
-  new I16_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, BLANKI16,
-      F32_ElemMinMax, I16_UndefVal, "+","*","+");
+  new I16_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, 
+      I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax, "+","*","+");
+
+ -- example undefined Float value
+
+ procedure F32_UndefVal(V : in Float_32)
+ is
+ begin
+  UndefValCnt := UndefValCnt + 1;
+ end F32_UndefVal;
+
+ function F32_Is_NaN(V : Float_32) return Boolean
+ is
+  function F32_To_U32 is new Ada.Unchecked_Conversion(Float_32, Unsigned_32);
+  VM : Unsigned_32 := F32_To_U32(V);
+  NaN_Exp : constant Unsigned_32 := 16#7F800000#;
+  Exp   : Unsigned_32 := VM and 16#7F800000#;
+  Fract : Unsigned_32 := VM and 16#007FFFFF#;
+ begin
+  -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
+  if((Exp = Nan_Exp) AND (Fract /= 16#00000000#)) 
+  then return True;  -- NaN
+  else return False; -- not NaN
+  end if; 
+ end F32_Is_NaN;
+ -- FIXME do this as generic
+
+ procedure F32_Checked_MinMax is
+  new F32_DU.Read_Checked_Physical_Values(Float_32, BZEROF32, BSCALEF32, 
+      F32_Is_NaN, F32_UndefVal, F32_ElemMinMax, "+","*","+");
+
 
  -- example of signed-unsigned conversion
 
@@ -261,7 +293,8 @@ begin
  
  if(BITPIX = -32)
  then
-   F32_MinMax(InFile, DUSize);
+   F32_Checked_MinMax(InFile, DUSize);
+   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(BITPIX = 32)
  then
    I32_MinMax(InFile, DUSize);
