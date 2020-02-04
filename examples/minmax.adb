@@ -202,7 +202,14 @@ is
      elsif(Cards(I)(1..5) = "BLANK")
      then
         -- FIXME global vars!!
-	BLANKI16 := Integer_16'Value((Cards(I)(11..30))); -- FIXME not ok for UI8 data
+        case(BITPIX) is
+	when 64 => BLANKI64 := Integer_64'Value((Cards(I)(11..30)));
+	when 32 => BLANKI32 := Integer_32'Value((Cards(I)(11..30)));
+	when 16 => BLANKI16 := Integer_16'Value((Cards(I)(11..30)));
+	when  8 => BLANKUI8 := Unsigned_8'Value((Cards(I)(11..30)));
+	when others => 
+		Put_Line("BLANK card in Float data !");
+	end case;
 	BLfound := True;
      end if;
    end loop;

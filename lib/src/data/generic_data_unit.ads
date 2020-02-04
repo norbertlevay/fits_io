@@ -19,9 +19,6 @@ package Generic_Data_Unit is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
-
--- Sequential access
-
 -- raw array data values in file (Varr)
 
 generic
@@ -29,7 +26,10 @@ generic
 procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 
 
--- converted physical data values Vphys = BZERO + BSCALE * Varr 
+-- Conversion to physical values
+-- Vphys = BZERO + BSCALE * Varr
+ 
+-- converted physical integer values 
 
  generic
   type Tout is private;
@@ -37,7 +37,6 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in T) return Tout is <>;
  package Physical is
- 
 
  generic
   with procedure Element_Value(V : in Tout);
@@ -47,21 +46,9 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 		BZERO  : in Tout;
 		BSCALE : in Tout);
 
-
- generic
-  with function  Is_Undefined(V : in T) return Boolean;
-  with procedure Undefined_Value;
-  with procedure Element_Value(V : in Tout);
- procedure Read_Checked_Values
-		(F : SIO.File_Type;
-		DUSize : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout);
-
-
  generic
   with procedure Element_Value(V : in Tout);
-  with procedure Undefined_Value;
+  with procedure Undefined_Value is null;
  procedure Read_Checked_Integers
 		(F : SIO.File_Type;
 		DUSize : in Positive;
@@ -72,10 +59,7 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 end Physical;
 
 
-
-
-
-
+-- converted physical float values
 
  generic
   type Tout is digits <>;
@@ -86,7 +70,7 @@ end Physical;
  
  generic
   with procedure Element_Value(V : in Tout);
-  with procedure Undefined_Value;
+  with procedure Undefined_Value is null;
  procedure Read_Checked_Floats
 		(F : SIO.File_Type;
 		DUSize : in Positive;

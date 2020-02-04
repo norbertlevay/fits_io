@@ -13,7 +13,7 @@ package body Generic_Data_Value is
  end Physical_Value;
 
 
- function Checked_Physical_Value(Va : in Tin) return Tout
+ function OFFChecked_Physical_Value(Va : in Tin) return Tout
  is
   function PhysVal is new Physical_Value(Tin,Tout,BZERO,BSCALE,"+","*","+");
  begin
@@ -22,7 +22,7 @@ package body Generic_Data_Value is
     Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
   end if;
   return PhysVal(Va);
- end Checked_Physical_Value;
+ end OFFChecked_Physical_Value;
 
 
 
