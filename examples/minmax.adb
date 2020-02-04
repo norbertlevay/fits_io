@@ -84,32 +84,67 @@ is
 
  -- example of signed-unsigned conversion
 
+ BZEROU64  : Unsigned_64 := 0;
+ BSCALEU64 : Unsigned_64 := 1;
+ MinU64 : Unsigned_64 := Unsigned_64'Last;
+ MaxU64 : Unsigned_64 := Unsigned_64'First;
+ procedure U64_ElemMinMax is new ElemMinMax(Unsigned_64, MinU64, MaxU64);
+
+ BZEROU32  : Unsigned_32 := 0;
+ BSCALEU32 : Unsigned_32 := 1;
+ MinU32 : Unsigned_32 := Unsigned_32'Last;
+ MaxU32 : Unsigned_32 := Unsigned_32'First;
+ procedure U32_ElemMinMax is new ElemMinMax(Unsigned_32, MinU32, MaxU32);
+
  BZEROU16  : Unsigned_16 := 0;
  BSCALEU16 : Unsigned_16 := 1;
  MinU16 : Unsigned_16 := Unsigned_16'Last;
  MaxU16 : Unsigned_16 := Unsigned_16'First;
  procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16);
 
-
+ BZEROI8  : Integer_8 := 0;
+ BSCALEI8 : Integer_8 := 1;
+ MinI8 : Integer_8 := Integer_8'Last;
+ MaxI8 : Integer_8 := Integer_8'First;
+ procedure I8_ElemMinMax is new ElemMinMax(Integer_8, MinI8, MaxI8);
 
  -- MinMax for all array types
 
  procedure F64_MinMax is new F64F64.Read_Values(F64_ElemMinMax);
  procedure F32_MinMax is new F32F32.Read_Values(F32_ElemMinMax);
 
+ -- integer data if BLANK not available
+
  procedure I64_MinMax is new I64F64.Read_Values(F64_ElemMinMax);
  procedure I32_MinMax is new I32F64.Read_Values(F64_ElemMinMax);
  procedure I16_MinMax is new I16F32.Read_Values(F32_ElemMinMax);
  procedure UI8_MinMax is new UI8F32.Read_Values(F32_ElemMinMax);
 
+ -- sign conversion variants apply if BZERO BSCALE = Tab11
+ procedure U64_MinMax is new I64U64.Read_Values(U64_ElemMinMax);
+ procedure U32_MinMax is new I32U32.Read_Values(U32_ElemMinMax);
  procedure U16_MinMax is new I16U16.Read_Values(U16_ElemMinMax);
+ procedure I8_MinMax  is new UI8I8.Read_Values ( I8_ElemMinMax);
 
+ -- integer data if BLANK available
+
+ UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
+
+ procedure F64_UndefVal(V : in Float_64) is begin UndefValCnt := UndefValCnt + 1; end F64_UndefVal;
+ procedure F32_UndefVal(V : in Float_32) is begin UndefValCnt := UndefValCnt + 1; end F32_UndefVal;
+
+ procedure F64_Checked_MinMax is
+	new F64F64.Read_Checked_Values(F64_Is_NaN, F64_UndefVal, F64_ElemMinMax);
+
+ procedure F32_Checked_MinMax is
+	new F32F32.Read_Checked_Values(F32_Is_NaN, F32_UndefVal, F32_ElemMinMax);
+
+ -- TODO
 
  -- example handling undefined value (I16 only)
 
  BLfound  : Boolean := False; -- FIXME must be reset before each Header read
  BLANKI16 : Integer_16;
- UndefValCnt : Natural := 0; -- FIXME miust be reset at each Header read start
 
  procedure I16_UndefVal(V : in Integer_16)
  is
@@ -120,38 +155,8 @@ is
  function I16_Is_BLANK(V : Integer_16) return Boolean
  is begin return V = BLANKI16; end I16_Is_BLANK;
 
- function "+" (R : Integer_16) return Float_32 is begin return Float_32(R); end "+";
  procedure I16_Checked_MinMax is
   new I16F32.Read_Checked_Values(I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax);
-
- -- example undefined Float value
-
- procedure F32_UndefVal(V : in Float_32)
- is
- begin
-  UndefValCnt := UndefValCnt + 1;
- end F32_UndefVal;
-
- function F32_Is_NaN(V : Float_32) return Boolean
- is
-  function F32_To_U32 is new Ada.Unchecked_Conversion(Float_32, Unsigned_32);
-  VM : Unsigned_32 := F32_To_U32(V);
--- NOTE attribs exits: T'Exponent T'Fraction
-  NaN_Exp : constant Unsigned_32 := 16#7F800000#;
-  Exp   : Unsigned_32 := VM and 16#7F800000#;
-  Fract : Unsigned_32 := VM and 16#007FFFFF#;
- begin
-  -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
-  if((Exp = Nan_Exp) AND (Fract /= 16#00000000#)) 
-  then return True;  -- NaN
-  else return False; -- not NaN
-  end if; 
- end F32_Is_NaN;
- -- FIXME do this as generic
-
- procedure F32_Checked_MinMax is
-  new F32F32.Read_Checked_Values(F32_Is_NaN, F32_UndefVal, F32_ElemMinMax);
-
 
 
  -- info from Header

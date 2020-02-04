@@ -53,5 +53,12 @@ package V3_Types is
  function "+" (R : Unsigned_8) return Integer_8;
 
 
+ -- Undefined values
+ function F64_Is_NaN(V : Float_64) return Boolean;
+ function F32_Is_NaN(V : Float_32) return Boolean;
+
+
+
+
 end V3_Types;
 
