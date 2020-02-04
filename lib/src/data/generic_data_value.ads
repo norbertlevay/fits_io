@@ -33,22 +33,10 @@ function Physical_Value(Va : in Tin) return Tout;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
 function Checked_Physical_Value(Va : in Tin) return Tout;
--- raise excpetion if Undefined_Value (=BLANK) encountered
+-- raises excpetion if Undefined_Value (=BLANK) encountered
 
 Undefined_Value : exception;
 
--- FIXME replace BLANK : Tin with function Is_Undefined_Value(V : in T) return Boolean
--- or consider digits <>; and range <>; separately -> then all funcs in Data_Unit also duplicated
--- IEEE Floats NaN is not one value but range of values:
--- signbit 0 -> +NaN
--- signbit 0 -> -NaN
--- exponent bits -> all 1
--- fraction bits -> all not 0 <-- this is trouble
---
--- Needs func not constant:
--- Is_Undefined_Value(V : in T)
--- --- for Integers compare to BLANK
--- --- for Floats check:  exponent = 7FFF..  AND fraction /= 0000...
 
 end Generic_Data_Value;
 
