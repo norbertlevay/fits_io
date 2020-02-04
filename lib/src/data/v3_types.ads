@@ -37,5 +37,21 @@ package V3_Types is
    package F32   is new Generic_Data_Block(T => Float_32);
    package F64   is new Generic_Data_Block(T => Float_64);
 
+
+ -- integer -> float converions
+
+ function "+" (R : Integer_64) return Float_64;
+ function "+" (R : Integer_32) return Float_64;
+ function "+" (R : Integer_16) return Float_32;
+ function "+" (R : Unsigned_8) return Float_32;
+
+ -- sign conversions
+
+ function "+" (R : Integer_64) return Unsigned_64;
+ function "+" (R : Integer_32) return Unsigned_32;
+ function "+" (R : Integer_16) return Unsigned_16;
+ function "+" (R : Unsigned_8) return Integer_8;
+
+
 end V3_Types;
 

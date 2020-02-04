@@ -17,19 +17,7 @@ with Generic_Data_Unit;
 
 package V3_Data_Unit is
 
- -- integer -> float converions
-
- function "+" (R : Integer_64) return Float_64;
- function "+" (R : Integer_32) return Float_64;
- function "+" (R : Integer_16) return Float_32;
- function "+" (R : Unsigned_8) return Float_32;
-
- -- sign conversions
- 
- function "+" (R : Integer_16) return Unsigned_16;
-
- 
- -- Data Units per ArrType PhysType
+ -- Data Units per ArrType
 
 package F64_DU is new Generic_Data_Unit(Float_64);
 package F32_DU is new Generic_Data_Unit(Float_32);
@@ -38,15 +26,26 @@ package I32_DU is new Generic_Data_Unit(Integer_32);
 package I16_DU is new Generic_Data_Unit(Integer_16);
 package UI8_DU is new Generic_Data_Unit(Unsigned_8);
 
+-- Data Units per ArraType / PhysType
+
+-- scaling float values Vout = BZERO + BSCALE * Vin
+
 package F64F64 is new F64_DU.Physical(Float_64);
 package F32F32 is new F32_DU.Physical(Float_32);
+
+-- scaling and int->float conversions
+
 package I64F64 is new I64_DU.Physical(Float_64);
 package I32F64 is new I32_DU.Physical(Float_64);
 package I16F32 is new I16_DU.Physical(Float_32);
 package UI8F32 is new UI8_DU.Physical(Float_32);
 
+-- sign conversions
 
+package I64U64 is new I64_DU.Physical(Unsigned_64);
+package I32U32 is new I32_DU.Physical(Unsigned_32);
 package I16U16 is new I16_DU.Physical(Unsigned_16);
+package UI8I8  is new UI8_DU.Physical(Integer_8);
 
 end V3_Data_Unit;
 
