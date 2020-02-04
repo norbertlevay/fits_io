@@ -63,42 +63,33 @@ package body V3_Types is
  end "+";
  
 
- -- undefined float values
+ -- undefined float values use IEEE NaN : 
+ -- signbit=don't care & 
+ -- exponent= all ones & 
+ -- fraction= any but not all zeros
+ generic
+  type T is digits <>;
+ function Is_NaN(V : in T) return Boolean;
+ function Is_NaN(V : in T) return Boolean
+ is
+ begin
+  return ( (T'Exponent(V) = 255) AND 
+	   (T'Fraction(V) /= 0.0) );
+ end Is_NaN;
+ 
  function F64_Is_NaN(V : Float_64) return Boolean
  is
-  function F64_To_U64 is new Ada.Unchecked_Conversion(Float_64, Unsigned_64);
-  VM : Unsigned_64 := F64_To_U64(V);
--- NOTE attribs exits: T'Exponent T'Fraction
-  -- FIXME hex constants INCORRECT just taken from 32bit
-  NaN_Exp : constant Unsigned_64 := 16#7FF00000000000#;
-  Exp   : Unsigned_64     := VM and 16#7FF00000000000#;
-  Fract : Unsigned_64     := VM and 16#000FFFFFFFFFFF#;
+  function isnan is new Is_NaN(Float_64);
  begin
-  -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
-  if((Exp = Nan_Exp) AND  (Fract /= 16#00000000000000#)) 
-  then return True;  -- NaN
-  else return False; -- not NaN
-  end if; 
+  return isnan(V);
  end F64_Is_NaN;
- -- FIXME do this as generic
 
 function F32_Is_NaN(V : Float_32) return Boolean
  is
-  function F32_To_U32 is new Ada.Unchecked_Conversion(Float_32, Unsigned_32);
-  VM : Unsigned_32 := F32_To_U32(V);
--- NOTE attribs exits: T'Exponent T'Fraction
-  NaN_Exp : constant Unsigned_32 := 16#7F800000#;
-  Exp   : Unsigned_32     := VM and 16#7F800000#;
-  Fract : Unsigned_32     := VM and 16#007FFFFF#;
+   function isnan is new Is_NaN(Float_32);
  begin
-  -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
-  if((Exp = Nan_Exp) AND  (Fract /= 16#00000000#)) 
-  then return True;  -- NaN
-  else return False; -- not NaN
-  end if; 
+  return isnan(V);
  end F32_Is_NaN;
- -- FIXME do this as generic
-
 
 
 end V3_Types;
