@@ -70,12 +70,12 @@ package body V3_Types is
   VM : Unsigned_64 := F64_To_U64(V);
 -- NOTE attribs exits: T'Exponent T'Fraction
   -- FIXME hex constants INCORRECT just taken from 32bit
-  NaN_Exp : constant Unsigned_64 := 16#7F800000000000#;
-  Exp   : Unsigned_64 := VM and 16#7F800000000000#;
-  Fract : Unsigned_64 := VM and 16#007FFFFF000000#;
+  NaN_Exp : constant Unsigned_64 := 16#7FF00000000000#;
+  Exp   : Unsigned_64     := VM and 16#7FF00000000000#;
+  Fract : Unsigned_64     := VM and 16#000FFFFFFFFFFF#;
  begin
   -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
-  if((Exp = Nan_Exp) AND (Fract /= 16#00000000000000#)) 
+  if((Exp = Nan_Exp) AND  (Fract /= 16#00000000000000#)) 
   then return True;  -- NaN
   else return False; -- not NaN
   end if; 
@@ -88,11 +88,11 @@ function F32_Is_NaN(V : Float_32) return Boolean
   VM : Unsigned_32 := F32_To_U32(V);
 -- NOTE attribs exits: T'Exponent T'Fraction
   NaN_Exp : constant Unsigned_32 := 16#7F800000#;
-  Exp   : Unsigned_32 := VM and 16#7F800000#;
-  Fract : Unsigned_32 := VM and 16#007FFFFF#;
+  Exp   : Unsigned_32     := VM and 16#7F800000#;
+  Fract : Unsigned_32     := VM and 16#007FFFFF#;
  begin
   -- IEEE NaN : signbit=dont care & exponent= all ones & fraction= any but not all zeros
-  if((Exp = Nan_Exp) AND (Fract /= 16#00000000#)) 
+  if((Exp = Nan_Exp) AND  (Fract /= 16#00000000#)) 
   then return True;  -- NaN
   else return False; -- not NaN
   end if; 

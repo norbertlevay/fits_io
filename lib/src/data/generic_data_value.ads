@@ -29,6 +29,7 @@ function Physical_Value(Va : in Tin) return Tout;
   BZERO  : in Tout;
   BSCALE : in Tout;
   with function Is_Undefined(Va : in Tin) return Boolean;
+-- FIXME should provide Position where undef val is instead of Va
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
