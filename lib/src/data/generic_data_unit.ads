@@ -46,6 +46,9 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 		BZERO  : in Tout;
 		BSCALE : in Tout);
 
+
+-- FIXME func-name _Integers() does not fit Tout type spec
+-- as below for Floats is ok
  generic
   with procedure Element_Value(V : in Tout);
   with procedure Undefined_Value is null;

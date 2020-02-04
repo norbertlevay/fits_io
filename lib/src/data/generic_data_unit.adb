@@ -139,7 +139,8 @@ package body Physical_Float is
                 BSCALE : in Tout)
   is
    procedure LocArrVal(V : in T)
-   is  
+   is 
+                                        -- FIXME first Tout should be T or Tin 
     function PhysVal is new Checked_Physical_Float(Tout, Tout, BZERO, BSCALE, "+","*","+");
    begin
      Element_Value(PhysVal(+(V))); -- FIXME note the conversion +()
