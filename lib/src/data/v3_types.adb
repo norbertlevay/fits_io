@@ -63,34 +63,5 @@ package body V3_Types is
  end "+";
  
 
- -- undefined float values use IEEE NaN : 
- -- signbit=don't care & 
- -- exponent= all ones & 
- -- fraction= any but not all zeros
- generic
-  type T is digits <>;
- function Is_NaN(V : in T) return Boolean;
- function Is_NaN(V : in T) return Boolean
- is
- begin
-  return ( (T'Exponent(V) = 255) AND 
-	   (T'Fraction(V) /= 0.0) );
- end Is_NaN;
- 
- function F64_Is_NaN(V : Float_64) return Boolean
- is
-  function isnan is new Is_NaN(Float_64);
- begin
-  return isnan(V);
- end F64_Is_NaN;
-
-function F32_Is_NaN(V : Float_32) return Boolean
- is
-   function isnan is new Is_NaN(Float_32);
- begin
-  return isnan(V);
- end F32_Is_NaN;
-
-
 end V3_Types;
 

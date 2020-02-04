@@ -108,35 +108,9 @@ is
  MaxI8 : Integer_8 := Integer_8'First;
  procedure I8_ElemMinMax is new ElemMinMax(Integer_8, MinI8, MaxI8);
 
+
+
  -- MinMax for all array types
-
- procedure F64_MinMax is new F64F64.Read_Values(F64_ElemMinMax);
- procedure F32_MinMax is new F32F32.Read_Values(F32_ElemMinMax);
-
- -- integer data if BLANK not available
-
- procedure I64_MinMax is new I64F64.Read_Values(F64_ElemMinMax);
- procedure I32_MinMax is new I32F64.Read_Values(F64_ElemMinMax);
- procedure I16_MinMax is new I16F32.Read_Values(F32_ElemMinMax);
- procedure UI8_MinMax is new UI8F32.Read_Values(F32_ElemMinMax);
-
- -- sign conversion variants apply if BZERO BSCALE = Tab11
- procedure U64_MinMax is new I64U64.Read_Values(U64_ElemMinMax);
- procedure U32_MinMax is new I32U32.Read_Values(U32_ElemMinMax);
- procedure U16_MinMax is new I16U16.Read_Values(U16_ElemMinMax);
- procedure I8_MinMax  is new UI8I8.Read_Values ( I8_ElemMinMax);
-
-
- -- floats with undefined value check
-
- UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
- procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
-
- procedure F64_Checked_MinMax is
-	new F64F64.Read_Checked_Values(F64_Is_NaN, UndefVal, F64_ElemMinMax);
-
- procedure F32_Checked_MinMax is
-	new F32F32.Read_Checked_Values(F32_Is_NaN, UndefVal, F32_ElemMinMax);
 
  -- integer data if BLANK available (undefined value check)
  
@@ -145,30 +119,33 @@ is
  BLANKI32 : Integer_32;
  BLANKI16 : Integer_16;
  BLANKUI8 : Unsigned_8;
+ UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
+ procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
 
- generic
-  type T is private;
-  BLANK : in out T;
- function gen_Is_BLANK(V : T) return Boolean;
- function gen_Is_BLANK(V : T) return Boolean is
- begin  return (V = BLANK); end gen_Is_BLANK;
 
- function I64_Is_BLANK is new gen_Is_BLANK(Integer_64, BLANKI64);
- function I32_Is_BLANK is new gen_Is_BLANK(Integer_32, BLANKI32);
- function I16_Is_BLANK is new gen_Is_BLANK(Integer_16, BLANKI16);
- function UI8_Is_BLANK is new gen_Is_BLANK(Unsigned_8, BLANKUI8);
+ procedure I64_Checked_MinMax is new I64F64.Read_Checked_Integers(F64_ElemMinMax, UndefVal);
+ procedure I32_Checked_MinMax is new I32F64.Read_Checked_Integers(F64_ElemMinMax, UndefVal);
+ procedure I16_Checked_MinMax is new I16F32.Read_Checked_Integers(F32_ElemMinMax, UndefVal);
+ procedure UI8_Checked_MinMax is new UI8F32.Read_Checked_Integers(F32_ElemMinMax, UndefVal);
 
- procedure I64_Checked_MinMax is
-  new I64F64.Read_Checked_Values(I64_Is_BLANK, UndefVal, F64_ElemMinMax);
+ -- integer data if BLANK not available
 
- procedure I32_Checked_MinMax is
-  new I32F64.Read_Checked_Values(I32_Is_BLANK, UndefVal, F64_ElemMinMax);
+ procedure I64_MinMax is new I64F64.Read_Values(F64_ElemMinMax);
+ procedure I32_MinMax is new I32F64.Read_Values(F64_ElemMinMax);
+ procedure I16_MinMax is new I16F32.Read_Values(F32_ElemMinMax);
+ procedure UI8_MinMax is new UI8F32.Read_Values(F32_ElemMinMax);
 
- procedure I16_Checked_MinMax is
-  new I16F32.Read_Checked_Values(I16_Is_BLANK, UndefVal, F32_ElemMinMax);
+ -- integer sign conversion variants if BZERO BSCALE = Tab11
 
- procedure UI8_Checked_MinMax is
-  new UI8F32.Read_Checked_Values(UI8_Is_BLANK, UndefVal, F32_ElemMinMax);
+ procedure U64_MinMax is new I64U64.Read_Values(U64_ElemMinMax);
+ procedure U32_MinMax is new I32U32.Read_Values(U32_ElemMinMax);
+ procedure U16_MinMax is new I16U16.Read_Values(U16_ElemMinMax);
+ procedure I8_MinMax  is new UI8I8.Read_Values ( I8_ElemMinMax);
+
+ -- floats (always with undefined value check)
+
+ procedure F64_Checked_MinMax is new F64F64.Read_Checked_Floats(F64_ElemMinMax, UndefVal);
+ procedure F32_Checked_MinMax is new F32F32.Read_Checked_Floats(F32_ElemMinMax, UndefVal);
 
 
 
@@ -283,7 +260,8 @@ begin
  
  if(BITPIX = -64)
  then
-   F64_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
+   F64_Checked_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
+   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(BITPIX = 64)
  then
    I64_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
@@ -296,7 +274,6 @@ begin
  
  if(BITPIX = -32)
  then
-   -- F32_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    F32_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(BITPIX = 32)
@@ -305,7 +282,7 @@ begin
  elsif(BLfound AND (BITPIX = 16))
  then
    --I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
-   I16_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   I16_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32, BLANKI16);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
  elsif(not BLfound AND (BITPIX = 16))
  then

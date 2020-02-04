@@ -59,7 +59,41 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 		BSCALE : in Tout);
 
 
+ generic
+  with procedure Element_Value(V : in Tout);
+  with procedure Undefined_Value;
+ procedure Read_Checked_Integers
+		(F : SIO.File_Type;
+		DUSize : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout;
+		BLANK  : in T);
+
 end Physical;
+
+
+
+
+
+
+
+ generic
+  type Tout is digits <>;
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in T) return Tout is <>;
+ package Physical_Float is
+ 
+ generic
+  with procedure Element_Value(V : in Tout);
+  with procedure Undefined_Value;
+ procedure Read_Checked_Floats
+		(F : SIO.File_Type;
+		DUSize : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout);
+
+ end Physical_Float;
 
 
 

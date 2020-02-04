@@ -30,8 +30,8 @@ package UI8_DU is new Generic_Data_Unit(Unsigned_8);
 
 -- scaling float values Vout = BZERO + BSCALE * Vin
 
-package F64F64 is new F64_DU.Physical(Float_64);
-package F32F32 is new F32_DU.Physical(Float_32);
+package F64F64 is new F64_DU.Physical_Float(Float_64);
+package F32F32 is new F32_DU.Physical_Float(Float_32);
 
 -- scaling and int->float conversions
 

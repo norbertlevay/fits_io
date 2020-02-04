@@ -25,6 +25,52 @@ package body Generic_Data_Value is
  end Checked_Physical_Value;
 
 
+
+ function Checked_Physical_Integer(Va : in Tin) return Tout
+ is
+  function PhysVal is new Physical_Value(Tin,Tout,BZERO,BSCALE,"+","*","+");
+ begin
+  if(Va = BLANK)
+  then
+    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
+  end if;
+  return PhysVal(Va);
+ end Checked_Physical_Integer;
+
+
+
+
+
+ -- undefined float values use IEEE NaN : 
+ -- signbit=don't care & 
+ -- exponent= all ones & 
+ -- fraction= any but not all zeros
+ generic
+  type T is digits <>; 
+ function Is_NaN(V : in T) return Boolean;
+ function Is_NaN(V : in T) return Boolean
+ is
+ begin
+  return ( (T'Exponent(V) = 255) AND 
+           (T'Fraction(V) /= 0.0) );
+ end Is_NaN;
+
+
+ function Checked_Physical_Float(Va : in Tin) return Tout
+ is
+  function PhysVal is new Physical_Value(Tin,Tout,BZERO,BSCALE,"+","*","+");
+  function IsNaN   is new Is_NaN(Tin);
+ begin
+  if(IsNaN(Va))
+  then
+    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
+  end if;
+  return PhysVal(Va);
+ end Checked_Physical_Float;
+
+
+
+------------------------------------------------------------
 -- optimized version for sign conversions (flip highest bit)
 -- NOT IN USE, is only for reference
 
