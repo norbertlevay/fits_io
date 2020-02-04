@@ -55,52 +55,48 @@ end Read_Array_Values;
 
  -- Physical values
 
- procedure Read_Physical_Values
+package body Physical is
+
+ procedure Read_Values
                  (F : SIO.File_Type;
                  DUSize : in Positive;
                  BZERO  : in Tout;
                  BSCALE : in Tout)
  is
-
    procedure LocArrVal(V : in T)
    is  
     function PhysVal is new Physical_Value(T, Tout, BZERO, BSCALE, "+","*","+");
    begin
-    Physical_Elem(PhysVal(V));
+    Element_Value(PhysVal(V));
    end LocArrVal;
-
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
-
  begin
    ReadArrVals(F, DUSize);  
- end Read_Physical_Values;
+ end Read_Values;
 
 
 
- procedure Read_Checked_Physical_Values
+ procedure Read_Checked_Values
                 (F : SIO.File_Type;
                 DUSize : in Positive;
                 BZERO  : in Tout;
                 BSCALE : in Tout)
  is
-
    procedure LocArrVal(V : in T)
    is  
     function PhysVal is new Checked_Physical_Value(T, Tout, BZERO, BSCALE, Is_Undefined, "+","*","+");
    begin
-    Physical_Elem(PhysVal(V));
+    Element_Value(PhysVal(V));
     exception 
       when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value(V);
    end LocArrVal;
-
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
-
  begin
    ReadArrVals(F, DUSize);  
- end Read_Checked_Physical_Values;
+ end Read_Checked_Values;
 
 
-
+end Physical;
 
 
 

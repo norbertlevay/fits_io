@@ -18,9 +18,9 @@ package Generic_Data_Value is
   type Tout is private;
   BZERO  : in Tout;
   BSCALE : in Tout;
-  with function "+" (L, R : in Tout) return Tout;
-  with function "*" (L, R : in Tout) return Tout;
-  with function "+" (R : in Tin) return Tout;
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in Tin) return Tout is <>;
 function Physical_Value(Va : in Tin) return Tout;
 
  generic
@@ -29,9 +29,9 @@ function Physical_Value(Va : in Tin) return Tout;
   BZERO  : in Tout;
   BSCALE : in Tout;
   with function Is_Undefined(Va : in Tin) return Boolean;
-  with function "+" (L, R : in Tout) return Tout;
-  with function "*" (L, R : in Tout) return Tout;
-  with function "+" (R : in Tin) return Tout;
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in Tin) return Tout is <>;
 function Checked_Physical_Value(Va : in Tin) return Tout;
 -- raise excpetion if Undefined_Value (=BLANK) encountered
 

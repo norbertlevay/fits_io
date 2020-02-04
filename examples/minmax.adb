@@ -40,6 +40,7 @@ is
  procedure print_ranges
  is
  begin
+  New_Line;
   Put_Line("Float_64: " & Natural'Image(Float_64'Digits) & " -> " & Float_64'Image(Float_64'First)  & " - " & Float_64'Image(Float_64'Last));
   Put_Line("Float_32: " & Natural'Image(Float_32'Digits) & " -> " & Float_32'Image(Float_32'First)  & " - " & Float_32'Image(Float_32'Last));
   Put_Line("Int_64: " & Integer_64'Image(Integer_64'First)  & " - " & Integer_64'Image(Integer_64'Last));
@@ -57,8 +58,8 @@ is
  generic
   type T is private;
   Min, Max : in out T;
-  with function "<" (L,R : in T) return Boolean;
-  with function ">" (L,R : in T) return Boolean;
+  with function "<" (L,R : in T) return Boolean is <>;
+  with function ">" (L,R : in T) return Boolean is <>;
  procedure ElemMinMax(V : in T);
  procedure ElemMinMax(V : in T)
  is
@@ -72,14 +73,14 @@ is
  BSCALEF32 : Float_32 := 1.0;
  MinF32 : Float_32 := Float_32'Last;
  MaxF32 : Float_32 := Float_32'First;
- procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32, "<", ">");
+ procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32);
 
 
  BZEROF64  : Float_64 := 0.0;
  BSCALEF64 : Float_64 := 1.0;
  MinF64 : Float_64 := Float_64'Last;
  MaxF64 : Float_64 := Float_64'First;
- procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64, "<", ">");
+ procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64);
 
  -- example of signed-unsigned conversion
 
@@ -87,21 +88,21 @@ is
  BSCALEU16 : Unsigned_16 := 1;
  MinU16 : Unsigned_16 := Unsigned_16'Last;
  MaxU16 : Unsigned_16 := Unsigned_16'First;
- procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16, "<", ">");
+ procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16);
 
 
 
  -- MinMax for all array types
 
- procedure F64_MinMax is new F64F64_Read_Physical_Values(F64_ElemMinMax);
- procedure F32_MinMax is new F32F32_Read_Physical_Values(F32_ElemMinMax);
+ procedure F64_MinMax is new F64F64.Read_Values(F64_ElemMinMax);
+ procedure F32_MinMax is new F32F32.Read_Values(F32_ElemMinMax);
 
- procedure I64_MinMax is new I64F64_Read_Physical_Values(F64_ElemMinMax);
- procedure I32_MinMax is new I32F64_Read_Physical_Values(F64_ElemMinMax);
- procedure I16_MinMax is new I16F32_Read_Physical_Values(F32_ElemMinMax);
- procedure UI8_MinMax is new UI8F32_Read_Physical_Values(F32_ElemMinMax);
+ procedure I64_MinMax is new I64F64.Read_Values(F64_ElemMinMax);
+ procedure I32_MinMax is new I32F64.Read_Values(F64_ElemMinMax);
+ procedure I16_MinMax is new I16F32.Read_Values(F32_ElemMinMax);
+ procedure UI8_MinMax is new UI8F32.Read_Values(F32_ElemMinMax);
 
- procedure U16_MinMax is new I16U16_Read_Physical_Values(U16_ElemMinMax);
+ procedure U16_MinMax is new I16U16.Read_Values(U16_ElemMinMax);
 
 
  -- example handling undefined value (I16 only)
@@ -121,8 +122,7 @@ is
 
  function "+" (R : Integer_16) return Float_32 is begin return Float_32(R); end "+";
  procedure I16_Checked_MinMax is
-  new I16_DU.Read_Checked_Physical_Values(Float_32, 
-      I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax, "+","*","+");
+  new I16F32.Read_Checked_Values(I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax);
 
  -- example undefined Float value
 
@@ -150,8 +150,7 @@ is
  -- FIXME do this as generic
 
  procedure F32_Checked_MinMax is
-  new F32_DU.Read_Checked_Physical_Values(Float_32, 
-      F32_Is_NaN, F32_UndefVal, F32_ElemMinMax, "+","*","+");
+  new F32F32.Read_Checked_Values(F32_Is_NaN, F32_UndefVal, F32_ElemMinMax);
 
 
 
