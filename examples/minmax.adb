@@ -130,15 +130,13 @@ is
  -- floats with undefined value check
 
  UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
-
- procedure F64_UndefVal(V : in Float_64) is begin UndefValCnt := UndefValCnt + 1; end F64_UndefVal;
- procedure F32_UndefVal(V : in Float_32) is begin UndefValCnt := UndefValCnt + 1; end F32_UndefVal;
+ procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
 
  procedure F64_Checked_MinMax is
-	new F64F64.Read_Checked_Values(F64_Is_NaN, F64_UndefVal, F64_ElemMinMax);
+	new F64F64.Read_Checked_Values(F64_Is_NaN, UndefVal, F64_ElemMinMax);
 
  procedure F32_Checked_MinMax is
-	new F32F32.Read_Checked_Values(F32_Is_NaN, F32_UndefVal, F32_ElemMinMax);
+	new F32F32.Read_Checked_Values(F32_Is_NaN, UndefVal, F32_ElemMinMax);
 
  -- integer data if BLANK available (undefined value check)
  
@@ -147,17 +145,6 @@ is
  BLANKI32 : Integer_32;
  BLANKI16 : Integer_16;
  BLANKUI8 : Unsigned_8;
-
- generic
-  type T is private;
- procedure gen_UndefVal(V : in T);
- procedure gen_UndefVal(V : in T) is
- begin  UndefValCnt := UndefValCnt + 1; end gen_UndefVal;
-
- procedure I64_UndefVal is new gen_UndefVal(Integer_64);
- procedure I32_UndefVal is new gen_UndefVal(Integer_32);
- procedure I16_UndefVal is new gen_UndefVal(Integer_16);
- procedure UI8_UndefVal is new gen_UndefVal(Unsigned_8);
 
  generic
   type T is private;
@@ -172,16 +159,16 @@ is
  function UI8_Is_BLANK is new gen_Is_BLANK(Unsigned_8, BLANKUI8);
 
  procedure I64_Checked_MinMax is
-  new I64F64.Read_Checked_Values(I64_Is_BLANK, I64_UndefVal, F64_ElemMinMax);
+  new I64F64.Read_Checked_Values(I64_Is_BLANK, UndefVal, F64_ElemMinMax);
 
  procedure I32_Checked_MinMax is
-  new I32F64.Read_Checked_Values(I32_Is_BLANK, I32_UndefVal, F64_ElemMinMax);
+  new I32F64.Read_Checked_Values(I32_Is_BLANK, UndefVal, F64_ElemMinMax);
 
  procedure I16_Checked_MinMax is
-  new I16F32.Read_Checked_Values(I16_Is_BLANK, I16_UndefVal, F32_ElemMinMax);
+  new I16F32.Read_Checked_Values(I16_Is_BLANK, UndefVal, F32_ElemMinMax);
 
  procedure UI8_Checked_MinMax is
-  new UI8F32.Read_Checked_Values(UI8_Is_BLANK, UI8_UndefVal, F32_ElemMinMax);
+  new UI8F32.Read_Checked_Values(UI8_Is_BLANK, UndefVal, F32_ElemMinMax);
 
 
 

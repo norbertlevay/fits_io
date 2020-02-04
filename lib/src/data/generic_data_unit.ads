@@ -50,7 +50,7 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 
  generic
   with function  Is_Undefined(V : in T) return Boolean;
-  with procedure Undefined_Value(V : in T);
+  with procedure Undefined_Value;
   with procedure Element_Value(V : in Tout);
  procedure Read_Checked_Values
 		(F : SIO.File_Type;

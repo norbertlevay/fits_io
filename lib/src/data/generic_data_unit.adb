@@ -88,7 +88,7 @@ package body Physical is
    begin
     Element_Value(PhysVal(V));
     exception 
-      when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value(V);
+      when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
