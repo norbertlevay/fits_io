@@ -15,7 +15,7 @@ package body Generic_Data_Unit is
 
 
 
-procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive)
+procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in Positive := 1)
 is
    -- define Data Block
    gBlock  : gen.Block;
@@ -26,12 +26,13 @@ is
                                         Offset_In_Block(Positive(Length), gen.N);
   -- local vars
   gValue : T;
+  Last_Block_Start : Positive;
  begin
 
         for I in 1 .. (Length_blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
-                for K in 1 .. gen.N
+                for K in First .. gen.N
                 loop
                         gValue := gBlock(K);
                         Element(gValue);
@@ -39,9 +40,14 @@ is
         end loop;
 
         -- Last Block of InFile
-    
+
+	if(Length_blocks = 1)
+	then Last_Block_Start := First;
+	else Last_Block_Start := 1;
+	end if;   
+ 
         gen.Block'Read(SIO.Stream(F),gBlock);
-        for K in 1 .. (Last_Data_Element_In_Block)
+        for K in Last_Block_Start .. (Last_Data_Element_In_Block)
         loop
                 gValue := gBlock(K);
                 Element(gValue);

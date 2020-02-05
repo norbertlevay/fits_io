@@ -23,9 +23,9 @@ package Generic_Data_Unit is
 
 generic
   with procedure Element (V : in T);
-procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive);
--- from current Block-start read Length data elements
--- Length = DUSize will read all Data Unit
+procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in Positive := 1);
+-- from current Block's First element read Length data elements
+-- First = 1 and Length = DUSize will read all Data Unit
 
 
 -- Conversion to physical values
