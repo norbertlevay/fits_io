@@ -12,7 +12,7 @@ package body Generic_FLoats_Data_Unit is
 
  procedure Read_Checked_Floats
                 (F : SIO.File_Type;
-                DUSize : in Positive;
+                Length : in Positive;
                 BZERO  : in Tout;
                 BSCALE : in Tout)
   is
@@ -35,7 +35,7 @@ package body Generic_FLoats_Data_Unit is
 
 
  begin
-   ReadArrVals(F, DUSize);  
+   ReadArrVals(F, Length);  
  end Read_Checked_Floats;
 
 

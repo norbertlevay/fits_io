@@ -26,7 +26,7 @@ package Generic_Floats_Data_Unit is
   with procedure Undefined_Value is null;
  procedure Read_Checked_Floats
 		(F : SIO.File_Type;
-		DUSize : in Positive;
+		Length : in Positive;
 		BZERO  : in Tout;
 		BSCALE : in Tout);
 

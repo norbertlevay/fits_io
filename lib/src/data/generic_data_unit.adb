@@ -15,20 +15,20 @@ package body Generic_Data_Unit is
 
 
 
-procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive)
+procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive)
 is
    -- define Data Block
    gBlock  : gen.Block;
 
    -- calc data array limits
-   DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),T'Size/8);
+   Length_blocks : constant Positive := DU_Block_Index(Positive(Length),T'Size/8);
    Last_Data_Element_In_Block : constant Positive :=  
-                                        Offset_In_Block(Positive(DUSize), gen.N);
+                                        Offset_In_Block(Positive(Length), gen.N);
   -- local vars
   gValue : T;
  begin
 
-        for I in 1 .. (DUSize_Blocks - 1)
+        for I in 1 .. (Length_blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
                 for K in 1 .. gen.N
@@ -59,7 +59,7 @@ package body Physical is
 
  procedure Read_Values
                  (F : SIO.File_Type;
-                 DUSize : in Positive;
+                 Length : in Positive;
                  BZERO  : in Tout;
                  BSCALE : in Tout)
  is
@@ -71,13 +71,13 @@ package body Physical is
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
-   ReadArrVals(F, DUSize);  
+   ReadArrVals(F, Length);  
  end Read_Values;
 
 
  procedure Read_Checked_Integers
                 (F : SIO.File_Type;
-                DUSize : in Positive;
+                Length : in Positive;
                 BZERO  : in Tout;
                 BSCALE : in Tout;
                 BLANK  : in T)
@@ -92,7 +92,7 @@ package body Physical is
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
-   ReadArrVals(F, DUSize);  
+   ReadArrVals(F, Length);  
  end Read_Checked_Integers;
 
 

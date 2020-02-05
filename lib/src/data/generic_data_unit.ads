@@ -23,7 +23,9 @@ package Generic_Data_Unit is
 
 generic
   with procedure Element (V : in T);
-procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
+procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive);
+-- from current Block-start read Length data elements
+-- Length = DUSize will read all Data Unit
 
 
 -- Conversion to physical values
@@ -42,7 +44,7 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
   with procedure Element_Value(V : in Tout);
  procedure Read_Values
 		(F : SIO.File_Type; 
-		DUSize : in Positive;
+		Length : in Positive;
 		BZERO  : in Tout;
 		BSCALE : in Tout);
 
@@ -54,7 +56,7 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
   with procedure Undefined_Value is null;
  procedure Read_Checked_Integers
 		(F : SIO.File_Type;
-		DUSize : in Positive;
+		Length : in Positive;
 		BZERO  : in Tout;
 		BSCALE : in Tout;
 		BLANK  : in T);
