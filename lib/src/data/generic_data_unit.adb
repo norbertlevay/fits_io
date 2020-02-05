@@ -63,7 +63,7 @@ end Read_Array_Values;
 
 package body Physical is
 
- procedure Read_Converted_Integers
+ procedure Read_Sign_Converted_Integers
                 (F : SIO.File_Type;
                 Length : in Positive;
 		First : in Positive := 1)
@@ -79,7 +79,7 @@ package body Physical is
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Converted_Integers;
+ end Read_Sign_Converted_Integers;
 
 
 

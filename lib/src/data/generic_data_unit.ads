@@ -43,7 +43,7 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
  generic
   with procedure Element_Value(V : in Tout);
   with procedure Undefined_Value is null;
- procedure Read_Converted_Integers
+ procedure Read_Sign_Converted_Integers
 		(F : SIO.File_Type;
 		Length : in Positive;
 		First  : in Positive := 1);
