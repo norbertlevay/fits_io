@@ -62,30 +62,6 @@ procedure Read_Array_Values(F : SIO.File_Type; DUSize : in Positive);
 end Physical;
 
 
--- converted physical float values
-
- generic
-  type Tout is digits <>;
-  with function "+" (L, R : in Tout) return Tout is <>;
-  with function "*" (L, R : in Tout) return Tout is <>;
-  with function "+" (R : in T) return Tout is <>;
- package Physical_Float is
- 
- generic
-  with procedure Element_Value(V : in Tout);
-  with procedure Undefined_Value is null;
- procedure Read_Checked_Floats
-		(F : SIO.File_Type;
-		DUSize : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout);
-
- end Physical_Float;
-
-
-
-
-
 -- Random access
 
 type T_Arr is array (Integer range <>) of T;

@@ -53,9 +53,6 @@ function Checked_Physical_Integer(Va : in Tin) return Tout;
   type Tout is digits <>;
   BZERO  : in Tout;
   BSCALE : in Tout;
-  with function "+" (L, R : in Tout) return Tout is <>;
-  with function "*" (L, R : in Tout) return Tout is <>;
-  with function "+" (R : in Tin) return Tout is <>;
 function Checked_Physical_Float(Va : in Tin) return Tout;
 -- raises excpetion if Undefined_Value (=NaN) encountered
 

@@ -14,6 +14,7 @@
 
 with V3_Types; use V3_Types;
 with Generic_Data_Unit;
+with Generic_Floats_Data_Unit;
 
 package V3_Data_Unit is
 
@@ -30,8 +31,12 @@ package UI8_DU is new Generic_Data_Unit(Unsigned_8);
 
 -- scaling float values Vout = BZERO + BSCALE * Vin
 
-package F64F64 is new F64_DU.Physical_Float(Float_64);
-package F32F32 is new F32_DU.Physical_Float(Float_32);
+package F64F64 is new Generic_Floats_Data_Unit(Float_64,Float_64,F64_DU);
+package F32F32 is new Generic_Floats_Data_Unit(Float_32,Float_32,F32_DU);
+
+package UpConv   is new Generic_Floats_Data_Unit(Float_32,Float_64,F32_DU);
+package DownConv is new Generic_Floats_Data_Unit(Float_64,Float_32,F64_DU);
+-- not used, for test only
 
 -- scaling and int->float conversions
 

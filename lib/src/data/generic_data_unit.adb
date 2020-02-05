@@ -128,41 +128,4 @@ package body Physical is
 
 end Physical;
 
-
-
-package body Physical_Float is
-
- procedure Read_Checked_Floats
-                (F : SIO.File_Type;
-                DUSize : in Positive;
-                BZERO  : in Tout;
-                BSCALE : in Tout)
-  is
-   procedure LocArrVal(V : in T)
-   is 
-                                        -- FIXME first Tout should be T or Tin 
-    function PhysVal is new Checked_Physical_Float(Tout, Tout, BZERO, BSCALE, "+","*","+");
-   begin
-     Element_Value(PhysVal(+(V))); -- FIXME note the conversion +()
-     -- func has in name _Floats so will be used in instances where T is Float
-     -- FIXME still try search for better sulution without the +(V) conversion
-   exception 
-     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
- begin
-   ReadArrVals(F, DUSize);  
- end Read_Checked_Floats;
-
-
-
-
-
-end Physical_Float;
-
-
-
-
-
-
 end Generic_Data_Unit;
