@@ -84,7 +84,7 @@ package body Physical is
 
 
 
- procedure Read_Values
+ procedure Read_Scaled_Values
                  (F : SIO.File_Type;
                  Length : in Positive;
                  BZERO  : in Tout;
@@ -100,10 +100,10 @@ package body Physical is
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Values;
+ end Read_Scaled_Values;
 
 
- procedure Read_Checked_Integers
+ procedure Read_Checked_Scaled_Integers
                 (F : SIO.File_Type;
                 Length : in Positive;
                 BZERO  : in Tout;
@@ -122,7 +122,7 @@ package body Physical is
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Checked_Integers;
+ end Read_Checked_Scaled_Integers;
 
 
 end Physical;

@@ -123,24 +123,24 @@ is
  procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
 
 
- procedure I64_Checked_MinMax is new I64F64.Read_Checked_Integers(F64_ElemMinMax, UndefVal);
- procedure I32_Checked_MinMax is new I32F64.Read_Checked_Integers(F64_ElemMinMax, UndefVal);
- procedure I16_Checked_MinMax is new I16F32.Read_Checked_Integers(F32_ElemMinMax, UndefVal);
- procedure UI8_Checked_MinMax is new UI8F32.Read_Checked_Integers(F32_ElemMinMax, UndefVal);
+ procedure I64_Checked_MinMax is new I64F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
+ procedure I32_Checked_MinMax is new I32F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
+ procedure I16_Checked_MinMax is new I16F32.Read_Checked_Scaled_Integers(F32_ElemMinMax, UndefVal);
+ procedure UI8_Checked_MinMax is new UI8F32.Read_Checked_Scaled_Integers(F32_ElemMinMax, UndefVal);
 
  -- integer data if BLANK not available
 
- procedure I64_MinMax is new I64F64.Read_Values(F64_ElemMinMax);
- procedure I32_MinMax is new I32F64.Read_Values(F64_ElemMinMax);
- procedure I16_MinMax is new I16F32.Read_Values(F32_ElemMinMax);
- procedure UI8_MinMax is new UI8F32.Read_Values(F32_ElemMinMax);
+ procedure I64_MinMax is new I64F64.Read_Scaled_Values(F64_ElemMinMax);
+ procedure I32_MinMax is new I32F64.Read_Scaled_Values(F64_ElemMinMax);
+ procedure I16_MinMax is new I16F32.Read_Scaled_Values(F32_ElemMinMax);
+ procedure UI8_MinMax is new UI8F32.Read_Scaled_Values(F32_ElemMinMax);
 
  -- integer sign conversion variants if BZERO BSCALE = Tab11
 
- procedure U64_MinMax is new I64U64.Read_Values(U64_ElemMinMax);
- procedure U32_MinMax is new I32U32.Read_Values(U32_ElemMinMax);
- procedure U16_MinMax is new I16U16.Read_Values(U16_ElemMinMax);
- procedure I8_MinMax  is new UI8I8.Read_Values ( I8_ElemMinMax);
+ procedure U64_MinMax is new I64U64.Read_Sign_Converted_Integers(U64_ElemMinMax);
+ procedure U32_MinMax is new I32U32.Read_Sign_Converted_Integers(U32_ElemMinMax);
+ procedure U16_MinMax is new I16U16.Read_Sign_Converted_Integers(U16_ElemMinMax);
+ procedure I8_MinMax  is new UI8I8.Read_Sign_Converted_Integers( I8_ElemMinMax);
 
  -- floats (always with undefined value check)
 
@@ -295,7 +295,7 @@ begin
  then
    I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
    Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
-   U16_MinMax(InFile, DUSize, BZEROU16, BSCALEU16); 
+   U16_MinMax(InFile, DUSize); 
    Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
    Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
  elsif(BITPIX = 8)
