@@ -26,7 +26,7 @@ generic
 procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in Positive := 1);
 -- from current Block's First element read Length data elements
 -- First = 1 and Length = DUSize will read all Data Unit
-
+-- current Block is where SIO.File_Index points to
 
 -- Conversion to physical values
 -- Vphys = BZERO + BSCALE * Varr
