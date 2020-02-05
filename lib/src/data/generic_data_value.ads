@@ -44,6 +44,11 @@ package Generic_Data_Value is
  generic
   type Tin  is digits <>;
   type Tout is digits <>;
+ function Checked_Float_Value(Va : in Tin) return Tout;
+ 
+ generic
+  type Tin  is digits <>;
+  type Tout is digits <>;
   BZERO  : in Tout;
   BSCALE : in Tout;
  function Checked_Physical_Float(Va : in Tin) return Tout;

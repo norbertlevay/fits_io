@@ -144,8 +144,8 @@ is
 
  -- floats (always with undefined value check)
 
- procedure F64_Checked_MinMax is new F64F64.Read_Checked_Floats(F64_ElemMinMax, UndefVal);
- procedure F32_Checked_MinMax is new F32F32.Read_Checked_Floats(F32_ElemMinMax, UndefVal);
+ procedure F64_Checked_MinMax is new F64F64.Read_Checked_Scaled_Floats(F64_ElemMinMax, UndefVal);
+ procedure F32_Checked_MinMax is new F32F32.Read_Checked_Scaled_Floats(F32_ElemMinMax, UndefVal);
 
 
 

@@ -45,6 +45,19 @@ package body Generic_Data_Value is
  end Is_NaN;
 
 
+ function Checked_Float_Value(Va : in Tin) return Tout
+ is
+  function "+" (Vin : in Tin) return Tout is begin return Tout(Vin); end "+";
+  function IsNaN   is new Is_NaN(Tin);
+ begin
+  if(IsNaN(Va))
+  then
+    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
+  end if;
+  return +(Va);
+ end Checked_Float_Value;
+
+
 
  function Checked_Physical_Float(Va : in Tin) return Tout
  is

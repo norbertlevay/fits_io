@@ -9,16 +9,39 @@ with Generic_Data_Value; use Generic_Data_Value;
 
 package body Generic_FLoats_Data_Unit is
 
-
  procedure Read_Checked_Floats
+                (F : SIO.File_Type;
+                Length : in Positive;
+		First  : in Positive := 1)
+  is
+   procedure LocArrVal(V : in Tin)
+   is 
+    function PhysVal is new Checked_Float_Value(Tin, Tout);
+   begin
+     Element_Value(PhysVal(V));
+     -- NOTE inplicit conversion Tin->Tout: down-conversions 
+     -- like Float_64 -> Float_32 suffer loss of precision
+   exception 
+     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
+   end LocArrVal;
+
+   procedure ReadArrVals is new FDU.Read_Array_Values(LocArrVal);
+
+ begin
+   ReadArrVals(F, Length, First);  
+ end Read_Checked_Floats;
+
+
+
+
+
+ procedure Read_Checked_Scaled_Floats
                 (F : SIO.File_Type;
                 Length : in Positive;
                 BZERO  : in Tout;
                 BSCALE : in Tout;
 		First  : in Positive := 1)
   is
-
-
    procedure LocArrVal(V : in Tin)
    is 
    --function PhysVal is new Checked_Physical_Float(Tin, Tout, BZERO, BSCALE, "+","*","+");
@@ -31,13 +54,11 @@ package body Generic_FLoats_Data_Unit is
      when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
    end LocArrVal;
 
-
    procedure ReadArrVals is new FDU.Read_Array_Values(LocArrVal);
-
 
  begin
    ReadArrVals(F, Length, First);  
- end Read_Checked_Floats;
+ end Read_Checked_Scaled_Floats;
 
 
 
