@@ -28,19 +28,6 @@ function Physical_Value(Va : in Tin) return Tout;
   type Tout is private;
   BZERO  : in Tout;
   BSCALE : in Tout;
-  with function Is_Undefined(Va : in Tin) return Boolean;
--- FIXME should provide Position where undef val is instead of Va
-  with function "+" (L, R : in Tout) return Tout is <>;
-  with function "*" (L, R : in Tout) return Tout is <>;
-  with function "+" (R : in Tin) return Tout is <>;
-function OFFChecked_Physical_Value(Va : in Tin) return Tout;
--- raises excpetion if Undefined_Value encountered
-
- generic
-  type Tin  is private;
-  type Tout is private;
-  BZERO  : in Tout;
-  BSCALE : in Tout;
   BLANK  : in Tin;
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
@@ -55,7 +42,6 @@ function Checked_Physical_Integer(Va : in Tin) return Tout;
   BSCALE : in Tout;
 function Checked_Physical_Float(Va : in Tin) return Tout;
 -- raises excpetion if Undefined_Value (=NaN) encountered
-
 
 
 Undefined_Value : exception;

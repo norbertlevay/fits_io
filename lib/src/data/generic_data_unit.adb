@@ -75,36 +75,6 @@ package body Physical is
  end Read_Values;
 
 
- generic
-  with function  Is_Undefined(V : in T) return Boolean;
-  with procedure Undefined_Value;
-  with procedure Element_Value(V : in Tout);
- procedure OFFRead_Checked_Values
-               (F : SIO.File_Type;
-               DUSize : in Positive;
-               BZERO  : in Tout;
-               BSCALE : in Tout);
- procedure OFFRead_Checked_Values
-                (F : SIO.File_Type;
-                DUSize : in Positive;
-                BZERO  : in Tout;
-                BSCALE : in Tout)
- is
-   procedure LocArrVal(V : in T)
-   is  
-    function PhysVal is new OFFChecked_Physical_Value(T, Tout, BZERO, BSCALE, Is_Undefined, "+","*","+");
-   begin
-    Element_Value(PhysVal(V));
-    exception 
-      when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
- begin
-   ReadArrVals(F, DUSize);  
- end OFFRead_Checked_Values;
-
-
-
  procedure Read_Checked_Integers
                 (F : SIO.File_Type;
                 DUSize : in Positive;
