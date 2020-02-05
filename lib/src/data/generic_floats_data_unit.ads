@@ -28,7 +28,8 @@ package Generic_Floats_Data_Unit is
 		(F : SIO.File_Type;
 		Length : in Positive;
 		BZERO  : in Tout;
-		BSCALE : in Tout);
+		BSCALE : in Tout;
+		First  : in Positive := 1);
 
 end Generic_Floats_Data_Unit;
 

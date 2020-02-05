@@ -67,7 +67,8 @@ package body Physical is
                  (F : SIO.File_Type;
                  Length : in Positive;
                  BZERO  : in Tout;
-                 BSCALE : in Tout)
+                 BSCALE : in Tout;
+		 First  : in Positive := 1)
  is
    procedure LocArrVal(V : in T)
    is  
@@ -77,7 +78,7 @@ package body Physical is
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
-   ReadArrVals(F, Length);  
+   ReadArrVals(F, Length, First);  
  end Read_Values;
 
 
@@ -86,7 +87,8 @@ package body Physical is
                 Length : in Positive;
                 BZERO  : in Tout;
                 BSCALE : in Tout;
-                BLANK  : in T)
+                BLANK  : in T;
+		First : in Positive := 1)
   is
    procedure LocArrVal(V : in T)
    is  
@@ -98,7 +100,7 @@ package body Physical is
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
-   ReadArrVals(F, Length);  
+   ReadArrVals(F, Length, First);  
  end Read_Checked_Integers;
 
 

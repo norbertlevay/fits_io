@@ -14,7 +14,8 @@ package body Generic_FLoats_Data_Unit is
                 (F : SIO.File_Type;
                 Length : in Positive;
                 BZERO  : in Tout;
-                BSCALE : in Tout)
+                BSCALE : in Tout;
+		First  : in Positive := 1)
   is
 
 
@@ -35,7 +36,7 @@ package body Generic_FLoats_Data_Unit is
 
 
  begin
-   ReadArrVals(F, Length);  
+   ReadArrVals(F, Length, First);  
  end Read_Checked_Floats;
 
 

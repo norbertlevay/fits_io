@@ -46,7 +46,8 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		(F : SIO.File_Type; 
 		Length : in Positive;
 		BZERO  : in Tout;
-		BSCALE : in Tout);
+		BSCALE : in Tout;
+		First  : in Positive := 1);
 
 
 -- FIXME func-name _Integers() does not fit Tout type spec
@@ -59,7 +60,8 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		Length : in Positive;
 		BZERO  : in Tout;
 		BSCALE : in Tout;
-		BLANK  : in T);
+		BLANK  : in T;
+		First  : in Positive := 1);
 
 end Physical;
 
