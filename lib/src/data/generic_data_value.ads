@@ -14,6 +14,12 @@
 package Generic_Data_Value is
 
  generic
+  type Tin  is private;--(<>); -- any discrete type
+  type Tout is private;--(<>); -- any discrete type
+ function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
+
+
+ generic
   type Tin  is private;
   type Tout is private;
   BZERO  : in Tout;
@@ -21,7 +27,7 @@ package Generic_Data_Value is
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
-function Physical_Value(Va : in Tin) return Tout;
+ function Physical_Value(Va : in Tin) return Tout;
 
  generic
   type Tin  is private;
@@ -32,19 +38,18 @@ function Physical_Value(Va : in Tin) return Tout;
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
-function Checked_Physical_Integer(Va : in Tin) return Tout;
--- raises excpetion if Undefined_Value (=BLANK) encountered
+ function Checked_Physical_Integer(Va : in Tin) return Tout;
+ -- raises excpetion if Undefined_Value (=BLANK) encountered
 
  generic
   type Tin  is digits <>;
   type Tout is digits <>;
   BZERO  : in Tout;
   BSCALE : in Tout;
-function Checked_Physical_Float(Va : in Tin) return Tout;
--- raises excpetion if Undefined_Value (=NaN) encountered
+ function Checked_Physical_Float(Va : in Tin) return Tout;
+ -- raises excpetion if Undefined_Value (=NaN) encountered
 
-
-Undefined_Value : exception;
+ Undefined_Value : exception;
 
 
 end Generic_Data_Value;

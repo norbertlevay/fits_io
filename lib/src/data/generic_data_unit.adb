@@ -63,6 +63,27 @@ end Read_Array_Values;
 
 package body Physical is
 
+ procedure Read_Converted_Integers
+                (F : SIO.File_Type;
+                Length : in Positive;
+		First : in Positive := 1)
+  is
+   procedure LocArrVal(V : in T)
+   is  
+    function PhysVal is new Conv_Signed_Unsigned(T, Tout);
+   begin
+     Element_Value(PhysVal(V));
+    exception 
+     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
+   end LocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+ begin
+   ReadArrVals(F, Length, First);  
+ end Read_Converted_Integers;
+
+
+
+
  procedure Read_Values
                  (F : SIO.File_Type;
                  Length : in Positive;

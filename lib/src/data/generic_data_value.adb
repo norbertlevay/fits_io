@@ -60,17 +60,7 @@ package body Generic_Data_Value is
  end Checked_Physical_Float;
 
 
-
-------------------------------------------------------------
--- optimized version for sign conversions (flip highest bit)
--- NOT IN USE, is only for reference
-
- generic
-  type Tin  is (<>); -- any discrete type
-  type Tout is (<>); -- any discrete type
- function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
-
- function Conv_Signed_Unsigned(Vin : in Tin) return Tout
+  function Conv_Signed_Unsigned(Vin : in Tin) return Tout
  is
    type BArr is array (1 .. Tin'Size) of Boolean;
    pragma Pack (BArr);
