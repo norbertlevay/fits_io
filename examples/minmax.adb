@@ -64,17 +64,14 @@ is
     type Tf is digits <>; -- physical value type
  package V3_Data is
 
-  type Array_Keys_Rec(BITPIX : Integer) is
+  type Array_Keys_Rec is
     record
 	DATAMIN_Avail : Boolean;
 	DATAMAX_Avail : Boolean;
  	BLANK_Avail   : Boolean;
  	BZERO,BSCALE    : Tf;
 	DATAMIN,DATAMAX : Tf;
-	case BITPIX is
-	when 0 .. 64 => BLANK : Ti;-- FIXME how to specify positive
-	when others => null;
-	end case;
+	BLANK 		: Ti;-- FIXME how to handle UInt8
   end record;
 
  function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec;
@@ -87,7 +84,7 @@ is
 
  function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec
  is
-  V : Array_Keys_Rec(BITPIX);
+  V : Array_Keys_Rec;
  begin
 
    -- Init FIXME how to do with NUllRec init ??
@@ -96,7 +93,6 @@ is
    V.BLANK_Avail   := False;
    V.BZERO  := 0.0;
    V.BSCALE := 1.0;
-   -- FIXME  set all BZERO BSCALE to 0.0 1.0
 
    for I in Cards'Range
    loop
@@ -276,11 +272,11 @@ begin
 
  declare
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
-   F64Keys : I32F64_V3_Data.Array_Keys_Rec(BITPIX);
-   F32Keys : I16F32_V3_Data.Array_Keys_Rec(BITPIX);
-   I64Keys : I64F64_V3_Data.Array_Keys_Rec(BITPIX);
-   I32Keys : I32F64_V3_Data.Array_Keys_Rec(BITPIX);
-   I16Keys : I16F32_V3_Data.Array_Keys_Rec(BITPIX);
+   F64Keys : I32F64_V3_Data.Array_Keys_Rec;
+   F32Keys : I16F32_V3_Data.Array_Keys_Rec;
+   I64Keys : I64F64_V3_Data.Array_Keys_Rec;
+   I32Keys : I32F64_V3_Data.Array_Keys_Rec;
+   I16Keys : I16F32_V3_Data.Array_Keys_Rec;
  begin
 
  -- read data
