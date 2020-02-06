@@ -32,6 +32,7 @@ with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Block;
 with Generic_Data_Unit;
+with Generic_Floats_Data_Unit;
 with Generic_Data_Value; use Generic_Data_Value;
 
 procedure minmax
@@ -59,10 +60,17 @@ is
 -- ------------------------------------------------------------------------
 
 
+
+-- FIXME Ti range <> -> Ti'Value 'Image for BLANK available but no UI8 Unsigned vals
+--       Ti private  -> Unsigned available but Ti'Value Ti'Image for BLANK not available
  generic
-    type Ti is range <>;  -- type in file
+    type Ti is range <>;--private; -- type in file
     type Tf is digits <>; -- physical value type
+    with function "+" (R : in Ti) return Tf is <>;
  package V3_Data is
+
+  procedure FloatsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
+  procedure IntsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
 
   type Array_Keys_Rec is
     record
@@ -80,14 +88,95 @@ is
  type Array_Keys_Category is (UNITY, ZERO_SHIFT, SCALING);
 
 
+ function Array_Value_Rec(Cards : Optional.Card_Arr) return Array_Keys_Rec;
  function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category;
- function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec;
 
  end V3_Data; 
 
  -- Body
 
  package body V3_Data is
+
+
+
+ -- the callback
+ 
+ generic
+  type T is private;
+  Min, Max : in out T;
+  with function "<" (L,R : in T) return Boolean is <>;
+  with function ">" (L,R : in T) return Boolean is <>;
+ procedure ElemMinMax(V : in T);
+ procedure ElemMinMax(V : in T)
+ is
+ begin
+   if(V < Min) then Min := V; end if;
+   if(V > Max) then Max := V; end if;
+ end ElemMinMax;
+
+
+ Min : Tf := Tf'Last;
+ Max : Tf := Tf'First;
+ procedure Tf_ElemMinMax is new ElemMinMax(Tf, Min, Max);
+
+
+ UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
+ procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
+
+ -- integer data if BLANK is available
+ package Ti_DU is new Generic_Data_Unit(Ti);
+ package Tf_fDU is new Generic_Data_Unit(Tf);
+ package TiTf is new Ti_DU.Physical(Tf,"+","*","+");
+
+ package Tf_DU is new Generic_Floats_Data_Unit(Tf,Tf,Tf_fDU);
+
+ procedure Ti_Checked_MinMax 	is new TiTf.Read_Checked_Scaled_Integers(Tf_ElemMinMax, UndefVal);
+ procedure Ti_MinMax   		is new TiTf.Read_Scaled_Values(Tf_ElemMinMax);
+-- procedure U_MinMax 		is new TiTf.Read_Sign_Converted_Integers(Tf_ElemMinMax);
+ procedure Tf_Checked_MinMax 	is new Tf_DU.Read_Checked_Scaled_Floats(Tf_ElemMinMax, UndefVal);
+ 
+
+
+
+  procedure FloatsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
+  is
+   Keys : Array_Keys_Rec;
+  begin
+   Keys := Array_Value_Rec(Cards);   
+   Tf_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE);
+   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   Put_Line("F Min: " & Tf'Image(Min));
+   Put_Line("F Max: " & Tf'Image(Max));
+  end FloatsMinMax;
+
+
+  procedure IntsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
+  is
+   Keys : Array_Keys_Rec := Array_Value_Rec(Cards);   
+  begin
+ 
+   case (Analyze(Keys))
+   is
+   when ZERO_SHIFT => null;
+	--U_MinMax(F, DUSize);
+	--Put_Line("U64 Min: " & Unsigned_64'Image(MinU64));
+   	--Put_Line("U64 Max: " & Unsigned_64'Image(MaxU64));
+
+   when UNITY | SCALING =>
+    if(Keys.BLANK_Avail)
+    then
+      Put_Line("BLANK : " & Ti'Image(Keys.BLANK));
+      Ti_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE,Keys.BLANK);
+      Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+    else
+      Ti_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE);
+    end if;
+    Put_Line("F Min: " & Tf'Image(Min));
+    Put_Line("F Max: " & Tf'Image(Max));
+  end case;
+
+  end IntsMinMax;
+
 
  function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category
  is
@@ -108,8 +197,20 @@ is
   return Cat;
  end Analyze;
 
+ function To_Ti(S : String) return Ti
+ is
+  V : Ti;
+ begin
+  for I in S'Range
+  loop
+    null; -- FIXME implement all set of CardString to FITS-Integer conversions
+          -- it should be in Keyword_Record module and passed as generic parameter here
+  end loop;
+  return V;
+ end To_Ti;
 
- function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec
+
+ function Array_Value_Rec(Cards : Optional.Card_Arr) return Array_Keys_Rec
  is
   V : Array_Keys_Rec;
  begin
@@ -137,6 +238,7 @@ is
      elsif(Cards(I)(1..5) = "BLANK")
      then
 	V.BLANK := Ti'Value(Cards(I)(11..30));
+--	V.BLANK := To_Ti(Cards(I)(11..30));
 	V.BLANK_Avail := True;
 
      elsif(Cards(I)(1..7) = "DATAMIN")
@@ -160,90 +262,18 @@ is
  package I64F64_V3_Data is new V3_Data(Integer_64, Float_64);
  package I32F64_V3_Data is new V3_Data(Integer_32, Float_64);
  package I16F32_V3_Data is new V3_Data(Integer_16, Float_32);
- --package UI8F32_V3_Data is new V3_Data(Float_32, Unsigned_8);
- --FIXME reconsider as not reasonable: F32 = BZERO + BSCALE * UI8
 
+ function "+" (R : in Integer_16) return Float_64
+ is begin return Float_64(R); end "+";
+ package I16F64_V3_Data is new V3_Data(Integer_16, Float_64);
+ -- only test not in use
 
-
+ --package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32);
+ --FIXME Ti must be mod or private
 
 -- ------------------------------------------------------------------------
 -- ------------------------------------------------------------------------
 -- ------------------------------------------------------------------------
-
-  -- MinMax implementation
-
- generic
-  type T is private;
-  Min, Max : in out T;
-  with function "<" (L,R : in T) return Boolean is <>;
-  with function ">" (L,R : in T) return Boolean is <>;
- procedure ElemMinMax(V : in T);
- procedure ElemMinMax(V : in T)
- is
- begin
-   if(V < Min) then Min := V; end if;
-   if(V > Max) then Max := V; end if;
- end ElemMinMax;
-
-
- MinF32 : Float_32 := Float_32'Last;
- MaxF32 : Float_32 := Float_32'First;
- procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32);
-
- MinF64 : Float_64 := Float_64'Last;
- MaxF64 : Float_64 := Float_64'First;
- procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64);
-
- -- example of signed-unsigned conversion
-
- MinU64 : Unsigned_64 := Unsigned_64'Last;
- MaxU64 : Unsigned_64 := Unsigned_64'First;
- procedure U64_ElemMinMax is new ElemMinMax(Unsigned_64, MinU64, MaxU64);
-
- MinU32 : Unsigned_32 := Unsigned_32'Last;
- MaxU32 : Unsigned_32 := Unsigned_32'First;
- procedure U32_ElemMinMax is new ElemMinMax(Unsigned_32, MinU32, MaxU32);
-
- MinU16 : Unsigned_16 := Unsigned_16'Last;
- MaxU16 : Unsigned_16 := Unsigned_16'First;
- procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16);
-
- MinI8 : Integer_8 := Integer_8'Last;
- MaxI8 : Integer_8 := Integer_8'First;
- procedure I8_ElemMinMax is new ElemMinMax(Integer_8, MinI8, MaxI8);
-
- -- MinMax for all array types
-
- -- integer data if BLANK available (undefined value check)
- 
- UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
- procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
-
- -- integer data if BLANK is available
-
- procedure I64_Checked_MinMax is new I64F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
- procedure I32_Checked_MinMax is new I32F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
- procedure I16_Checked_MinMax is new I16F32.Read_Checked_Scaled_Integers(F32_ElemMinMax, UndefVal);
- procedure UI8_Checked_MinMax is new UI8F32.Read_Checked_Scaled_Integers(F32_ElemMinMax, UndefVal);
-
- -- integer data if BLANK not available
-
- procedure I64_MinMax is new I64F64.Read_Scaled_Values(F64_ElemMinMax);
- procedure I32_MinMax is new I32F64.Read_Scaled_Values(F64_ElemMinMax);
- procedure I16_MinMax is new I16F32.Read_Scaled_Values(F32_ElemMinMax);
- procedure UI8_MinMax is new UI8F32.Read_Scaled_Values(F32_ElemMinMax);
-
- -- integer sign conversion variants if BZERO BSCALE = Tab11 (BLANK converts also)
-
- procedure U64_MinMax is new I64U64.Read_Sign_Converted_Integers(U64_ElemMinMax);
- procedure U32_MinMax is new I32U32.Read_Sign_Converted_Integers(U32_ElemMinMax);
- procedure U16_MinMax is new I16U16.Read_Sign_Converted_Integers(U16_ElemMinMax);
- procedure I8_MinMax  is new UI8I8.Read_Sign_Converted_Integers( I8_ElemMinMax);
-
- -- floats (always with undefined value check)
-
- procedure F64_Checked_MinMax is new F64F64.Read_Checked_Scaled_Floats(F64_ElemMinMax, UndefVal);
- procedure F32_Checked_MinMax is new F32F32.Read_Checked_Scaled_Floats(F32_ElemMinMax, UndefVal);
 
  -- vars
 
@@ -299,110 +329,16 @@ begin
 
  declare
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
-   F64Keys : I32F64_V3_Data.Array_Keys_Rec;
-   F32Keys : I16F32_V3_Data.Array_Keys_Rec;
-   I64Keys : I64F64_V3_Data.Array_Keys_Rec;
-   I32Keys : I32F64_V3_Data.Array_Keys_Rec;
-   I16Keys : I16F32_V3_Data.Array_Keys_Rec;
  begin
-
  -- read data
-
- 
- if(BITPIX = -64)
- then
-   F64Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   F64_Checked_MinMax(InFile, DUSize, F64Keys.BZERO, F64Keys.BSCALE);
-   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   Put_Line("F64 Min: " & Float_64'Image(MinF64));
-   Put_Line("F64 Max: " & Float_64'Image(MaxF64));
- 
- elsif(BITPIX = -32)
- then
-   F32Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   F32_Checked_MinMax(InFile, DUSize, F32Keys.BZERO, F32Keys.BSCALE);
-   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   Put_Line("F32 Min: " & Float_32'Image(MinF32));
-   Put_Line("F32 Max: " & Float_32'Image(MaxF32));
-
- elsif(BITPIX = 64)
- then
-
-   I64Keys := I64F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   case (I64F64_V3_Data.Analyze(I64Keys)) is
-   when I64F64_V3_Data.ZERO_SHIFT =>
-	U64_MinMax(InFile, DUSize);
-	Put_Line("U64 Min: " & Unsigned_64'Image(MinU64));
-   	Put_Line("U64 Max: " & Unsigned_64'Image(MaxU64));
-
-   when I64F64_V3_Data.UNITY | I64F64_V3_Data.SCALING =>
-    if(I64Keys.BLANK_Avail)
-    then
-      Put_Line("BLANK : " & Integer_64'Image(I64Keys.BLANK));
-      I64_Checked_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE,I64Keys.BLANK);
-      Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-    else
-      I64_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE);
-    end if;
-      Put_Line("F64 Min: " & Float_64'Image(MinF64));
-      Put_Line("F64 Max: " & Float_64'Image(MaxF64));
-
-  end case;
-
- elsif(BITPIX = 32)
- then
-
-   I32Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   case (I32F64_V3_Data.Analyze(I32Keys)) is
-   when I32F64_V3_Data.ZERO_SHIFT =>
-	U32_MinMax(InFile, DUSize);
-	Put_Line("U32 Min: " & Unsigned_32'Image(MinU32));
-   	Put_Line("U32 Max: " & Unsigned_32'Image(MaxU32));
-   when I32F64_V3_Data.UNITY | I32F64_V3_Data.SCALING =>
-    	if(I32Keys.BLANK_Avail)
-    	then
-      	 Put_Line("BLANK : " & Integer_32'Image(I32Keys.BLANK));
-      	 I32_Checked_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE,I32Keys.BLANK);
-      	 Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-    	else
-      	 I32_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE);
-    	end if;
-	Put_Line("F64 Min: " & Float_64'Image(MinF64));
-    	Put_Line("F64 Max: " & Float_64'Image(MaxF64));
-  end case;
-
- elsif(BITPIX = 16)
- then
-
-   I16Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   case (I16F32_V3_Data.Analyze(I16Keys)) is
-   when I16F32_V3_Data.ZERO_SHIFT =>
-	U16_MinMax(InFile, DUSize);
-	Put_Line("U16 Min: " & Unsigned_16'Image(MinU16));
-   	Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16));
-
-   when I16F32_V3_Data.UNITY | I16F32_V3_Data.SCALING =>
-   	if(I16Keys.BLANK_Avail)
-   	then
-     	 Put_Line("BLANK : " & Integer_16'Image(I16Keys.BLANK));
-     	 I16_Checked_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE, I16Keys.BLANK);
-     	 Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   	else
-     	 I16_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE);
-   	end if;
-   	Put_Line("F32 Min: " & Float_32'Image(MinF32));
-   	Put_Line("F32 Max: " & Float_32'Image(MaxF32));
-   end case;
-
- elsif(BITPIX = 8)
- then
-   -- FIXME what to do with UI8 I8 ??
-   --UI8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
-   null;
+ if(BITPIX = -64)    then I32F64_V3_Data.FloatsMinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = -32) then I16F32_V3_Data.FloatsMinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 64)  then I64F64_V3_Data.IntsMinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 32)  then I32F64_V3_Data.IntsMinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 16)  then I16F32_V3_Data.IntsMinMax(InFile, DUSize, Cards);
+ --elsif(BITPIX = 8)   then UI8F32_V3_Data.IntsMinMax(InFile, DUSize, Cards);
  end if;
-
-
- end; -- declare Cards : ...
+ end;
 
  SIO.Close(InFile);
 
