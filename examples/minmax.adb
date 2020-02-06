@@ -59,18 +59,23 @@ is
 -- ------------------------------------------------------------------------
 -- ------------------------------------------------------------------------
 
-
-
 -- FIXME Ti range <> -> Ti'Value 'Image for BLANK available but no UI8 Unsigned vals
 --       Ti private  -> Unsigned available but Ti'Value Ti'Image for BLANK not available
  generic
-    type Ti is range <>;--private; -- type in file
+    type Ti is range <>; -- type in file FIXME gooe for Ti'Value for BLANK but no Unsigned 
+--    type Ti is private;  -- type in file FIXME good also for UI8 but not Ti'Value for BLANK
     type Tf is digits <>; -- physical value type
     with function "+" (R : in Ti) return Tf is <>;
  package V3_Data is
 
   procedure FloatsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
   procedure IntsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
+
+ end V3_Data; 
+
+ -- Body
+
+ package body V3_Data is
 
   type Array_Keys_Rec is
     record
@@ -91,11 +96,6 @@ is
  function Array_Value_Rec(Cards : Optional.Card_Arr) return Array_Keys_Rec;
  function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category;
 
- end V3_Data; 
-
- -- Body
-
- package body V3_Data is
 
 
 
@@ -196,6 +196,9 @@ is
 
   return Cat;
  end Analyze;
+
+
+
 
  function To_Ti(S : String) return Ti
  is
