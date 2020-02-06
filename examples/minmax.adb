@@ -73,7 +73,14 @@ is
 	DATAMIN,DATAMAX : Tf;
 	BLANK 		: Ti;-- FIXME how to handle UInt8
   end record;
+ -- BZERO BSCALE
+ -- Tab11 vals -> ZERO_SHIFT   -> Int only, FlipSign (BLANK also flip)
+ -- 0.0 1.0    -> UNITY        -> call Checked no scaling (if BLANK given)
+ -- other      -> SCALING      -> Floats: checked scaling  Ints: scaling with BLANK 
+ type Array_Keys_Category is (UNITY, ZERO_SHIFT, SCALING);
 
+
+ function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category;
  function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec;
 
  end V3_Data; 
@@ -81,6 +88,26 @@ is
  -- Body
 
  package body V3_Data is
+
+ function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category
+ is
+  Cat : Array_Keys_Category;
+  Shift_Val : Tf := 2.0**(Ti'Size - 1); -- FIXME is this safe ??
+ begin
+  
+   if((R.BZERO = 0.0) AND (R.BSCALE = 1.0))
+   then
+      Cat := UNITY;
+   elsif((R.BSCALE = 1.0) AND (R.BZERO = Shift_Val))
+   then
+      Cat := ZERO_SHIFT;
+   else
+      Cat := SCALING;
+   end if;
+
+  return Cat;
+ end Analyze;
+
 
  function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec
  is
@@ -281,77 +308,91 @@ begin
 
  -- read data
 
- if ( abs BITPIX > 32 OR  BITPIX = 32 )
- then
-
- -- 64 bit Physical data
  
  if(BITPIX = -64)
  then
    F64Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
    F64_Checked_MinMax(InFile, DUSize, F64Keys.BZERO, F64Keys.BSCALE);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-
- elsif(BITPIX = 64)
- then
-   I64Keys := I64F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   if(I64Keys.BLANK_Avail)
-   then
-     Put_Line("BLANK : " & Integer_64'Image(I64Keys.BLANK));
-     I64_Checked_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE,I64Keys.BLANK);
-     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   else
-     I64_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE);
-   end if;
-
- elsif(BITPIX = 32)
- then
-   I32Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
-   if(I32Keys.BLANK_Avail)
-   then
-     Put_Line("BLANK : " & Integer_32'Image(I32Keys.BLANK));
-     I32_Checked_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE,I32Keys.BLANK);
-     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   else
-     I32_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE);
-   end if;
- end if;
-
- Put_Line("F64 Min: " & Float_64'Image(MinF64));
- Put_Line("F64 Max: " & Float_64'Image(MaxF64));
-
-
- else
-
- -- 32 bit Physical data
-
+   Put_Line("F64 Min: " & Float_64'Image(MinF64));
+   Put_Line("F64 Max: " & Float_64'Image(MaxF64));
  
- if(BITPIX = -32)
+ elsif(BITPIX = -32)
  then
    F32Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
    F32_Checked_MinMax(InFile, DUSize, F32Keys.BZERO, F32Keys.BSCALE);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   Put_Line("F32 Min: " & Float_32'Image(MinF32));
+   Put_Line("F32 Max: " & Float_32'Image(MaxF32));
+
+ elsif(BITPIX = 64)
+ then
+
+   I64Keys := I64F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   case (I64F64_V3_Data.Analyze(I64Keys)) is
+   when I64F64_V3_Data.ZERO_SHIFT =>
+	U64_MinMax(InFile, DUSize);
+	Put_Line("U64 Min: " & Unsigned_64'Image(MinU64));
+   	Put_Line("U64 Max: " & Unsigned_64'Image(MaxU64));
+
+   when I64F64_V3_Data.UNITY | I64F64_V3_Data.SCALING =>
+    if(I64Keys.BLANK_Avail)
+    then
+      Put_Line("BLANK : " & Integer_64'Image(I64Keys.BLANK));
+      I64_Checked_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE,I64Keys.BLANK);
+      Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+    else
+      I64_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE);
+    end if;
+      Put_Line("F64 Min: " & Float_64'Image(MinF64));
+      Put_Line("F64 Max: " & Float_64'Image(MaxF64));
+
+  end case;
+
+ elsif(BITPIX = 32)
+ then
+
+   I32Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   case (I32F64_V3_Data.Analyze(I32Keys)) is
+   when I32F64_V3_Data.ZERO_SHIFT =>
+	U32_MinMax(InFile, DUSize);
+	Put_Line("U32 Min: " & Unsigned_32'Image(MinU32));
+   	Put_Line("U32 Max: " & Unsigned_32'Image(MaxU32));
+   when I32F64_V3_Data.UNITY | I32F64_V3_Data.SCALING =>
+    	if(I32Keys.BLANK_Avail)
+    	then
+      	 Put_Line("BLANK : " & Integer_32'Image(I32Keys.BLANK));
+      	 I32_Checked_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE,I32Keys.BLANK);
+      	 Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+    	else
+      	 I32_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE);
+    	end if;
+	Put_Line("F64 Min: " & Float_64'Image(MinF64));
+    	Put_Line("F64 Max: " & Float_64'Image(MaxF64));
+  end case;
 
  elsif(BITPIX = 16)
  then
 
    I16Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   case (I16F32_V3_Data.Analyze(I16Keys)) is
+   when I16F32_V3_Data.ZERO_SHIFT =>
+	U16_MinMax(InFile, DUSize);
+	Put_Line("U16 Min: " & Unsigned_16'Image(MinU16));
+   	Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16));
 
-   if(I16Keys.BLANK_Avail)
-   then
-     Put_Line("BLANK : " & Integer_16'Image(I16Keys.BLANK));
-     I16_Checked_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE, I16Keys.BLANK);
-     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   else
-     I16_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE);
-   end if;
-
-   Set_File_Block_Index(InFile,DUStart);
-
-   -- test Int-UInt conversion
-   U16_MinMax(InFile, DUSize); 
-   Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
-   Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
+   when I16F32_V3_Data.UNITY | I16F32_V3_Data.SCALING =>
+   	if(I16Keys.BLANK_Avail)
+   	then
+     	 Put_Line("BLANK : " & Integer_16'Image(I16Keys.BLANK));
+     	 I16_Checked_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE, I16Keys.BLANK);
+     	 Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   	else
+     	 I16_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE);
+   	end if;
+   	Put_Line("F32 Min: " & Float_32'Image(MinF32));
+   	Put_Line("F32 Max: " & Float_32'Image(MaxF32));
+   end case;
 
  elsif(BITPIX = 8)
  then
@@ -360,16 +401,12 @@ begin
    null;
  end if;
 
- Put_Line("F32 Min: " & Float_32'Image(MinF32));
- Put_Line("F32 Max: " & Float_32'Image(MaxF32));
-
- end if;
 
  end; -- declare Cards : ...
 
  SIO.Close(InFile);
 
- print_ranges;
+-- print_ranges;
  Put_Line("done.");
 
 
