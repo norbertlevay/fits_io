@@ -123,17 +123,18 @@ is
  UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
  procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
 
- -- integer data if BLANK is available
- package Ti_DU is new Generic_Data_Unit(Ti);
- package Tf_fDU is new Generic_Data_Unit(Tf);
- package TiTf is new Ti_DU.Physical(Tf,"+","*","+");
+ -- Data Unit for suitable type combinations
 
- package Tf_DU is new Generic_Floats_Data_Unit(Tf,Tf,Tf_fDU);
+ package Ti_DU is new Generic_Data_Unit(Ti); -- FITS file's DataUnit has Integers
+ package TiTf is new Ti_DU.Physical(Tf,"+","*","+"); -- converted values will be Floats
+
+ package Tf_DU is new Generic_Data_Unit(Tf); -- FITS file's DataUnit has Floats
+ package TfTf is new Generic_Floats_Data_Unit(Tf,Tf,Tf_DU); -- converted values will be Floats
 
  procedure Ti_Checked_MinMax 	is new TiTf.Read_Checked_Scaled_Integers(Tf_ElemMinMax, UndefVal);
- procedure Ti_MinMax   		is new TiTf.Read_Scaled_Values(Tf_ElemMinMax);
+ procedure Ti_MinMax   		is new TiTf.Read_Scaled_Values(Tf_ElemMinMax);-- no BLANK case
 -- procedure U_MinMax 		is new TiTf.Read_Sign_Converted_Integers(Tf_ElemMinMax);
- procedure Tf_Checked_MinMax 	is new Tf_DU.Read_Checked_Scaled_Floats(Tf_ElemMinMax, UndefVal);
+ procedure Tf_Checked_MinMax 	is new TfTf.Read_Checked_Scaled_Floats(Tf_ElemMinMax, UndefVal);
  
 
 
