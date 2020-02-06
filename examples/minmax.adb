@@ -49,9 +49,103 @@ is
   Put_Line("UInt_8: " & Unsigned_8'Image(Unsigned_8'First)  & " - " & Unsigned_8'Image(Unsigned_8'Last));
  end print_ranges;
 
-
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
+
+
+
+-- ------------------------------------------------------------------------
+-- ------------------------------------------------------------------------
+-- ------------------------------------------------------------------------
+
+
+ generic
+    type Ti is range <>;  -- type in file
+    type Tf is digits <>; -- physical value type
+ package V3_Data is
+
+  type Array_Keys_Rec(BITPIX : Integer) is
+    record
+	DATAMIN_Avail : Boolean;
+	DATAMAX_Avail : Boolean;
+ 	BLANK_Avail   : Boolean;
+ 	BZERO,BSCALE    : Tf;
+	DATAMIN,DATAMAX : Tf;
+	case BITPIX is
+	when 0 .. 64 => BLANK : Ti;-- FIXME how to specify positive
+	when others => null;
+	end case;
+  end record;
+
+ function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec;
+
+ end V3_Data; 
+
+ -- Body
+
+ package body V3_Data is
+
+ function Array_Value_Rec(Cards : Optional.Card_Arr; BITPIX : Integer) return Array_Keys_Rec
+ is
+  V : Array_Keys_Rec(BITPIX);
+ begin
+
+   -- Init FIXME how to do with NUllRec init ??
+   V.DATAMIN_Avail := False;
+   V.DATAMAX_Avail := False;
+   V.BLANK_Avail   := False;
+   V.BZERO  := 0.0;
+   V.BSCALE := 1.0;
+   -- FIXME  set all BZERO BSCALE to 0.0 1.0
+
+   for I in Cards'Range
+   loop
+
+     Put_Line("V3_Data::RESKEYS: >" & Cards(I) & "<" );
+
+     if(Cards(I)(1..5) = "BZERO")
+     then
+	V.BZERO := Tf'Value(Cards(I)(11..30));
+
+     elsif(Cards(I)(1..6) = "BSCALE")
+     then
+	V.BSCALE := Tf'Value(Cards(I)(11..30));
+
+     elsif(Cards(I)(1..5) = "BLANK")
+     then
+	V.BLANK := Ti'Value(Cards(I)(11..30));
+	V.BLANK_Avail := True;
+
+     elsif(Cards(I)(1..7) = "DATAMIN")
+     then
+	V.DATAMIN := Tf'Value(Cards(I)(11..30));
+	V.DATAMIN_Avail := True;
+
+     elsif(Cards(I)(1..7) = "DATAMAX")
+     then
+	V.DATAMAX := Tf'Value(Cards(I)(11..30));
+	V.DATAMAX_Avail := True;
+   end if;
+
+   end loop;
+
+  return V;
+ end Array_Value_Rec;
+
+ end V3_Data; 
+
+ package I64F64_V3_Data is new V3_Data(Integer_64, Float_64);
+ package I32F64_V3_Data is new V3_Data(Integer_32, Float_64);
+ package I16F32_V3_Data is new V3_Data(Integer_16, Float_32);
+ --package UI8F32_V3_Data is new V3_Data(Float_32, Unsigned_8);
+ --FIXME reconsider as not reasonable: F32 = BZERO + BSCALE * UI8
+
+
+
+
+-- ------------------------------------------------------------------------
+-- ------------------------------------------------------------------------
+-- ------------------------------------------------------------------------
 
   -- MinMax implementation
 
@@ -69,59 +163,40 @@ is
  end ElemMinMax;
 
 
- BZEROF32  : Float_32 := 0.0;
- BSCALEF32 : Float_32 := 1.0;
  MinF32 : Float_32 := Float_32'Last;
  MaxF32 : Float_32 := Float_32'First;
  procedure F32_ElemMinMax is new ElemMinMax(Float_32, MinF32, MaxF32);
 
-
- BZEROF64  : Float_64 := 0.0;
- BSCALEF64 : Float_64 := 1.0;
  MinF64 : Float_64 := Float_64'Last;
  MaxF64 : Float_64 := Float_64'First;
  procedure F64_ElemMinMax is new ElemMinMax(Float_64, MinF64, MaxF64);
 
  -- example of signed-unsigned conversion
 
- BZEROU64  : Unsigned_64 := 0;
- BSCALEU64 : Unsigned_64 := 1;
  MinU64 : Unsigned_64 := Unsigned_64'Last;
  MaxU64 : Unsigned_64 := Unsigned_64'First;
  procedure U64_ElemMinMax is new ElemMinMax(Unsigned_64, MinU64, MaxU64);
 
- BZEROU32  : Unsigned_32 := 0;
- BSCALEU32 : Unsigned_32 := 1;
  MinU32 : Unsigned_32 := Unsigned_32'Last;
  MaxU32 : Unsigned_32 := Unsigned_32'First;
  procedure U32_ElemMinMax is new ElemMinMax(Unsigned_32, MinU32, MaxU32);
 
- BZEROU16  : Unsigned_16 := 0;
- BSCALEU16 : Unsigned_16 := 1;
  MinU16 : Unsigned_16 := Unsigned_16'Last;
  MaxU16 : Unsigned_16 := Unsigned_16'First;
  procedure U16_ElemMinMax is new ElemMinMax(Unsigned_16, MinU16, MaxU16);
 
- BZEROI8  : Integer_8 := 0;
- BSCALEI8 : Integer_8 := 1;
  MinI8 : Integer_8 := Integer_8'Last;
  MaxI8 : Integer_8 := Integer_8'First;
  procedure I8_ElemMinMax is new ElemMinMax(Integer_8, MinI8, MaxI8);
-
-
 
  -- MinMax for all array types
 
  -- integer data if BLANK available (undefined value check)
  
- BLfound  : Boolean := False; -- FIXME must be reset before each Header read
- BLANKI64 : Integer_64;
- BLANKI32 : Integer_32;
- BLANKI16 : Integer_16;
- BLANKUI8 : Unsigned_8;
  UndefValCnt : Natural := 0; -- FIXME must be reset at each Header read start
  procedure UndefVal is begin UndefValCnt := UndefValCnt + 1; end UndefVal;
 
+ -- integer data if BLANK is available
 
  procedure I64_Checked_MinMax is new I64F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
  procedure I32_Checked_MinMax is new I32F64.Read_Checked_Scaled_Integers(F64_ElemMinMax, UndefVal);
@@ -135,7 +210,7 @@ is
  procedure I16_MinMax is new I16F32.Read_Scaled_Values(F32_ElemMinMax);
  procedure UI8_MinMax is new UI8F32.Read_Scaled_Values(F32_ElemMinMax);
 
- -- integer sign conversion variants if BZERO BSCALE = Tab11
+ -- integer sign conversion variants if BZERO BSCALE = Tab11 (BLANK converts also)
 
  procedure U64_MinMax is new I64U64.Read_Sign_Converted_Integers(U64_ElemMinMax);
  procedure U32_MinMax is new I32U32.Read_Sign_Converted_Integers(U32_ElemMinMax);
@@ -147,8 +222,11 @@ is
  procedure F64_Checked_MinMax is new F64F64.Read_Checked_Scaled_Floats(F64_ElemMinMax, UndefVal);
  procedure F32_Checked_MinMax is new F32F32.Read_Checked_Scaled_Floats(F32_ElemMinMax, UndefVal);
 
+ -- vars
 
-
+ InFile   : SIO.File_Type;
+ HDUStart : Positive := 1; -- Primary HDU only
+ 
  -- info from Header
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
@@ -162,74 +240,23 @@ is
 	return Cnt;
  end DU_Count;
 
-
- InFile      : SIO.File_Type;
- InFileName  : String := Argument(1);
- -- FIXME might raise excpetion before Usage written
-
- BITPIX : Integer;
- DUSize : Positive;
+ BITPIX  : Integer;
+ DUSize  : Positive;
  DUStart : Positive;
-
- -- analyze array keys
-
- ArrKeysGiven : Boolean;
-
- function Analyze_Array_Keys( Cards : Optional.Card_Arr; 
-			      BZERO  : in out Float_32; 
-			      BSCALE : in out Float_32 ) return Boolean
- is
-  BZfound : Boolean := False;
-  BSfound : Boolean := False;
- begin
-   BLfound := False;
-   UndefValCnt := 0;
-   for I in Cards'Range
-   loop
-     Put_Line("RESKEYS: >" & Cards(I) & "<" );
-     if(Cards(I)(1..5) = "BZERO")
-     then
-	BZERO := Float_32'Value((Cards(I)(11..30)));
-	BZEROF64 := Float_64(BZEROF32); -- FIXME is global!!
-	BZEROU16 := Unsigned_16(BZEROF32);-- FIXME is global!!
-	BZfound := True;
-     elsif(Cards(I)(1..6) = "BSCALE")
-     then
-	BSCALE := Float_32'Value((Cards(I)(11..30)));
-	BSCALEF64 := Float_64(BSCALEF32); -- FIXME global var!!
-	BSCALEU16 := Unsigned_16(BSCALEF32); -- FIXME global var !!
-	BSfound := True;
-     elsif(Cards(I)(1..5) = "BLANK")
-     then
-        -- FIXME global vars!!
-        case(BITPIX) is
-	when 64 => BLANKI64 := Integer_64'Value((Cards(I)(11..30)));
-	when 32 => BLANKI32 := Integer_32'Value((Cards(I)(11..30)));
-	when 16 => BLANKI16 := Integer_16'Value((Cards(I)(11..30)));
-	when  8 => BLANKUI8 := Unsigned_8'Value((Cards(I)(11..30)));
-	when others => 
-		Put_Line("BLANK card in Float data !");
-	end case;
-	BLfound := True;
-     end if;
-   end loop;
-
-  return BZfound AND BSfound;
- end Analyze_Array_Keys;
-
- HDUStart : Positive := 1;
- -- FIXME now only Primary HDU, later consider other HDUs
 
 -------------------------------------------------------------------------------
 -- MAIN -------------------------------------------- MAIN ---------------------
 begin 
-
- Put_Line("Usage  " & Command_Name & " <file name>");
-
- SIO.Open(InFile,  SIO.In_File,  InFileName);
+ 
+ if(Argument_Count /= 1 )
+ then 
+  Put_Line("Usage  " & Command_Name & " <file name>");
+  return;
+ else
+   SIO.Open(InFile, SIO.In_File, (Argument(1)));
+ end if;
 
  Set_File_Block_Index(InFile,HDUStart);
-
 
  -- interpret header: DataUnit length and type needed, also store DUStart
 
@@ -244,63 +271,97 @@ begin
  Put_Line("DU Start [blocks] :" & Positive'Image(DUStart)); 
  Put_Line("DU Size  [element count]:" & Positive'Image(DUSize)); 
 
- -- reset to HDU start
+ -- reset to Header start and read it again
  Set_File_Block_Index(InFile,HDUStart);
 
  declare
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
+   F64Keys : I32F64_V3_Data.Array_Keys_Rec(BITPIX);
+   F32Keys : I16F32_V3_Data.Array_Keys_Rec(BITPIX);
+   I64Keys : I64F64_V3_Data.Array_Keys_Rec(BITPIX);
+   I32Keys : I32F64_V3_Data.Array_Keys_Rec(BITPIX);
+   I16Keys : I16F32_V3_Data.Array_Keys_Rec(BITPIX);
  begin
-   ArrKeysGiven := Analyze_Array_Keys(Cards, BZEROF32, BSCALEF32);
- end;
 
- if(BLfound = True)
- then
-   Put_Line("BLANK  :" & Integer_16'Image(BLANKI16)); 
- end if;
- Put_Line("BZERO  :" & Float_32'Image(BZEROF32)); 
- Put_Line("BSCALE :" & Float_32'Image(BSCALEF32)); 
- 
- -- read data sequentially by blocks
+ -- read data
 
- if ( abs BITPIX > 32 )
+ if ( abs BITPIX > 32 OR  BITPIX = 32 )
  then
+
+ -- 64 bit Physical data
  
  if(BITPIX = -64)
  then
-   F64_Checked_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
+   F64Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   F64_Checked_MinMax(InFile, DUSize, F64Keys.BZERO, F64Keys.BSCALE);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+
  elsif(BITPIX = 64)
  then
-   I64_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
+   I64Keys := I64F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   if(I64Keys.BLANK_Avail)
+   then
+     Put_Line("BLANK : " & Integer_64'Image(I64Keys.BLANK));
+     I64_Checked_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE,I64Keys.BLANK);
+     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   else
+     I64_MinMax(InFile, DUSize, I64Keys.BZERO, I64Keys.BSCALE);
+   end if;
+
+ elsif(BITPIX = 32)
+ then
+   I32Keys := I32F64_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   if(I32Keys.BLANK_Avail)
+   then
+     Put_Line("BLANK : " & Integer_32'Image(I32Keys.BLANK));
+     I32_Checked_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE,I32Keys.BLANK);
+     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   else
+     I32_MinMax(InFile, DUSize, I32Keys.BZERO, I32Keys.BSCALE);
+   end if;
  end if;
 
  Put_Line("F64 Min: " & Float_64'Image(MinF64));
  Put_Line("F64 Max: " & Float_64'Image(MaxF64));
 
+
  else
+
+ -- 32 bit Physical data
+
  
  if(BITPIX = -32)
  then
-   F32_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   F32Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+   F32_Checked_MinMax(InFile, DUSize, F32Keys.BZERO, F32Keys.BSCALE);
    Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
- elsif(BITPIX = 32)
+
+ elsif(BITPIX = 16)
  then
-   I32_MinMax(InFile, DUSize, BZEROF64, BSCALEF64);
- elsif(BLfound AND (BITPIX = 16))
- then
-   --I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
-   I16_Checked_MinMax(InFile, DUSize, BZEROF32, BSCALEF32, BLANKI16);
-   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
- elsif(not BLfound AND (BITPIX = 16))
- then
-   I16_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
-   Set_File_Block_Index(InFile,DUStart); -- reset to DUStart and read again
+
+   I16Keys := I16F32_V3_Data.Array_Value_Rec(Cards,BITPIX);   
+
+   if(I16Keys.BLANK_Avail)
+   then
+     Put_Line("BLANK : " & Integer_16'Image(I16Keys.BLANK));
+     I16_Checked_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE, I16Keys.BLANK);
+     Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
+   else
+     I16_MinMax(InFile, DUSize, I16Keys.BZERO, I16Keys.BSCALE);
+   end if;
+
+   Set_File_Block_Index(InFile,DUStart);
+
+   -- test Int-UInt conversion
    U16_MinMax(InFile, DUSize); 
    Put_Line("U16 Min: " & Unsigned_16'Image(MinU16) & " / "& Unsigned_16'Image(Unsigned_16'First));
    Put_Line("U16 Max: " & Unsigned_16'Image(MaxU16) & " / "& Unsigned_16'Image(Unsigned_16'Last));
+
  elsif(BITPIX = 8)
  then
-   UI8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   -- FIXME what to do with UI8 I8 ??
+   --UI8_MinMax(InFile, DUSize, BZEROF32, BSCALEF32);
+   null;
  end if;
 
  Put_Line("F32 Min: " & Float_32'Image(MinF32));
@@ -308,6 +369,7 @@ begin
 
  end if;
 
+ end; -- declare Cards : ...
 
  SIO.Close(InFile);
 
