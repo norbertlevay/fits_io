@@ -19,7 +19,8 @@ package Generic_Data_Value is
   type Tout is private;
   BZERO  : in Tout;
   BSCALE : in Tout;
-  with function Is_Valid(V : in Tin) return Boolean is <>;
+  Undef_Val : in Tout; 
+ with function Is_Valid(V : in Tin) return Boolean is <>;
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
@@ -33,6 +34,7 @@ package Generic_Data_Value is
   BZERO  : in Tout;
   BSCALE : in Tout;
   BLANK  : in Tin;
+  Undef_Val : in Tout; 
   with function Is_Valid(V : in Tin) return Boolean is <>;
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
@@ -51,6 +53,7 @@ package Generic_Data_Value is
  generic
   type Tin  is private;
   type Tout is private;
+  Undef_Val : in Tout; 
   with function Is_Valid(V : in Tin) return Boolean is <>;
   with function "+" (R : in Tin) return Tout is <>;
  function Valid_Value(Va : in Tin) return Tout;
@@ -62,6 +65,8 @@ package Generic_Data_Value is
  generic
   type Tin  is private;--(<>); -- any discrete type
   type Tout is private;--(<>); -- any discrete type
+  Undef_Val : in Tout; 
+  with function Is_Valid(V : in Tin) return Boolean is <>;
  function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
 
 

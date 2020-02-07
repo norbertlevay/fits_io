@@ -54,12 +54,12 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		Length : in Positive;
 		BZERO  : in Tout;
 		BSCALE : in Tout;
+		Undef_Val : in Tout;
 		First  : in Positive := 1);
 
  -- BZERO BSCALE = any AND BLANK provided
  generic
   with procedure Element_Value(V : in Tout);
-  with procedure Undefined is null;
   with function Is_Valid(V : in T) return Boolean is <>;
   with procedure Invalid is null;
  procedure Read_Matched_Valid_Scaled_Values
@@ -68,6 +68,7 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		BZERO  : in Tout;
 		BSCALE : in Tout;
 		BLANK  : in T;
+		Undef_Val : in Tout;
 		First  : in Positive := 1);
 
 
@@ -83,6 +84,7 @@ generic
  procedure Read_Valid_Values
 		(F : SIO.File_Type; 
 		Length : in Positive;
+		Undef_Val : in Tout;
 		First  : in Positive := 1);
 
 
@@ -90,9 +92,12 @@ generic
  generic
   with procedure Element_Value(V : in Tout);
   with procedure Undefined_Value is null;
+  with procedure Invalid is <>;
+  with function Is_Valid(V : in T) return Boolean is <>;
  procedure Read_Sign_Converted_Integers
 		(F : SIO.File_Type;
 		Length : in Positive;
+		Undef_Val : in Tout;
 		First  : in Positive := 1);
 
 

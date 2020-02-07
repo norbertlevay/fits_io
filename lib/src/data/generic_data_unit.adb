@@ -63,25 +63,6 @@ end Read_Array_Values;
 
 package body Physical is
 
- procedure Read_Valid_Values
-                 (F : SIO.File_Type;
-                 Length : in Positive;
-		 First  : in Positive := 1)
- is
-   procedure LocArrVal(V : in T)
-   is  
-    function PhysVal is
-	new Valid_Value(T, Tout, Is_Valid, "+");
-   begin
-    Element_Value(PhysVal(V));
-   exception
-    when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
- begin
-   ReadArrVals(F, Length, First);  
- end Read_Valid_Values;
-
 
 
 
@@ -90,18 +71,19 @@ package body Physical is
                  Length : in Positive;
                  BZERO  : in Tout;
                  BSCALE : in Tout;
+                 Undef_Val : in Tout;
 		 First  : in Positive := 1)
  is
-   procedure LocArrVal(V : in T)
+   procedure cbLocArrVal(V : in T)
    is  
     function PhysVal is
-	new Valid_Scaled_Value(T, Tout, BZERO, BSCALE, Is_Valid, "+","*","+");
+	new Valid_Scaled_Value(T, Tout, BZERO, BSCALE, Undef_Val, Is_Valid, "+","*","+");
+    Vout : Tout := PhysVal(V);
    begin
-    Element_Value(PhysVal(V));
-   exception
-    when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+    if(Vout = Undef_Val) then Invalid; end if;
+    Element_Value(Vout);
+   end cbLocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(cbLocArrVal);
  begin
    ReadArrVals(F, Length, First);  
  end Read_Valid_Scaled_Values;
@@ -113,24 +95,44 @@ package body Physical is
                 BZERO  : in Tout;
                 BSCALE : in Tout;
                 BLANK  : in T;
+                Undef_Val : in Tout;
 		First : in Positive := 1)
   is
-   procedure LocArrVal(V : in T)
+   procedure cbLocArrVal(V : in T)
    is  
     function PhysVal is
-      new Matched_Valid_Scaled_Value(T, Tout, BZERO, BSCALE, BLANK, Is_Valid, "+","*","+");
+      new Matched_Valid_Scaled_Value(T, Tout, BZERO, BSCALE, BLANK, Undef_Val, Is_Valid, "+","*","+");
+    Vout : Tout := PhysVal(V);
    begin
-     Element_Value(PhysVal(V));
-    exception 
-     when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
-     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+    if(Vout = Undef_Val) then Invalid; end if;
+     Element_Value(Vout);
+   end cbLocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(cbLocArrVal);
  begin
    ReadArrVals(F, Length, First);  
  end Read_Matched_Valid_Scaled_Values;
 
 
+
+ procedure Read_Valid_Values
+                 (F : SIO.File_Type;
+                 Length : in Positive;
+                 Undef_Val : in Tout;
+		 First  : in Positive := 1)
+ is
+   procedure cbLocArrVal(V : in T)
+   is  
+    function PhysVal is
+	new Valid_Value(T, Tout, Undef_Val, Is_Valid, "+");
+    Vout : Tout := PhysVal(V);
+   begin
+    if(Vout = Undef_Val) then Invalid; end if;
+    Element_Value(Vout);
+   end cbLocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(cbLocArrVal);
+ begin
+   ReadArrVals(F, Length, First);  
+ end Read_Valid_Values;
 
 
 
@@ -138,17 +140,18 @@ package body Physical is
  procedure Read_Sign_Converted_Integers
                 (F : SIO.File_Type;
                 Length : in Positive;
+                Undef_Val : in Tout;
 		First : in Positive := 1)
   is
-   procedure LocArrVal(V : in T)
+   procedure cbLocArrVal(V : in T)
    is  
-    function PhysVal is new Conv_Signed_Unsigned(T, Tout);
+    function PhysVal is new Conv_Signed_Unsigned(T, Tout, Undef_Val, Is_Valid);
+    Vout : Tout := PhysVal(V);
    begin
-     Element_Value(PhysVal(V));
-    exception 
-     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
-   end LocArrVal;
-   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+    if(Vout = Undef_Val) then Invalid; end if;
+     Element_Value(Vout);
+   end cbLocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(cbLocArrVal);
  begin
    ReadArrVals(F, Length, First);  
  end Read_Sign_Converted_Integers;

@@ -132,7 +132,7 @@ is
 	-- no BLANK case
 
  procedure Ti_Checked_MinMax 
-	is new TiTf.Read_Matched_Valid_Scaled_Values(Tf_ElemMinMax, UndefVal,Is_Valid, UndefVal);
+	is new TiTf.Read_Matched_Valid_Scaled_Values(Tf_ElemMinMax, Is_Valid, UndefVal);
 	-- with BLANK
  
 
@@ -140,6 +140,7 @@ is
   procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
   is
    Keys : Array_Keys_Rec := Array_Value_Rec(Cards);   
+   NewUndef_Val : Tf; -- FIXME need these values
   begin
  
    case (Analyze(Keys))
@@ -153,10 +154,10 @@ is
     if(Keys.BLANK_Avail)
     then
 --      Put_Line("BLANK : " & Ti'Image(Keys.BLANK));
-      Ti_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE,Keys.BLANK);
+      Ti_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE,Keys.BLANK, NewUndef_Val);
       Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
     else
-      Ti_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE);
+      Ti_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE, NewUndef_Val);
     end if;
     Put_Line("F Min: " & Tf'Image(Min));
     Put_Line("F Max: " & Tf'Image(Max));
