@@ -62,6 +62,7 @@ is
     type Ti is private;   -- type in file
     type Tf is digits <>; -- physical value type
     with function Is_Valid(V : in Ti) return Boolean is <>;
+    with function To_Value(S : in String) return Ti is <>;
     with function "+" (R : in Ti) return Tf is <>;
  package V3_Data is
 
@@ -186,19 +187,6 @@ is
 
 
 
- function To_Ti(S : String) return Ti
- is
-  V : Ti;
- begin
-  Put_Line("FIXME BLANK not converted from card string to value");
-  for I in S'Range
-  loop
-    null; -- FIXME implement all set of CardString to FITS-Integer conversions
-          -- it should be in Keyword_Record module and passed as generic parameter here
-  end loop;
-  return V;
- end To_Ti;
-
 
  function Array_Value_Rec(Cards : Optional.Card_Arr) return Array_Keys_Rec
  is
@@ -228,7 +216,7 @@ is
      elsif(Cards(I)(1..5) = "BLANK")
      then
 --	V.BLANK := Ti'Value(Cards(I)(11..30));
-	V.BLANK := To_Ti(Cards(I)(11..30));
+	V.BLANK := To_Value(Cards(I)(11..30));
 	V.BLANK_Avail := True;
 
      elsif(Cards(I)(1..7) = "DATAMIN")
@@ -253,48 +241,63 @@ is
 
  -- V3_Data instances
 
- -- Valid attrib is provided only for discrete scalars (not available for private type-group)
+ -- 'Valid and 'Value attribs are provided only for discrete 
+ -- scalars (not available for private type-group)
 
- -- provide Valid attrib
- generic 
-   type T is digits <>;
- function Is_Valid_Float(V : in T) return Boolean;
- function Is_Valid_Float(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Float;
+ -- provide patches for Valid attrib and Value attrib for converting BLANK
+ generic
+  type T is digits <>;
+ package Float_Patches is
+  function Is_Valid(V : in T) return Boolean;
+  function To_Value(S : in String) return T;
+ end Float_Patches;
+ package body Float_Patches is
+  function Is_Valid(V : in T) return Boolean is begin return V'Valid; end Is_Valid;
+  function To_Value(S : in String) return T is begin return T'Value(S); end To_Value;
+ end Float_Patches;
 
- generic 
-   type T is range <>;
- function Is_Valid_Int(V : in T) return Boolean;
- function Is_Valid_Int(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Int;
+ generic
+  type T is range <>;
+ package Int_Patches is
+  function Is_Valid(V : in T) return Boolean;
+  function To_Value(S : in String) return T;
+ end Int_Patches;
+ package body Int_Patches is
+  function Is_Valid(V : in T) return Boolean is begin return V'Valid; end Is_Valid;
+  function To_Value(S : in String) return T is begin return T'Value(S); end To_Value;
+ end Int_Patches;
 
- generic 
-   type T is mod <>;
- function Is_Valid_Mod(V : in T) return Boolean;
- function Is_Valid_Mod(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Mod;
+ generic
+  type T is mod <>;
+ package UInt_Patches is
+  function Is_Valid(V : in T) return Boolean;
+  function To_Value(S : in String) return T;
+ end UInt_Patches;
+ package body UInt_Patches is
+  function Is_Valid(V : in T) return Boolean is begin return V'Valid; end Is_Valid;
+  function To_Value(S : in String) return T is begin return T'Value(S); end To_Value;
+ end UInt_Patches;
+
+ package F64P is new Float_Patches(Float_64);
+ package F32P is new Float_Patches(Float_32);
+ package I64P is new Int_Patches(Integer_64);
+ package I32P is new Int_Patches(Integer_32);
+ package I16P is new Int_Patches(Integer_16);
+ package UI8P is new UInt_Patches(Unsigned_8);
 
 
- function Is_Valid_F64 is new Is_Valid_Float(Float_64);
- function Is_Valid_F32 is new Is_Valid_Float(Float_32);
- function Is_Valid_I64 is new Is_Valid_Int(Integer_64);
- function Is_Valid_I32 is new Is_Valid_Int(Integer_32);
- function Is_Valid_I16 is new Is_Valid_Int(Integer_16);
- function Is_Valid_UI8 is new Is_Valid_Mod(Unsigned_8);
- -- end provide Valid attrib
-
-
- package F64F64_V3_Data is new V3_Data(Float_64, Float_64, Is_Valid_F64);
- package F32F32_V3_Data is new V3_Data(Float_32, Float_32, Is_Valid_F32);
- 
- package I64F64_V3_Data is new V3_Data(Integer_64, Float_64, Is_Valid_I64);
- package I32F64_V3_Data is new V3_Data(Integer_32, Float_64, Is_Valid_I32);
- package I16F32_V3_Data is new V3_Data(Integer_16, Float_32, Is_Valid_I16);
- package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32, Is_Valid_UI8);
-
+ package F64F64_V3_Data is new V3_Data(Float_64, Float_64, F64P.Is_Valid, F64P.To_Value);
+ package F32F32_V3_Data is new V3_Data(Float_32, Float_32, F32P.Is_Valid, F32P.To_Value);
+ package I64F64_V3_Data is new V3_Data(Integer_64, Float_64, I64P.Is_Valid, I64P.To_Value);
+ package I32F64_V3_Data is new V3_Data(Integer_32, Float_64, I32P.Is_Valid, I32P.To_Value);
+ package I16F32_V3_Data is new V3_Data(Integer_16, Float_32, I16P.Is_Valid, I16P.To_Value);
+ package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32, UI8P.Is_Valid, UI8P.To_Value);
 
 
  -- test
  function "+" (R : in Integer_16) return Float_64
  is begin return Float_64(R); end "+";
- package I16F64_V3_Data is new V3_Data(Integer_16, Float_64, Is_Valid_I16);
+ package I16F64_V3_Data is new V3_Data(Integer_16, Float_64, I16P.Is_Valid, I16P.To_Value);
  -- only test not in use
 
 
