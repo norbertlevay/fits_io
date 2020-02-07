@@ -63,23 +63,24 @@ end Read_Array_Values;
 
 package body Physical is
 
- procedure Read_Sign_Converted_Integers
-                (F : SIO.File_Type;
-                Length : in Positive;
-		First : in Positive := 1)
-  is
+ procedure Read_Valid_Values
+                 (F : SIO.File_Type;
+                 Length : in Positive;
+		 First  : in Positive := 1)
+ is
    procedure LocArrVal(V : in T)
    is  
-    function PhysVal is new Conv_Signed_Unsigned(T, Tout);
+    function PhysVal is
+	new Valid_Value(T, Tout, Is_Valid, "+");
    begin
-     Element_Value(PhysVal(V));
-    exception 
-     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
+    Element_Value(PhysVal(V));
+   exception
+    when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Sign_Converted_Integers;
+ end Read_Valid_Values;
 
 
 
@@ -128,6 +129,30 @@ package body Physical is
  begin
    ReadArrVals(F, Length, First);  
  end Read_Checked_Valid_Scaled_Values;
+
+
+
+
+
+
+ procedure Read_Sign_Converted_Integers
+                (F : SIO.File_Type;
+                Length : in Positive;
+		First : in Positive := 1)
+  is
+   procedure LocArrVal(V : in T)
+   is  
+    function PhysVal is new Conv_Signed_Unsigned(T, Tout);
+   begin
+     Element_Value(PhysVal(V));
+    exception 
+     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
+   end LocArrVal;
+   procedure ReadArrVals is new Read_Array_Values(LocArrVal);
+ begin
+   ReadArrVals(F, Length, First);  
+ end Read_Sign_Converted_Integers;
+
 
 
 end Physical;

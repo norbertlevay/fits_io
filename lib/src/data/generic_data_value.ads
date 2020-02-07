@@ -13,6 +13,16 @@
 
 package Generic_Data_Value is
 
+ -- BZERO BSCALE = 0.0 1.0
+ generic
+  type Tin  is private;
+  type Tout is private;
+  with function Is_Valid(V : in Tin) return Boolean is <>;
+  with function "+" (R : in Tin) return Tout is <>;
+ function Valid_Value(Va : in Tin) return Tout;
+ -- raises exception Invalid_Value
+
+ -- implements Vout = BZERO + BSCALE * (+Vin)
  generic
   type Tin  is private;
   type Tout is private;
@@ -22,7 +32,8 @@ package Generic_Data_Value is
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
  function Scaled_Value(Va : in Tin) return Tout;
- 
+
+ -- normal scaling for Ints and Floats with validity check (For floats means Undefined pixels) 
  generic
   type Tin  is private;
   type Tout is private;
@@ -34,7 +45,8 @@ package Generic_Data_Value is
   with function "+" (R : in Tin) return Tout is <>;
  function Valid_Scaled_Value(Va : in Tin) return Tout;
  -- raises exception Invalid_Value
-
+ 
+ -- BLANK given in header (use for Integers)
  generic
   type Tin  is private;
   type Tout is private;
@@ -54,7 +66,8 @@ package Generic_Data_Value is
  Undefined_Value : exception; -- if match with BLANK
 
 
-
+ -- BZERO BSCALE = Tab11 (BLANK don't care)
+ -- FIXME add BLANK check but also invert the Vin which is BLANK
  generic
   type Tin  is private;--(<>); -- any discrete type
   type Tout is private;--(<>); -- any discrete type

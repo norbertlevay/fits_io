@@ -44,6 +44,18 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
  package Physical is
 
 
+-- BZERO BSCALE = 0.0 1.0 AND BLANK ??
+generic
+  with procedure Element_Value(V : in Tout);
+  with function Is_Valid(V : in T) return Boolean is <>;
+  with procedure Invalid is <>;
+ procedure Read_Valid_Values
+		(F : SIO.File_Type; 
+		Length : in Positive;
+		First  : in Positive := 1);
+
+
+ -- BZERO BSCALE = any AND no BLANK
  generic
   with procedure Element_Value(V : in Tout);
   with function Is_Valid(V : in T) return Boolean is <>;
@@ -55,7 +67,7 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		BSCALE : in Tout;
 		First  : in Positive := 1);
 
-
+ -- BZERO BSCALE = any AND BLANK provided
  generic
   with procedure Element_Value(V : in Tout);
   with procedure Undefined is null;
@@ -71,7 +83,7 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 
 
 
-
+ -- BZERO BSCALE = Tab11 (BLANK don't care)
  generic
   with procedure Element_Value(V : in Tout);
   with procedure Undefined_Value is null;

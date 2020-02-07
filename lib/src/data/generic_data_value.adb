@@ -4,6 +4,19 @@ with Ada.Unchecked_Conversion;
 
 package body Generic_Data_Value is
 
+ function Valid_Value(Va : in Tin) return Tout
+ is
+ begin
+   if(Is_Valid(Va))
+  then
+  	return (+Va);
+  else 
+	Raise_Exception(Invalid_Value'Identity,"Invalid value encountered (T'Valid failed)");
+  end if; 
+ end Valid_Value;
+
+
+
 
  function Scaled_Value(Va : in Tin) return Tout
  is
@@ -21,7 +34,7 @@ package body Generic_Data_Value is
   then
   	return ScVal(Va);
   else 
-	Raise_Exception(Invalid_Value'Identity,"Invalid value encountered");
+	Raise_Exception(Invalid_Value'Identity,"Invalid value encountered (T'Valid failed)");
   end if; 
  end Valid_Scaled_Value;
 
