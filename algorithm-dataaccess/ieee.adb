@@ -11,6 +11,14 @@ procedure IEEE is -- Non portable, bad, never do this!
    NZero : Float := 1.0 / NInf;
    NaN   : Float := 0.0 / Zero; 
    NaNi   : IEEE_Float_32 := 0.0 / Zeroi; 
+
+   VF32 : IEEE_Float_32 := -1.23457;
+   VInt : Integer := Integer(VF32);
+-- unsigned
+ type Unsigned_8  is  mod 2**8;
+
+   VUInt : Unsigned_8 := Unsigned_8(VF32);
+
 begin
    Put_Line (" -oo = " & Float'Image (NInf));
    Put_Line (" +oo = " & Float'Image (PInf));
@@ -31,12 +39,13 @@ begin
    Put_Line ("Valid +oo is " & Boolean'Image (PInf'Valid));
    Put_Line ("Valid NaN is " & Boolean'Image (NaN'Valid));
    Put_Line ("Valid NaNi is " & Boolean'Image (NaNi'Valid));
-   Put_Line ("Conv NaNi to Int is " & Integer'Image (Integer(NaNi)));
+--   Put_Line ("Conv NaNi to Int is " & Integer'Image (Integer(NaNi)));
 		-- <- raises Constraint_Error overflow check failed
    Put_Line ("Conv NaNi to Float64 is " & IEEE_Float_64'Image (IEEE_Float_64(NaNi)));-- stays NaN
 
 
-   
+  Put_Line ("Conv Float_32 -> Int: " & IEEE_Float_32'Image(VF32) &" -> "& Integer'Image(VInt) );  
+  Put_Line ("Conv Float_32 -> UInt8: " & IEEE_Float_32'Image(VF32) &" -> "& Unsigned_8'Image(VUInt) );  
  
 end IEEE;
  

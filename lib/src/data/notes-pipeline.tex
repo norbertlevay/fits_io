@@ -1,4 +1,29 @@
 
+- NOTE it is the caller who determines conversions by choosing Tin Tout
+- -> all combinations should be permissible and should result in minimal loss of accuracy
+-    for the given case (choice of scaling domain)
+--- Library must provide all patches for possible type combinations:
+ generics instantations should not fail!!!
+
+Conversion between all types:
+- if out of range (no clipping) but Constraint_Error raised (like Float(8989) -> UInt8)
+- if in range, in case of floats only precision is of concern (number of digits lost)
+---> NOTE that all conbinations permissible means data values may be out of 
+	range (Constrant_Error will be raised) and/or may suffer loss of precision 
+	It is the responsability of the user to know  which conversions 
+	make sense for his data
+
+
+- NOTE Tab11 vals is not conversion but two interpretaions of the same bit pattern
+- once as sign number other as unsigned number
+--> FIXME How to recognize when to do SignConversion by flippinMSB ?
+
+- NOTE Scaling:  
+    +(BZERO + BSCALE * (+Vin)  calc in which domain ?
+OR    BZERO + BSCALE * (+Vin)  calc in Tout domain (note no result-converion)
+
+
+
 
 BZERO BSCALE defaults to 0.0 1.0 if not given in Header -> e.g. ALLWAYS available
 				
