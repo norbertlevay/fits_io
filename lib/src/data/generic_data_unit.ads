@@ -19,7 +19,8 @@ package Generic_Data_Unit is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
--- raw array data values in file (Varr)
+
+-- raw data array in FITS file
 
 generic
   with procedure Element (V : in T);
@@ -28,10 +29,12 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 -- First = 1 and Length = DUSize will read all Data Unit
 -- current Block is where SIO.File_Index points to
 
+
+
 -- Conversion to physical values
 -- Vphys = BZERO + BSCALE * Varr
  
--- converted physical integer values 
+-- converted values have physical meaning as BUNIT
 
  generic
   type Tout is private;
@@ -39,6 +42,35 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in T) return Tout is <>;
  package Physical is
+
+
+ generic
+  with procedure Element_Value(V : in Tout);
+  with function Is_Valid(V : in T) return Boolean is <>;
+  with procedure Invalid is <>;
+ procedure Read_Valid_Scaled_Values
+		(F : SIO.File_Type; 
+		Length : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout;
+		First  : in Positive := 1);
+
+
+ generic
+  with procedure Element_Value(V : in Tout);
+  with procedure Undefined is null;
+  with function Is_Valid(V : in T) return Boolean is <>;
+  with procedure Invalid is null;
+ procedure Read_Checked_Valid_Scaled_Values
+		(F : SIO.File_Type;
+		Length : in Positive;
+		BZERO  : in Tout;
+		BSCALE : in Tout;
+		BLANK  : in T;
+		First  : in Positive := 1);
+
+
+
 
  generic
   with procedure Element_Value(V : in Tout);
@@ -49,41 +81,8 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
 		First  : in Positive := 1);
 
 
- generic
-  with procedure Element_Value(V : in Tout);
- procedure Read_Scaled_Values
-		(F : SIO.File_Type; 
-		Length : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout;
-		First  : in Positive := 1);
-
-
--- FIXME func-name _Integers() does not fit Tout type spec
--- as below for Floats is ok
- generic
-  with procedure Element_Value(V : in Tout);
-  with procedure Undefined_Value is null;
- procedure Read_Checked_Scaled_Integers
-		(F : SIO.File_Type;
-		Length : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout;
-		BLANK  : in T;
-		First  : in Positive := 1);
-
 end Physical;
 
-
--- Random access
-
-type T_Arr is array (Integer range <>) of T;
-procedure Read_Array_Value(F : SIO.File_Type;
-		DUStart : in SIO.Positive_Count; 
-		Offset  : in Positive;
-		Count   : in Positive :=1;
-		Value  : out T_Arr) is null;
--- FIXME not implemented
 
 
 end Generic_Data_Unit;

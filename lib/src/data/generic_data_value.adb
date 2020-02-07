@@ -1,79 +1,59 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
-
-with Ada.Unchecked_Conversion;-- NOT IN USE only for refrence
+with Ada.Unchecked_Conversion;
 
 package body Generic_Data_Value is
 
- 
- function Physical_Value(Va : in Tin) return Tout
+
+ function Scaled_Value(Va : in Tin) return Tout
  is
  begin
   return BZERO + BSCALE * (+Va);
- end Physical_Value;
+ end Scaled_Value;
 
 
-
-
- function Checked_Physical_Integer(Va : in Tin) return Tout
+ 
+ function Valid_Scaled_Value(Va : in Tin) return Tout
  is
-  function PhysVal is new Physical_Value(Tin,Tout,BZERO,BSCALE,"+","*","+");
+  function ScVal is new Scaled_Value(Tin,Tout,BZERO,BSCALE);
  begin
-  if(Va = BLANK)
+  if(Is_Valid(Va))
   then
-    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
-  end if;
-  return PhysVal(Va);
- end Checked_Physical_Integer;
+  	return ScVal(Va);
+  else 
+	Raise_Exception(Invalid_Value'Identity,"Invalid value encountered");
+  end if; 
+ end Valid_Scaled_Value;
 
 
 
 
-
- -- undefined float values use IEEE NaN : 
- -- signbit=don't care & 
- -- exponent= all ones & 
- -- fraction= any but not all zeros
- generic
-  type T is digits <>; 
- function Is_NaN(V : in T) return Boolean;
- function Is_NaN(V : in T) return Boolean
+ function Checked_Valid_Scaled_Value(Va : in Tin) return Tout
  is
+  function ScVal is new Scaled_Value(Tin,Tout,BZERO,BSCALE);
  begin
-  return ( (T'Exponent(V) = 255) AND 
-           (T'Fraction(V) /= 0.0) );
- end Is_NaN;
 
-
- function Checked_Float_Value(Va : in Tin) return Tout
- is
-  function "+" (Vin : in Tin) return Tout is begin return Tout(Vin); end "+";
-  function IsNaN   is new Is_NaN(Tin);
- begin
-  if(IsNaN(Va))
+  if(Is_Valid(Va))
   then
-    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
-  end if;
-  return +(Va);
- end Checked_Float_Value;
+
+    if(Va = BLANK)
+    then
+      Raise_Exception(Undefined_Value'Identity,"Undefined value encountered (BLANK found)");
+    else
+      return ScVal(Va);
+    end if;
+
+   else
+      Raise_Exception(Invalid_Value'Identity,"Invalid value encountered (T'Valid failed)");
+   end if;
+
+ end Checked_Valid_Scaled_Value;
 
 
 
- function Checked_Physical_Float(Va : in Tin) return Tout
- is
-  function "+" (Vin : in Tin) return Tout is begin return Tout(Vin); end "+";
-  function FloatPhysVal is new Physical_Value(Tin, Tout, BZERO, BSCALE);
-  function IsNaN   is new Is_NaN(Tin);
- begin
-  if(IsNaN(Va))
-  then
-    Raise_Exception(Undefined_Value'Identity,"Undefined value encountered");
-  end if;
-  return FloatPhysVal(Va);
- end Checked_Physical_Float;
 
 
-  function Conv_Signed_Unsigned(Vin : in Tin) return Tout
+ function Conv_Signed_Unsigned(Vin : in Tin) return Tout
  is
    type BArr is array (1 .. Tin'Size) of Boolean;
    pragma Pack (BArr);

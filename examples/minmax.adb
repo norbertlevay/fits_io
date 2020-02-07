@@ -32,7 +32,6 @@ with Data_Funcs; use Data_Funcs;
 
 with Generic_Data_Block;
 with Generic_Data_Unit;
-with Generic_Floats_Data_Unit;
 with Generic_Data_Value; use Generic_Data_Value;
 
 procedure minmax
@@ -59,19 +58,18 @@ is
 -- ------------------------------------------------------------------------
 -- ------------------------------------------------------------------------
 
--- FIXME Ti range <> -> Ti'Value 'Image for BLANK available but no UI8 Unsigned vals
---       Ti private  -> Unsigned available but Ti'Value Ti'Image for BLANK not available
  generic
-    type Ti is range <>; -- type in file FIXME gooe for Ti'Value for BLANK but no Unsigned 
---    type Ti is private;  -- type in file FIXME good also for UI8 but not Ti'Value for BLANK
+    type Ti is private;   -- type in file
     type Tf is digits <>; -- physical value type
+    with function Is_Valid(V : in Ti) return Boolean is <>;
     with function "+" (R : in Ti) return Tf is <>;
  package V3_Data is
 
-  procedure FloatsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
-  procedure IntsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
+  procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
+  -- generic implementation of MinMax for any type combination Tinfile and Tf floats
 
  end V3_Data; 
+
 
  -- Body
 
@@ -125,33 +123,20 @@ is
 
  -- Data Unit for suitable type combinations
 
- package Ti_DU is new Generic_Data_Unit(Ti); -- FITS file's DataUnit has Integers
+ package Ti_DU is new Generic_Data_Unit(Ti); -- if FITS file's DataUnit has Integers
  package TiTf is new Ti_DU.Physical(Tf,"+","*","+"); -- converted values will be Floats
 
- package Tf_DU is new Generic_Data_Unit(Tf); -- FITS file's DataUnit has Floats
- package TfTf is new Generic_Floats_Data_Unit(Tf,Tf,Tf_DU); -- converted values will be Floats
+ procedure Ti_MinMax
+	is new TiTf.Read_Valid_Scaled_Values(Tf_ElemMinMax, Is_Valid, UndefVal);
+	-- no BLANK case
 
- procedure Ti_Checked_MinMax 	is new TiTf.Read_Checked_Scaled_Integers(Tf_ElemMinMax, UndefVal);
- procedure Ti_MinMax   		is new TiTf.Read_Scaled_Values(Tf_ElemMinMax);-- no BLANK case
--- procedure U_MinMax 		is new TiTf.Read_Sign_Converted_Integers(Tf_ElemMinMax);
- procedure Tf_Checked_MinMax 	is new TfTf.Read_Checked_Scaled_Floats(Tf_ElemMinMax, UndefVal);
+ procedure Ti_Checked_MinMax 
+	is new TiTf.Read_Checked_Valid_Scaled_Values(Tf_ElemMinMax, UndefVal,Is_Valid, UndefVal);
+	-- with BLANK
  
 
 
-
-  procedure FloatsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
-  is
-   Keys : Array_Keys_Rec;
-  begin
-   Keys := Array_Value_Rec(Cards);   
-   Tf_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE);
-   Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
-   Put_Line("F Min: " & Tf'Image(Min));
-   Put_Line("F Max: " & Tf'Image(Max));
-  end FloatsMinMax;
-
-
-  procedure IntsMinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
+  procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
   is
    Keys : Array_Keys_Rec := Array_Value_Rec(Cards);   
   begin
@@ -166,7 +151,7 @@ is
    when UNITY | SCALING =>
     if(Keys.BLANK_Avail)
     then
-      Put_Line("BLANK : " & Ti'Image(Keys.BLANK));
+--      Put_Line("BLANK : " & Ti'Image(Keys.BLANK));
       Ti_Checked_MinMax(F, DUSize, Keys.BZERO, Keys.BSCALE,Keys.BLANK);
       Put_Line("UndefVal count: " & Natural'Image(UndefValCnt));
     else
@@ -176,7 +161,7 @@ is
     Put_Line("F Max: " & Tf'Image(Max));
   end case;
 
-  end IntsMinMax;
+  end MinMax;
 
 
  function Analyze( R : in Array_Keys_Rec ) return Array_Keys_Category
@@ -205,6 +190,7 @@ is
  is
   V : Ti;
  begin
+  Put_Line("FIXME BLANK not converted from card string to value");
   for I in S'Range
   loop
     null; -- FIXME implement all set of CardString to FITS-Integer conversions
@@ -241,8 +227,8 @@ is
 
      elsif(Cards(I)(1..5) = "BLANK")
      then
-	V.BLANK := Ti'Value(Cards(I)(11..30));
---	V.BLANK := To_Ti(Cards(I)(11..30));
+--	V.BLANK := Ti'Value(Cards(I)(11..30));
+	V.BLANK := To_Ti(Cards(I)(11..30));
 	V.BLANK_Avail := True;
 
      elsif(Cards(I)(1..7) = "DATAMIN")
@@ -263,17 +249,54 @@ is
 
  end V3_Data; 
 
- package I64F64_V3_Data is new V3_Data(Integer_64, Float_64);
- package I32F64_V3_Data is new V3_Data(Integer_32, Float_64);
- package I16F32_V3_Data is new V3_Data(Integer_16, Float_32);
 
+
+ -- V3_Data instances
+
+ -- Valid attrib is provided only for discrete scalars (not available for private type-group)
+
+ -- provide Valid attrib
+ generic 
+   type T is digits <>;
+ function Is_Valid_Float(V : in T) return Boolean;
+ function Is_Valid_Float(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Float;
+
+ generic 
+   type T is range <>;
+ function Is_Valid_Int(V : in T) return Boolean;
+ function Is_Valid_Int(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Int;
+
+ generic 
+   type T is mod <>;
+ function Is_Valid_Mod(V : in T) return Boolean;
+ function Is_Valid_Mod(V : in T) return Boolean is begin return V'Valid; end Is_Valid_Mod;
+
+
+ function Is_Valid_F64 is new Is_Valid_Float(Float_64);
+ function Is_Valid_F32 is new Is_Valid_Float(Float_32);
+ function Is_Valid_I64 is new Is_Valid_Int(Integer_64);
+ function Is_Valid_I32 is new Is_Valid_Int(Integer_32);
+ function Is_Valid_I16 is new Is_Valid_Int(Integer_16);
+ function Is_Valid_UI8 is new Is_Valid_Mod(Unsigned_8);
+ -- end provide Valid attrib
+
+
+ package F64F64_V3_Data is new V3_Data(Float_64, Float_64, Is_Valid_F64);
+ package F32F32_V3_Data is new V3_Data(Float_32, Float_32, Is_Valid_F32);
+ 
+ package I64F64_V3_Data is new V3_Data(Integer_64, Float_64, Is_Valid_I64);
+ package I32F64_V3_Data is new V3_Data(Integer_32, Float_64, Is_Valid_I32);
+ package I16F32_V3_Data is new V3_Data(Integer_16, Float_32, Is_Valid_I16);
+ package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32, Is_Valid_UI8);
+
+
+
+ -- test
  function "+" (R : in Integer_16) return Float_64
  is begin return Float_64(R); end "+";
- package I16F64_V3_Data is new V3_Data(Integer_16, Float_64);
+ package I16F64_V3_Data is new V3_Data(Integer_16, Float_64, Is_Valid_I16);
  -- only test not in use
 
- --package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32);
- --FIXME Ti must be mod or private
 
 -- ------------------------------------------------------------------------
 -- ------------------------------------------------------------------------
@@ -335,12 +358,12 @@ begin
    Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
  begin
  -- read data
- if(BITPIX = -64)    then I32F64_V3_Data.FloatsMinMax(InFile, DUSize, Cards);
- elsif(BITPIX = -32) then I16F32_V3_Data.FloatsMinMax(InFile, DUSize, Cards);
- elsif(BITPIX = 64)  then I64F64_V3_Data.IntsMinMax(InFile, DUSize, Cards);
- elsif(BITPIX = 32)  then I32F64_V3_Data.IntsMinMax(InFile, DUSize, Cards);
- elsif(BITPIX = 16)  then I16F32_V3_Data.IntsMinMax(InFile, DUSize, Cards);
- --elsif(BITPIX = 8)   then UI8F32_V3_Data.IntsMinMax(InFile, DUSize, Cards);
+ if(BITPIX = -64)    then F64F64_V3_Data.MinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = -32) then F32F32_V3_Data.MinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 64)  then I64F64_V3_Data.MinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 32)  then I32F64_V3_Data.MinMax(InFile, DUSize, Cards);
+ elsif(BITPIX = 16)  then I16F32_V3_Data.MinMax(InFile, DUSize, Cards);
+ elsif(BITPIX =  8)  then UI8F32_V3_Data.MinMax(InFile, DUSize, Cards);
  end if;
  end;
 

@@ -84,7 +84,7 @@ package body Physical is
 
 
 
- procedure Read_Scaled_Values
+ procedure Read_Valid_Scaled_Values
                  (F : SIO.File_Type;
                  Length : in Positive;
                  BZERO  : in Tout;
@@ -93,17 +93,20 @@ package body Physical is
  is
    procedure LocArrVal(V : in T)
    is  
-    function PhysVal is new Physical_Value(T, Tout, BZERO, BSCALE, "+","*","+");
+    function PhysVal is
+	new Valid_Scaled_Value(T, Tout, BZERO, BSCALE, Is_Valid, "+","*","+");
    begin
     Element_Value(PhysVal(V));
+   exception
+    when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Scaled_Values;
+ end Read_Valid_Scaled_Values;
 
 
- procedure Read_Checked_Scaled_Integers
+ procedure Read_Checked_Valid_Scaled_Values
                 (F : SIO.File_Type;
                 Length : in Positive;
                 BZERO  : in Tout;
@@ -113,16 +116,18 @@ package body Physical is
   is
    procedure LocArrVal(V : in T)
    is  
-    function PhysVal is new Checked_Physical_Integer(T, Tout, BZERO, BSCALE, BLANK, "+","*","+");
+    function PhysVal is
+      new Checked_Valid_Scaled_Value(T, Tout, BZERO, BSCALE, BLANK, Is_Valid, "+","*","+");
    begin
      Element_Value(PhysVal(V));
     exception 
-     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined_Value;
+     when Except_ID : Generic_Data_Value.Invalid_Value => Invalid;
+     when Except_ID : Generic_Data_Value.Undefined_Value => Undefined;
    end LocArrVal;
    procedure ReadArrVals is new Read_Array_Values(LocArrVal);
  begin
    ReadArrVals(F, Length, First);  
- end Read_Checked_Scaled_Integers;
+ end Read_Checked_Valid_Scaled_Values;
 
 
 end Physical;
