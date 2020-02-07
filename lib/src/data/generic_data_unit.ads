@@ -73,7 +73,7 @@ generic
   with procedure Undefined is null;
   with function Is_Valid(V : in T) return Boolean is <>;
   with procedure Invalid is null;
- procedure Read_Checked_Valid_Scaled_Values
+ procedure Read_Matched_Valid_Scaled_Values
 		(F : SIO.File_Type;
 		Length : in Positive;
 		BZERO  : in Tout;

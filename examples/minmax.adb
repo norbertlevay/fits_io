@@ -132,7 +132,7 @@ is
 	-- no BLANK case
 
  procedure Ti_Checked_MinMax 
-	is new TiTf.Read_Checked_Valid_Scaled_Values(Tf_ElemMinMax, UndefVal,Is_Valid, UndefVal);
+	is new TiTf.Read_Matched_Valid_Scaled_Values(Tf_ElemMinMax, UndefVal,Is_Valid, UndefVal);
 	-- with BLANK
  
 

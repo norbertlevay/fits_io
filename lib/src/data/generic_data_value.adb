@@ -41,7 +41,7 @@ package body Generic_Data_Value is
 
 
 
- function Checked_Valid_Scaled_Value(Va : in Tin) return Tout
+ function Matched_Valid_Scaled_Value(Va : in Tin) return Tout
  is
   function ScVal is new Scaled_Value(Tin,Tout,BZERO,BSCALE);
  begin
@@ -60,7 +60,7 @@ package body Generic_Data_Value is
       Raise_Exception(Invalid_Value'Identity,"Invalid value encountered (T'Valid failed)");
    end if;
 
- end Checked_Valid_Scaled_Value;
+ end Matched_Valid_Scaled_Value;
 
 
 

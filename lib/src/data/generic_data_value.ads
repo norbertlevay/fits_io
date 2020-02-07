@@ -57,7 +57,7 @@ package Generic_Data_Value is
   with function "+" (L, R : in Tout) return Tout is <>;
   with function "*" (L, R : in Tout) return Tout is <>;
   with function "+" (R : in Tin) return Tout is <>;
- function Checked_Valid_Scaled_Value(Va : in Tin) return Tout;
+ function Matched_Valid_Scaled_Value(Va : in Tin) return Tout;
  -- raises exception Invalid_Value
  -- raises exception Undefined_Value if (=BLANK) encountered
 
