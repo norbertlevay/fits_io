@@ -13,26 +13,6 @@
 
 package Generic_Data_Value is
 
- -- BZERO BSCALE = 0.0 1.0
- generic
-  type Tin  is private;
-  type Tout is private;
-  with function Is_Valid(V : in Tin) return Boolean is <>;
-  with function "+" (R : in Tin) return Tout is <>;
- function Valid_Value(Va : in Tin) return Tout;
- -- raises exception Invalid_Value
-
- -- implements Vout = BZERO + BSCALE * (+Vin)
- generic
-  type Tin  is private;
-  type Tout is private;
-  BZERO  : in Tout;
-  BSCALE : in Tout;
-  with function "+" (L, R : in Tout) return Tout is <>;
-  with function "*" (L, R : in Tout) return Tout is <>;
-  with function "+" (R : in Tin) return Tout is <>;
- function Scaled_Value(Va : in Tin) return Tout;
-
  -- normal scaling for Ints and Floats with validity check (For floats means Undefined pixels) 
  generic
   type Tin  is private;
@@ -61,9 +41,20 @@ package Generic_Data_Value is
  -- raises exception Invalid_Value
  -- raises exception Undefined_Value if (=BLANK) encountered
 
-
  Invalid_Value   : exception; -- if T'Valib attrib False
  Undefined_Value : exception; -- if match with BLANK
+
+
+ -- optimized special cases
+
+ -- BZERO BSCALE = 0.0 1.0
+ generic
+  type Tin  is private;
+  type Tout is private;
+  with function Is_Valid(V : in Tin) return Boolean is <>;
+  with function "+" (R : in Tin) return Tout is <>;
+ function Valid_Value(Va : in Tin) return Tout;
+ -- raises exception Invalid_Value
 
 
  -- BZERO BSCALE = Tab11 (BLANK don't care)
@@ -72,6 +63,24 @@ package Generic_Data_Value is
   type Tin  is private;--(<>); -- any discrete type
   type Tout is private;--(<>); -- any discrete type
  function Conv_Signed_Unsigned(Vin : in Tin) return Tout;
+
+
+
+
+private
+
+ -- implements Vout = BZERO + BSCALE * (+Vin)
+ generic
+  type Tin  is private;
+  type Tout is private;
+  BZERO  : in Tout;
+  BSCALE : in Tout;
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in Tin) return Tout is <>;
+ function Scaled_Value(Va : in Tin) return Tout;
+
+
 
 end Generic_Data_Value;
 
