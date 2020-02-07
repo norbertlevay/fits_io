@@ -61,6 +61,7 @@ is
  generic
     type Ti is private;   -- type in file
     type Tf is digits <>; -- physical value type
+    NewUndef_Val : Tf;
     with function Is_Valid(V : in Ti) return Boolean is <>;
     with function To_Value(S : in String) return Ti is <>;
     with function "+" (R : in Ti) return Tf is <>;
@@ -140,7 +141,6 @@ is
   procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
   is
    Keys : Array_Keys_Rec := Array_Value_Rec(Cards);   
-   NewUndef_Val : Tf; -- FIXME need these values
   begin
  
    case (Analyze(Keys))
@@ -287,18 +287,21 @@ is
  package UI8P is new UInt_Patches(Unsigned_8);
 
 
- package F64F64_V3_Data is new V3_Data(Float_64, Float_64, F64P.Is_Valid, F64P.To_Value);
- package F32F32_V3_Data is new V3_Data(Float_32, Float_32, F32P.Is_Valid, F32P.To_Value);
- package I64F64_V3_Data is new V3_Data(Integer_64, Float_64, I64P.Is_Valid, I64P.To_Value);
- package I32F64_V3_Data is new V3_Data(Integer_32, Float_64, I32P.Is_Valid, I32P.To_Value);
- package I16F32_V3_Data is new V3_Data(Integer_16, Float_32, I16P.Is_Valid, I16P.To_Value);
- package UI8F32_V3_Data is new V3_Data(Unsigned_8, Float_32, UI8P.Is_Valid, UI8P.To_Value);
+ F64Undef : Float_64 := Float_64(16#7FF0000000000100#); -- NaN
+ F32Undef : Float_32 := Float_32(16#7F800001#);
+ 
+ package F64F64_V3_Data is new V3_Data(Float_64,Float_64,F64Undef, F64P.Is_Valid, F64P.To_Value);
+ package F32F32_V3_Data is new V3_Data(Float_32,Float_32,F32Undef,F32P.Is_Valid, F32P.To_Value);
+ package I64F64_V3_Data is new V3_Data(Integer_64,Float_64,F64Undef, I64P.Is_Valid, I64P.To_Value);
+ package I32F64_V3_Data is new V3_Data(Integer_32,Float_64,F64Undef, I32P.Is_Valid, I32P.To_Value);
+ package I16F32_V3_Data is new V3_Data(Integer_16,Float_32,F32Undef, I16P.Is_Valid, I16P.To_Value);
+ package UI8F32_V3_Data is new V3_Data(Unsigned_8,Float_32,F32Undef, UI8P.Is_Valid, UI8P.To_Value);
 
 
  -- test
  function "+" (R : in Integer_16) return Float_64
  is begin return Float_64(R); end "+";
- package I16F64_V3_Data is new V3_Data(Integer_16, Float_64, I16P.Is_Valid, I16P.To_Value);
+ package I16F64_V3_Data is new V3_Data(Integer_16,Float_64,F64Undef, I16P.Is_Valid, I16P.To_Value);
  -- only test not in use
 
 
