@@ -9,7 +9,7 @@
 %\approvedby{-}
               
 \usepackage[top=5.2cm, left=2cm, right=2cm, bottom=2cm, headheight=2.6cm]{geometry}%showframe
-%\usepackage{minted}
+\usepackage{minted}
 \usepackage{graphicx}
 %\usepackage{listings}
 
@@ -37,6 +37,7 @@ It is based on Stream\_IO.
 \subsection{Data access}
 \subsubsection{Endianness}
 \subsubsection{Data type conversions}
+\subsubsection{Offset calcualtions}
 
 \subsection{External interface(s)}
 \subsubsection{NCube}
@@ -46,19 +47,20 @@ It is based on Stream\_IO.
 \section{Source insert example}
 
 \subsection{Specification FITS}
-%\inputminted{ada}{../lib/src/fits.ads}
+\inputminted{ada}{../lib/src/fits.ads}
 
 \subsection{Specification File}
-%\inputminted{ada}{../lib/src/fits-file.ads}
+\inputminted{ada}{../lib/src/file.ads}
 
-\subsection{Specification Header}
-%\inputminted{ada}{../lib/src/fits-header.ads}
+\subsection{Specification Header parser}
+\inputminted{ada}{../lib/src/parser/strict.ads}
 
-\subsection{Specification Data}
-%\inputminted{ada}{../lib/src/fits-data.ads}
+\subsection{Specification Data access}
+\inputminted{ada}{../lib/src/data/generic_data_value.ads}
+\inputminted{ada}{../lib/src/data/generic_data_unit.ads}
 
-\subsection{Specification Parser}
-%\inputminted{ada}{../lib/src/fits-parser.ads}
+\subsection{Specification NCube}
+\inputminted{ada}{../lib/src/ncube/ncube_funcs.ads}
 
 
 %\subsection{commands}
