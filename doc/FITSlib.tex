@@ -29,21 +29,64 @@
 
 \section{Algorithms}
 
+
+
 \subsection{File}
 It is based on Stream\_IO ...
 \subsubsection{Positioning to HDU}
 
+To reach a HDU given by HDUNum first parse header's mandatory keywords and use Eq(X)
+to calulate Data Unit size. 
+
+
+
 \subsection{Header read write}
+
 \subsubsection{Parser}
+
+Formal Language Theory served as background to capture the rules how cards are placed 
+into header. The implementation is a Deterministic Finite Automaton.
+
+Language is a 5-tuple of Alphabet ...
+A FITS header is equated to a sentence, where alphabet is a set of keys of the cards.
+FITS header alway starts with preamble of mandatory keys, followed by optional (reserved) keys
+and always must be closed with a special END-key: MMMMMoooooorrrooorroooooE.
+
+
 \subsubsection{Internal model and write}
 
+
+
 \subsection{Data access}
+
 \subsubsection{Endianness}
+
 \subsubsection{Data type conversions}
-\subsubsection{Positioning within DataUnit}
+
+It is the caller who decides which type of FITS files will the application handle and
+which type will be used for data processing. The library handles all possible pairs of
+conversions from types in FITS file's data unit to application's type.
+Besides conversion in applies the scaling equation Eq(Y).
+
+Implementation relies on template programming due to many types defined by the standard. 
+All possible combinations of FITS-types and application's working types are suported
+by conversions. It is callers responsability to know whether data value range will fit
+into chosen new type in case of downconversions (like from Integer\_32 -> Integer\_16).
+Otherwise Constraint\_Error exception will be raised.
+Also in case of Floating point types, downconversion comes with loss of precision.
+
+
+\subsubsection{Positioning within Data Unit}
+
+
+
 
 \subsection{External interface(s)}
 \subsubsection{NCube}
+
+
+
+
 
 
 
@@ -64,6 +107,7 @@ It is based on Stream\_IO ...
 
 \subsection{Specification NCube}
 \inputminted{ada}{../lib/src/ncube/ncube_funcs.ads}
+\inputminted{ada}{../lib/src/ncube/ncube.ads}
 
 
 %\subsection{commands}
