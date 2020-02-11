@@ -58,4 +58,109 @@ package body NCube is
  end Read_Valid_Scaled_Line;
 
 
+
+
+
+ -- read Volume of N-dimensions
+
+
+
+ function DU_Length_elems(NAXISn : Coord_Type) return Natural
+ is
+  Len : Positive := 1;
+ begin
+
+  for I in NAXISn'Range
+  loop
+    Len := Len * Positive(NAXISn(I));
+  end loop;
+  return Len;
+ end DU_Length_elems;
+ -- DU length in count of elements
+
+
+
+ procedure Read_Valid_Scaled_Volume
+                (File : SIO.File_Type; 
+                BZERO  : in Tout;
+                BSCALE : in Tout;
+                Undef_Val : in Tout; 
+                DUStart   : in Positive;
+                MaxCoords : in Coord_Type;-- NAXISn
+                First  : in Coord_Type;
+                Last   : in Coord_Type;
+                Volume : out Tout_Arr)
+ is
+   procedure Read_One_Line
+	is new Read_Valid_Scaled_Line(T,Tout,Tout_Arr, Is_Valid, "+","*","+");
+
+   LineLength : Positive := 1 + Integer(Last(1) - First(1)); 
+   Line: Tout_Arr(1 .. LineLength);
+
+--   VolumeLength : Positive := DU_Length_elems(MaxCoords);
+--   Volume : Tout_Arr(1 .. VolumeLength);
+
+   -- generate coords vars
+   Winit : FInteger := 2;
+   W : FInteger;
+--   F :  Coord_Arr := (3,1,7);
+--   L :  Coord_Arr := (5,2,9);
+   C : Coord_Type := First;  -- Current coords
+   Vf, Vl : Positive;
+   Unity : constant Coord_Type(First'Range) := (others => 1);
+   VolMaxCoords : Coord_Type(First'Range);
+ begin
+
+ for I in First'Range loop
+   VolMaxCoords(I) := Unity(I) + Last(I) - First(I);
+ end loop;
+
+
+  C := First;
+  W := Winit;
+
+  --print_coord(C)  
+  Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
+		MaxCoords, C, LineLength, Line);
+
+  Vf := Integer(To_Offset(C,VolMaxCoords));
+  Vl := Vf; 
+  Vl := Vf + LineLength - 1;
+  Volume(Vf .. Vl) := Line;
+  -- store read line
+ 
+  Outer_Loop:
+  loop
+
+    loop
+
+        if( C(W) = Last(W) )
+        then
+         C(W) := First(W);
+         W := W + 1;
+         exit Outer_Loop when ( W > Last'Last );
+        else
+         C(W) := C(W) + 1;
+         W := Winit;
+         exit;
+        end if;
+
+    end loop;
+
+   -- print_coord(C);
+   Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
+ 		MaxCoords, C, LineLength, Line);
+ 
+   Vf := Integer(To_Offset(C,VolMaxCoords));
+   Vl := Vf; 
+   Vl := Vf + LineLength - 1;
+   Volume(Vf .. Vl) := Line;
+  -- store read line
+
+  end loop Outer_Loop;
+
+ end Read_Valid_Scaled_Volume;
+
+
 end NCube;
+

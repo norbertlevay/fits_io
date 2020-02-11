@@ -62,19 +62,20 @@ end print_coord;
 
 -- --------------------------------------------------------
 -- coord generate algorithm variables
-W : Integer := 1;
+Winit : Integer := 2;
+W : Integer;
 
 F :  Coord_Arr := (3,1,7);
-L :  Coord_Arr := (5,1,9);
+L :  Coord_Arr := (5,2,9);
 
-I : Integer := 1;
-C :  Coord_Arr := F;
+--I : Integer := 1;
+C : Coord_Arr := F;
 begin
 
 C := F;
-I := 1;
-W := 1;
+W := Winit;
 
+Put_Line("Line length : " & Integer'Image(1+L(1)-F(1)));
 print_coord(C);
 
 Outer_Loop:
@@ -89,7 +90,7 @@ loop
   	 exit Outer_Loop when ( W > N );
 	else
 	 C(W) := C(W) + 1;
-	 W := 1;
+	 W := Winit;
 	 exit;
 	end if;
 
