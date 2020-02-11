@@ -31,12 +31,19 @@ package Optional.Reserved is
                  1 * "DATAMAX", 1 * "DATAMIN");
 
 -- WCS keys : ... see Section 8
+   WCS_Keys : constant Optional.Bounded_String_8_Arr :=
+		(1*"CTYPE", 1*"CUNIT",1*"CRVAL",1*"CDELT",1*"CRPIX", --<-- FIXME nccc3 !
+		 1 * "MJD-OBS", 1 * "MJD-AVG", 1 * "DATE-OBS", 1 * "DATE-AVG",
+		 1 * "RADESYS", 1 * "RADECSYS", 1 * "RESTFRQ", 1 * "RESTFREQ",
+		 1 * "RESTWAV", 1 * "SPECSYS", 1 * "SSYSOBS", 1 * "SSYSSRC",
+		 1 * "OBSGEO-X",1 * "OBSGEO-Y", 1 * "OBSGEO-Z", 1 * "VELOSYS",
+		 1 * "ZSOURCE", 1 * "VELANGL");
 
    Extension_Keys : constant Optional.Bounded_String_8_Arr :=
         (1 * "EXTNAME", 1 * "EXTVER", 1 * "EXTLEVEL");
 
    Reserved_Keys : constant Optional.Bounded_String_8_Arr :=
-        (Descriptive_Keys & Observation_Keys & Biblio_Keys & Array_Keys);
+        (Descriptive_Keys & Observation_Keys & Biblio_Keys & Array_Keys & WCS_Keys);
 
 
 
