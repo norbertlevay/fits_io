@@ -32,7 +32,11 @@ package Optional.Reserved is
 
 -- WCS keys : ... see Section 8
    WCS_Keys : constant Optional.Bounded_String_8_Arr :=
-		(1*"CTYPE", 1*"CUNIT",1*"CRVAL",1*"CDELT",1*"CRPIX", --<-- FIXME nccc3 !
+		(1*"WCSAXES",
+	   	 1*"CTYPE", 1*"CUNIT",1*"CRVAL",1*"CDELT",1*"CRPIX", --<-- FIXME nccc3 !
+		 1*"CROTA", 1*"PC", 1*"CD", 1*"PV", 1*"PS",
+		 1*"WCSNAME",1*"CNAME",1*"CRDER",1*"CSYER",
+		 1*"LONPOLE", 1*"LATPOLE",1*"EQUINOX",1*"EPOCH",
 		 1 * "MJD-OBS", 1 * "MJD-AVG", 1 * "DATE-OBS", 1 * "DATE-AVG",
 		 1 * "RADESYS", 1 * "RADECSYS", 1 * "RESTFRQ", 1 * "RESTFREQ",
 		 1 * "RESTWAV", 1 * "SPECSYS", 1 * "SSYSOBS", 1 * "SSYSSRC",
