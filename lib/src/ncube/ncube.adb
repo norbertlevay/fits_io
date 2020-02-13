@@ -1,4 +1,5 @@
 
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Generic_Data_Unit;
 with NCube_Funcs; use NCube_Funcs;
@@ -51,7 +52,11 @@ package body NCube is
   --UndefVal : Tout;
  begin
 
-  Set_File_Block_Index(F, DUStart + DUBlockIx);
+ Put_Line("Offset [elem cnt]  : " & Positive'Image(Offset) &" " & Positive'Image(Length) );
+-- Put_Line("DUBlockIx [block#] : " & Positive'Image(DUBlockIx));
+ Put_Line("Set_File_Block_Ix [block#] : " & Positive'Image(DUStart + DUBlockIx - 1));
+
+  Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
 
   Read_Valid_Scaled_Vals(F, Length, BZERO, BSCALE, Undef_Val, OffsetInBlock);  
 
@@ -124,8 +129,11 @@ package body NCube is
 		MaxCoords, C, LineLength, Line);
 
   Vf := Integer(To_Offset(C,VolMaxCoords));
+ -- Put_Line("OffsetInCutVolume: " & Integer'Image(Vf));
+
   Vl := Vf; 
   Vl := Vf + LineLength - 1;
+ Put_Line("OffsetInCutVolume .. Last : " & Integer'Image(Vf) & " .. " &Integer'Image(Vl));
   Volume(Vf .. Vl) := Line;
   -- store read line
  
@@ -152,9 +160,12 @@ package body NCube is
  		MaxCoords, C, LineLength, Line);
  
    Vf := Integer(To_Offset(C,VolMaxCoords));
-   Vl := Vf; 
    Vl := Vf + LineLength - 1;
+ Put_Line("OffsetInCutVolume .. Last : " & Integer'Image(Vf) & " .. " &Integer'Image(Vl));
    Volume(Vf .. Vl) := Line;
+
+
+
   -- store read line
 
   end loop Outer_Loop;

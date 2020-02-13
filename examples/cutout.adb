@@ -1,9 +1,26 @@
 
+-- testing with ../data/NANTEN2/WFPC2ASSNu5780205bx.fits
+-- 1      IMAGE     258 (30)      FLOAT32  (  100 x  100 ) 
+-- 
+-- header blocks: 258/36=7.2 blocks
+-- DU size [bytes] : 100 x 100 x 4 = 40000 / 2880 = 13.8 blocks 
+-- HDU size: 8 + 14 = 22 blocks = 2880*22 = 63360 bytes
+--
+-- $ ls -l  ../data/NANTEN2/WFPC2ASSNu5780205bx.fits 
+--   63360 Feb 23  2019 ../data/NANTEN2/WFPC2ASSNu5780205bx.fits
+--
+--
+--
+
+
+
 with Ada.Text_IO;
 with Ada.Integer_Text_Io; use Ada.Integer_Text_Io;
 --with Ada.Text_IO.Integer_IO; --use Ada.Text_IO.Integer_IO;
 with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
+
+with Ada.Numerics.Generic_Elementary_Functions; 
 
 with V3_Types; use V3_Types;
 with NCube; use NCube;
@@ -24,6 +41,9 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  package TIO renames Ada.Text_IO;
 
+ package Value_Functions is new Ada.Numerics.Generic_Elementary_Functions (
+     Float_32);
+use Value_Functions;
  -- instantiate Read Volume func for Float_32
 
  type VolData is array (Positive range <>) of Float_32;
@@ -59,8 +79,8 @@ is
 
  -- data related
  NDim : constant FPositive := 2;
- Nx : constant FPositive := 90;
- Ny : constant FPositive := 90;
+ Nx : constant FPositive := 100;
+ Ny : constant FPositive := 100;
 
 -- MaxCoords : Coord_Type(1..NDim);-- NAXISn
  First : Coord_Type := (1,1);
@@ -73,7 +93,10 @@ is
  Vol : VolData( 1 .. Positive(Nx*Ny)); 
 
  F32Value : Float_32;
+ F32Min : Float_32 := Float_32'Last;
+ F32Max : Float_32 := Float_32'First;
  UI8Value : Unsigned_8;
+ IValue : Integer;
 begin
 
 
@@ -129,18 +152,33 @@ begin
  for J in First(2) .. Last(2)
  loop
 
-   F32Value := (Vol(Integer(To_Offset((I,J),(Nx,Ny)))));
-   --Put ((Integer(To_Offset((J,I),(Ny,Nx)))));
---   UI8Value := Unsigned_8(abs F32Value);
-   UI8Value := Unsigned_8(0.2 * (2.0 + F32Value));
+   F32Value := Vol(Integer(To_Offset((I,J),(Nx,Ny))));
 
-   TIO.Put(Character'Val( 0 +  UI8Value  ));
-  -- Put(item =>Integer(UI8Value) , width => 3);
+   --F32Value := Log(abs F32Value);
+
+   if(F32Min > F32Value) then F32Min := F32Value; end if;
+   if(F32Max < F32Value) then F32Max := F32Value; end if;
+
+   --IValue := Integer(1000.0*Log(abs F32Value));
+--   UI8Value := Unsigned_8(58.0 + F32Value);
+   --if(F32Value > 255.0) then F32Value := 255.0; end if;
+
+    F32Value := 0.1 * (0.0 + abs F32Value);
+    if(F32Value > 255.0) then F32Value := 255.0; end if; 
+    UI8Value := 32 + Unsigned_8(F32Value);
+
+   TIO.Put(Character'Val(UI8Value));
+   --Put(item =>Integer(UI8Value) , width => 3);
+--   Put(item =>Integer(IValue) , width => 3);
 --   TIO.Put(Float_32'Image(F32Value));
 
  end loop;
-   TIO.New_Line;
+   TIO.Put_Line("<");
  end loop;
+
+ TIO.Put_Line("Min : " & Float_32'Image(F32Min));
+ TIO.Put_Line("Max : " & Float_32'Image(F32Max));
+
 
 end cutout;
 
