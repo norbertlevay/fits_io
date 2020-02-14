@@ -2,20 +2,20 @@
 -- Physical_Value type Integer: implement Signed-Unsigned conversion
 
 with Interfaces;	--use Interfaces;
-with Generic_Data_Types;
+with Data_Types;
 
 -- Alternative A:
 -- division by DataTypes (for Size calc only) vs DataValues (for Int-Float conversions)
---with Generic_Data_Types;
---with Generic_Value;
+--with Data_Types;
+--with Data_Value;
 
 -- Alternative B:
 -- division by Int vs Float: generic includes Value Conversions and hides Endianness (per Block)
 -- misses UInt8 -> only Signed integers allowed -> how go around this ?? FIXME
 -- implements twice the same code on Endianness: for INts and for FLoats - but principally 
 -- Float _could_ be different on Endianness -> so accept duplications of code as special case?
-with Generic_Data_Integer;
-with Generic_Data_Float;
+with Data_Integer;
+with Data_Float;
 
 
 package Data_Types is
@@ -37,7 +37,7 @@ package Data_Types is
    -- package UInt8 is new Generic_Data_Integer(T => Unsigned_8);
    
    package UInt8 is
-	package Data is new Generic_Data_Types( T => Unsigned_8 );
+	package Data is new Data_Types( T => Unsigned_8 );
 --   	generic
 --    	 type TF is digits <>; -- any floating point type
 --   	function Physical(BZERO : in TF; BSCALE : in TF; 

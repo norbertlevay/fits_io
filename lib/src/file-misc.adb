@@ -5,7 +5,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Ada.Unchecked_Conversion;
 -- with Interfaces;
 
-with Generic_Data_Block;
+with Data_Block;
 with Data_Funcs; use Data_Funcs;
 with V3_Types;
 
@@ -117,7 +117,7 @@ package body File.Misc is
                             DataElementCount : in Positive)
  is
 
-  package AnyType is new Generic_Data_Block(T => T);
+  package AnyType is new Data_Block(T => T);
 
   B : AnyType.Block;
   T_Size_bytes : constant Positive := T'SIze / 8;  

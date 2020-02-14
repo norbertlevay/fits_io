@@ -14,7 +14,7 @@ with Ada.Streams.Stream_IO;
 
 generic
   type T is private;
-package Generic_Data_Unit is
+package Data_Unit is
 
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
@@ -105,7 +105,7 @@ end Physical;
 
 
 
-end Generic_Data_Unit;
+end Data_Unit;
 
 
 

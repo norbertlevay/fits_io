@@ -1,15 +1,15 @@
 
 with FITS;
-with Generic_Data_Block;
+with Data_Block;
 with Data_Funcs;  use Data_Funcs;
 with Strict; use Strict; -- Positive_Arr needed
 with Keyword_Record; use Keyword_Record; -- FNatural needed
 
-with Generic_Data_Value; use Generic_Data_Value;
+with Data_Value; use Data_Value;
 
-package body Generic_Data_Unit is
+package body Data_Unit is
 
- package gen is new Generic_Data_Block (T => T); 
+ package gen is new Data_Block (T => T); 
 
 
 
@@ -160,4 +160,4 @@ package body Physical is
 
 end Physical;
 
-end Generic_Data_Unit;
+end Data_Unit;

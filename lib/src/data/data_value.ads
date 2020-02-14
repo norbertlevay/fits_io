@@ -11,7 +11,7 @@
 -- range  : Integer_nn
 -- mod    : Unsigned_nn
 
-package Generic_Data_Value is
+package Data_Value is
 
  -- normal scaling for Ints and Floats with validity check (For floats means Undefined pixels) 
  generic
@@ -87,5 +87,5 @@ private
 
 
 
-end Generic_Data_Value;
+end Data_Value;
 

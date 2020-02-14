@@ -11,7 +11,7 @@ with FITS; -- Byte-type needed
 -- DBG only with Ada.Text_IO; use Ada.Text_IO;
 
 
-package body Generic_Data_Block is
+package body Data_Block is
 
 
 
@@ -101,4 +101,4 @@ package body Generic_Data_Block is
 
    end T_Write_BigEndian;
 
-end Generic_Data_Block;
+end Data_Block;

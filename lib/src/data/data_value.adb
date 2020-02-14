@@ -2,7 +2,7 @@
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 
-package body Generic_Data_Value is
+package body Data_Value is
 
  function Scaled_Value(Va : in Tin) return Tout
  is
@@ -82,5 +82,5 @@ package body Generic_Data_Value is
 
 
 
-end Generic_Data_Value;
+end Data_Value;
 

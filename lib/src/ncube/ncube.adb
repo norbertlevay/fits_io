@@ -1,13 +1,11 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Generic_Data_Unit;
+with Data_Unit;
 with NCube_Funcs; use NCube_Funcs;
 with Data_Funcs; use Data_Funcs;
 
 with Keyword_Record; use Keyword_Record; -- FPositive needed
-
-with Generic_Data_Unit;
 
 package body NCube is
 
@@ -43,8 +41,8 @@ package body NCube is
    Ix := Ix + 1;
   end cbInvalid;
 
-  package Data_Unit is new Generic_Data_Unit(T);
-  package Phys      is new Data_Unit.Physical(Tout);
+  package DU   is new Data_Unit(T);
+  package Phys is new DU.Physical(Tout);
   use Phys;
   procedure Read_Valid_Scaled_Vals
     is new Phys.Read_Valid_Scaled_Values(cbValue, Is_Valid , cbInvalid);

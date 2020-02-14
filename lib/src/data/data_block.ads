@@ -6,7 +6,7 @@ with Ada.Streams;
 
 generic
   type T is private; -- any type of known size at compile time (definite and unlimited)
-package Generic_Data_Block is
+package Data_Block is
 
  -- 1, Data Block definition (always 2880 bytes)
 
@@ -33,5 +33,5 @@ private
   for Block'Read  use T_Read_BigEndian;
   for Block'Write use T_Write_BigEndian;
 
-end Generic_Data_Block;
+end Data_Block;
 

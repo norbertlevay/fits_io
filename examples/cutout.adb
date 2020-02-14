@@ -87,7 +87,6 @@ use Value_Functions;
 -- Last  : Coord_Type := (100,   31);
  Nx : FPositive := Last(1) - First(1) + 1;
  Ny : FPositive := Last(2) - First(2) + 1;
- Vol : VolData( 1 .. Positive(Nx*Ny)); 
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 

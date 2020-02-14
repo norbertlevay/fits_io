@@ -30,9 +30,9 @@ with V3_Types; use V3_Types;
 with V3_Data_Unit; use V3_Data_Unit;
 with Data_Funcs; use Data_Funcs;
 
-with Generic_Data_Block;
-with Generic_Data_Unit;
-with Generic_Data_Value; use Generic_Data_Value;
+with Data_Block;
+with Data_Unit;
+with Data_Value; use Data_Value;
 
 procedure minmax
 is
@@ -125,7 +125,7 @@ is
 
  -- Data Unit for suitable type combinations
 
- package Ti_DU is new Generic_Data_Unit(Ti); -- if FITS file's DataUnit has Integers
+ package Ti_DU is new Data_Unit(Ti); -- if FITS file's DataUnit has Integers
  package TiTf is new Ti_DU.Physical(Tf,"+","*","+"); -- converted values will be Floats
 
  procedure Ti_MinMax

@@ -15,18 +15,18 @@
 
 
 with V3_Types; use V3_Types;
-with Generic_Data_Unit;
+with Data_Unit;
 
 package V3_Data_Unit is
 
  -- Data Units for raw data in FITS file
 
-package F64_DU is new Generic_Data_Unit(Float_64);
-package F32_DU is new Generic_Data_Unit(Float_32);
-package I64_DU is new Generic_Data_Unit(Integer_64);
-package I32_DU is new Generic_Data_Unit(Integer_32);
-package I16_DU is new Generic_Data_Unit(Integer_16);
-package UI8_DU is new Generic_Data_Unit(Unsigned_8);
+package F64_DU is new Data_Unit(Float_64);
+package F32_DU is new Data_Unit(Float_32);
+package I64_DU is new Data_Unit(Integer_64);
+package I32_DU is new Data_Unit(Integer_32);
+package I16_DU is new Data_Unit(Integer_16);
+package UI8_DU is new Data_Unit(Unsigned_8);
 
 -- Converted data in Physical domain as BUNIT
 

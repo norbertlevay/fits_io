@@ -3,13 +3,13 @@
 
 with Ada.Streams;
 
-with Generic_Data_Types;
+with Data_Types;
 
 generic
   type T is range <>; -- any signed integer type
 package Generic_Data_Integer is
 
- package Data is new Generic_Data_Types( T => T);
+ package Data is new Data_Types( T => T);
  -- Data Block definition and endianness
 
  generic
