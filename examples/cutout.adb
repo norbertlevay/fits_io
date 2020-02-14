@@ -81,8 +81,10 @@ use Value_Functions;
  NDim : constant FPositive := 2;
  
 -- MaxCoords : Coord_Type(1..NDim);-- NAXISn
- First : Coord_Type := ( 50,    1);
- Last  : Coord_Type := (100,   31);
+ First : Coord_Type := ( 400,    400);
+ Last  : Coord_Type := ( 600,    600);
+-- First : Coord_Type := ( 50,    1);
+-- Last  : Coord_Type := (100,   31);
 
  Nx : constant FPositive := Last(1) - First(1) + 1;
  Ny : constant FPositive := Last(2) - First(2) + 1;
@@ -97,6 +99,7 @@ use Value_Functions;
  F32Value : Float_32;
  F32Min : Float_32 := Float_32'Last;
  F32Max : Float_32 := Float_32'First;
+ PosMaxI, PosMaxJ : FInteger;
  UI8Value : Unsigned_8;
  OffInVol : Integer;
 begin
@@ -162,9 +165,9 @@ begin
     if(Undef_Val = F32Value) then Undef_Cnt := Undef_Cnt + 1; end if;
 
    if(F32Min > F32Value) then F32Min := F32Value; end if;
-   if(F32Max < F32Value) then F32Max := F32Value; end if;
+   if(F32Max < F32Value) then F32Max := F32Value; PosMaxI:=I; PosMaxJ:=J; end if;
 
-    F32Value := 0.1 * (0.0 + abs F32Value);
+    F32Value := 0.2525* (0.0 + abs F32Value);
 --    if(F32Value > 255.0) then F32Value := 255.0; end if; 
     UI8Value := 32 + Unsigned_8(F32Value);
 
@@ -180,6 +183,7 @@ begin
  TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));
  TIO.Put_Line("Max : " & Float_32'Image(F32Max));
+ TIO.Put_Line("Pos Max : " & FInteger'Image(PosMaxI) & ", " & FInteger'Image(PosMaxJ));
 
 
 end cutout;
