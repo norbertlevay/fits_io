@@ -16,11 +16,11 @@ package body NCube is
                 BZERO  : in Tout;
                 BSCALE : in Tout;
                 Undef_Val : in Tout;
-		DUStart   : in Positive;   
-		MaxCoords : in Coord_Type; -- NAXIS1, NAXIS2... NAXISn 
+        DUStart   : in Positive;   
+        MaxCoords : in Coord_Type; -- NAXIS1, NAXIS2... NAXISn 
                 First  : in Coord_Type;
                 Length : in Positive; -- may be at most NAXIS1
-		Values : out Tout_Arr)
+        Values : out Tout_Arr)
  is
   Offset    : Positive := Positive(To_Offset(First, MaxCoords)); 
   DUBlockIx : Positive := DU_Block_Index(Offset, Tout'Size/8);
@@ -47,15 +47,11 @@ package body NCube is
   package Phys      is new Data_Unit.Physical(Tout);
   use Phys;
   procedure Read_Valid_Scaled_Vals
-	is new Phys.Read_Valid_Scaled_Values(cbValue, Is_Valid , cbInvalid);
+    is new Phys.Read_Valid_Scaled_Values(cbValue, Is_Valid , cbInvalid);
 
   --UndefVal : Tout;
  begin
 
- Put_Line("DU (Length) Offset [elem#] -> FileBlkIx OffWithinBlk [block# elem#] ("
-         & Positive'Image(Length) &") : " & Positive'Image(Offset) 
-         & " -> " & Positive'Image(DUStart + DUBlockIx - 1)
-         & " "    & Positive'Image(OffsetInBlock));
   Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
 
   Read_Valid_Scaled_Vals(F, Length, BZERO, BSCALE, Undef_Val, OffsetInBlock);  
@@ -97,19 +93,14 @@ package body NCube is
                 Volume : out Tout_Arr)
  is
    procedure Read_One_Line
-	is new Read_Valid_Scaled_Line(T,Tout,Tout_Arr, Is_Valid, "+","*","+");
+    is new Read_Valid_Scaled_Line(T,Tout,Tout_Arr, Is_Valid, "+","*","+");
 
    LineLength : Positive := 1 + Integer(Last(1) - First(1)); 
    Line: Tout_Arr(1 .. LineLength);
 
---   VolumeLength : Positive := DU_Length_elems(MaxCoords);
---   Volume : Tout_Arr(1 .. VolumeLength);
-
    -- generate coords vars
    Winit : FInteger := 2;
    W : FInteger;
---   F :  Coord_Arr := (3,1,7);
---   L :  Coord_Arr := (5,2,9);
    C  : Coord_Type := First;  -- Current coords in source Data Unit
    CV : Coord_Type := First;  -- Current coords in target Volume
    Vf, Vl : Positive;
@@ -121,10 +112,8 @@ package body NCube is
    VolMaxCoords(I) := Unity(I) + Last(I) - First(I);
  end loop;
 
-
-
-  C := First;
   W := Winit;
+  C := First;
   for I in First'Range loop
    CV(I) := Unity(I) + C(I) - First(I);
   end loop;
@@ -132,20 +121,10 @@ package body NCube is
 
   --print_coord(C)  
   Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
-		MaxCoords, C, LineLength, Line);
+        MaxCoords, C, LineLength, Line);
 
-   for I in C'Range  loop Put( " " & FPositive'Image(C(I))); end loop;
-   Put( " -> ");
-   for I in CV'Range loop Put(" " & FPositive'Image(CV(I))); end loop;
-   New_Line;
- 
   Vf := Integer(To_Offset(CV,VolMaxCoords));
-
-  Vl := Vf; 
   Vl := Vf + LineLength - 1;
- Put_Line("DST OffsetInCutVolume First .. Last : "
-            & Integer'Image(Vf) & " .. " &Integer'Image(Vl)
-            & " VolLength: " & Positive'Image(Volume'Length));
   Volume(Vf .. Vl) := Line;
   -- store read line
  
@@ -169,28 +148,15 @@ package body NCube is
 
    -- print_coord(C);
    Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
- 		MaxCoords, C, LineLength, Line);
+        MaxCoords, C, LineLength, Line);
 
    for I in First'Range loop
     CV(I) := Unity(I) + C(I) - First(I);
    end loop;
 
-
-   for I in C'Range  loop Put( " " & FPositive'Image(C(I))); end loop;
-   Put( " -> ");
-   for I in CV'Range loop Put(" " & FPositive'Image(CV(I))); end loop;
-   New_Line;
-
-
    Vf := Integer(To_Offset(CV,VolMaxCoords));
    Vl := Vf + LineLength - 1;
- Put_Line("DST OffsetInCutVolume First .. Last : "
-            & Integer'Image(Vf) & " .. " &Integer'Image(Vl) 
-    & " VolLength: " & Positive'Image(Volume'Length));
    Volume(Vf .. Vl) := Line;
-
-
-
   -- store read line
 
   end loop Outer_Loop;
