@@ -20,7 +20,7 @@ with Interfaces;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
-with Strict; use Strict; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- Positive_Arr needed
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
 

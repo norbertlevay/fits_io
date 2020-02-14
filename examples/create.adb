@@ -14,7 +14,7 @@ with Ada.Streams.Stream_IO;
 with V3_Types;   use V3_Types;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record; -- FPositive needed
-with Strict; use Strict; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- Positive_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed 
 
 procedure create

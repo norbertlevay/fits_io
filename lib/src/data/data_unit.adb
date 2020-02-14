@@ -2,7 +2,7 @@
 with FITS;
 with Data_Block;
 with Data_Funcs;  use Data_Funcs;
-with Strict; use Strict; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- Positive_Arr needed
 with Keyword_Record; use Keyword_Record; -- FNatural needed
 
 with Data_Value; use Data_Value;

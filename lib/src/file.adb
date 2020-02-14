@@ -8,28 +8,28 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
-with Strict;
+with Mandatory;
 with Formulas;
 with Keyword_Record;  use Keyword_Record;
 
 
 package body File is
 
-	package TIO renames Ada.Text_IO;
-	package KW renames Keyword_Record;
+    package TIO renames Ada.Text_IO;
+    package KW renames Keyword_Record;
    
    --
    -- Read File until ENDCard found
    --
 
    procedure Read_Card (File : in SIO.File_Type;
-			HStart : in SIO.Positive_Count;
+            HStart : in SIO.Positive_Count;
                         CurBlkNum : in out Natural;
                         Blk : in out Card_Block;
                         CardNum : in Positive;
                         Card    : out  String)
    is
-	 BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+     BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
          BlkNum : Positive;
          CardNumInBlk : Positive;
          BlkNumIndex : SIO.Positive_Count;
@@ -59,28 +59,28 @@ package body File is
 
 
 -- read info help in Mandatory keys of the Header
-  function  Read_Header (FitsFile : in SIO.File_Type) return Strict.Result_Rec
+  function  Read_Header (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
   is
-		HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
+        HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
                 CardNum : Natural;
                 Card : String(1..80);
 
                 CurBlkNum : Natural := 0; -- none read yet
                 Blk : Card_Block;
    begin
-                CardNum := Strict.Reset_State;
+                CardNum := Mandatory.Reset_State;
                 loop
                         Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
-                        CardNum := Strict.Next(CardNum, Card);
+                        CardNum := Mandatory.Next(CardNum, Card);
                         exit when (CardNum = 0); 
                 end loop;
 
                 -- calc HDU size
 
                 declare
-                        PSize : Strict.Result_Rec := Strict.Get;
+                        PSize : Mandatory.Result_Rec := Mandatory.Get;
                 begin
-			return PSize;
+            return PSize;
                 end;
 
    end Read_Header;
@@ -92,20 +92,20 @@ package body File is
 
    function  Read_Header (FitsFile : in SIO.File_Type) return HDU_Info_Type
    is
-	PSize   : Strict.Result_Rec := Read_Header(FitsFile);
-	HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
+    PSize   : Mandatory.Result_Rec := Read_Header(FitsFile);
+    HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
    begin
-	HDUInfo.XTENSION := Max20.To_Bounded_String(
-					Strict.HDU_Type'Image(Psize.HDU));
-					-- FIXME PSize.HSU is enum: 20 length might not be enough
-					-- find other solution then Bounded_String??
-	HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
-	HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
+    HDUInfo.XTENSION := Max20.To_Bounded_String(
+                    Mandatory.HDU_Type'Image(Psize.HDU));
+                    -- FIXME PSize.HSU is enum: 20 length might not be enough
+                    -- find other solution then Bounded_String??
+    HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
+    HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
-	-- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
+    -- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
         for I in HDUInfo.NAXISn'Range
         loop
-        	HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
+            HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
         end loop;
 
         return HDUInfo;
@@ -119,26 +119,26 @@ package body File is
                        Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr
    is
- 	HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);	
-     	CardNum : Natural;
+    HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
+        CardNum : Natural;
         Card : String(1..80);
 
-	CurBlkNum : Natural := 0; -- none read yet
-	Blk : Card_Block;
+    CurBlkNum : Natural := 0; -- none read yet
+    Blk : Card_Block;
    begin
         CardNum := Optional.Init(Keys);
         loop
-		Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
+        Read_Card(FitsFile, HeaderStart, CurBlkNum, Blk, CardNum, Card);
                 CardNum := Optional.Next(CardNum, Card);
                 exit when (CardNum = 0); 
         end loop;
 
 
-	declare
-		Cards : Card_Arr := Optional.Get_Cards;
-	begin
-		return Cards;
-	end;
+    declare
+        Cards : Card_Arr := Optional.Get_Cards;
+    begin
+        return Cards;
+    end;
 
    end Read_Header;
 
@@ -168,33 +168,33 @@ package body File is
         -- they always must check presence of the variable fields and 
         -- call external funcs accordingly
 function  Calc_DataUnit_Size_blocks  
-                (Res : in Strict.Result_Rec) return KW.FNatural
+                (Res : in Mandatory.Result_Rec) return KW.FNatural
 is
-	Size_bits : KW.FNatural;
+    Size_bits : KW.FNatural;
 
-	BitsPerBlock : constant KW.FPositive := (2880*8);
-		-- FIXME generic FITS-constant: move elsewhere
+    BitsPerBlock : constant KW.FPositive := (2880*8);
+        -- FIXME generic FITS-constant: move elsewhere
 begin
-	case(Res.HDU) is
-	when Strict.NO_DATA =>
-		Size_bits := 0;
+    case(Res.HDU) is
+    when Mandatory.NO_DATA =>
+        Size_bits := 0;
 
-	when Strict.IMAGE =>
-		Size_bits := Formulas.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
+    when Mandatory.IMAGE =>
+        Size_bits := Formulas.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
 
-	when Strict.RANDOM_GROUPS =>
-		Size_bits := Formulas.RandomGroups_DataSize_bits
-                 		(Res.BITPIX, Res.NAXISArr,
-                  		Res.PCOUNT, Res.GCOUNT);
+    when Mandatory.RANDOM_GROUPS =>
+        Size_bits := Formulas.RandomGroups_DataSize_bits
+                        (Res.BITPIX, Res.NAXISArr,
+                        Res.PCOUNT, Res.GCOUNT);
 
-	when Strict.CONFORMING_EXTENSION .. Strict.STANDARD_BINTABLE =>
-		Size_bits := Formulas.ConformingExtension_DataSize_bits
-                 		(Res.BITPIX, Res.NAXISArr,
-                  		Res.PCOUNT, Res.GCOUNT);
-	end case;
+    when Mandatory.CONFORMING_EXTENSION .. Mandatory.STANDARD_BINTABLE =>
+        Size_bits := Formulas.ConformingExtension_DataSize_bits
+                        (Res.BITPIX, Res.NAXISArr,
+                        Res.PCOUNT, Res.GCOUNT);
+    end case;
 
-	return (1 + (Size_bits - 1) / BitsPerBlock); 
-		-- FIXME consider separate func for bits -> blocks
+    return (1 + (Size_bits - 1) / BitsPerBlock); 
+        -- FIXME consider separate func for bits -> blocks
 
 end  Calc_DataUnit_Size_blocks;
 
@@ -233,24 +233,24 @@ begin
 
                 -- Read Header
     
-                CardNum := Strict.Reset_State;
+                CardNum := Mandatory.Reset_State;
                 loop
                         Read_Card(File, HeaderStart, CurBlkNum, Blk, CardNum, Card);
-                        CardNum := Strict.Next(CardNum, Card);
+                        CardNum := Mandatory.Next(CardNum, Card);
                         exit when (CardNum = 0); 
                 end loop;
 
                 -- calc HDU size
 
                declare
-                        PSize : Strict.Result_Rec := Strict.Get;
+                        PSize : Mandatory.Result_Rec := Mandatory.Get;
                 begin
- 			TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
-                                                & Strict.HDU_Type'Image(PSize.HDU));
+            TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
+                                                & Mandatory.HDU_Type'Image(PSize.HDU));
 
-                 	HDUSize_blocks := KW.FPositive(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
-					+ Calc_DataUnit_Size_blocks(PSize); 
-					-- FIXME conversion for HeaderUnit
+                    HDUSize_blocks := KW.FPositive(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
+                    + Calc_DataUnit_Size_blocks(PSize); 
+                    -- FIXME conversion for HeaderUnit
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
@@ -280,12 +280,12 @@ end Set_Index;
 
 -- from Coords and Cube dimensions (MaxCOords) calc
 -- offset in data-element count
-function To_Offset (Coords    : in  Strict.Positive_Arr;
-                     MaxCoords : in  Strict.Positive_Arr)
+function To_Offset (Coords    : in  Mandatory.Positive_Arr;
+                     MaxCoords : in  Mandatory.Positive_Arr)
    return FPositive
  is
   Offset : FPositive;
-  Sizes  : Strict.Positive_Arr := MaxCoords;
+  Sizes  : Mandatory.Positive_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
   then
@@ -323,35 +323,35 @@ function To_Offset (Coords    : in  Strict.Positive_Arr;
 -- read one data element at coordinates 'Coords'
 -- from cube of dimensions 'MaxCoords'
 generic
-	type T is private; -- UInt_8 Int_16 ... Float_32 Float_64
+    type T is private; -- UInt_8 Int_16 ... Float_32 Float_64
 function Element_Value
-		(File : File_Type; 
-		DUStart   : in SIO.Positive_Count;
-		Coords    : in Strict.Positive_Arr;
-		MaxCoords : in Strict.Positive_Arr)
+        (File : File_Type; 
+        DUStart   : in SIO.Positive_Count;
+        Coords    : in Mandatory.Positive_Arr;
+        MaxCoords : in Mandatory.Positive_Arr)
  return T;
 
 function Element_Value
-		(File : File_Type; 
-		DUStart   : in SIO.Positive_Count;
-		Coords    : in Strict.Positive_Arr;
-		MaxCoords : in Strict.Positive_Arr) 
-		-- MaxCoords is HDU_Info_Type.NAXISn() 
+        (File : File_Type; 
+        DUStart   : in SIO.Positive_Count;
+        Coords    : in Mandatory.Positive_Arr;
+        MaxCoords : in Mandatory.Positive_Arr) 
+        -- MaxCoords is HDU_Info_Type.NAXISn() 
  return T
 is
-	tt : T;
-	-- calc Offset from Coord	
-	Offset : FInteger := To_Offset(Coords, MaxCoords);
-	DataElementSize : FInteger := T'Size / Ada.Streams.Stream_Element'Size;
-	-- FIXME check if not divisable
+    tt : T;
+    -- calc Offset from Coord   
+    Offset : FInteger := To_Offset(Coords, MaxCoords);
+    DataElementSize : FInteger := T'Size / Ada.Streams.Stream_Element'Size;
+    -- FIXME check if not divisable
 begin
-	-- move to Offset
-	Set_Index(File, DUStart + SIO.Positive_Count(DataElementSize * Offset));
-					-- FIXME explicit conversions
-	-- read tt
-	T'Read(Stream(File), tt);
-	-- FIXME check is Endianness handled
-	return tt;
+    -- move to Offset
+    Set_Index(File, DUStart + SIO.Positive_Count(DataElementSize * Offset));
+                    -- FIXME explicit conversions
+    -- read tt
+    T'Read(Stream(File), tt);
+    -- FIXME check is Endianness handled
+    return tt;
 end Element_Value;
 
 

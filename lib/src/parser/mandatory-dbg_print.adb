@@ -1,6 +1,6 @@
 with Ada.Text_IO;
 
-separate(Strict)
+separate(Mandatory)
 	procedure DBG_Print
 	is
 	package TIO renames Ada.Text_IO;

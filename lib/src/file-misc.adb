@@ -64,13 +64,13 @@ package body File.Misc is
    -- Write Data by coordinates
 
    procedure To_Coords (Offset    : in  FPositive;
-                        MaxCoords : in  Strict.Positive_Arr;
-                        Coords    : out Strict.Positive_Arr)
+                        MaxCoords : in  Mandatory.Positive_Arr;
+                        Coords    : out Mandatory.Positive_Arr)
    is
-        use Strict;
-      Sizes : Strict.Positive_Arr := MaxCoords;
-      Divs :  Strict.Positive_Arr := MaxCoords;
-      Rems :  Strict.Positive_Arr := MaxCoords;
+        use Mandatory;
+      Sizes : Mandatory.Positive_Arr := MaxCoords;
+      Divs :  Mandatory.Positive_Arr := MaxCoords;
+      Rems :  Mandatory.Positive_Arr := MaxCoords;
       -- FIXME these inits are needed only to eliminate Ada error
       -- find other solution
    begin
@@ -189,14 +189,14 @@ package body File.Misc is
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
    function  DU_Size_blocks (FitsFile : in SIO.File_Type) return FNatural
    is  
-        PSize : Strict.Result_Rec := Read_Header(FitsFile);
+        PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
    begin
         return Calc_DataUnit_Size_blocks(PSize);
    end DU_Size_blocks;
 
   function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
    is  
-        PSize : Strict.Result_Rec := Read_Header(FitsFile);
+        PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
    begin
         return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
                + Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
