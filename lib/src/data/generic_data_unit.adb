@@ -21,9 +21,9 @@ is
    gBlock  : gen.Block;
 
    -- calc data array limits
-   Length_blocks : constant Positive := DU_Block_Index(Positive(Length),T'Size/8);
+   Length_blocks : constant Positive := DU_Block_Index(Positive(First + Length - 1),T'Size/8);
    Last_Data_Element_In_Block : constant Positive :=  
-                                        Offset_In_Block(Positive(Length), gen.N);
+                                        Offset_In_Block(Positive(First + Length - 1), gen.N);
   -- local vars
   gValue : T;
   Last_Block_Start : Positive;
@@ -72,7 +72,7 @@ package body Physical is
                  BZERO  : in Tout;
                  BSCALE : in Tout;
                  Undef_Val : in Tout;
-		 First  : in Positive := 1)
+		             First  : in Positive := 1)
  is
    procedure cbLocArrVal(V : in T)
    is  

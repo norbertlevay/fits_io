@@ -79,24 +79,26 @@ use Value_Functions;
 
  -- data related
  NDim : constant FPositive := 2;
- Nx : constant FPositive := 100;
- Ny : constant FPositive := 100;
-
+ 
 -- MaxCoords : Coord_Type(1..NDim);-- NAXISn
- First : Coord_Type := (1,1);
- Last  : Coord_Type := (Nx,Ny);
+ First : Coord_Type := ( 50,    1);
+ Last  : Coord_Type := (100,   31);
+
+ Nx : constant FPositive := Last(1) - First(1) + 1;
+ Ny : constant FPositive := Last(2) - First(2) + 1;
+
+ Vol : VolData( 1 .. Positive(Nx*Ny)); 
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 
  Undef_Val : Float_32 := Float_32(16#7F801001#);
-
- Vol : VolData( 1 .. Positive(Nx*Ny)); 
+ Undef_Cnt : Natural := 0;
 
  F32Value : Float_32;
  F32Min : Float_32 := Float_32'Last;
  F32Max : Float_32 := Float_32'First;
  UI8Value : Unsigned_8;
- IValue : Integer;
+ OffInVol : Integer;
 begin
 
 
@@ -133,7 +135,8 @@ begin
  -- read data
  if(BITPIX = -32)
  then 
-	F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, Coord_Type(HDUInfo.NAXISn), First, Last, Vol);
+	F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, Coord_Type(HDUInfo.NAXISn), 
+                    First, Last, Vol);
  else
 	TIO.Put_Line("Not FLoat_32 data in File.");
  end if;
@@ -147,24 +150,22 @@ begin
 
  -- work on data
  
- for I in First(1) .. Last(1)
+ for J in 1 .. (1 + Last(2) - First(2))
  loop
- for J in First(2) .. Last(2)
+ for I in 1 .. (1 + Last(1) - First(1))
  loop
 
-   F32Value := Vol(Integer(To_Offset((I,J),(Nx,Ny))));
+   OffInVol := Integer(To_Offset((I,J),(Nx,Ny)));
+ -- Put(item => Integer(OffInVol), width => 6);
+   F32Value := Vol(OffInVol);
 
-   --F32Value := Log(abs F32Value);
+    if(Undef_Val = F32Value) then Undef_Cnt := Undef_Cnt + 1; end if;
 
    if(F32Min > F32Value) then F32Min := F32Value; end if;
    if(F32Max < F32Value) then F32Max := F32Value; end if;
 
-   --IValue := Integer(1000.0*Log(abs F32Value));
---   UI8Value := Unsigned_8(58.0 + F32Value);
-   --if(F32Value > 255.0) then F32Value := 255.0; end if;
-
     F32Value := 0.1 * (0.0 + abs F32Value);
-    if(F32Value > 255.0) then F32Value := 255.0; end if; 
+--    if(F32Value > 255.0) then F32Value := 255.0; end if; 
     UI8Value := 32 + Unsigned_8(F32Value);
 
    TIO.Put(Character'Val(UI8Value));
@@ -176,6 +177,7 @@ begin
    TIO.Put_Line("<");
  end loop;
 
+ TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));
  TIO.Put_Line("Max : " & Float_32'Image(F32Max));
 
