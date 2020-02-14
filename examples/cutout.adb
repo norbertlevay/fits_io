@@ -81,14 +81,12 @@ use Value_Functions;
  NDim : constant FPositive := 2;
  
 -- MaxCoords : Coord_Type(1..NDim);-- NAXISn
- First : Coord_Type := ( 400,    400);
- Last  : Coord_Type := ( 600,    600);
+ First : Coord_Type := ( 1, 1 );
+ Last  : Coord_Type := ( 1, 1 );
 -- First : Coord_Type := ( 50,    1);
 -- Last  : Coord_Type := (100,   31);
-
- Nx : constant FPositive := Last(1) - First(1) + 1;
- Ny : constant FPositive := Last(2) - First(2) + 1;
-
+ Nx : FPositive := Last(1) - First(1) + 1;
+ Ny : FPositive := Last(2) - First(2) + 1;
  Vol : VolData( 1 .. Positive(Nx*Ny)); 
 
  BZERO  : Float_32 := 0.0;
@@ -102,16 +100,32 @@ use Value_Functions;
  PosMaxI, PosMaxJ : FInteger;
  UI8Value : Unsigned_8;
  OffInVol : Integer;
+ Scaling : Float_32 := 1.0;
 begin
 
 
- if(Argument_Count /= 1 ) 
+ if(Argument_Count < 5 ) 
  then 
-  TIO.Put_Line("Usage  " & Command_Name & " <file name>");
+  TIO.Put_Line("Usage  " & Command_Name & " <file name> FirstX FirstY LastX LastY [Scaling]");
+  TIO.Put_Line(" Conversion: ASCII = Scaling * abs (Value)");
   return;
  else
    SIO.Open(File, SIO.In_File, (Argument(1)));
  end if;
+
+ First(1) := FInteger'Value(Argument(2));
+ First(2) := FInteger'Value(Argument(3));
+ Last(1)  := FInteger'Value(Argument(4));
+ Last(2)  := FInteger'Value(Argument(5));
+
+ if (Argument_Count >= 6) then Scaling := Float_32'Value(Argument(6)); end if;
+
+ Nx := Last(1) - First(1) + 1;
+ Ny := Last(2) - First(2) + 1;
+declare 
+ Vol : VolData( 1 .. Positive(Nx*Ny));
+ UI8ConvVal : Unsigned_8; 
+begin
 
  Set_File_Block_Index(File,HDUStart);
 
@@ -167,18 +181,25 @@ begin
    if(F32Min > F32Value) then F32Min := F32Value; end if;
    if(F32Max < F32Value) then F32Max := F32Value; PosMaxI:=I; PosMaxJ:=J; end if;
 
-    F32Value := 0.2525* (0.0 + abs F32Value);
---    if(F32Value > 255.0) then F32Value := 255.0; end if; 
+    F32Value := Scaling * (abs F32Value);
+    if(F32Value > 127.0) then F32Value := 126.0; end if;
     UI8Value := 32 + Unsigned_8(F32Value);
 
+    case(UI8Value) is
+    when   0 ..  64 => UI8ConvVal := 32; -- space
+    when  65 .. 128 => UI8ConvVal := 46; -- dot
+    when 129 .. 192 => UI8ConvVal := 43; -- plus
+    when 193 .. 255 => UI8ConvVal := 35; -- hash
+    end case;
+
    TIO.Put(Character'Val(UI8Value));
-   --Put(item =>Integer(UI8Value) , width => 3);
---   Put(item =>Integer(IValue) , width => 3);
---   TIO.Put(Float_32'Image(F32Value));
+--   TIO.Put(Character'Val(UI8ConvVal));
 
  end loop;
-   TIO.Put_Line("<");
+ TIO.Put_Line("<");
  end loop;
+
+end; -- VolData declare
 
  TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));
