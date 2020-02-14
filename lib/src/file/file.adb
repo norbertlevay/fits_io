@@ -9,7 +9,7 @@ with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
 with Ada.Unchecked_Deallocation;
 
 with Mandatory;
-with Formulas;
+with File_Funcs;
 with Keyword_Record;  use Keyword_Record;
 
 
@@ -180,15 +180,15 @@ begin
         Size_bits := 0;
 
     when Mandatory.IMAGE =>
-        Size_bits := Formulas.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
+        Size_bits := File_Funcs.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
 
     when Mandatory.RANDOM_GROUPS =>
-        Size_bits := Formulas.RandomGroups_DataSize_bits
+        Size_bits := File_Funcs.RandomGroups_DataSize_bits
                         (Res.BITPIX, Res.NAXISArr,
                         Res.PCOUNT, Res.GCOUNT);
 
     when Mandatory.CONFORMING_EXTENSION .. Mandatory.STANDARD_BINTABLE =>
-        Size_bits := Formulas.ConformingExtension_DataSize_bits
+        Size_bits := File_Funcs.ConformingExtension_DataSize_bits
                         (Res.BITPIX, Res.NAXISArr,
                         Res.PCOUNT, Res.GCOUNT);
     end case;
