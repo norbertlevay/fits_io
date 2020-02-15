@@ -1,11 +1,7 @@
 
-with Ada.Text_IO; use Ada.Text_IO;
-
 with Data_Unit;
-with NCube_Funcs; use NCube_Funcs;
-with Data_Funcs; use Data_Funcs;
-
-with Keyword_Record; use Keyword_Record; -- FPositive needed
+with Data_Funcs;  use Data_Funcs;
+with Keyword_Record; use Keyword_Record; -- FPositive needed in Coord_Type for operators visibilití
 
 package body NCube is
 

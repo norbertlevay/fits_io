@@ -1,8 +1,6 @@
 
 
---with FITS; use FITS;
-with Ada.Streams.Stream_IO;
-
+--with Ada.Streams.Stream_IO;
 with Keyword_record; use Keyword_Record; -- FPositive needed
 
 package NCube_Funcs is

@@ -1,14 +1,11 @@
 
 with Ada.Unchecked_Conversion;
-with Interfaces;
-with System; use System;
+with System; use System;-- Bit_Order neede for Endianness
 
-with Ada.Streams;
 with Data_Funcs; use Data_Funcs;
 
 with FITS; -- Byte-type needed
-
--- DBG only with Ada.Text_IO; use Ada.Text_IO;
+with Interfaces; -- Byte needed (as Unsigned_8)
 
 
 package body Data_Block is

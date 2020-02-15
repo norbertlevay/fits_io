@@ -1,6 +1,5 @@
 
-with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Conversion;-- needed by Signed-Unsigned conv
 
 package body Data_Value is
 

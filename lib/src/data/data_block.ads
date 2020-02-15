@@ -14,14 +14,12 @@ package Data_Block is
  N : constant Positive := Block_Size / T'Size;
  type Block is array (Positive range 1 .. N) of T;
  pragma Pack (Block);
- 
- -- 2, Endianness
+
 
 private
- 
--- FIXME consider: these have Stream_IO, should go to File; here only Revert_Bytes()
--- possible ?
-   
+
+ -- 2, Endianness
+
    procedure T_Read_BigEndian
                 (S    : access Ada.Streams.Root_Stream_Type'Class;
                  Data : out Block );

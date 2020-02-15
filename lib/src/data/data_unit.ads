@@ -2,13 +2,6 @@
 -- Data Unit resides in FITS File
 -- File access needed
 
--- For Read_<>() funcs:
--- FIXME consider: new param DUStart so forcing caller to make
--- sure that File.Index is set to start of DU
--- FIXME consider generlize to read some array from current 
--- File_Index position (implements Random Access) and 
--- specialize read array of size DUSize from DUStart (implements Sequential Access)
-
 
 with Ada.Streams.Stream_IO;
 

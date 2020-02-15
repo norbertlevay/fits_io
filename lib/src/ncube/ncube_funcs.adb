@@ -1,15 +1,7 @@
 
---with FITS.Data; -- Data_Arr needed
-
-with Ada.Text_IO; use  Ada.Text_IO;
-
-with Ada.Streams; use Ada.Streams;
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 
 package body NCube_Funcs is
-
- package SIO renames Ada.Streams.Stream_IO;
 
 
  function To_Offset (Coords    : in  Coord_Type;

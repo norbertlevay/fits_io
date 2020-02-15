@@ -1,10 +1,6 @@
 
-with FITS;
 with Data_Block;
-with Data_Funcs;  use Data_Funcs;
-with Mandatory; use Mandatory; -- Positive_Arr needed
-with Keyword_Record; use Keyword_Record; -- FNatural needed
-
+with Data_Funcs; use Data_Funcs;
 with Data_Value; use Data_Value;
 
 package body Data_Unit is

@@ -3,7 +3,7 @@ with Ada.Streams.Stream_IO;
 
 package Data_Funcs is
 
-package SIO renames Ada.Streams.Stream_IO;
+    package SIO renames Ada.Streams.Stream_IO;
 
 -- Offset to data-element in HDU relative to DU start
 -- Offset : 1 .. NAXIS1*NAXIS2* ... *NAXISn
