@@ -6,12 +6,6 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 package body Data_Funcs is
 
-BlockSize_bytes    : constant Positive_Count :=  2880;
-BlockSize_bits     : constant Positive_Count := 23040;
-BlockSize_sioelems : constant Positive_Count
-    := BlockSize_bits / Ada.Streams.Stream_Element'Size;
--- size counted in SIO file-index elements
-
 
 
 -- index from begining of Data Unit

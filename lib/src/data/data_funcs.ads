@@ -3,9 +3,21 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 package Data_Funcs is
 
+BlockSize_bytes    : constant Positive_Count :=  2880;
+BlockSize_bits     : constant Positive_Count := 23040;
+BlockSize_sioelems : constant Positive_Count
+    := BlockSize_bits / Ada.Streams.Stream_Element'Size;
+-- size counted in SIO file-index elements
+
+subtype Block_Index_Count is Positive_Count range 1 .. Positive_Count'Last / BlockSize_sioelems;
+-- FIXME not in use yet ; MAkes sense ?
+
+
 
 -- convert between
 -- data-element-index <-> [Block_Index, Offset_Within_Block]
+
+
 
 -- Offset to data-element in HDU relative to DU start
 -- Offset : 1 .. NAXIS1*NAXIS2* ... *NAXISn
