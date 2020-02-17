@@ -10,8 +10,16 @@ with Interfaces; -- Byte needed (as Unsigned_8)
 
 package body Data_Block is
 
-
-
+    -- this func exists onyl for generalization: if Storage_Size is not 8 bit
+    -- (e.g. Stream_Element is not 8 bit) this fucntion has to perform
+    -- reading out the data in any case
+    -- if SE'Size = 8bit it is trivial (and inlined)
+    function Get_Value(Blk: Block; Index : in Positive) return T
+    is
+    begin
+        return Blk(Index);
+    end Get_Value;
+    pragma Inline(Get_Value);
 
   -- Endianness
 

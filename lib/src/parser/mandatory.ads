@@ -20,13 +20,13 @@ package Mandatory is
             CardsCount : Positive;
             BITPIX     : Integer;
 
-                        case HDU is
-                        when IMAGE .. STANDARD_BINTABLE  =>
+            case HDU is
+            when IMAGE .. STANDARD_BINTABLE  =>
                 NAXISArr : Positive_Arr(1 .. NAXIS_Last);
-                                case HDU is
-                                when RANDOM_GROUPS .. STANDARD_BINTABLE =>
-                                    PCOUNT : Keyword_Record.FNatural;
-                                        GCOUNT : Keyword_Record.FPositive;
+                case HDU is
+                when RANDOM_GROUPS .. STANDARD_BINTABLE =>
+                    PCOUNT : Keyword_Record.FNatural;
+                    GCOUNT : Keyword_Record.FPositive;
 
                     case HDU is
                     when STANDARD_TABLE | STANDARD_BINTABLE =>
@@ -39,10 +39,10 @@ package Mandatory is
                     when others => null;
                     end case;
 
-                                 when others => null;
-                                 end case;
-                        when others => null;
-                        end case;
+                when others => null;
+                end case;
+            when others => null;
+            end case;
         end record;
 -- FIXME using ranges after case-when ... is dangerous: if HDU_Type enum changes order of elements
 

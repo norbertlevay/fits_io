@@ -32,9 +32,9 @@ is
         for I in 1 .. (Length_blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
-                for K in Positive(First) .. gen.N -- FIXME Block size
+                for K in First .. gen.N -- FIXME Block size
                 loop
-                        gValue := gBlock(K);
+                        gValue := gen.Get_Value(gBlock, K);
                         Element(gValue);
                 end loop;
         end loop;
@@ -42,14 +42,14 @@ is
         -- Last Block of InFile
 
     if(Length_blocks = 1)
-    then Last_Block_Start := Positive(First);--FIXME Block size
+    then Last_Block_Start := First;--FIXME Block size
     else Last_Block_Start := 1;
     end if;   
  
         gen.Block'Read(SIO.Stream(F),gBlock);
         for K in Last_Block_Start .. (Last_Data_Element_In_Block)
         loop
-                gValue := gBlock(K);
+                gValue := gen.Get_Value(gBlock, K);
                 Element(gValue);
         end loop;
 
