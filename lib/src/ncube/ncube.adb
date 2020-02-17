@@ -1,27 +1,31 @@
 
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+
 with Data_Unit;
 with Data_Funcs;  use Data_Funcs;
 with Keyword_Record; use Keyword_Record; -- FPositive needed in Coord_Type for operators visibilití
 
 package body NCube is
 
+use SIO;
+
  procedure Read_Valid_Scaled_Line
-                (F : SIO.File_Type; 
-                BZERO  : in Tout;
-                BSCALE : in Tout;
-                Undef_Val : in Tout;
-        DUStart   : in Positive;   
-        MaxCoords : in Coord_Type; -- NAXIS1, NAXIS2... NAXISn 
-                First  : in Coord_Type;
-                Length : in Positive; -- may be at most NAXIS1
-        Values : out Tout_Arr)
+   (F : SIO.File_Type; 
+    BZERO  : in Tout;
+    BSCALE : in Tout;
+    Undef_Val : in Tout;
+    DUStart   : in Positive_Count;
+    MaxCoords : in Coord_Type; -- NAXIS1, NAXIS2... NAXISn 
+    First  : in Coord_Type;
+    Length : in Positive_Count; -- may be at most NAXIS1
+    Values : out Tout_Arr)
  is
-  Offset    : Positive := Positive(To_Offset(First, MaxCoords)); 
-  DUBlockIx : Positive := DU_Block_Index(Offset, Tout'Size/8);
+  Offset    : Positive_Count := Positive_Count(To_Offset(First, MaxCoords));-- FIXME 
+  DUBlockIx : Positive_Count := DU_Block_Index(Offset, Tout'Size/8);
   OffsetInBlock : Positive := Offset_In_Block(Offset, 2880/(Tout'Size/8));
 
   -- instantiate sequential reader
-  Ix : Positive := 1;
+  Ix : Positive_Count := 1;
 
   procedure cbValue(V : in Tout) 
   is
@@ -43,7 +47,6 @@ package body NCube is
   procedure Read_Valid_Scaled_Vals
     is new Phys.Read_Valid_Scaled_Values(cbValue, Is_Valid , cbInvalid);
 
-  --UndefVal : Tout;
  begin
 
   Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
@@ -80,7 +83,7 @@ package body NCube is
                 BZERO  : in Tout;
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
-                DUStart   : in Positive;
+                DUStart   : in Positive_Count;
                 MaxCoords : in Coord_Type;-- NAXISn
                 First  : in Coord_Type;
                 Last   : in Coord_Type;
@@ -89,7 +92,7 @@ package body NCube is
    procedure Read_One_Line
     is new Read_Valid_Scaled_Line(T,Tout,Tout_Arr, Is_Valid, "+","*","+");
 
-   LineLength : Positive := 1 + Integer(Last(1) - First(1)); 
+   LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
    Line: Tout_Arr(1 .. LineLength);
 
    -- generate coords vars
@@ -97,7 +100,7 @@ package body NCube is
    W : FInteger;
    C  : Coord_Type := First;  -- Current coords in source Data Unit
    CV : Coord_Type := First;  -- Current coords in target Volume
-   Vf, Vl : Positive;
+   Vf, Vl : Positive_Count;
    Unity : constant Coord_Type(First'Range) := (others => 1);
    VolMaxCoords : Coord_Type(First'Range);
  begin
@@ -114,10 +117,10 @@ package body NCube is
 
 
   --print_coord(C)  
-  Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
+  Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,
         MaxCoords, C, LineLength, Line);
 
-  Vf := Integer(To_Offset(CV,VolMaxCoords));
+  Vf := Positive_Count(To_Offset(CV,VolMaxCoords)); -- FIXME FInteger
   Vl := Vf + LineLength - 1;
   Volume(Vf .. Vl) := Line;
   -- store read line
@@ -148,7 +151,7 @@ package body NCube is
     CV(I) := Unity(I) + C(I) - First(I);
    end loop;
 
-   Vf := Integer(To_Offset(CV,VolMaxCoords));
+   Vf := Positive_Count(To_Offset(CV,VolMaxCoords));-- FIXME FInteger
    Vl := Vf + LineLength - 1;
    Volume(Vf .. Vl) := Line;
   -- store read line

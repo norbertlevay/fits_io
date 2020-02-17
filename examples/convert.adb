@@ -28,18 +28,19 @@ with Data_Funcs; use Data_Funcs;
 procedure convert
 is
 
+ package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
  is
-	Cnt : FNatural := 1;
+    Cnt : FNatural := 1;
  begin
-	for I in NAXISn'Range
+    for I in NAXISn'Range
         loop
-		Cnt := Cnt * NAXISn(I);
-	end loop;
-	return Cnt;
+        Cnt := Cnt * NAXISn(I);
+    end loop;
+    return Cnt;
  end DU_Count;
 
 
@@ -118,10 +119,11 @@ begin
  declare
   InBlock  : V3_Types.F32.Block;
   OutBlock : V3_Types.Int16.Block;
-  DUSize_blocks : constant Positive := DU_Block_Index(Positive(DUSize),4);-- 4 ->Float_32 InFile
+  DUSize_blocks : constant SIO.Positive_Count
+            := DU_Block_Index(SIO.Positive_Count(DUSize),4);--4->Float_32 InFile --FIXME FInteger
   -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
   Last_Data_Element_In_Block : constant Positive := 
-		Offset_In_Block(Positive(DUSize), V3_Types.F32.N);
+        Offset_In_Block(SIO.Positive_Count(DUSize), SIO.Positive_Count(V3_Types.F32.N));-- FIXME FInteger
   F32Value : V3_Types.Float_32;
   I16Value : V3_Types.Integer_16;
   L : Positive := 1;
@@ -130,72 +132,72 @@ begin
   BZERO  : constant V3_Types.Float_32 := 127.501945525;
   F32Temp : V3_Types.Float_32;
  begin
-	for I in 1 .. (DUSize_Blocks - 1)
-	loop
-		F32.Block'Read(SIO.Stream(InFile),InBlock);
-		for K in InBlock'Range
-		loop
-			F32Value := InBlock(K);
-			
-			-- convert
-			
-			F32Temp  := (F32Value - BZERO) / BSCALE;
-			I16Value := V3_Types.Integer_16( F32Temp );
-			-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
-			-- calculate BZERO BSCALE (and BLANK if needed)
+    for I in 1 .. (DUSize_Blocks - 1)
+    loop
+        F32.Block'Read(SIO.Stream(InFile),InBlock);
+        for K in InBlock'Range
+        loop
+            F32Value := InBlock(K);
+            
+            -- convert
+            
+            F32Temp  := (F32Value - BZERO) / BSCALE;
+            I16Value := V3_Types.Integer_16( F32Temp );
+            -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
+            -- calculate BZERO BSCALE (and BLANK if needed)
 
---			Put_Line(
---				V3_Types.Float_32'Image(F32Value) 
---				&" vs "& V3_Types.Float_32'Image(F32Temp) 
---				&" vs "& V3_Types.Integer_16'Image(I16Value));
+--          Put_Line(
+--              V3_Types.Float_32'Image(F32Value) 
+--              &" vs "& V3_Types.Float_32'Image(F32Temp) 
+--              &" vs "& V3_Types.Integer_16'Image(I16Value));
 
-			-- store converted
-			OutBlock(L) := I16Value;
-			L := L + 1;
+            -- store converted
+            OutBlock(L) := I16Value;
+            L := L + 1;
 
-			if L > OutBlock'Last 
-			then
-				Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-				L := 1;
-			end if;
+            if L > OutBlock'Last 
+            then
+                Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+                L := 1;
+            end if;
 
-		end loop;
-	end loop;
+        end loop;
+    end loop;
 
-	-- Last Block of InFIle
-	
-	F32.Block'Read(SIO.Stream(InFile),InBlock);
-	for K in 1 .. Last_Data_Element_In_Block
-	loop
-		F32Value := InBlock(K);
-			
-		-- convert
-		F32Temp  := (F32Value - BZERO) / BSCALE;
-		I16Value := V3_Types.Integer_16(F32Temp);
-		-- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
-		-- calculate BZERO BSCALE (and BLANK if needed)
+    -- Last Block of InFIle
+    
+    F32.Block'Read(SIO.Stream(InFile),InBlock);
+    for K in 1 .. Last_Data_Element_In_Block
+    loop
+        F32Value := InBlock(K);
+            
+        -- convert
+        F32Temp  := (F32Value - BZERO) / BSCALE;
+        I16Value := V3_Types.Integer_16(F32Temp);
+        -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
+        -- calculate BZERO BSCALE (and BLANK if needed)
 
-		-- store converted
-		OutBlock(L) := I16Value;
-		L := L + 1;
+        -- store converted
+        OutBlock(L) := I16Value;
+        L := L + 1;
 
-		if L > OutBlock'Last 
-		then
-			Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-			L := 1;
-		end if;
+        if L > OutBlock'Last 
+        then
+            Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+            L := 1;
+        end if;
 
-	end loop;
+    end loop;
 
-	-- write padding if needed
-	if L /= 1
-	then 
-		for LL in L .. OutBlock'Last
-		loop
-			OutBlock(LL) := 0;
-		end loop;
-		Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-	end if;
+    -- write padding if needed
+    if L /= 1
+    then 
+        for LL in L .. OutBlock'Last
+        loop
+            OutBlock(LL) := 0;
+        end loop;
+        Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
+    end if;
  end;
 
  SIO.Close(OutFile);

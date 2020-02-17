@@ -20,15 +20,17 @@ with Optional; use Optional; -- Card_Arr & ENDCard needed
 procedure create
 is
 
+ package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
+ use SIO; -- NOTE bacause 'operator not visible'
 
  FileName : constant String := Command_Name & ".fits";
  File     : SIO.File_Type;
 
  -- Describe the Data
 
- RowsCnt : constant Positive := 500;-- = ColumnLength
- ColsCnt : constant Positive := 500;-- = Row   Length
+ RowsCnt : constant SIO.Positive_Count := 500;-- = ColumnLength
+ ColsCnt : constant SIO.Positive_Count := 500;-- = Row   Length
 
 -- MaxCoords : constant Positive_Arr := (FPositive(RowsCnt),ColsCnt);
 
@@ -47,7 +49,7 @@ is
    );
 
 
- function SomeData(OffInDU : Positive) return Float_32
+ function SomeData(OffInDU : SIO.Positive_Count) return Float_32
  is
  begin
    return Float_32(OffInDU mod 256);
@@ -57,8 +59,7 @@ is
        new Write_Data_Unit(Float_32,0.0,SomeData);
  -- NOTE IEEE float represents +0.0 as signbit=0 Exp=0 Fraction=0 e.g. fully zero bit array
  -- which is the same as defineition of Pad Value for Daua Unit in FITS standard
-
- NDataElems : constant Positive := RowsCnt*ColsCnt;
+ NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
 begin
 

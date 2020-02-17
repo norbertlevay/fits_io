@@ -49,6 +49,7 @@ is
   Put_Line("UInt_8: " & Unsigned_8'Image(Unsigned_8'First)  & " - " & Unsigned_8'Image(Unsigned_8'Last));
  end print_ranges;
 
+ package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
@@ -67,7 +68,7 @@ is
     with function "+" (R : in Ti) return Tf is <>;
  package V3_Data is
 
-  procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr);
+  procedure MinMax(F : SIO.File_Type; DUSize : SIO.Positive_Count; Cards : Optional.Card_Arr);
   -- generic implementation of MinMax for any type combination Tinfile and Tf floats
 
  end V3_Data; 
@@ -138,7 +139,7 @@ is
  
 
 
-  procedure MinMax(F : SIO.File_Type; DUSize : Positive; Cards : Optional.Card_Arr)
+  procedure MinMax(F : SIO.File_Type; DUSize : SIO.Positive_Count; Cards : Optional.Card_Arr)
   is
    Keys : Array_Keys_Rec := Array_Value_Rec(Cards);   
   begin
@@ -312,7 +313,7 @@ is
  -- vars
 
  InFile   : SIO.File_Type;
- HDUStart : Positive := 1; -- Primary HDU only
+ HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
  
  -- info from Header
 
@@ -328,8 +329,8 @@ is
  end DU_Count;
 
  BITPIX  : Integer;
- DUSize  : Positive;
- DUStart : Positive;
+ DUSize  : SIO.Positive_Count;
+ DUStart : SIO.Positive_Count;
 
 -------------------------------------------------------------------------------
 -- MAIN -------------------------------------------- MAIN ---------------------
@@ -351,12 +352,12 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
   DUStart := File_Block_Index(InFile);
-  DUSize  := Positive(DU_Count (HDUInfo.NAXISn));
+  DUSize  := SIO.Positive_Count(DU_Count (HDUInfo.NAXISn));--FIXME FInteger
   BITPIX := HDUInfo.BITPIX;
  end;
  
- Put_Line("DU Start [blocks] :" & Positive'Image(DUStart)); 
- Put_Line("DU Size  [element count]:" & Positive'Image(DUSize)); 
+ Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
+ Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
 
  -- reset to Header start and read it again
  Set_File_Block_Index(InFile,HDUStart);

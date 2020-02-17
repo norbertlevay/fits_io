@@ -34,13 +34,13 @@ is
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
  is
-	Cnt : FNatural := 1;
+    Cnt : FNatural := 1;
  begin
-	for I in NAXISn'Range
+    for I in NAXISn'Range
         loop
-		Cnt := Cnt * NAXISn(I);
-	end loop;
-	return Cnt;
+        Cnt := Cnt * NAXISn(I);
+    end loop;
+    return Cnt;
  end DU_Count;
 
 
@@ -50,8 +50,8 @@ is
  DUSize : FPositive;
 
  Off_In_Block : Positive;
- Off_In_DU : Positive;
- DU_Start  : Positive;
+ Off_In_DU : SIO.Positive_Count;
+ DU_Start  : SIO.Positive_Count;
 
  BlockF32 : F32.Block;
 
@@ -61,14 +61,14 @@ is
  Value : Value_Type;
 
  type Phys_Value_Scaling is 
-	record
-	BZERO  : Float;
-	BSCALE : Float;
-	BUNIT  : Value_Type;
-	BLANK  : Integer;
-	DATAMIN : Float;
-	DATAMAX : Float;	
-	end record;
+    record
+    BZERO  : Float;
+    BSCALE : Float;
+    BUNIT  : Value_Type;
+    BLANK  : Integer;
+    DATAMIN : Float;
+    DATAMAX : Float;    
+    end record;
 
 
  PhysValScale : Phys_Value_Scaling;
@@ -76,25 +76,25 @@ is
  procedure Put_Phys_Value_Scaling(R : Phys_Value_Scaling)
  is
  begin
-	TIO.Put_Line("BZERO   " & Float'Image(R.BZERO));
-	TIO.Put_Line("BSCALE  " & Float'Image(R.BSCALE));
-	TIO.Put_Line("BUNIT   " & R.BUNIT);
-	TIO.Put_Line("BLANK   " & Integer'Image(R.BLANK));
-	TIO.Put_Line("DATAMIN " & Float'Image(R.DATAMIN));
-	TIO.Put_Line("DATAMAX " & Float'Image(R.DATAMAX));
+    TIO.Put_Line("BZERO   " & Float'Image(R.BZERO));
+    TIO.Put_Line("BSCALE  " & Float'Image(R.BSCALE));
+    TIO.Put_Line("BUNIT   " & R.BUNIT);
+    TIO.Put_Line("BLANK   " & Integer'Image(R.BLANK));
+    TIO.Put_Line("DATAMIN " & Float'Image(R.DATAMIN));
+    TIO.Put_Line("DATAMAX " & Float'Image(R.DATAMAX));
  end Put_Phys_Value_Scaling;
 
 begin
 
  if(Argument_Count /= 1) 
  then 
- 	Put_Line("Usage  " & Command_Name & " <file name>");
-	return;
+    Put_Line("Usage  " & Command_Name & " <file name>");
+    return;
  end if;
 
  SIO.Open   (InFile,  SIO.In_File,  Argument(1));
 
- Put_Line("After Open: " & Positive'Image( File_Block_Index(InFile)));
+ Put_Line("After Open: " & SIO.Positive_Count'Image( File_Block_Index(InFile)));
 
  -- parse Header
  
@@ -111,7 +111,7 @@ begin
  Put_Line("DUSize: " & FInteger'Image(DUSize));
 
  DU_Start := File_Block_Index(InFile);
- Put_Line("After ReadHeader MandatoryKeys: " & Positive'Image( DU_Start ));
+ Put_Line("After ReadHeader MandatoryKeys: " & SIO.Positive_Count'Image( DU_Start ));
 
  SIO.Set_Index(InFile,1);
  -- parse data scaling keys (BSCALE BZERO BLANK): needed if BITPIX indicates Integer values
@@ -119,55 +119,55 @@ begin
  -- DATAMIN DATAMAX BUNIT applicable always 
  declare
   Cards : Optional.Card_Arr := 
-		Read_Header(InFile, Optional.Reserved.Array_Keys);
+        Read_Header(InFile, Optional.Reserved.Array_Keys);
  begin
   for I in Cards'Range
   loop
-	Key := Cards(I)(1 .. 8);
-	Value := Cards(I)(11 .. 30);
+    Key := Cards(I)(1 .. 8);
+    Value := Cards(I)(11 .. 30);
 
-	-- FIXME what if some Key not present ?
-	if(Key = "BSCALE  ")    then PhysValScale.BSCALE := KW.To_Float(Value);
-	elsif(Key = "BZERO   ") then PhysValScale.BZERO  := KW.To_Float(Value);
-	elsif(Key = "BUNIT   ") then PhysValScale.BUNIT  := Value; -- FIXME should allow Strings of any length (up to 70 chars)
-	elsif(Key = "BLANK   ") then PhysValScale.BLANK  := Integer(KW.To_Integer(Value));
-	elsif(Key = "DATAMIN ") then PhysValScale.DATAMIN := KW.To_Float(Value);
-	elsif(Key = "DATAMAX ") then PhysValScale.DATAMAX := KW.To_Float(Value);
-	end if;
+    -- FIXME what if some Key not present ?
+    if(Key = "BSCALE  ")    then PhysValScale.BSCALE := KW.To_Float(Value);
+    elsif(Key = "BZERO   ") then PhysValScale.BZERO  := KW.To_Float(Value);
+    elsif(Key = "BUNIT   ") then PhysValScale.BUNIT  := Value; -- FIXME should allow Strings of any length (up to 70 chars)
+    elsif(Key = "BLANK   ") then PhysValScale.BLANK  := Integer(KW.To_Integer(Value));
+    elsif(Key = "DATAMIN ") then PhysValScale.DATAMIN := KW.To_Float(Value);
+    elsif(Key = "DATAMAX ") then PhysValScale.DATAMAX := KW.To_Float(Value);
+    end if;
   end loop;
  end;
  Put_Phys_Value_Scaling(PhysValScale);
 
 
  DU_Start := File_Block_Index(InFile);
- Put_Line("After ReadHeader ReservedKeys: " & Positive'Image( DU_Start ));
+ Put_Line("After ReadHeader ReservedKeys: " & SIO.Positive_Count'Image( DU_Start ));
 
  -- position to and read one Data Block
 
- Off_In_DU := DU_Block_Index(1000, abs(BITPIX));   -- <---- BITPIX dependent 
+ Off_In_DU := DU_Block_Index(1000, SIO.Positive_Count(abs(BITPIX)));   -- <---- BITPIX dependent 
  Set_File_Block_Index(InFile, DU_Start + Off_In_DU);
 
- Put_Line("After SetFileBlockIndex: " & Positive'Image( File_Block_Index(InFile)));
+ Put_Line("After SetFileBlockIndex: " & SIO.Positive_Count'Image( File_Block_Index(InFile)));
 
  -- read and use one block data
 
  F32.Block'Read(SIO.Stream(InFile), BlockF32); -- <----- BITPIX dependent
 
- Put_Line("After BlockT'Read: " & Positive'Image( File_Block_Index(InFile)));
+ Put_Line("After BlockT'Read: " & SIO.Positive_Count'Image( File_Block_Index(InFile)));
 
  -- print all block
  for I in BlockF32'Range
  loop
    null; -- FIXME F32.Physical_Value is generic now needs instance...
---	Put(Positive'Image(I) & ":" 
---		& V3_Types.Float_32'Image(BlockF32(I))
---		& " / " & V3_Types.Float_32'Image( V3_Types.F32.Physical_Value
---					(V3_Types.Float_32(PhysValScale.BZERO), V3_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
+--  Put(Positive'Image(I) & ":" 
+--      & V3_Types.Float_32'Image(BlockF32(I))
+--      & " / " & V3_Types.Float_32'Image( V3_Types.F32.Physical_Value
+--                  (V3_Types.Float_32(PhysValScale.BZERO), V3_Types.Float_32(PhysValScale.BSCALE), BlockF32(I))   ) ); -- <----- BITPIX dependent
  end loop;
  New_Line;
  
  -- access & print element with Index 1000
- Off_In_Block := Offset_In_Block(1000, F32.N); 
+ Off_In_Block := Offset_In_Block(1000, SIO.Positive_Count(F32.N));
  Put_Line(Positive'Image(Off_In_Block) & ":" & V3_Types.Float_32'Image(BlockF32(Off_in_block))); -- <----- BITPIX dependent
 
 

@@ -46,13 +46,13 @@ is
 use Value_Functions;
  -- instantiate Read Volume func for Float_32
 
- type VolData is array (Positive range <>) of Float_32;
+ type VolData is array (SIO.Positive_Count range <>) of Float_32;
 
  function F32_Is_Valid (V : in Float_32) return Boolean
-	is begin return V'Valid; end F32_Is_Valid;
+    is begin return V'Valid; end F32_Is_Valid;
 
  procedure F32_Read_Volume is 
-	new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
+    new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
 
 
  function DU_Count(NAXISn : Positive_Arr) return FNatural
@@ -70,9 +70,9 @@ use Value_Functions;
  
  -- file related
  File : SIO.File_Type;
- HDUStart : Positive := 1; -- Primary HDU only
- DUStart : Positive;
- DUSize  : Positive;
+ HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
+ DUStart : SIO.Positive_Count;
+ DUSize  : SIO.Positive_Count;
  BITPIX  : Integer;
 
 
@@ -98,7 +98,7 @@ use Value_Functions;
  F32Max : Float_32 := Float_32'First;
  PosMaxI, PosMaxJ : FInteger;
  UI8Value : Unsigned_8;
- OffInVol : Integer;
+ OffInVol : SIO.Positive_Count;
  Scaling : Float_32 := 1.0;
 begin
 
@@ -122,7 +122,7 @@ begin
  Nx := Last(1) - First(1) + 1;
  Ny := Last(2) - First(2) + 1;
 declare 
- Vol : VolData( 1 .. Positive(Nx*Ny));
+ Vol : VolData( 1 .. SIO.Positive_Count(Nx*Ny));-- FIXME FInteger
  UI8ConvVal : Unsigned_8; 
 begin
 
@@ -134,11 +134,11 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(File);
  begin
   DUStart := File_Block_Index(File);
-  DUSize  := Positive(DU_Count (HDUInfo.NAXISn));
+  DUSize  := SIO.Positive_Count(DU_Count (HDUInfo.NAXISn));--FIXME FInteger 
   BITPIX := HDUInfo.BITPIX;
  
- TIO.Put_Line("DU Start [blocks] :" & Positive'Image(DUStart)); 
- TIO.Put_Line("DU Size  [element count]:" & Positive'Image(DUSize)); 
+ TIO.Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
+ TIO.Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
 
  -- reset to Header start and read it again
 -- Set_File_Block_Index(File,HDUStart);
@@ -151,10 +151,10 @@ begin
  -- read data
  if(BITPIX = -32)
  then 
-	F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, Coord_Type(HDUInfo.NAXISn), 
+    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, Coord_Type(HDUInfo.NAXISn), 
                     First, Last, Vol);
  else
-	TIO.Put_Line("Not FLoat_32 data in File.");
+    TIO.Put_Line("Not FLoat_32 data in File.");
  end if;
  end;
 
@@ -171,7 +171,7 @@ begin
  for I in 1 .. (1 + Last(1) - First(1))
  loop
 
-   OffInVol := Integer(To_Offset((I,J),(Nx,Ny)));
+   OffInVol := SIO.Positive_Count(To_Offset((I,J),(Nx,Ny))); --FIXME FInteger
  -- Put(item => Integer(OffInVol), width => 6);
    F32Value := Vol(OffInVol);
 

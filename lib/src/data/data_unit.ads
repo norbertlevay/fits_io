@@ -17,7 +17,10 @@ package Data_Unit is
 
 generic
   with procedure Element (V : in T);
-procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in Positive := 1);
+procedure Read_Array_Values
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    First  : in Positive := 1);
 -- from current Block's First element read Length data elements
 -- First = 1 and Length = DUSize will read all Data Unit
 -- current Block is where SIO.File_Index points to
@@ -43,12 +46,12 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
   with function Is_Valid(V : in T) return Boolean is <>;
   with procedure Invalid is <>;
  procedure Read_Valid_Scaled_Values
-		(F : SIO.File_Type; 
-		Length : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout;
-		Undef_Val : in Tout;
-		First  : in Positive := 1);
+        (F : SIO.File_Type; 
+        Length : in Positive_Count;
+        BZERO  : in Tout;
+        BSCALE : in Tout;
+        Undef_Val : in Tout;
+        First  : in Positive := 1);
 
  -- BZERO BSCALE = any AND BLANK provided
  generic
@@ -56,13 +59,13 @@ procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in 
   with function Is_Valid(V : in T) return Boolean is <>;
   with procedure Invalid is null;
  procedure Read_Matched_Valid_Scaled_Values
-		(F : SIO.File_Type;
-		Length : in Positive;
-		BZERO  : in Tout;
-		BSCALE : in Tout;
-		BLANK  : in T;
-		Undef_Val : in Tout;
-		First  : in Positive := 1);
+        (F : SIO.File_Type;
+        Length : in Positive_Count;
+        BZERO  : in Tout;
+        BSCALE : in Tout;
+        BLANK  : in T;
+        Undef_Val : in Tout;
+        First  : in Positive := 1);
 
 
 
@@ -75,10 +78,10 @@ generic
   with function Is_Valid(V : in T) return Boolean is <>;
   with procedure Invalid is <>;
  procedure Read_Valid_Values
-		(F : SIO.File_Type; 
-		Length : in Positive;
-		Undef_Val : in Tout;
-		First  : in Positive := 1);
+        (F : SIO.File_Type; 
+        Length : in Positive_Count;
+        Undef_Val : in Tout;
+        First  : in Positive := 1);
 
 
  -- BZERO BSCALE = Tab11 (BLANK don't care)
@@ -88,10 +91,10 @@ generic
   with procedure Invalid is <>;
   with function Is_Valid(V : in T) return Boolean is <>;
  procedure Read_Sign_Converted_Integers
-		(F : SIO.File_Type;
-		Length : in Positive;
-		Undef_Val : in Tout;
-		First  : in Positive := 1);
+        (F : SIO.File_Type;
+        Length : in Positive_Count;
+        Undef_Val : in Tout;
+        First  : in Positive := 1);
 
 
 end Physical;

@@ -1,6 +1,6 @@
 
 
-with Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 --with Mandatory; use Mandatory; -- Positive_Arr needed, BUT uses FPositive
 -- FIXME later unify Coord_Type and Positive_Arr
@@ -17,21 +17,21 @@ package NCube is
  generic
   type T is private;
   type Tout is private;
-  type Tout_Arr is array (Positive range <>) of Tout;
+  type Tout_Arr is array (Positive_Count range <>) of Tout;
   with function Is_Valid(V : in T) return Boolean;
   with function "+" (L, R : in Tout) return Tout is <>; 
   with function "*" (L, R : in Tout) return Tout is <>; 
   with function "+" (R : in T) return Tout is <>; 
  procedure Read_Valid_Scaled_Line
-                (F : SIO.File_Type; 
-                BZERO  : in Tout;
-                BSCALE : in Tout;
-                Undef_Val : in Tout; 
-		DUStart   : in Positive;
-		MaxCoords : in Coord_Type;-- NAXOSn
-                First  : in Coord_Type;
-                Length : in Positive; -- may be at most NAXIS1
-		Values : out Tout_Arr);
+   (F : SIO.File_Type; 
+    BZERO  : in Tout;
+    BSCALE : in Tout;
+    Undef_Val : in Tout; 
+    DUStart   : in Positive_Count;
+    MaxCoords : in Coord_Type;-- NAXISn
+    First  : in Coord_Type;
+    Length : in Positive_Count; -- may be at most NAXIS1
+    Values : out Tout_Arr);
 
 
 
@@ -39,7 +39,7 @@ package NCube is
  generic
   type T is private;
   type Tout is private;
-  type Tout_Arr is array (Positive range <>) of Tout;
+  type Tout_Arr is array (Positive_Count range <>) of Tout;
   with function Is_Valid(V : in T) return Boolean;
   with function "+" (L, R : in Tout) return Tout is <>; 
   with function "*" (L, R : in Tout) return Tout is <>; 
@@ -49,12 +49,12 @@ package NCube is
                 BZERO  : in Tout;
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
-		DUStart   : in Positive;
-		MaxCoords : in Coord_Type;-- NAXISn
+        DUStart   : in Positive_Count;
+        MaxCoords : in Coord_Type;-- NAXISn
                 First  : in Coord_Type;
                 Last   : in Coord_Type;
-		Volume : out Tout_Arr); -- result stored in 1D array, make it private later
-					-- no override for indexing-operator in Ada
+        Volume : out Tout_Arr); -- result stored in 1D array, make it private later
+                    -- no override for indexing-operator in Ada
 
 
 

@@ -11,16 +11,20 @@ package body Data_Unit is
 
 
 
-procedure Read_Array_Values(F : SIO.File_Type; Length : in Positive; First : in Positive := 1)
+procedure Read_Array_Values
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    First  : in Positive := 1)
 is
-   -- define Data Block
-   gBlock  : gen.Block;
+   gBlock : gen.Block;
+   gen_N  : Positive_Count := Positive_Count(gen.N);--FIXME Block size
 
    -- calc data array limits
-   Length_blocks : constant Positive := DU_Block_Index(Positive(First + Length - 1),T'Size/8);
-   Last_Data_Element_In_Block : constant Positive :=  
-                                        Offset_In_Block(Positive(First + Length - 1), gen.N);
-  -- local vars
+   Length_blocks : constant Positive_Count
+            := DU_Block_Index(Positive_Count(First) + Length - 1, T'Size/8);--FIXME Block
+   Last_Data_Element_In_Block : constant Positive
+            := Offset_In_Block(Positive_Count(First) + Length - 1, gen_N);--FIXME Block
+
   gValue : T;
   Last_Block_Start : Positive;
  begin
@@ -28,7 +32,7 @@ is
         for I in 1 .. (Length_blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
-                for K in First .. gen.N
+                for K in Positive(First) .. gen.N -- FIXME Block size
                 loop
                         gValue := gBlock(K);
                         Element(gValue);
@@ -37,10 +41,10 @@ is
 
         -- Last Block of InFile
 
-	if(Length_blocks = 1)
-	then Last_Block_Start := First;
-	else Last_Block_Start := 1;
-	end if;   
+    if(Length_blocks = 1)
+    then Last_Block_Start := Positive(First);--FIXME Block size
+    else Last_Block_Start := 1;
+    end if;   
  
         gen.Block'Read(SIO.Stream(F),gBlock);
         for K in Last_Block_Start .. (Last_Data_Element_In_Block)
@@ -64,16 +68,16 @@ package body Physical is
 
  procedure Read_Valid_Scaled_Values
                  (F : SIO.File_Type;
-                 Length : in Positive;
+                 Length : in Positive_Count;
                  BZERO  : in Tout;
                  BSCALE : in Tout;
                  Undef_Val : in Tout;
-		             First  : in Positive := 1)
+                 First  : in Positive := 1)
  is
    procedure cbLocArrVal(V : in T)
    is  
     function PhysVal is
-	new Valid_Scaled_Value(T, Tout, BZERO, BSCALE, Undef_Val, Is_Valid, "+","*","+");
+    new Valid_Scaled_Value(T, Tout, BZERO, BSCALE, Undef_Val, Is_Valid, "+","*","+");
     Vout : Tout := PhysVal(V);
    begin
     if(Vout = Undef_Val) then Invalid; end if;
@@ -86,13 +90,13 @@ package body Physical is
 
 
  procedure Read_Matched_Valid_Scaled_Values
-                (F : SIO.File_Type;
-                Length : in Positive;
-                BZERO  : in Tout;
-                BSCALE : in Tout;
-                BLANK  : in T;
-                Undef_Val : in Tout;
-		First : in Positive := 1)
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    BZERO  : in Tout;
+    BSCALE : in Tout;
+    BLANK  : in T;
+    Undef_Val : in Tout;
+    First : in Positive := 1)
   is
    procedure cbLocArrVal(V : in T)
    is  
@@ -112,14 +116,14 @@ package body Physical is
 
  procedure Read_Valid_Values
                  (F : SIO.File_Type;
-                 Length : in Positive;
+                 Length : in Positive_Count;
                  Undef_Val : in Tout;
-		 First  : in Positive := 1)
+         First  : in Positive := 1)
  is
    procedure cbLocArrVal(V : in T)
    is  
     function PhysVal is
-	new Valid_Value(T, Tout, Undef_Val, Is_Valid, "+");
+    new Valid_Value(T, Tout, Undef_Val, Is_Valid, "+");
     Vout : Tout := PhysVal(V);
    begin
     if(Vout = Undef_Val) then Invalid; end if;
@@ -135,9 +139,9 @@ package body Physical is
 
  procedure Read_Sign_Converted_Integers
                 (F : SIO.File_Type;
-                Length : in Positive;
+                Length : in Positive_Count;
                 Undef_Val : in Tout;
-		First : in Positive := 1)
+        First : in Positive := 1)
   is
    procedure cbLocArrVal(V : in T)
    is  

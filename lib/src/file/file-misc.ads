@@ -26,9 +26,9 @@ package File.Misc is
  generic
   type T is private; -- any type with size known at compile-time
   PadValue : T; -- zero bit pattern for all types in Data Unit
-  with function Element (Offset_In_Data_Unit : in Positive) return T;
+  with function Element (Offset_In_Data_Unit : in SIO.Positive_Count) return T;
  procedure Write_Data_Unit (File : in SIO.File_Type;
-                            DataElementCount : in Positive);
+                            DataElementCount : in SIO.Positive_Count);
  -- write all Data plus Padding
 
 

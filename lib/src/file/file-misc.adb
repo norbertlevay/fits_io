@@ -114,16 +114,16 @@ package body File.Misc is
   -- Write Data Unit
 
  procedure Write_Data_Unit (File : in SIO.File_Type;
-                            DataElementCount : in Positive)
+                            DataElementCount : in SIO.Positive_Count)
  is
 
   package AnyType is new Data_Block(T => T);
 
   B : AnyType.Block;
-  T_Size_bytes : constant Positive := T'SIze / 8;  
-  CountOfBlocks       : constant Positive := DU_Block_Index(DataElementCount, T_Size_bytes);
+  T_Size_bytes : constant Positive_Count := T'SIze / 8;  
+  CountOfBlocks       : constant Positive_Count := DU_Block_Index(DataElementCount, T_Size_bytes);
   OffsetToLastElement : constant Positive := Offset_In_Block(DataElementCount, T_Size_bytes);
-  OffInDU : Positive := 1;
+  OffInDU : Positive_Count := 1;
  begin
 
   -- write all except last block
