@@ -4,7 +4,7 @@
 -- FIXME error/exception handling missing
 -- FIXME rename/re-examine FPositive FNatural definition in FITSlib.ads
 
-with Mandatory; -- Positive_Arr needed
+with Mandatory; -- NAXIS_Arr needed
 
 with Keyword_Record;
 use  Keyword_Record;
@@ -19,14 +19,14 @@ package File_Funcs is
     
     function PrimaryImage_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : Mandatory.Positive_Arr) return FPositive;
+         NAXIS  : Mandatory.NAXIS_Arr) return FPositive;
 
 
     -- implements [FITS] Eq(2)
     
     function ConformingExtension_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : Mandatory.Positive_Arr;
+         NAXIS  : Mandatory.NAXIS_Arr;
          PCOUNT : FNatural;
          GCOUNT : FPositive) return FPositive;
 
@@ -35,7 +35,7 @@ package File_Funcs is
 
      function RandomGroups_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : Mandatory.Positive_Arr;
+         NAXIS  : Mandatory.NAXIS_Arr;
          PCOUNT : FNatural;
          GCOUNT : FPositive) return FPositive;
 

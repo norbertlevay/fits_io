@@ -26,7 +26,7 @@ with V3_Types; use V3_Types;
 with NCube; use NCube;
 with NCube_Funcs; use NCube_Funcs;
 with Keyword_Record; use Keyword_Record;-- FPositive needed
-with Mandatory; use Mandatory; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
 with Data_Funcs; use Data_Funcs;
 
@@ -55,7 +55,7 @@ use Value_Functions;
     new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
 
 
- function DU_Count(NAXISn : Positive_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return FNatural
  is
         Cnt : FNatural := 1;
  begin
@@ -79,10 +79,10 @@ use Value_Functions;
 
  -- data related
  
- First : Positive_Arr(1..2) := ( 1, 1 );-- FIXME use 'First etc...
- Last  : Positive_Arr(1..2) := ( 1, 1 );-- FIXME instead explicit index def (1..2)
--- First : Positive_Arr := ( 50,    1);
--- Last  : Positive_Arr := (100,   31);
+ First : NAXIS_Arr(1..2) := ( 1, 1 );-- FIXME use 'First etc...
+ Last  : NAXIS_Arr(1..2) := ( 1, 1 );-- FIXME instead explicit index def (1..2)
+-- First : NAXIS_Arr := ( 50,    1);
+-- Last  : NAXIS_Arr := (100,   31);
  Nx : FPositive := Last(1) - First(1) + 1;
  Ny : FPositive := Last(2) - First(2) + 1;
 

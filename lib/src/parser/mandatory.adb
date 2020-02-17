@@ -692,9 +692,9 @@ end Is_Primary;
 
 
 
-    function Get_TBCOLn return Mandatory.Positive_Arr
+    function Get_TBCOLn return Mandatory.NAXIS_Arr
     is
-        Arr : Mandatory.Positive_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+        Arr : Mandatory.NAXIS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
     begin
         for I in 1 .. State.TFIELDS_Val
         loop
@@ -754,7 +754,7 @@ end Is_Primary;
                         for I in 1 .. State.NAXIS_Val
                         loop
                                 if(State.NAXISn(I).Read) then
-                                        Result.NAXISArr(I) := 
+                                        Result.NAXISn(I) := 
                             KW.To_Integer(State.NAXISn(I).Value);
                                 else
                                         Raise_Exception(Card_Not_Found'Identity, 

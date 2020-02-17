@@ -3,8 +3,8 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with Data_Unit;
 with Data_Funcs;    use Data_Funcs;
-with Mandatory;     use Mandatory; -- Positive_Arr needed
-with Keyword_Record; use Keyword_Record; -- FPositive needed in Positive_Arr for operators visibilití
+with Mandatory;     use Mandatory; -- NAXIS_Arr needed
+with Keyword_Record; use Keyword_Record; -- FPositive needed in NAXIS_Arr for operators visibilití
 
 with NCube_Funcs; use NCube_Funcs;
 
@@ -18,8 +18,8 @@ use SIO;
     BSCALE : in Tout;
     Undef_Val : in Tout;
     DUStart   : in Positive_Count;
-    MaxCoords : in Positive_Arr; -- NAXIS1, NAXIS2... NAXISn 
-    First  : in Positive_Arr;
+    MaxCoords : in NAXIS_Arr; -- NAXIS1, NAXIS2... NAXISn 
+    First  : in NAXIS_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr)
  is
@@ -66,7 +66,7 @@ use SIO;
 
 
 
- function DU_Length_elems(NAXISn : Positive_Arr) return Natural
+ function DU_Length_elems(NAXISn : NAXIS_Arr) return Natural
  is
   Len : Positive := 1;
  begin
@@ -87,9 +87,9 @@ use SIO;
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
                 DUStart   : in Positive_Count;
-                MaxCoords : in Positive_Arr;-- NAXISn
-                First  : in Positive_Arr;
-                Last   : in Positive_Arr;
+                MaxCoords : in NAXIS_Arr;-- NAXISn
+                First  : in NAXIS_Arr;
+                Last   : in NAXIS_Arr;
                 Volume : out Tout_Arr)
  is
    procedure Read_One_Line
@@ -101,11 +101,11 @@ use SIO;
    -- generate coords vars
    Winit : FIndex := 2;
    W : FIndex;
-   C  : Positive_Arr := First;  -- Current coords in source Data Unit
-   CV : Positive_Arr := First;  -- Current coords in target Volume
+   C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
+   CV : NAXIS_Arr := First;  -- Current coords in target Volume
    Vf, Vl : Positive_Count;
-   Unity : constant Positive_Arr(First'Range) := (others => 1);
-   VolMaxCoords : Positive_Arr(First'Range);
+   Unity : constant NAXIS_Arr(First'Range) := (others => 1);
+   VolMaxCoords : NAXIS_Arr(First'Range);
  begin
 
  for I in First'Range loop

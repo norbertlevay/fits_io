@@ -1,15 +1,15 @@
 
-with Mandatory; use Mandatory;-- Positive_Arr needed
+with Mandatory; use Mandatory;-- NAXIS_Arr needed
 
 package body NCube_Funcs is
 
 
- function To_Offset (Coords    : in  Positive_Arr;
-                     MaxCoords : in  Positive_Arr)
+ function To_Offset (Coords    : in  NAXIS_Arr;
+                     MaxCoords : in  NAXIS_Arr)
    return FPositive
  is
   Offset : FPositive;
-  Sizes  : Positive_Arr := MaxCoords;
+  Sizes  : NAXIS_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
   then
@@ -46,12 +46,12 @@ package body NCube_Funcs is
 
 
  procedure To_Coords (Offset    : in  FPositive;
-                      MaxCoords : in  Positive_Arr;
-                      Coords    : out Positive_Arr)
+                      MaxCoords : in  NAXIS_Arr;
+                      Coords    : out NAXIS_Arr)
  is
-    Sizes : Positive_Arr := MaxCoords;
-    Divs :  Positive_Arr := MaxCoords;
-    Rems :  Positive_Arr := MaxCoords;
+    Sizes : NAXIS_Arr := MaxCoords;
+    Divs :  NAXIS_Arr := MaxCoords;
+    Rems :  NAXIS_Arr := MaxCoords;
     -- FIXME these inits are needed only to eliminate Ada error
     -- find other solution
  begin

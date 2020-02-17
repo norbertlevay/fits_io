@@ -2,7 +2,7 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-with Mandatory; use Mandatory; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 package NCube is
 
@@ -23,8 +23,8 @@ package NCube is
     BSCALE : in Tout;
     Undef_Val : in Tout; 
     DUStart   : in Positive_Count;
-    MaxCoords : in Positive_Arr;-- NAXISn
-    First  : in Positive_Arr;
+    MaxCoords : in NAXIS_Arr;-- NAXISn
+    First  : in NAXIS_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr);
 
@@ -40,15 +40,15 @@ package NCube is
   with function "*" (L, R : in Tout) return Tout is <>; 
   with function "+" (R : in T) return Tout is <>; 
  procedure Read_Valid_Scaled_Volume
-                (File : SIO.File_Type; 
-                BZERO  : in Tout;
-                BSCALE : in Tout;
-                Undef_Val : in Tout; 
-        DUStart   : in Positive_Count;
-        MaxCoords : in Positive_Arr;-- NAXISn
-                First  : in Positive_Arr;
-                Last   : in Positive_Arr;
-        Volume : out Tout_Arr); -- result stored in 1D array, make it private later
+   (File : SIO.File_Type; 
+    BZERO  : in Tout;
+    BSCALE : in Tout;
+    Undef_Val : in Tout; 
+    DUStart   : in Positive_Count;
+    MaxCoords : in NAXIS_Arr;-- NAXISn
+    First  : in NAXIS_Arr;
+    Last   : in NAXIS_Arr;
+    Volume : out Tout_Arr); -- result stored in 1D array, make it private later
                     -- no override for indexing-operator in Ada
 
 

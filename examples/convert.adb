@@ -19,7 +19,7 @@ with Ada.Streams.Stream_IO;
 with File;   use File;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
-with Mandatory; use Mandatory; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 -- new Data interface
 with V3_Types; use V3_Types;
@@ -32,7 +32,7 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
- function DU_Count(NAXISn : Positive_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return FNatural
  is
     Cnt : FNatural := 1;
  begin

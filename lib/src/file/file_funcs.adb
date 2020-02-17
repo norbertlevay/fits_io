@@ -1,7 +1,7 @@
 
 
 
-with Mandatory; -- Positive_Arr needed
+with Mandatory; -- NAXIS_Arr needed
 with Keyword_Record;
 use Keyword_Record;
 
@@ -11,7 +11,7 @@ package body File_Funcs is
 
         function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Mandatory.Positive_Arr) return FPositive
+                 NAXIS  : Mandatory.NAXIS_Arr) return FPositive
     is
         Nbits : FPositive := 1;
     begin
@@ -32,7 +32,7 @@ package body File_Funcs is
  
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Mandatory.Positive_Arr;
+                 NAXIS  : Mandatory.NAXIS_Arr;
                  PCOUNT : FNatural;
                  GCOUNT : FPositive) return FPositive
     is
@@ -51,11 +51,11 @@ package body File_Funcs is
     
     function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Mandatory.Positive_Arr;
+                 NAXIS  : Mandatory.NAXIS_Arr;
                  PCOUNT : FNatural;
                  GCOUNT : FPositive) return FPositive
     is
-        NAXISCopy : Mandatory.Positive_Arr := NAXIS;
+        NAXISCopy : Mandatory.NAXIS_Arr := NAXIS;
     begin
         
         -- in RandomGroups NAXIS1 = 0

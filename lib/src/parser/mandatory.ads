@@ -10,8 +10,8 @@ package Mandatory is
         CONFORMING_EXTENSION,
         STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
-    type Positive_Arr is array (Keyword_Record.FIndex range <>) of Keyword_Record.FPositive;
-    type TFORM_Arr    is array (Positive range <>) of Unbounded_String;
+    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Keyword_Record.FPositive;
+    type TFORM_Arr is array (Positive range <>) of Unbounded_String;
 
     type Result_Rec(HDU : HDU_Type;
             NAXIS_Last   : Natural;
@@ -22,7 +22,7 @@ package Mandatory is
 
             case HDU is
             when IMAGE .. STANDARD_BINTABLE  =>
-                NAXISArr : Positive_Arr(1 .. NAXIS_Last);
+                NAXISn : NAXIS_Arr(1 .. NAXIS_Last);
                 case HDU is
                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
                     PCOUNT : Keyword_Record.FNatural;
@@ -33,7 +33,7 @@ package Mandatory is
                         TFORMn : TFORM_Arr(1..TFIELDS_Last);
                         case HDU is
                         when STANDARD_TABLE =>
-                            TBCOLn : Positive_Arr(1..TFIELDS_Last);
+                            TBCOLn : NAXIS_Arr(1..TFIELDS_Last);
                         when others => null;
                         end case;
                     when others => null;

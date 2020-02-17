@@ -102,10 +102,10 @@ package body File is
     HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
     HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
-    -- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISArr;
+    -- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISn;
         for I in HDUInfo.NAXISn'Range
         loop
-            HDUInfo.NAXISn(I) := FInteger(PSize.NAXISArr(I));
+            HDUInfo.NAXISn(I) := FInteger(PSize.NAXISn(I));
         end loop;
 
         return HDUInfo;
@@ -180,16 +180,16 @@ begin
         Size_bits := 0;
 
     when Mandatory.IMAGE =>
-        Size_bits := File_Funcs.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISArr);
+        Size_bits := File_Funcs.PrimaryImage_DataSize_Bits(Res.BITPIX, Res.NAXISn);
 
     when Mandatory.RANDOM_GROUPS =>
         Size_bits := File_Funcs.RandomGroups_DataSize_bits
-                        (Res.BITPIX, Res.NAXISArr,
+                        (Res.BITPIX, Res.NAXISn,
                         Res.PCOUNT, Res.GCOUNT);
 
     when Mandatory.CONFORMING_EXTENSION .. Mandatory.STANDARD_BINTABLE =>
         Size_bits := File_Funcs.ConformingExtension_DataSize_bits
-                        (Res.BITPIX, Res.NAXISArr,
+                        (Res.BITPIX, Res.NAXISn,
                         Res.PCOUNT, Res.GCOUNT);
     end case;
 
@@ -280,12 +280,12 @@ end Set_Index;
 
 -- from Coords and Cube dimensions (MaxCOords) calc
 -- offset in data-element count
-function To_Offset (Coords    : in  Mandatory.Positive_Arr;
-                     MaxCoords : in  Mandatory.Positive_Arr)
+function To_Offset (Coords    : in  Mandatory.NAXIS_Arr;
+                     MaxCoords : in  Mandatory.NAXIS_Arr)
    return FPositive
  is
   Offset : FPositive;
-  Sizes  : Mandatory.Positive_Arr := MaxCoords;
+  Sizes  : Mandatory.NAXIS_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
   then
@@ -327,15 +327,15 @@ generic
 function Element_Value
         (File : File_Type; 
         DUStart   : in SIO.Positive_Count;
-        Coords    : in Mandatory.Positive_Arr;
-        MaxCoords : in Mandatory.Positive_Arr)
+        Coords    : in Mandatory.NAXIS_Arr;
+        MaxCoords : in Mandatory.NAXIS_Arr)
  return T;
 
 function Element_Value
         (File : File_Type; 
         DUStart   : in SIO.Positive_Count;
-        Coords    : in Mandatory.Positive_Arr;
-        MaxCoords : in Mandatory.Positive_Arr) 
+        Coords    : in Mandatory.NAXIS_Arr;
+        MaxCoords : in Mandatory.NAXIS_Arr) 
         -- MaxCoords is HDU_Info_Type.NAXISn() 
  return T
 is

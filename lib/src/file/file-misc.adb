@@ -64,13 +64,13 @@ package body File.Misc is
    -- Write Data by coordinates
 
    procedure To_Coords (Offset    : in  FPositive;
-                        MaxCoords : in  Mandatory.Positive_Arr;
-                        Coords    : out Mandatory.Positive_Arr)
+                        MaxCoords : in  Mandatory.NAXIS_Arr;
+                        Coords    : out Mandatory.NAXIS_Arr)
    is
         use Mandatory;
-      Sizes : Mandatory.Positive_Arr := MaxCoords;
-      Divs :  Mandatory.Positive_Arr := MaxCoords;
-      Rems :  Mandatory.Positive_Arr := MaxCoords;
+      Sizes : Mandatory.NAXIS_Arr := MaxCoords;
+      Divs :  Mandatory.NAXIS_Arr := MaxCoords;
+      Rems :  Mandatory.NAXIS_Arr := MaxCoords;
       -- FIXME these inits are needed only to eliminate Ada error
       -- find other solution
    begin
