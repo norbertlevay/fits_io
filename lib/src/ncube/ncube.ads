@@ -2,16 +2,11 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
---with Mandatory; use Mandatory; -- Positive_Arr needed, BUT uses FPositive
--- FIXME later unify Coord_Type and Positive_Arr
-with NCube_Funcs; use NCube_Funcs; -- Coord_Type needed
+with Mandatory; use Mandatory; -- Positive_Arr needed
 
 package NCube is
 
  package SIO renames Ada.Streams.Stream_IO;
-
---type Positive_Arr is array (Positive range <>) of Positive;
--- FIXME later use the one from Mandatory.ads
 
 
  generic
@@ -28,8 +23,8 @@ package NCube is
     BSCALE : in Tout;
     Undef_Val : in Tout; 
     DUStart   : in Positive_Count;
-    MaxCoords : in Coord_Type;-- NAXISn
-    First  : in Coord_Type;
+    MaxCoords : in Positive_Arr;-- NAXISn
+    First  : in Positive_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr);
 
@@ -50,9 +45,9 @@ package NCube is
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
         DUStart   : in Positive_Count;
-        MaxCoords : in Coord_Type;-- NAXISn
-                First  : in Coord_Type;
-                Last   : in Coord_Type;
+        MaxCoords : in Positive_Arr;-- NAXISn
+                First  : in Positive_Arr;
+                Last   : in Positive_Arr;
         Volume : out Tout_Arr); -- result stored in 1D array, make it private later
                     -- no override for indexing-operator in Ada
 

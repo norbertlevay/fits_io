@@ -2,8 +2,11 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with Data_Unit;
-with Data_Funcs;  use Data_Funcs;
-with Keyword_Record; use Keyword_Record; -- FPositive needed in Coord_Type for operators visibilití
+with Data_Funcs;    use Data_Funcs;
+with Mandatory;     use Mandatory; -- Positive_Arr needed
+with Keyword_Record; use Keyword_Record; -- FPositive needed in Positive_Arr for operators visibilití
+
+with NCube_Funcs; use NCube_Funcs;
 
 package body NCube is
 
@@ -15,8 +18,8 @@ use SIO;
     BSCALE : in Tout;
     Undef_Val : in Tout;
     DUStart   : in Positive_Count;
-    MaxCoords : in Coord_Type; -- NAXIS1, NAXIS2... NAXISn 
-    First  : in Coord_Type;
+    MaxCoords : in Positive_Arr; -- NAXIS1, NAXIS2... NAXISn 
+    First  : in Positive_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr)
  is
@@ -63,7 +66,7 @@ use SIO;
 
 
 
- function DU_Length_elems(NAXISn : Coord_Type) return Natural
+ function DU_Length_elems(NAXISn : Positive_Arr) return Natural
  is
   Len : Positive := 1;
  begin
@@ -84,9 +87,9 @@ use SIO;
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
                 DUStart   : in Positive_Count;
-                MaxCoords : in Coord_Type;-- NAXISn
-                First  : in Coord_Type;
-                Last   : in Coord_Type;
+                MaxCoords : in Positive_Arr;-- NAXISn
+                First  : in Positive_Arr;
+                Last   : in Positive_Arr;
                 Volume : out Tout_Arr)
  is
    procedure Read_One_Line
@@ -96,13 +99,13 @@ use SIO;
    Line: Tout_Arr(1 .. LineLength);
 
    -- generate coords vars
-   Winit : FInteger := 2;
-   W : FInteger;
-   C  : Coord_Type := First;  -- Current coords in source Data Unit
-   CV : Coord_Type := First;  -- Current coords in target Volume
+   Winit : FIndex := 2;
+   W : FIndex;
+   C  : Positive_Arr := First;  -- Current coords in source Data Unit
+   CV : Positive_Arr := First;  -- Current coords in target Volume
    Vf, Vl : Positive_Count;
-   Unity : constant Coord_Type(First'Range) := (others => 1);
-   VolMaxCoords : Coord_Type(First'Range);
+   Unity : constant Positive_Arr(First'Range) := (others => 1);
+   VolMaxCoords : Positive_Arr(First'Range);
  begin
 
  for I in First'Range loop

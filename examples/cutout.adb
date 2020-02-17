@@ -78,13 +78,11 @@ use Value_Functions;
 
 
  -- data related
- NDim : constant FPositive := 2;
  
--- MaxCoords : Coord_Type(1..NDim);-- NAXISn
- First : Coord_Type := ( 1, 1 );
- Last  : Coord_Type := ( 1, 1 );
--- First : Coord_Type := ( 50,    1);
--- Last  : Coord_Type := (100,   31);
+ First : Positive_Arr(1..2) := ( 1, 1 );-- FIXME use 'First etc...
+ Last  : Positive_Arr(1..2) := ( 1, 1 );-- FIXME instead explicit index def (1..2)
+-- First : Positive_Arr := ( 50,    1);
+-- Last  : Positive_Arr := (100,   31);
  Nx : FPositive := Last(1) - First(1) + 1;
  Ny : FPositive := Last(2) - First(2) + 1;
 
@@ -151,7 +149,7 @@ begin
  -- read data
  if(BITPIX = -32)
  then 
-    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, Coord_Type(HDUInfo.NAXISn), 
+    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, HDUInfo.NAXISn, 
                     First, Last, Vol);
  else
     TIO.Put_Line("Not FLoat_32 data in File.");
