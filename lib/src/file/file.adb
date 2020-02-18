@@ -116,13 +116,10 @@ is
         package TIO renames Ada.Text_IO;
 
         BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-    
-        Card : String(1..80);
+
         CurHDUNum : Positive;
         HeaderStart : SIO.Positive_Count;
-        Blk : Card_Block;
         HDUSize_blocks : Positive_Count;
-        CardNum : SIO.Count;
         CurBlkNum : SIO.Count := 0; -- none read yet
 begin
         HeaderStart := 1;
@@ -138,19 +135,10 @@ begin
         loop
                 TIO.New_Line;
 
-                -- Read Header
-    
-                CardNum := Mandatory.Reset_State;
-                loop
-                        Read_Card(File, HeaderStart, CurBlkNum, Blk, CardNum, Card);
-                        CardNum := Mandatory.Next(CardNum, Card);
-                        exit when (CardNum = 0); 
-                end loop;
-
-                -- calc HDU size
+                -- Read Header and calc HDU size
 
                 declare
-                        PSize : Mandatory.Result_Rec := Mandatory.Get;
+                        PSize : Mandatory.Result_Rec := Read_Header(File);
                 begin
                     TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Mandatory.HDU_Type'Image(PSize.HDU));
