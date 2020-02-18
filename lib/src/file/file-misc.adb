@@ -195,12 +195,12 @@ package body File.Misc is
         return Calc_DataUnit_Size_blocks(PSize);
    end DU_Size_blocks;
 
-  function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive
+  function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive_Count
    is  
         PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
    begin
         return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
-               + Positive(Calc_DataUnit_Size_blocks(PSize)); -- FIXME down-conversion
+               + Calc_DataUnit_Size_blocks(PSize);
    end HDU_Size_blocks;
 
 

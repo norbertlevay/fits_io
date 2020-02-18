@@ -39,7 +39,7 @@ package File is
 private
 
     function  Calc_HeaderUnit_Size_blocks
-                (CardsCount : in Positive) return Positive;
+                (CardsCount : in SIO.Positive_Count) return SIO.Positive_Count;
 
     function  Calc_DataUnit_Size_blocks  
                 (Res : in Mandatory.Result_Rec) return SIO.Count;

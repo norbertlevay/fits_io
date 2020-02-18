@@ -60,12 +60,12 @@ package body File is
 
 
         function  Calc_HeaderUnit_Size_blocks
-                (CardsCount : in Positive) 
-                return Positive
+                (CardsCount : in Positive_Count) 
+                return Positive_Count
         is
-                HUSize : Positive;
+                HUSize : Positive_Count;
         begin 
-                HUSize := Positive(1 + (CardsCount - 1)/36);
+                HUSize := 1 + (CardsCount - 1)/36;
 
                 return HUSize;
         end Calc_HeaderUnit_Size_blocks;
@@ -122,8 +122,8 @@ is
         HeaderStart : SIO.Positive_Count;
         Blk : Card_Block;
         HDUSize_blocks : Positive_Count;
-        CardNum : Natural;
-        CurBlkNum : Natural := 0; -- none read yet
+        CardNum : SIO.Count;
+        CurBlkNum : SIO.Count := 0; -- none read yet
 begin
         HeaderStart := 1;
         SIO.Set_Index(File,HeaderStart);
@@ -149,15 +149,14 @@ begin
 
                 -- calc HDU size
 
-               declare
+                declare
                         PSize : Mandatory.Result_Rec := Mandatory.Get;
                 begin
-            TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
+                    TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Mandatory.HDU_Type'Image(PSize.HDU));
 
-                    HDUSize_blocks := Positive_Count(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
-                    + Calc_DataUnit_Size_blocks(PSize); 
-                    -- FIXME conversion for HeaderUnit
+                    HDUSize_blocks := Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
+                                    + Calc_DataUnit_Size_blocks(PSize); 
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "

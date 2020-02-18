@@ -20,7 +20,7 @@ C_Last : Natural := 0;
 -- FIXME what happens if C-array remains empty (no key match) ? 
 -- In Get_Cards: C(1..0) because C_Last remains 0
 
-function Init (Keys : in Bounded_String_8_Arr) return Positive
+function Init (Keys : in Bounded_String_8_Arr) return Positive_Count
 is
 begin
     K_Last := Keys'Last;
@@ -31,7 +31,7 @@ begin
 end Init;
 
 
-function Next (Pos  : in Positive; Card : in String_80) return Natural
+function Next (Pos  : in Positive_Count; Card : in String_80) return Count
 is
 begin
     if(Card = ENDCard) then return 0; end if;

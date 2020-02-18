@@ -25,19 +25,19 @@ package body Header is
 
    procedure Read_Card (File : in SIO.File_Type;
             HStart : in SIO.Positive_Count;
-                        CurBlkNum : in out Natural;
+                        CurBlkNum : in out SIO.Count;
                         Blk : in out Card_Block;
-                        CardNum : in Positive;
+                        CardNum : in SIO.Positive_Count;
                         Card    : out  String)
    is
-     BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-         BlkNum : Positive;
-         CardNumInBlk : Positive;
+         BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+         BlkNum : SIO.Positive_Count;
+         CardNumInBlk : Natural;
          BlkNumIndex : SIO.Positive_Count;
    begin
          BlkNum := 1 + (CardNum - 1) / 36; 
-         CardNumInBlk := CardNum - (BlkNum - 1) * 36; 
-    
+         CardNumInBlk := Natural(CardNum - (BlkNum - 1) * 36);-- FIXME is < 36 Natural is ok if two lines together
+
          if(BlkNum /= CurBlkNUm)
          then
                         -- FIXME BEGIN only this section depends on SIO. file access
@@ -45,8 +45,7 @@ package body Header is
                         -- where FileBlkNum := HStart + BlkNum
                         -- BlkNum - relative to HDU start
                         -- FileBlkNum - relative to File start
-               BlkNumIndex := SIO.Positive_Count( Positive(HStart) + (BlkNum-1) 
-                                                * Positive(BlockSize_SIOunits) );
+               BlkNumIndex :=  HStart + (BlkNum-1) * BlockSize_SIOunits;
 
                SIO.Set_Index(File, BlkNumIndex);
                Card_Block'Read(SIO.Stream(File), Blk);
@@ -63,10 +62,10 @@ package body Header is
   function  Read_Header (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
   is
         HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
-                CardNum : Natural;
+                CardNum : SIO.Count;
                 Card : String(1..80);
 
-                CurBlkNum : Natural := 0; -- none read yet
+                CurBlkNum : SIO.Count := 0; -- none read yet
                 Blk : Card_Block;
    begin
                 CardNum := Mandatory.Reset_State;
@@ -92,10 +91,10 @@ package body Header is
       return Card_Arr
    is
     HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
-        CardNum : Natural;
+        CardNum : SIO.Count;
         Card : String(1..80);
 
-    CurBlkNum : Natural := 0; -- none read yet
+    CurBlkNum : SIO.Count := 0; -- none read yet
     Blk : Card_Block;
    begin
         CardNum := Optional.Init(Keys);

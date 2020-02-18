@@ -57,7 +57,7 @@ type XT_Type is
 
 type State_Type is
         record
-    PrevPos : Natural;
+    PrevPos : SIO.Count;
 
         Name            : State_Name;
         XTENSION_Val    : XT_Type;
@@ -81,7 +81,7 @@ type State_Type is
     -- other cards not recognized by this FA
         OtherCount : Natural;
 
-        ENDCardPos : Natural;
+        ENDCardPos : SIO.Count;
         ENDCardSet : Boolean;
         end record;
 
@@ -168,7 +168,7 @@ end Is_Primary;
 
 
 
-    function Reset_State return Positive
+    function Reset_State return Positive_Count
     is
     begin
         State      := InitState;
@@ -179,9 +179,9 @@ end Is_Primary;
 
 
 
-    function In_READ_FIXED_POSITION_CARDS(Pos : Positive; Card : KW.String_80) return Positive
+    function In_READ_FIXED_POSITION_CARDS(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Positive_Count
     is
-        Idx : Positive;
+        Idx : KW.FIndex;
     begin
         if(Pos = 1)
         then
@@ -231,7 +231,7 @@ end Is_Primary;
         then
             Idx := KW.Take_Index("NAXIS", Card);
 
-            if(Pos = 3 + Idx)
+            if(Pos = SIO.Positive_Count(3 + Idx))-- FIXME upconversion
             then
                 Set(State.NAXISn(Idx), Card);
             else
@@ -257,11 +257,11 @@ end Is_Primary;
             end if;
 
     
-        elsif ( KW.Match_Key("PCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 1))
+        elsif ( KW.Match_Key("PCOUNT", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 1)))-- FIXME upconversion
         then
             Set(State.PCOUNT, Card);
 
-        elsif ( KW.Match_Key("GCOUNT", Card) AND (Pos = 3 + State.NAXIS_Val + 2))
+        elsif ( KW.Match_Key("GCOUNT", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 2)))-- FIXME upconversion
         then
             Set(State.GCOUNT, Card);
 
@@ -271,7 +271,7 @@ end Is_Primary;
                 when others => State.Name := WAIT_END;
             end case;
 
-        elsif ( KW.Match_Key("TFIELDS", Card) AND (Pos = 3 + State.NAXIS_Val + 3) )
+        elsif ( KW.Match_Key("TFIELDS", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 3)) )-- FIXME upconversion
         then
             Set(State.TFIELDS, Card);
 
@@ -312,7 +312,7 @@ end Is_Primary;
         end Is_Valid;
 
 
-    function In_WAIT_END(Pos : Positive; Card : KW.String_80) return Natural
+    function In_WAIT_END(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Count
     is
     begin
         if( KW.ENDCard = Card )
@@ -395,8 +395,8 @@ end Is_Primary;
 
 
         function In_DATA_NOT_IMAGE
-                (Pos  : in Positive;
-                 Card : in KW.String_80) return Natural
+                (Pos  : in SIO.Positive_Count;
+                 Card : in KW.String_80) return SIO.Count
         is
         begin
 
@@ -504,7 +504,7 @@ end Is_Primary;
 
 
 
-    function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : KW.String_80) return Natural
+    function In_COLLECT_TABLE_ARRAYS(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Count
     is
         Idx : Positive := 1;
     begin
@@ -590,10 +590,10 @@ end Is_Primary;
     -- FA interface
     --
     function Next
-        (Pos : Positive;
-        Card : KW.String_80) return Natural
+        (Pos : SIO.Positive_Count;
+        Card : KW.String_80) return SIO.Count
     is
-        NextCardPos : Natural;
+        NextCardPos : SIO.Count;
         InState : State_Name := State.Name;
     begin
                 -- this FA-algorithm requires that cards are sequentially
@@ -602,7 +602,7 @@ end Is_Primary;
                 then
                          Raise_Exception(Programming_Error'Identity,
                            "Card in position returned from previous Next()-call must be supplied."
-                           &" However: "&Integer'Image(Pos) &" prev: "&Integer'Image(State.PrevPos));
+                           &" However: "&SIO.Count'Image(Pos) &" prev: "&SIO.Count'Image(State.PrevPos));
                 else
                         State.PrevPos := Pos;
                 end if;

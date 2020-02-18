@@ -22,9 +22,9 @@ package Header is
     procedure Read_Card
        (File : in SIO.File_Type;
         HStart : in SIO.Positive_Count;
-        CurBlkNum : in out Natural;
+        CurBlkNum : in out SIO.Count;
         Blk : in out Card_Block;
-        CardNum : in Positive;
+        CardNum : in SIO.Positive_Count;
         Card    : out  String);
 
     -- read Mandatory cards

@@ -21,7 +21,7 @@ package Mandatory is
             NAXIS_Last   : Natural;
             TFIELDS_Last : Natural) is
         record
-            CardsCount : Positive;
+            CardsCount : Positive_Count;
             BITPIX     : Integer;
 
             case HDU is
@@ -50,8 +50,8 @@ package Mandatory is
         end record;
 -- FIXME using ranges after case-when ... is dangerous: if HDU_Type enum changes order of elements
 
-    function Reset_State return Positive; 
-    function Next (Pos : in Positive; Card : in Keyword_Record.String_80) return Natural;
+    function Reset_State return SIO.Positive_Count; 
+    function Next (Pos : in SIO.Positive_Count; Card : in Keyword_Record.String_80) return SIO.Count;
     function Get return Result_Rec;
 
 
