@@ -7,7 +7,6 @@ with Keyword_Record; use Keyword_Record; -- Card_Type needed
 with Mandatory; -- NAXIS_Arr needed
 with Optional; -- Bounded_String_8 Card_Arr needed 
 use Optional; -- Card_Arr used elsewhere then Optional
---with FITS; use FITS;
 
 package File is
 

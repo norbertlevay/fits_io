@@ -4,7 +4,6 @@ with System; use System;-- Bit_Order neede for Endianness
 
 with Data_Funcs; use Data_Funcs;
 
-with FITS; -- Byte-type needed
 with Interfaces; -- Byte needed (as Unsigned_8)
 
 
@@ -25,8 +24,7 @@ package body Data_Block is
 
    procedure Revert_Bytes( Data : in out T )
    is 
-	-- FIXME review: is FITS.Bytes needed here ? prefer Interfaces.Unsigned_8 ?
-     Size_Bytes : Positive := T'Size / FITS.Byte'Size;
+     Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
      type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
 
      function Data_To_Arr is
@@ -56,7 +54,7 @@ package body Data_Block is
                  Data : out Block )
    is  
         type SBlock is array (1 .. 2880) of Ada.Streams.Stream_Element;
-	-- FIXME Stream_Element'Size might not be 8 (then 2880 is not correct)
+    -- FIXME Stream_Element'Size might not be 8 (then 2880 is not correct)
         function S_To_D is
                 new Ada.Unchecked_Conversion(Source => SBlock, Target => Block);
         sb : SBlock;
