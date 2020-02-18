@@ -3,7 +3,6 @@ with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 
-with Keyword_Record; use Keyword_Record; -- Card_Type needed
 with Mandatory; -- NAXIS_Arr needed
 with Optional; -- Bounded_String_8 Card_Arr needed 
 use Optional; -- Card_Arr used elsewhere then Optional

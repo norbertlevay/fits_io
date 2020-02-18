@@ -1,5 +1,8 @@
 
 
+
+with Keyword_Record; -- String_80 needed
+
 package body Optional is
 
 
@@ -20,41 +23,41 @@ C_Last : Natural := 0;
 function Init (Keys : in Bounded_String_8_Arr) return Positive
 is
 begin
-	K_Last := Keys'Last;
-	K(1..K_Last) := Keys;
-	C_Last := 0;
+    K_Last := Keys'Last;
+    K(1..K_Last) := Keys;
+    C_Last := 0;
 
-	return 1;
+    return 1;
 end Init;
 
 
-function Next (Pos  : in Positive; Card : in Card_Type) return Natural
+function Next (Pos  : in Positive; Card : in String_80) return Natural
 is
 begin
-	if(Card = ENDCard) then return 0; end if;
+    if(Card = ENDCard) then return 0; end if;
 
-	for I in 1 .. K_Last
-	loop
-		declare
-			Key : String := Bounded_String_8.To_String(K(I));
-		begin
-			if(Card(1..Key'Last) = Key) 
-			then
-				C_Last := C_Last + 1;
-				C(C_Last) := Card;
-			end if;
-		end;
-	end loop;
- 	
-	return Pos + 1;
+    for I in 1 .. K_Last
+    loop
+        declare
+            Key : String := Bounded_String_8.To_String(K(I));
+        begin
+            if(Card(1..Key'Last) = Key) 
+            then
+                C_Last := C_Last + 1;
+                C(C_Last) := Card;
+            end if;
+        end;
+    end loop;
+    
+    return Pos + 1;
 end Next;
 
 
 function Get_Cards return Card_Arr
 is
-	Cards : Card_Arr := C(1..C_Last);
+    Cards : Card_Arr := C(1..C_Last);
 begin
-	return Cards;
+    return Cards;
 end Get_Cards;
 
 

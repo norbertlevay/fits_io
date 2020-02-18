@@ -4,8 +4,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Count needed
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
-with Keyword_Record; -- Card_Type needed
-use Keyword_Record; -- Card_Type needed
+with Keyword_Record; -- String_80 needed
 
 --
 -- Finite Automaton
@@ -141,7 +140,7 @@ end Is_Primary;
 
 
 
-        procedure Set (V : in out CardValue; Card : in KW.Card_Type)
+        procedure Set (V : in out CardValue; Card : in KW.String_80)
         is
         begin
                 V.Value := String(Card(11..(10+V.Value'Last)));
@@ -180,7 +179,7 @@ end Is_Primary;
 
 
 
-    function In_READ_FIXED_POSITION_CARDS(Pos : Positive; Card : KW.Card_Type) return Positive
+    function In_READ_FIXED_POSITION_CARDS(Pos : Positive; Card : KW.String_80) return Positive
     is
         Idx : Positive;
     begin
@@ -296,7 +295,7 @@ end Is_Primary;
 
 
 
-        function Is_Fixed_Position(Card : in KW.Card_Type) return Boolean
+        function Is_Fixed_Position(Card : in KW.String_80) return Boolean
         is
         begin
                 -- FIXME to be implemented
@@ -304,7 +303,7 @@ end Is_Primary;
         end Is_Fixed_Position;
 
 
-        function Is_Valid(Card : in KW.Card_Type) return Boolean
+        function Is_Valid(Card : in KW.String_80) return Boolean
         is
         begin
                 -- FIXME to be implemented
@@ -313,7 +312,7 @@ end Is_Primary;
         end Is_Valid;
 
 
-    function In_WAIT_END(Pos : Positive; Card : KW.Card_Type) return Natural
+    function In_WAIT_END(Pos : Positive; Card : KW.String_80) return Natural
     is
     begin
         if( KW.ENDCard = Card )
@@ -397,7 +396,7 @@ end Is_Primary;
 
         function In_DATA_NOT_IMAGE
                 (Pos  : in Positive;
-                 Card : in KW.Card_Type) return Natural
+                 Card : in KW.String_80) return Natural
         is
         begin
 
@@ -505,7 +504,7 @@ end Is_Primary;
 
 
 
-    function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : KW.Card_Type) return Natural
+    function In_COLLECT_TABLE_ARRAYS(Pos : Positive; Card : KW.String_80) return Natural
     is
         Idx : Positive := 1;
     begin
@@ -592,7 +591,7 @@ end Is_Primary;
     --
     function Next
         (Pos : Positive;
-        Card : KW.Card_Type) return Natural
+        Card : KW.String_80) return Natural
     is
         NextCardPos : Natural;
         InState : State_Name := State.Name;

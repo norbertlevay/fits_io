@@ -51,7 +51,7 @@ package Mandatory is
 -- FIXME using ranges after case-when ... is dangerous: if HDU_Type enum changes order of elements
 
     function Reset_State return Positive; 
-    function Next (Pos : in Positive; Card : in Keyword_Record.Card_Type) return Natural;
+    function Next (Pos : in Positive; Card : in Keyword_Record.String_80) return Natural;
     function Get return Result_Rec;
 
 

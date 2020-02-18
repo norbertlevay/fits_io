@@ -11,9 +11,9 @@ package Keyword_Record is
 
     package SIO renames Ada.Streams.Stream_IO; -- Count needed
 
-    subtype Card_Type is String(1..80);
-    ENDCard   : constant Card_Type := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
-    EmptyCard : constant Card_Type := (others => ' ');
+    subtype String_80 is String(1..80);
+    ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+    EmptyCard : constant String_80 := (others => ' ');
 
 
     subtype FIndex is Integer range 0 .. 999;-- FIXME rename and move? elsewhere??
@@ -25,10 +25,10 @@ package Keyword_Record is
     function To_Float (Value : String) return Float;
     
 
-    function Match_Key(Key : in String; Card : in Card_Type) return Boolean;
-    function Match_Indexed_Key(Root : in String; Card : in Card_Type) return Boolean;
+    function Match_Key(Key : in String; Card : in String_80) return Boolean;
+    function Match_Indexed_Key(Root : in String; Card : in String_80) return Boolean;
 
-    function Take_Index(Root : in String; Card : in Card_Type) return FIndex;
+    function Take_Index(Root : in String; Card : in String_80) return FIndex;
 
     Invalid_Card_Value : exception;
 
@@ -36,7 +36,7 @@ end Keyword_Record;
 
 
 -- not used:
---  function Is_ValuedCard (Card : Card_Type) return Boolean;
+--  function Is_ValuedCard (Card : String_80) return Boolean;
 
 --  function To_String (Value : String) return String;
 --  function To_Float  (Value : String) return Float;

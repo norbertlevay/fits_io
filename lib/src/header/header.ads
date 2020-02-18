@@ -2,7 +2,7 @@
 with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
-with Keyword_Record; use Keyword_Record; -- Card_Type needed
+with Keyword_Record; use Keyword_Record; -- String_80 needed
 with Mandatory; -- NAXIS_Arr needed
 with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
 
@@ -12,7 +12,7 @@ package Header is
 
     CardsCntInBlock : constant Positive := 36;
 
-   type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
+   type Card_Block is array (Positive range 1..CardsCntInBlock) of String_80;
    pragma Pack (Card_Block);
    -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed
    -- OR do we need to guarantee at all ?

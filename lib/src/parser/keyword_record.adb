@@ -55,124 +55,124 @@ with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
 
 package body Keyword_Record is
 
-	EmptyKey : constant String(1..8) := (others => ' ');
+    EmptyKey : constant String(1..8) := (others => ' ');
 
-	function To_Boolean(Value : String) return Boolean
-	is
-		V : constant Character := Value(Value'First -1 + 30-10);
-	begin
-		case(V) is
-			when 'T' =>
-				return True;
-			when 'F' =>
-				return False;
-			when others =>
-				Raise_Exception(Invalid_Card_Value'Identity,
-					"Expected Boolean but found " & Value);
-		end case;
+    function To_Boolean(Value : String) return Boolean
+    is
+        V : constant Character := Value(Value'First -1 + 30-10);
+    begin
+        case(V) is
+            when 'T' =>
+                return True;
+            when 'F' =>
+                return False;
+            when others =>
+                Raise_Exception(Invalid_Card_Value'Identity,
+                    "Expected Boolean but found " & Value);
+        end case;
 
-	end To_Boolean;
-
-
-	function To_Integer(Value : String) return SIO.Count
-	is
-	begin
-		return SIO.Count'Value(Value);
-	end To_Integer;
+    end To_Boolean;
 
 
-	function To_FIndex(Value : String) return FIndex
-	is
-	begin
-		return Findex'Value(Value);
-	end To_FIndex;
-	
-	
-	
-	function To_String (Value : String) return String
-	is
-		S : String := Value; -- rename
-		AFirst  : Positive;
-		ASecond : Positive;
-	begin
-		-- separate optional comment from string value
-
-		for I in S'Range
-		loop
-		AFirst := I;
-		exit when S(I) = '''; 
-		end loop;
-
-		for I in AFirst + 1 .. S'Last
-		loop
-		ASecond := I;
-		exit when S(I) = ''';
-		end loop;	
-		
-		return Trim(Value(AFirst+1 .. ASecond-1), Right);
-		-- Trim Right: [FITS 4.2.1] Leading spaces are significant, trailing spaces not.
-	end To_String;
+    function To_Integer(Value : String) return SIO.Count
+    is
+    begin
+        return SIO.Count'Value(Value);
+    end To_Integer;
 
 
+    function To_FIndex(Value : String) return FIndex
+    is
+    begin
+        return Findex'Value(Value);
+    end To_FIndex;
+    
+    
+    
+    function To_String (Value : String) return String
+    is
+        S : String := Value; -- rename
+        AFirst  : Positive;
+        ASecond : Positive;
+    begin
+        -- separate optional comment from string value
 
-	function To_Float  (Value : String) return Float
-	is
-	begin
-		return Float'Value(Value);
-	end To_Float;
+        for I in S'Range
+        loop
+        AFirst := I;
+        exit when S(I) = '''; 
+        end loop;
 
---	function To_ComplexInteger(Value : String) return ???;
---	function To_ComplexFloat  (Value : String) return ???;
-
-	-- For Ada complex see: 
-	-- https://www.adaic.org/resources/add_content/standards/95lrm/ARM_HTML/RM-A-5.html
-	-- with Ada.Numerics.Generic_Complex_Types;
-  	-- package Complex_Types is new Ada.Numerics.Generic_Complex_Types (Long_Float);
-   	-- package Complex_IO is new Ada.Text_IO.Complex_IO (Complex_Types);
-
-
-	function Is_Natural(S : String) return Boolean
-	is 
-  		Dummy : Natural;
-	begin
-	-- FIXME consider alternative implementation
-	-- using Is_Digit(C) from Package: Characters.Handling
-
-    		Dummy := Natural'Value (S);
-	      	return True;
-	   exception
-	      when others =>
-        	 return False;
-	end Is_Natural;
+        for I in AFirst + 1 .. S'Last
+        loop
+        ASecond := I;
+        exit when S(I) = ''';
+        end loop;   
+        
+        return Trim(Value(AFirst+1 .. ASecond-1), Right);
+        -- Trim Right: [FITS 4.2.1] Leading spaces are significant, trailing spaces not.
+    end To_String;
 
 
 
+    function To_Float  (Value : String) return Float
+    is
+    begin
+        return Float'Value(Value);
+    end To_Float;
 
-	-- FIXME review both Match_* for bounds
-        function Match_Key(Key : in String; Card : in Card_Type) return Boolean
-	is
-	begin
-		return (  (Card(1..Key'Length)       = Key)  AND 
-			  (Card(Key'Length + 1 .. 8) = EmptyKey(Key'Length + 1 .. 8)) );
-	end Match_Key;
-	-- FIXME add pragma inline
+--  function To_ComplexInteger(Value : String) return ???;
+--  function To_ComplexFloat  (Value : String) return ???;
 
-
-
-        function Match_Indexed_Key(Root : in String; Card : in Card_Type) return Boolean
-	is
-	begin
-		return 	(Card(1..Root'Length) = Root) 
-			AND 
-			Is_Natural(Card(Root'Length + 1 .. 8)) ;
-	end Match_Indexed_Key;
+    -- For Ada complex see: 
+    -- https://www.adaic.org/resources/add_content/standards/95lrm/ARM_HTML/RM-A-5.html
+    -- with Ada.Numerics.Generic_Complex_Types;
+    -- package Complex_Types is new Ada.Numerics.Generic_Complex_Types (Long_Float);
+    -- package Complex_IO is new Ada.Text_IO.Complex_IO (Complex_Types);
 
 
-	function Take_Index(Root : in String; Card : in Card_Type) return FIndex
-	is
-	begin
-		return To_FIndex( Card(Root'Length + 1 .. 8) );	
-	end Take_Index;
+    function Is_Natural(S : String) return Boolean
+    is 
+        Dummy : Natural;
+    begin
+    -- FIXME consider alternative implementation
+    -- using Is_Digit(C) from Package: Characters.Handling
+
+            Dummy := Natural'Value (S);
+            return True;
+       exception
+          when others =>
+             return False;
+    end Is_Natural;
+
+
+
+
+    -- FIXME review both Match_* for bounds
+        function Match_Key(Key : in String; Card : in String_80) return Boolean
+    is
+    begin
+        return (  (Card(1..Key'Length)       = Key)  AND 
+              (Card(Key'Length + 1 .. 8) = EmptyKey(Key'Length + 1 .. 8)) );
+    end Match_Key;
+    -- FIXME add pragma inline
+
+
+
+        function Match_Indexed_Key(Root : in String; Card : in String_80) return Boolean
+    is
+    begin
+        return  (Card(1..Root'Length) = Root) 
+            AND 
+            Is_Natural(Card(Root'Length + 1 .. 8)) ;
+    end Match_Indexed_Key;
+
+
+    function Take_Index(Root : in String; Card : in String_80) return FIndex
+    is
+    begin
+        return To_FIndex( Card(Root'Length + 1 .. 8) ); 
+    end Take_Index;
 
 
 
@@ -185,7 +185,7 @@ package body Keyword_Record is
 -- FIXME should we ?
 
 
-function Is_Array(Card : in  Card_Type;
+function Is_Array(Card : in  String_80;
                   Root : in  String;
                   First : in Positive;
                   Last  : in Positive;
@@ -195,19 +195,19 @@ is
         CardKey : String(1..8) := Card(1..8);
 begin
         if(CardKey(1..Root'Length) = Root)
-	then
+    then
                 Idx := Positive'Value(CardKey(6..8));-- FIXME not 6 but Root'Length
 
-		if ((Idx < First) OR (Idx > Last))
-		then
+        if ((Idx < First) OR (Idx > Last))
+        then
                         IsArray := False;
                 else
                         IsArray := True;
                 end if;
 
-	else
-		IsArray := False;
-		-- not Root-based array
+    else
+        IsArray := False;
+        -- not Root-based array
         end if;
 
         return IsArray;
@@ -218,9 +218,9 @@ end Is_Array;
 -- FIXME should this check array limits First..Last ? like for NAXISn : 1 <= Idx <= NAXIS_Val
 function Extract_Index(Root : String; CardKey : String) return Positive
 is
-	RootLen : Positive := Root'Length;
+    RootLen : Positive := Root'Length;
 begin
-	return Positive'Value( CardKey( (CardKey'First+RootLen) .. (CardKey'First+7) ) );
+    return Positive'Value( CardKey( (CardKey'First+RootLen) .. (CardKey'First+7) ) );
 end Extract_Index;
 
 
@@ -229,16 +229,16 @@ end Extract_Index;
 
 
 
-	function Is_ValuedCard (Card : Card_Type) return Boolean
-	is 
-	begin
-		if(Card(9..10) = "= ") then
-			return True;
-		else
-			return False;
-		end if;
+    function Is_ValuedCard (Card : String_80) return Boolean
+    is 
+    begin
+        if(Card(9..10) = "= ") then
+            return True;
+        else
+            return False;
+        end if;
 
-	end Is_ValuedCard;
+    end Is_ValuedCard;
 
 
 

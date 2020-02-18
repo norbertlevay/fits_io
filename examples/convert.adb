@@ -41,15 +41,15 @@ is
  InFileName  : String := Argument(1);
  -- FIXME might raise excpetion before Usage written
 
- Card   : Card_Type;
+ Card   : String_80;
  BITPIX : Integer;
  DUSize : SIO.Positive_Count;
 
- BITPIXnewCard : Card_Type :=
+ BITPIXnewCard : String_80 :=
 "BITPIX  =                   16 /                                                ";
- BSCALECard : Card_Type :=
+ BSCALECard : String_80 :=
 "BSCALE  =          0.003891051 / floating point value                           ";
- BZEROCard : Card_Type :=
+ BZEROCard : String_80 :=
 "BZERO   =        127.501945525 / floating point value                           ";
 -- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
 
@@ -72,17 +72,17 @@ begin
 
  Set_Index(InFile, Positive(1));
  loop
-  Card_Type'Read(SIO.Stream(InFile),Card);
+  String_80'Read(SIO.Stream(InFile),Card);
 
   if(Card(1..6) = "BITPIX") then
-    Card_Type'Write(SIO.Stream(OutFile),BITPIXnewCard);
+    String_80'Write(SIO.Stream(OutFile),BITPIXnewCard);
   else
-    Card_Type'Write(SIO.Stream(OutFile),Card);
+    String_80'Write(SIO.Stream(OutFile),Card);
   end if;
  
   if(Card(1..7) = "DATAMAX") then
-    Card_Type'Write(SIO.Stream(OutFile),BZEROCard);
-    Card_Type'Write(SIO.Stream(OutFile),BSCALECard);
+    String_80'Write(SIO.Stream(OutFile),BZEROCard);
+    String_80'Write(SIO.Stream(OutFile),BSCALECard);
   end if; 
 
 

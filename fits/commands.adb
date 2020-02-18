@@ -157,7 +157,7 @@ package body Commands is
                          HDUNum   : in Positive := 1 )
  is
    FitsFile : SIO.File_Type;
-   Data     : Card_Type;
+   Data     : String_80;
    ENDCardFound : Boolean := false;
  begin
    SIO.Open(FitsFile, SIO.In_File, FileName);
@@ -166,7 +166,7 @@ package body Commands is
 
    loop
     -- Data := Read_Card(FitsFile);
-    Card_Type'Read(SIO.Stream(FitsFile),Data);
+    String_80'Read(SIO.Stream(FitsFile),Data);
     TIO.Put_Line(Data);
     exit when (Data = ENDCard);
    end loop;
@@ -186,24 +186,24 @@ package body Commands is
                                InKey   : String;-- FIXME bounded string Max_8
                                OutFits : SIO.File_Type)
  is
-   Card : Card_Type;
+   Card : String_80;
    PosAfterLastWrite : SIO.Positive_Count;
  begin
 
    loop
      -- Card := Read_Card(InFits);
-     Card_Type'Read(SIO.Stream(InFits),Card);
+     String_80'Read(SIO.Stream(InFits),Card);
      exit when (Card = ENDCard);
 
      if Card(InKey'Range) /= InKey then
        -- Write_Card(OutFits,Card);
-       Card_Type'Write(SIO.Stream(OutFits),Card);
+       String_80'Write(SIO.Stream(OutFits),Card);
      end if;
 
    end loop;
 
    -- Write_Card(OutFits,ENDCard);
-   Card_Type'Write(SIO.Stream(OutFits),ENDCard);
+   String_80'Write(SIO.Stream(OutFits),ENDCard);
    PosAfterLastWrite := SIO.Index(OutFits);
    Write_Padding(OutFits,
                  PosAfterLastWrite,
@@ -221,16 +221,16 @@ package body Commands is
  -- return all Card if its key is InKey
  -- reads by Block
  function  Find_Card(InFits : SIO.File_Type;
-                     InKey  : String ) return Card_Type
+                     InKey  : String ) return String_80
  is
-   Card : Card_Type;
+   Card : String_80;
    ENDCardFound : Boolean := false;
    KeyCardFound : Boolean := false;
  begin
 
    loop
      -- Card := Read_Card(InFits);
-     Card_Type'Read(SIO.Stream(InFits),Card);
+     String_80'Read(SIO.Stream(InFits),Card);
      KeyCardFound := (Card(InKey'Range) = InKey);
      ENDCardFound := (Card = ENDCard);
      exit when (KeyCardFound or ENDCardFound);
@@ -258,7 +258,7 @@ package body Commands is
   -- store HDU start position
   InIdx  : SIO.Positive_Count := SIO.Index(InFits);
   OutIdx : SIO.Positive_Count := SIO.Index(OutFits);
-  Card   : Card_Type;
+  Card   : String_80;
   Naxis  : Natural;
   NAXISKey : String := "NAXIS";
   PosAfterLastWrite : SIO.Positive_Count;
@@ -267,19 +267,19 @@ package body Commands is
   Card := Find_Card(InFits,"SIMPLE");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
   -- Write_Card(OutFits,Card);
-  Card_Type'Write(SIO.Stream(OutFits),Card);
+  String_80'Write(SIO.Stream(OutFits),Card);
 
   SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"BITPIX");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
   -- Write_Card(OutFits,Card);
-  Card_Type'Write(SIO.Stream(OutFits),Card);
+  String_80'Write(SIO.Stream(OutFits),Card);
 
   SIO.Set_Index(InFits,InIdx);
   Card := Find_Card(InFits,"NAXIS");
 --  TIO.Put_Line("DBG >>" & Card & "<<");
   -- Write_Card(OutFits,Card);
-  Card_Type'Write(SIO.Stream(OutFits),Card);
+  String_80'Write(SIO.Stream(OutFits),Card);
 
   Naxis := Positive'Value(Card(10..30));
 
@@ -291,7 +291,7 @@ package body Commands is
       SIO.Set_Index(InFits,InIdx);
       Card := Find_Card(InFits,NAXISnKey);
       -- Write_Card(OutFits,Card);
-      Card_Type'Write(SIO.Stream(OutFits),Card);
+      String_80'Write(SIO.Stream(OutFits),Card);
 
 --      TIO.Put_Line("DBG >>" & Card & "<<");
     end;
@@ -303,7 +303,7 @@ package body Commands is
 
   loop
     -- Card := Read_Card(InFits);
-    Card_Type'Read(SIO.Stream(InFits),Card);
+    String_80'Read(SIO.Stream(InFits),Card);
 
     exit when (Card = ENDCard);
 
@@ -317,13 +317,13 @@ package body Commands is
        -- FIXME we should check also for spaces like 'NAXIS 3 = ' <- see FITS-standard
        -- AxisValue := Positive'Value(Card(6..8));
        -- Write_Card(OutFits,Card);
-       Card_Type'Write(SIO.Stream(OutFits),Card);
+       String_80'Write(SIO.Stream(OutFits),Card);
     end if;
 
   end loop;
 
   -- Write_Card(OutFits,ENDCard);
-  Card_Type'Write(SIO.Stream(OutFits),ENDCard);
+  String_80'Write(SIO.Stream(OutFits),ENDCard);
   PosAfterLastWrite := SIO.Index(OutFits);
   Write_Padding(OutFits,
                 PosAfterLastWrite,
