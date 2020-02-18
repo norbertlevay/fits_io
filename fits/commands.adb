@@ -18,6 +18,10 @@ package body Commands is
    package TIO renames Ada.Text_IO;
    package SIO renames Ada.Streams.Stream_IO;
 
+   CardsCntInBlock : constant Positive := 36;
+    -- FIXME this should come from somewhere in the lib
+
+
 
   type Data_Type is
        (UInt8,   Int16,
@@ -255,6 +259,7 @@ package body Commands is
  procedure Clean_PrimaryHeader_Start(InFits  : SIO.File_Type;
                                      OutFits : SIO.File_Type)
  is
+
   -- store HDU start position
   InIdx  : SIO.Positive_Count := SIO.Index(InFits);
   OutIdx : SIO.Positive_Count := SIO.Index(OutFits);

@@ -49,7 +49,7 @@ begin
    while not SIO.End_Of_File(InFile)
    loop
      declare
-       Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Reserved_Keys);
+       Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
      begin
        TIO.Put_Line("RESKEYS: HDU# " & Positive'Image(HDUNum));
 	for I in Cards'Range

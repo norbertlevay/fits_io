@@ -10,6 +10,8 @@ with Data_Block;
 with Data_Funcs; use Data_Funcs;
 with V3_Types;
 
+with Keyword_Record; use Keyword_Record;-- String_80 needed
+
 package body File.Misc is
 
    type UInt8_Arr   is array ( Positive_Count range <> ) of V3_Types.Unsigned_8;
@@ -190,14 +192,14 @@ package body File.Misc is
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
    function  DU_Size_blocks (FitsFile : in SIO.File_Type) return SIO.Count
    is  
-        PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
+        PSize : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
    begin
         return Calc_DataUnit_Size_blocks(PSize);
    end DU_Size_blocks;
 
   function  HDU_Size_blocks (FitsFile : in SIO.File_Type) return Positive_Count
    is  
-        PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
+        PSize : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
    begin
         return Calc_HeaderUnit_Size_blocks(PSize.CardsCount)
                + Calc_DataUnit_Size_blocks(PSize);
@@ -215,6 +217,20 @@ package body File.Misc is
    ------------------------------------
    -- Operations between two FITS-files
    ------------------------------------
+
+
+    CardsCntInBlock : constant Positive := 36;
+    -- FIXME Card_Block is duplication of def used internally inside Header.adb
+    -- here use better other def, maybe from Data_Unit::UInt8 or Interfaces ??
+    -- or simply based on FITS.Byte ? ==> Only size matters, we are not going to access
+    -- data inside the block
+    type Card_Block is array (Positive range 1..CardsCntInBlock) of String_80;
+    pragma Pack (Card_Block);
+    -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed$
+    -- OR do we need to guarantee at all ?$
+
+
+
 
 
    -- low-level copy in bigger chunks then one block for speed

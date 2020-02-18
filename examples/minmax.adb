@@ -354,7 +354,7 @@ begin
  Set_File_Block_Index(InFile,HDUStart);
 
  declare
-   Cards : Optional.Card_Arr := Read_Header(InFile, Optional.Reserved.Array_Keys);
+   Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Array_Keys);
  begin
  -- read data
  if(BITPIX = -64)    then F64F64_V3_Data.MinMax(InFile, DUSize, Cards);

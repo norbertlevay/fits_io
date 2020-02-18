@@ -18,7 +18,21 @@ package body Header is
 
     package TIO renames Ada.Text_IO;
     package KW renames Keyword_Record;
-   
+
+
+    CardsCntInBlock : constant Positive := 36;
+    -- FIXME Card_Block is used in File.Misc::Copy_Blocks & Copy_HDU
+    -- find other solution for File.Misc, here move it inside body
+    type Card_Block is array (Positive range 1..CardsCntInBlock) of String_80;
+    pragma Pack (Card_Block);
+    -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed
+    -- OR do we need to guarantee at all ?
+
+
+
+
+
+
    --
    -- Read File until ENDCard found
    --
@@ -59,7 +73,7 @@ package body Header is
 
 
 -- read info help in Mandatory keys of the Header
-  function  Read_Header (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
+  function  Read_Mandatory (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
   is
         HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
                 CardNum : SIO.Count;
@@ -83,10 +97,10 @@ package body Header is
             return PSize;
                 end;
 
-   end Read_Header;
+   end Read_Mandatory;
 
 
-   function  Read_Header (FitsFile : in  SIO.File_Type;
+   function  Read_Optional (FitsFile : in  SIO.File_Type;
                        Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr
    is
@@ -111,7 +125,7 @@ package body Header is
         return Cards;
     end;
 
-   end Read_Header;
+   end Read_Optional;
 
 
 

@@ -110,7 +110,7 @@ begin
  -- DATAMIN DATAMAX BUNIT applicable always 
  declare
   Cards : Optional.Card_Arr := 
-        Read_Header(InFile, Optional.Reserved.Array_Keys);
+        Read_Optional(InFile, Optional.Reserved.Array_Keys);
  begin
   for I in Cards'Range
   loop

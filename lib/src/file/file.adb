@@ -28,7 +28,7 @@ package body File is
 
    function  Read_Header (FitsFile : in SIO.File_Type) return HDU_Info_Type
    is
-    PSize   : Mandatory.Result_Rec := Read_Header(FitsFile);
+    PSize   : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
     HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
    begin
     HDUInfo.XTENSION := Max20.To_Bounded_String(
@@ -138,7 +138,7 @@ begin
                 -- Read Header and calc HDU size
 
                 declare
-                        PSize : Mandatory.Result_Rec := Read_Header(File);
+                        PSize : Mandatory.Result_Rec := Read_Mandatory(File);
                 begin
                     TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Mandatory.HDU_Type'Image(PSize.HDU));
