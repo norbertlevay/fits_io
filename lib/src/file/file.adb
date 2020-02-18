@@ -99,13 +99,13 @@ package body File is
                     Mandatory.HDU_Type'Image(Psize.HDU));
                     -- FIXME PSize.HSU is enum: 20 length might not be enough
                     -- find other solution then Bounded_String??
-    HDUInfo.CardsCnt := FPositive(PSize.CardsCount); --FPositive
+    HDUInfo.CardsCnt := Positive_Count(PSize.CardsCount); --Positive_Count
     HDUInfo.BITPIX   := PSize.BITPIX;--Integer; 
 
     -- FIXME unify types:   HDUInfo.NAXISn := PSize.NAXISn;
         for I in HDUInfo.NAXISn'Range
         loop
-            HDUInfo.NAXISn(I) := FInteger(PSize.NAXISn(I));
+            HDUInfo.NAXISn(I) := PSize.NAXISn(I);
         end loop;
 
         return HDUInfo;
@@ -168,11 +168,11 @@ package body File is
         -- they always must check presence of the variable fields and 
         -- call external funcs accordingly
 function  Calc_DataUnit_Size_blocks  
-                (Res : in Mandatory.Result_Rec) return KW.FNatural
+                (Res : in Mandatory.Result_Rec) return SIO.Count
 is
-    Size_bits : KW.FNatural;
+    Size_bits : SIO.Count;
 
-    BitsPerBlock : constant KW.FPositive := (2880*8);
+    BitsPerBlock : constant Positive_Count := (2880*8);
         -- FIXME generic FITS-constant: move elsewhere
 begin
     case(Res.HDU) is
@@ -214,7 +214,7 @@ is
         CurHDUNum : Positive;
         HeaderStart : SIO.Positive_Count;
         Blk : Card_Block;
-        HDUSize_blocks : KW.FPositive;
+        HDUSize_blocks : Positive_Count;
         CardNum : Natural;
         CurBlkNum : Natural := 0; -- none read yet
 begin
@@ -248,13 +248,13 @@ begin
             TIO.New_Line;TIO.Put_Line("DBG> HDU_Type: " 
                                                 & Mandatory.HDU_Type'Image(PSize.HDU));
 
-                    HDUSize_blocks := KW.FPositive(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
+                    HDUSize_blocks := Positive_Count(Calc_HeaderUnit_Size_blocks(PSize.CardsCount))
                     + Calc_DataUnit_Size_blocks(PSize); 
                     -- FIXME conversion for HeaderUnit
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
-                                        & KW.FPositive'Image(HDUSize_blocks));
+                                        & Positive_Count'Image(HDUSize_blocks));
 
                 -- move to next HDU
 
@@ -282,9 +282,9 @@ end Set_Index;
 -- offset in data-element count
 function To_Offset (Coords    : in  Mandatory.NAXIS_Arr;
                      MaxCoords : in  Mandatory.NAXIS_Arr)
-   return FPositive
+   return Positive_Count
  is
-  Offset : FPositive;
+  Offset : Positive_Count;
   Sizes  : Mandatory.NAXIS_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
@@ -299,7 +299,7 @@ function To_Offset (Coords    : in  Mandatory.NAXIS_Arr;
   -- generate size of each plane
   --  
   declare
-    Accu  : FPositive := 1;
+    Accu  : Positive_Count := 1;
   begin
     for I in MaxCoords'First .. (MaxCoords'Last - 1)
     loop
@@ -341,8 +341,8 @@ function Element_Value
 is
     tt : T;
     -- calc Offset from Coord   
-    Offset : FInteger := To_Offset(Coords, MaxCoords);
-    DataElementSize : FInteger := T'Size / Ada.Streams.Stream_Element'Size;
+    Offset : Positive_Count := To_Offset(Coords, MaxCoords);-- FIXME was FInteger
+    DataElementSize : Positive_Count := T'Size / Ada.Streams.Stream_Element'Size;-- FIXME was FInteger
     -- FIXME check if not divisable
 begin
     -- move to Offset

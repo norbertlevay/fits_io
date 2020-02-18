@@ -11,10 +11,10 @@ with V3_Types;
 
 package body File.Misc is
 
-   type UInt8_Arr   is array ( FPositive range <> ) of V3_Types.Unsigned_8;
+   type UInt8_Arr   is array ( Positive_Count range <> ) of V3_Types.Unsigned_8;
 	-- use to write Padding
 
-   StreamElemSize_bits : FPositive := Ada.Streams.Stream_Element'Size;
+   StreamElemSize_bits : Positive_Count := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
     -- [GNAT]:
     --  type Stream_Element is mod 2 ** Standard'Storage_Unit;
@@ -27,7 +27,7 @@ package body File.Misc is
     --               +(2 ** (Standard'Address_Size - 1)) - 1;
     -- Address_Size is 32 or 64bit nowadays
 
-   BlockSize_bytes : FPositive := BlockSize_bits / StreamElemSize_bits;
+   BlockSize_bytes : Positive_Count := BlockSize_bits / StreamElemSize_bits;
    -- FIXME division : needs to be multiple of another otherwise
    --                  fraction lost
    -- in units of Stream_Element size (usually octet-byte)
@@ -53,7 +53,7 @@ package body File.Misc is
        Natural(BlockSize_bytes) - FillCnt + 1;
 
 
-    PadArr    : constant UInt8_Arr(1 .. FPositive(PadLength)) := (others => PadValue);
+    PadArr    : constant UInt8_Arr(1 .. Positive_Count(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!
    begin
     SIO.Set_Index(FitsFile,From);
@@ -63,7 +63,7 @@ package body File.Misc is
 
    -- Write Data by coordinates
 
-   procedure To_Coords (Offset    : in  FPositive;
+   procedure To_Coords (Offset    : in  Positive_Count;
                         MaxCoords : in  Mandatory.NAXIS_Arr;
                         Coords    : out Mandatory.NAXIS_Arr)
    is
@@ -79,7 +79,7 @@ package body File.Misc is
     -- generate size of each plane
     --
     declare
-      Accu  : FPositive := 1;
+      Accu  : Positive_Count := 1;
     begin
       for I in MaxCoords'Range
       loop
@@ -93,7 +93,7 @@ package body File.Misc is
     -- calc divisions and fractions
     --
     declare
-      PrevRem : FNatural := Offset - 1;
+      PrevRem : Count := Offset - 1;
     begin
       for I in reverse MaxCoords'First .. MaxCoords'Last
       loop
@@ -187,7 +187,7 @@ package body File.Misc is
 
 
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
-   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return FNatural
+   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return SIO.Count
    is  
         PSize : Mandatory.Result_Rec := Read_Header(FitsFile);
    begin
@@ -223,11 +223,11 @@ package body File.Misc is
    --
    procedure Copy_Blocks (InFits  : in SIO.File_Type;
                           OutFits : in SIO.File_Type;
-                          NBlocks : in FPositive;
+                          NBlocks : in Positive_Count;
                           ChunkSize_blocks : in Positive := 10)
    is
-    NChunks   : FNatural := NBlocks  /  FPositive(ChunkSize_blocks);
-    NRest     : FNatural := NBlocks rem FPositive(ChunkSize_blocks);
+    NChunks   : Count := NBlocks  /  Positive_Count(ChunkSize_blocks);
+    NRest     : Count := NBlocks rem Positive_Count(ChunkSize_blocks);
     type CardBlock_Arr is array (1 .. ChunkSize_blocks) of Card_Block;
     BigBuf    : CardBlock_Arr; -- big buffer
     SmallBuf  : Card_Block;    -- small buffer
@@ -257,12 +257,12 @@ package body File.Misc is
                        HDUNum  : in Positive;
                        ChunkSize_blocks : in Positive := 10)
    is
-     NBlocks : FPositive;
+     NBlocks : Positive_Count;
      HDUStartIdx : SIO.Positive_Count;
    begin
      HDUStartIdx := SIO.Index(InFits);
      -- calc size of HDU
-     NBlocks := FPositive(HDU_Size_blocks(InFits)); -- FIXME explicit conversion
+     NBlocks := Positive_Count(HDU_Size_blocks(InFits)); -- FIXME explicit conversion
      -- go back to HDU-start & start copying...
      SIO.Set_Index(InFits, HDUStartIdx);
      Copy_Blocks(InFits,OutFits,NBlocks, ChunkSize_blocks);

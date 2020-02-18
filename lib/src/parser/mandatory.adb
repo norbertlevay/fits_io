@@ -1,5 +1,6 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Count needed
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 
@@ -62,7 +63,7 @@ type State_Type is
         Name            : State_Name;
         XTENSION_Val    : XT_Type;
         NAXIS_Val       : KW.FIndex;
-        NAXIS1_Val  : KW.FNatural;
+        NAXIS1_Val  : SIO.Count;
         TFIELDS_Val     : KW.FIndex;
 
     -- Mandatory

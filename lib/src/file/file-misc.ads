@@ -1,10 +1,11 @@
 
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with V3_Types; -- Unsigned_8 needed for Padding value
 
 package File.Misc is
 
-    BlockSize_bits : constant FPositive := 2880 * Byte'Size; -- 23040 bits
+    BlockSize_bits : constant Positive_Count := 2880 * Byte'Size; -- 23040 bits
     -- [FITS 3.1 Overall file structure]
 
    -------------------------------
@@ -33,7 +34,7 @@ package File.Misc is
 
 
 
-  function  DU_Size_blocks (FitsFile : in SIO.File_Type) return FNatural; 
+  function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Count; 
         -- used in commands
 
 
@@ -50,7 +51,7 @@ package File.Misc is
    --  
    procedure Copy_Blocks (InFits  : in SIO.File_Type;
                           OutFits : in SIO.File_Type;
-                          NBlocks : in FPositive;
+                          NBlocks : in Positive_Count;
                           ChunkSize_blocks : in Positive := 10);
    -- FIXME is this needed ? maybe should be internal only
    --       Ext API: Copy_HDU ok.

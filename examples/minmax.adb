@@ -317,9 +317,9 @@ is
  
  -- info from Header
 
- function DU_Count(NAXISn : NAXIS_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return SIO.Count
  is
-	Cnt : FNatural := 1;
+	Cnt : SIO.Count := 1;
  begin
 	for I in NAXISn'Range
         loop

@@ -2,12 +2,12 @@
 -- Various calculations formulas from [FITS].
 --
 -- FIXME error/exception handling missing
--- FIXME rename/re-examine FPositive FNatural definition in FITSlib.ads
+
+--with Keyword_Record; use  Keyword_Record;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- Positive_Count needed
 
 with Mandatory; -- NAXIS_Arr needed
 
-with Keyword_Record;
-use  Keyword_Record;
 
 package File_Funcs is
         
@@ -19,7 +19,7 @@ package File_Funcs is
     
     function PrimaryImage_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : Mandatory.NAXIS_Arr) return FPositive;
+         NAXIS  : Mandatory.NAXIS_Arr) return Positive_Count;
 
 
     -- implements [FITS] Eq(2)
@@ -27,8 +27,8 @@ package File_Funcs is
     function ConformingExtension_DataSize_bits
         (BITPIX : Integer;
          NAXIS  : Mandatory.NAXIS_Arr;
-         PCOUNT : FNatural;
-         GCOUNT : FPositive) return FPositive;
+         PCOUNT : Count;
+         GCOUNT : Positive_Count) return Positive_Count;
 
 
     -- implements [FITS] Eq(4) 
@@ -36,8 +36,8 @@ package File_Funcs is
      function RandomGroups_DataSize_bits
         (BITPIX : Integer;
          NAXIS  : Mandatory.NAXIS_Arr;
-         PCOUNT : FNatural;
-         GCOUNT : FPositive) return FPositive;
+         PCOUNT : Count;
+         GCOUNT : Positive_Count) return Positive_Count;
 
 
 end File_Funcs;

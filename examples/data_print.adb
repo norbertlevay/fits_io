@@ -32,9 +32,9 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
- function DU_Count(NAXISn : NAXIS_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return SIO.Count
  is
-    Cnt : FNatural := 1;
+    Cnt : SIO.Count := 1;
  begin
     for I in NAXISn'Range
         loop
@@ -47,7 +47,7 @@ is
  InFile      : SIO.File_Type;
 
  BITPIX : Integer;
- DUSize : FPositive;
+ DUSize : SIO.Positive_Count;
 
  Off_In_Block : Positive;
  Off_In_DU : SIO.Positive_Count;
@@ -108,7 +108,7 @@ begin
  end;
  
  Put_Line("BITPIX: " & Integer'Image(BITPIX));
- Put_Line("DUSize: " & FInteger'Image(DUSize));
+ Put_Line("DUSize: " & SIO.Count'Image(DUSize));
 
  DU_Start := File_Block_Index(InFile);
  Put_Line("After ReadHeader MandatoryKeys: " & SIO.Positive_Count'Image( DU_Start ));

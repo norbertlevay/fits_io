@@ -32,9 +32,9 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
- function DU_Count(NAXISn : NAXIS_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return SIO.Count
  is
-    Cnt : FNatural := 1;
+    Cnt : SIO.Count := 1;
  begin
     for I in NAXISn'Range
         loop
@@ -53,7 +53,7 @@ is
 
  Card   : Card_Type;
  BITPIX : Integer;
- DUSize : FPositive;
+ DUSize : SIO.Positive_Count;
 
  BITPIXnewCard : Card_Type :=
 "BITPIX  =                   16 /                                                ";

@@ -11,9 +11,9 @@ package body File_Funcs is
 
         function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : Mandatory.NAXIS_Arr) return FPositive
+                 NAXIS  : Mandatory.NAXIS_Arr) return Positive_Count
     is
-        Nbits : FPositive := 1;
+        Nbits : Positive_Count := 1;
     begin
 
         for I in NAXIS'Range
@@ -21,7 +21,7 @@ package body File_Funcs is
             Nbits := Nbits * NAXIS(I);
         end loop;
 
-        Nbits := FPositive(abs BITPIX) * Nbits;
+        Nbits := Positive_Count(abs BITPIX) * Nbits;
         
         return Nbits;
 
@@ -33,13 +33,13 @@ package body File_Funcs is
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : Mandatory.NAXIS_Arr;
-                 PCOUNT : FNatural;
-                 GCOUNT : FPositive) return FPositive
+                 PCOUNT : Count;
+                 GCOUNT : Positive_Count) return Positive_Count
     is
-        Nbits : FPositive := PrimaryImage_DataSize_bits(BITPIX,NAXIS);
+        Nbits : Positive_Count := PrimaryImage_DataSize_bits(BITPIX,NAXIS);
     begin
 
-        Nbits := Nbits + FPositive(abs BITPIX) * PCOUNT;
+        Nbits := Nbits + Positive_Count(abs BITPIX) * PCOUNT;
         Nbits := Nbits * GCOUNT;
 
         return Nbits;
@@ -52,8 +52,8 @@ package body File_Funcs is
     function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
                  NAXIS  : Mandatory.NAXIS_Arr;
-                 PCOUNT : FNatural;
-                 GCOUNT : FPositive) return FPositive
+                 PCOUNT : Count;
+                 GCOUNT : Positive_Count) return Positive_Count
     is
         NAXISCopy : Mandatory.NAXIS_Arr := NAXIS;
     begin

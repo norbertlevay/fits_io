@@ -6,9 +6,9 @@ package body NCube_Funcs is
 
  function To_Offset (Coords    : in  NAXIS_Arr;
                      MaxCoords : in  NAXIS_Arr)
-   return FPositive
+   return Positive_Count
  is
-  Offset : FPositive;
+  Offset : Positive_Count;
   Sizes  : NAXIS_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
@@ -23,7 +23,7 @@ package body NCube_Funcs is
   -- generate size of each plane
   --
   declare
-    Accu  : FPositive := 1;
+    Accu  : Positive_Count := 1;
   begin
     for I in MaxCoords'First .. (MaxCoords'Last - 1)
     loop
@@ -45,7 +45,7 @@ package body NCube_Funcs is
 
 
 
- procedure To_Coords (Offset    : in  FPositive;
+ procedure To_Coords (Offset    : in  Positive_Count;
                       MaxCoords : in  NAXIS_Arr;
                       Coords    : out NAXIS_Arr)
  is
@@ -60,7 +60,7 @@ package body NCube_Funcs is
   -- generate size of each plane
   --
   declare
-    Accu  : FPositive := 1;
+    Accu  : Positive_Count := 1;
   begin
     for I in MaxCoords'Range
     loop
@@ -74,7 +74,7 @@ package body NCube_Funcs is
   -- calc divisions and fractions
   --
   declare
-    PrevRem : FNatural := Offset - 1;
+    PrevRem : Count := Offset - 1;
   begin
     for I in reverse MaxCoords'First .. MaxCoords'Last
     loop

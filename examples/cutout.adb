@@ -17,7 +17,7 @@
 with Ada.Text_IO;
 with Ada.Integer_Text_Io; use Ada.Integer_Text_Io;
 --with Ada.Text_IO.Integer_IO; --use Ada.Text_IO.Integer_IO;
-with Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
 with Ada.Numerics.Generic_Elementary_Functions; 
@@ -25,7 +25,7 @@ with Ada.Numerics.Generic_Elementary_Functions;
 with V3_Types; use V3_Types;
 with NCube; use NCube;
 with NCube_Funcs; use NCube_Funcs;
-with Keyword_Record; use Keyword_Record;-- FPositive needed
+--with Keyword_Record; use Keyword_Record;-- FPositive needed
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
 with Data_Funcs; use Data_Funcs;
@@ -55,9 +55,9 @@ use Value_Functions;
     new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
 
 
- function DU_Count(NAXISn : NAXIS_Arr) return FNatural
+ function DU_Count(NAXISn : NAXIS_Arr) return SIO.Positive_Count
  is
-        Cnt : FNatural := 1;
+        Cnt : SIO.Positive_Count := 1;
  begin
         for I in NAXISn'Range
         loop
@@ -83,8 +83,8 @@ use Value_Functions;
  Last  : NAXIS_Arr(1..2) := ( 1, 1 );-- FIXME instead explicit index def (1..2)
 -- First : NAXIS_Arr := ( 50,    1);
 -- Last  : NAXIS_Arr := (100,   31);
- Nx : FPositive := Last(1) - First(1) + 1;
- Ny : FPositive := Last(2) - First(2) + 1;
+ Nx : SIO.Positive_Count := Last(1) - First(1) + 1;
+ Ny : SIO.Positive_Count := Last(2) - First(2) + 1;
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 
@@ -94,7 +94,7 @@ use Value_Functions;
  F32Value : Float_32;
  F32Min : Float_32 := Float_32'Last;
  F32Max : Float_32 := Float_32'First;
- PosMaxI, PosMaxJ : FInteger;
+ PosMaxI, PosMaxJ : SIO.Positive_Count;
  UI8Value : Unsigned_8;
  OffInVol : SIO.Positive_Count;
  Scaling : Float_32 := 1.0;
@@ -110,10 +110,10 @@ begin
    SIO.Open(File, SIO.In_File, (Argument(1)));
  end if;
 
- First(1) := FInteger'Value(Argument(2));
- First(2) := FInteger'Value(Argument(3));
- Last(1)  := FInteger'Value(Argument(4));
- Last(2)  := FInteger'Value(Argument(5));
+ First(1) := SIO.Positive_Count'Value(Argument(2));
+ First(2) := SIO.Positive_Count'Value(Argument(3));
+ Last(1)  := SIO.Positive_Count'Value(Argument(4));
+ Last(2)  := SIO.Positive_Count'Value(Argument(5));
 
  if (Argument_Count >= 6) then Scaling := Float_32'Value(Argument(6)); end if;
 
@@ -201,7 +201,7 @@ end; -- VolData declare
  TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));
  TIO.Put_Line("Max : " & Float_32'Image(F32Max));
- TIO.Put_Line("Pos Max : " & FInteger'Image(PosMaxI) & ", " & FInteger'Image(PosMaxJ));
+ TIO.Put_Line("Pos Max : " & SIO.Positive_Count'Image(PosMaxI) & ", " & SIO.Positive_Count'Image(PosMaxJ));
 
 
 end cutout;

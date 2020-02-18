@@ -63,6 +63,9 @@ use  PNG_IO;
                         PlaneNum     : in Positive := 1)
  is
 
+    package SIO renames Ada.Streams.Stream_IO;
+
+
  -- grey (8bit) image
 
  type GreyPixel_8bit_Type is new Unsigned_8;
@@ -184,12 +187,12 @@ use  PNG_IO;
         -- FIXME are below array definitions useful? acceptable?
         -- see example/convert.adb vs example/convertf2i.adb
         -- Standard says FITS file si always a set of 2880byte blocks
-   type UInt8_Arr   is array ( FPositive range <> ) of V3_Types.Unsigned_8;
-   type Int16_Arr   is array ( FPositive range <> ) of V3_Types.Integer_16;
-   type Int32_Arr   is array ( FPositive range <> ) of V3_Types.Integer_32;
-   type Int64_Arr   is array ( FPositive range <> ) of V3_Types.Integer_64;
-   type Float32_Arr is array ( FPositive range <> ) of V3_Types.Float_32;
-   type Float64_Arr is array ( FPositive range <> ) of V3_Types.Float_64;
+   type UInt8_Arr   is array ( SIO.Positive_Count range <> ) of V3_Types.Unsigned_8;
+   type Int16_Arr   is array ( SIO.Positive_Count range <> ) of V3_Types.Integer_16;
+   type Int32_Arr   is array ( SIO.Positive_Count range <> ) of V3_Types.Integer_32;
+   type Int64_Arr   is array ( SIO.Positive_Count range <> ) of V3_Types.Integer_64;
+   type Float32_Arr is array ( SIO.Positive_Count range <> ) of V3_Types.Float_32;
+   type Float64_Arr is array ( SIO.Positive_Count range <> ) of V3_Types.Float_64;
 
 
 
@@ -390,8 +393,8 @@ use  PNG_IO;
      -- and we rely on virtual memory to have
      -- enough space in case of big files
 
---     type Data_Arr_Ptr is access Data_Arr( DataType, FPositive(W*H) );
---     Data : Data_Arr_Ptr  := new Data_Arr( DataType, FPositive(W*H) ) ;
+--     type Data_Arr_Ptr is access Data_Arr( DataType, SIO.Positive_Count(W*H) );
+--     Data : Data_Arr_Ptr  := new Data_Arr( DataType, SIO.Positive_Count(W*H) ) ;
 --     type DataArray_Ptr is access DataArray_Type( DataType, W*H );
 --     Data : DataArray_Ptr  := new DataArray_Type( DataType, W*H ) ;
      -- holds data from FITS-file
@@ -422,8 +425,8 @@ use  PNG_IO;
 
         declare
          -- allocate Data on Heap
-         type Float32_Arr_Ptr is access Float32_Arr( 1 .. FPositive(W*H) );
-         Data : Float32_Arr_Ptr := new Float32_Arr( 1 .. FPositive(W*H) );
+         type Float32_Arr_Ptr is access Float32_Arr( 1 .. SIO.Positive_Count(W*H) );
+         Data : Float32_Arr_Ptr := new Float32_Arr( 1 .. SIO.Positive_Count(W*H) );
         begin
 
 --        Data_Arr'Read (SIO.Stream(FitsFile), Data.all);
@@ -460,8 +463,8 @@ use  PNG_IO;
 
         declare
          -- allocate Data on Heap
-         type UInt8_Arr_Ptr is access UInt8_Arr( 1 .. FPositive(W*H) );
-         Data   : UInt8_Arr_Ptr   := new UInt8_Arr( 1 .. FPositive(W*H) );
+         type UInt8_Arr_Ptr is access UInt8_Arr( 1 .. SIO.Positive_Count(W*H) );
+         Data   : UInt8_Arr_Ptr   := new UInt8_Arr( 1 .. SIO.Positive_Count(W*H) );
         begin
 
 --         Data_Arr'Read (SIO.Stream(FitsFile), Data.all);

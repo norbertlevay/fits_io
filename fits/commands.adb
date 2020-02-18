@@ -9,11 +9,12 @@ with System.Storage_Elements;
 with File;   	use File;
 with File.Misc; use File.Misc;
 
-with Keyword_Record; use Keyword_Record; -- FPositive needed
+with Keyword_Record; use Keyword_Record; -- FIndex needed
 
 package body Commands is
 
    package TIO renames Ada.Text_IO;
+   package SIO renames Ada.Streams.Stream_IO;
 
 
   type Data_Type is
@@ -59,9 +60,9 @@ package body Commands is
 
 
 -- originally was in FITS.Header
-   function  Free_Card_Slots (CardsCnt : in FPositive ) return Natural
+   function  Free_Card_Slots (CardsCnt : in SIO.Positive_Count ) return Natural
    is  
-    FreeSlotCnt : Natural := Natural( CardsCnt mod FPositive(CardsCntInBlock) );
+    FreeSlotCnt : Natural := Natural( CardsCnt mod SIO.Positive_Count(CardsCntInBlock) );
     -- explicit conversion ok: mod < CardsCntInBlock = 36;
    begin
     if FreeSlotCnt /= 0 then
@@ -84,7 +85,7 @@ package body Commands is
                         -- Integer'Image(HDUInfo.XTENSION'Length) &
                         Max20.To_String(HDUInfo.XTENSION) &
                         Tab &
-                        Ada.Strings.Fixed.Tail( FInteger'Image(HDUInfo.CardsCnt),5,' ') &
+                        Ada.Strings.Fixed.Tail( SIO.Positive_Count'Image(HDUInfo.CardsCnt),5,' ') &
                         " (" &
                         Ada.Strings.Fixed.Tail(Integer'Image( FreeSlotCnt ),2,' ') &
                         ")" );
@@ -94,9 +95,9 @@ package body Commands is
         TIO.Put(" ( ");
         for J in 1 .. (HDUInfo.NAXISn'Last - 1)
          loop
-          TIO.Put(FPositive'Image(HDUInfo.NAXISn(J)) & " x " );
+          TIO.Put(SIO.Positive_Count'Image(HDUInfo.NAXISn(J)) & " x " );
         end loop;
-        TIO.Put(FPositive'Image(HDUInfo.NAXISn(HDUInfo.NAXISn'Last)));
+        TIO.Put(SIO.Positive_Count'Image(HDUInfo.NAXISn(HDUInfo.NAXISn'Last)));
         TIO.Put_Line(" ) ");
        end if;
   end Print_HDU_Info;
@@ -131,7 +132,7 @@ package body Commands is
  begin
   TIO.Put_Line("Limits imposed by implementation and/or the system:");
   TIO.Put_Line("Max NAXIS  :" & Tab & FIndex'Image(FIndex'Last));
-  TIO.Put_Line("Max NAXISn :" & Tab & FPositive'Image(FPositive'Last));
+  TIO.Put_Line("Max NAXISn :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
   TIO.Put_Line("Max File size :" & Tab & SIO.Positive_Count'Image(SIO.Positive_Count'Last));
   TIO.Put_Line("Max DataUnit size :" & Tab & "???" );
   TIO.New_Line;
@@ -342,7 +343,7 @@ package body Commands is
    OutFits : SIO.File_Type;
    CurHDUNum : Positive := 1;
    InIdx  : SIO.Positive_Count;
-   DUSize_blocks : FNatural;
+   DUSize_blocks : SIO.Count;
  begin
 
    SIO.Create(OutFits, SIO.Out_File, OutFitsName);-- FIXME will overwrite ix exits ?

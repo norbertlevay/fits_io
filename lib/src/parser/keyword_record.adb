@@ -74,10 +74,10 @@ package body Keyword_Record is
 	end To_Boolean;
 
 
-	function To_Integer(Value : String) return FInteger
+	function To_Integer(Value : String) return SIO.Count
 	is
 	begin
-		return FInteger'Value(Value);
+		return SIO.Count'Value(Value);
 	end To_Integer;
 
 

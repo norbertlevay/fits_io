@@ -4,7 +4,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Data_Unit;
 with Data_Funcs;    use Data_Funcs;
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
-with Keyword_Record; use Keyword_Record; -- FPositive needed in NAXIS_Arr for operators visibilití
+with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 
 with NCube_Funcs; use NCube_Funcs;
 

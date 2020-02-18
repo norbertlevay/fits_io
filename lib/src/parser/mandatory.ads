@@ -1,16 +1,20 @@
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Keyword_Record; -- Card_Type needed
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- (Positive_)Count needed
+
+with Keyword_Record; -- FIndex needed
 
 package Mandatory is
+
+    package SIO renames Ada.Streams.Stream_IO;-- Count needed
 
     type HDU_Type is
         (NO_DATA, IMAGE, RANDOM_GROUPS, -- Primary
         CONFORMING_EXTENSION,
         STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
-    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Keyword_Record.FPositive;
+    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Positive_Count;
     type TFORM_Arr is array (Positive range <>) of Unbounded_String;
 
     type Result_Rec(HDU : HDU_Type;
@@ -25,8 +29,8 @@ package Mandatory is
                 NAXISn : NAXIS_Arr(1 .. NAXIS_Last);
                 case HDU is
                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
-                    PCOUNT : Keyword_Record.FNatural;
-                    GCOUNT : Keyword_Record.FPositive;
+                    PCOUNT : SIO.Count;
+                    GCOUNT : Positive_Count;
 
                     case HDU is
                     when STANDARD_TABLE | STANDARD_BINTABLE =>
