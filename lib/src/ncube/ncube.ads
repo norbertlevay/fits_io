@@ -14,18 +14,18 @@ package NCube is
   type Tout is private;
   type Tout_Arr is array (Positive_Count range <>) of Tout;
   with function Is_Valid(V : in T) return Boolean;
-  with function "+" (L, R : in Tout) return Tout is <>; 
-  with function "*" (L, R : in Tout) return Tout is <>; 
-  with function "+" (R : in T) return Tout is <>; 
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in T) return Tout is <>;
  procedure Read_Valid_Scaled_Line
-   (F : SIO.File_Type; 
+   (F : SIO.File_Type;
     BZERO  : in Tout;
     BSCALE : in Tout;
     Undef_Val : in Tout; 
-    DUStart   : in Positive_Count;
-    MaxCoords : in NAXIS_Arr;-- NAXISn
+    DUStart: in Positive_Count;
+    NAXISn : in NAXIS_Arr;
     First  : in NAXIS_Arr;
-    Length : in Positive_Count; -- may be at most NAXIS1
+    Length : in Positive_Count; --  at most NAXIS1
     Values : out Tout_Arr);
 
 
@@ -36,24 +36,20 @@ package NCube is
   type Tout is private;
   type Tout_Arr is array (Positive_Count range <>) of Tout;
   with function Is_Valid(V : in T) return Boolean;
-  with function "+" (L, R : in Tout) return Tout is <>; 
-  with function "*" (L, R : in Tout) return Tout is <>; 
-  with function "+" (R : in T) return Tout is <>; 
+  with function "+" (L, R : in Tout) return Tout is <>;
+  with function "*" (L, R : in Tout) return Tout is <>;
+  with function "+" (R : in T) return Tout is <>;
  procedure Read_Valid_Scaled_Volume
-   (File : SIO.File_Type; 
+   (File : SIO.File_Type;
     BZERO  : in Tout;
     BSCALE : in Tout;
-    Undef_Val : in Tout; 
-    DUStart   : in Positive_Count;
-    MaxCoords : in NAXIS_Arr;-- NAXISn
-    First  : in NAXIS_Arr;
-    Last   : in NAXIS_Arr;
-    Volume : out Tout_Arr); -- result stored in 1D array, make it private later
+    Undef_Val : in Tout;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    Volume  : out Tout_Arr); -- FIXME result stored in 1D array, make it private later
                     -- no override for indexing-operator in Ada
 
-
-
- 
-
-
 end NCube;
+

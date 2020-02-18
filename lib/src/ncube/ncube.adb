@@ -13,17 +13,17 @@ package body NCube is
 use SIO;
 
  procedure Read_Valid_Scaled_Line
-   (F : SIO.File_Type; 
+   (F : SIO.File_Type;
     BZERO  : in Tout;
     BSCALE : in Tout;
     Undef_Val : in Tout;
     DUStart   : in Positive_Count;
-    MaxCoords : in NAXIS_Arr; -- NAXIS1, NAXIS2... NAXISn 
+    NAXISn : in NAXIS_Arr;
     First  : in NAXIS_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr)
  is
-  Offset    : Positive_Count := Positive_Count(To_Offset(First, MaxCoords));-- FIXME 
+  Offset    : Positive_Count := To_Offset(First, NAXISn);
   DUBlockIx : Positive_Count := DU_Block_Index(Offset, Tout'Size/8);
   OffsetInBlock : Positive := Offset_In_Block(Offset, 2880/(Tout'Size/8));
 
@@ -74,7 +74,7 @@ use SIO;
                 BSCALE : in Tout;
                 Undef_Val : in Tout; 
                 DUStart   : in Positive_Count;
-                MaxCoords : in NAXIS_Arr;-- NAXISn
+                NAXISn : in NAXIS_Arr;-- NAXISn
                 First  : in NAXIS_Arr;
                 Last   : in NAXIS_Arr;
                 Volume : out Tout_Arr)
@@ -92,11 +92,11 @@ use SIO;
    CV : NAXIS_Arr := First;  -- Current coords in target Volume
    Vf, Vl : Positive_Count;
    Unity : constant NAXIS_Arr(First'Range) := (others => 1);
-   VolMaxCoords : NAXIS_Arr(First'Range);
+   VolNAXISn : NAXIS_Arr(First'Range);
  begin
 
  for I in First'Range loop
-   VolMaxCoords(I) := Unity(I) + Last(I) - First(I);
+   VolNAXISn(I) := Unity(I) + Last(I) - First(I);
  end loop;
 
   W := Winit;
@@ -108,9 +108,9 @@ use SIO;
 
   --print_coord(C)  
   Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,
-        MaxCoords, C, LineLength, Line);
+        NAXISn, C, LineLength, Line);
 
-  Vf := Positive_Count(To_Offset(CV,VolMaxCoords)); -- FIXME FInteger
+  Vf := Positive_Count(To_Offset(CV,VolNAXISn)); -- FIXME FInteger
   Vl := Vf + LineLength - 1;
   Volume(Vf .. Vl) := Line;
   -- store read line
@@ -135,13 +135,13 @@ use SIO;
 
    -- print_coord(C);
    Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
-        MaxCoords, C, LineLength, Line);
+        NAXISn, C, LineLength, Line);
 
    for I in First'Range loop
     CV(I) := Unity(I) + C(I) - First(I);
    end loop;
 
-   Vf := Positive_Count(To_Offset(CV,VolMaxCoords));-- FIXME FInteger
+   Vf := Positive_Count(To_Offset(CV,VolNAXISn));-- FIXME FInteger
    Vl := Vf + LineLength - 1;
    Volume(Vf .. Vl) := Line;
   -- store read line
