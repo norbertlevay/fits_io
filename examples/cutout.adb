@@ -70,12 +70,12 @@ use Value_Functions;
 
  -- data related
  
- First : NAXIS_Arr(1..2) := ( 1, 1 );-- FIXME use 'First etc...
- Last  : NAXIS_Arr(1..2) := ( 1, 1 );-- FIXME instead explicit index def (1..2)
+ First : NAXIS_Arr(1..2);-- := ( 1, 1 );-- FIXME use 'First etc...
+ Last  : NAXIS_Arr(1..2);-- := ( 1, 1 );-- FIXME instead explicit index def (1..2)
 -- First : NAXIS_Arr := ( 50,    1);
 -- Last  : NAXIS_Arr := (100,   31);
- Nx : SIO.Positive_Count := Last(1) - First(1) + 1;
- Ny : SIO.Positive_Count := Last(2) - First(2) + 1;
+ Nx : SIO.Positive_Count;-- := Last(1) - First(1) + 1;
+ Ny : SIO.Positive_Count;-- := Last(2) - First(2) + 1;
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 
@@ -108,10 +108,11 @@ begin
 
  if (Argument_Count >= 6) then Scaling := Float_32'Value(Argument(6)); end if;
 
- Nx := Last(1) - First(1) + 1;
- Ny := Last(2) - First(2) + 1;
+ Nx := 1 + Last(1) - First(1);
+ Ny := 1 + Last(2) - First(2);
+
 declare 
- Vol : VolData( 1 .. SIO.Positive_Count(Nx*Ny));-- FIXME FInteger
+ Vol : VolData( 1 .. (Nx*Ny));
  UI8ConvVal : Unsigned_8; 
 begin
 
@@ -123,19 +124,11 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(File);
  begin
   DUStart := File_Block_Index(File);
-  DUSize  := SIO.Positive_Count(Data_Unit_Size_elems(HDUInfo.NAXISn));
-  BITPIX := HDUInfo.BITPIX;
+  DUSize  := Data_Unit_Size_elems(HDUInfo.NAXISn);
+  BITPIX  := HDUInfo.BITPIX;
  
  TIO.Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
  TIO.Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
-
- -- reset to Header start and read it again
--- Set_File_Block_Index(File,HDUStart);
-
- declare
---   Cards : Optional.Card_Arr := Read_Header(File, Optional.Reserved.Array_Keys);
-  dummy : Integer;
- begin
 
  -- read data
  if(BITPIX = -32)
@@ -145,9 +138,8 @@ begin
  else
     TIO.Put_Line("Not FLoat_32 data in File.");
  end if;
- end;
 
- end;-- declare begin....
+ end; -- declare Read_Header()...
 
  SIO.Close(File);
 
@@ -160,8 +152,10 @@ begin
  for I in 1 .. (1 + Last(1) - First(1))
  loop
 
-   OffInVol := SIO.Positive_Count(To_Offset((I,J),(Nx,Ny))); --FIXME FInteger
- -- Put(item => Integer(OffInVol), width => 6);
+   OffInVol := To_Offset((I,J),(Nx,Ny));
+  --Put(item => Integer(I), width => 4);
+  --Put(item => Integer(J), width => 4);
+  --Put(item => Integer(OffInVol), width => 6);
    F32Value := Vol(OffInVol);
 
     if(Undef_Val = F32Value) then Undef_Cnt := Undef_Cnt + 1; end if;

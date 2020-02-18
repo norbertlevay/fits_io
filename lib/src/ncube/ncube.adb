@@ -110,7 +110,7 @@ use SIO;
   Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,
         NAXISn, C, LineLength, Line);
 
-  Vf := Positive_Count(To_Offset(CV,VolNAXISn)); -- FIXME FInteger
+  Vf := To_Offset(CV,VolNAXISn);
   Vl := Vf + LineLength - 1;
   Volume(Vf .. Vl) := Line;
   -- store read line
@@ -141,7 +141,7 @@ use SIO;
     CV(I) := Unity(I) + C(I) - First(I);
    end loop;
 
-   Vf := Positive_Count(To_Offset(CV,VolNAXISn));-- FIXME FInteger
+   Vf := To_Offset(CV,VolNAXISn);
    Vl := Vf + LineLength - 1;
    Volume(Vf .. Vl) := Line;
   -- store read line
