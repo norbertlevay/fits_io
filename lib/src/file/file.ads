@@ -7,19 +7,11 @@ with Keyword_Record; use Keyword_Record; -- Card_Type needed
 with Mandatory; -- NAXIS_Arr needed
 with Optional; -- Bounded_String_8 Card_Arr needed 
 use Optional; -- Card_Arr used elsewhere then Optional
-with FITS; use FITS;
+--with FITS; use FITS;
 
 package File is
 
    package SIO renames Ada.Streams.Stream_IO;
-
-   CardsCntInBlock : constant Positive := 36;
-
-   type Card_Block is array (Positive range 1..CardsCntInBlock) of Card_Type;
-   pragma Pack (Card_Block);
-   -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed 
-   -- OR do we need to guarantee at all ?
-
 
    -----------------------
    -- FITS file content --
@@ -38,15 +30,6 @@ package File is
       return HDU_Info_Type;
 
 
-   -- read optional cards given by Keys
-
-   function  Read_Header (FitsFile : in  SIO.File_Type;
-            Keys : in Optional.Bounded_String_8_Arr)
-      return Card_Arr;
--- FIXME consider returning also position at which the card was in the Header
--- e.g. some array of records needed -> then consider returning also 
--- separately key and value/comment??
-
    -------------------------
    -- Positioning in file --
    -------------------------
@@ -55,17 +38,12 @@ package File is
                        HDUNum   : in Positive);
 
 
-
 private
 
-        function  Calc_HeaderUnit_Size_blocks
-                (CardsCount : in Positive) 
-                return Positive;
-    
+    function  Calc_HeaderUnit_Size_blocks
+                (CardsCount : in Positive) return Positive;
+
     function  Calc_DataUnit_Size_blocks  
                 (Res : in Mandatory.Result_Rec) return SIO.Count;
-
-    function  Read_Header (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec;
-
 
 end File;

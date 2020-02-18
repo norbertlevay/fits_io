@@ -15,6 +15,7 @@ with File;   use File;
 with File_Funcs;   use File_Funcs;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
+with Header; use Header;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 -- for data scaling

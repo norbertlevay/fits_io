@@ -5,6 +5,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Ada.Unchecked_Conversion;
 -- with Interfaces;
 
+with Header; use Header;
 with Data_Block;
 with Data_Funcs; use Data_Funcs;
 with V3_Types;

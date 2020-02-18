@@ -5,7 +5,7 @@ with V3_Types; -- Unsigned_8 needed for Padding value
 
 package File.Misc is
 
-    BlockSize_bits : constant Positive_Count := 2880 * Byte'Size; -- 23040 bits
+    BlockSize_bits : constant Positive_Count := 23040;--2880 * Byte'Size; -- 23040 bits
     -- [FITS 3.1 Overall file structure]
 
    -------------------------------

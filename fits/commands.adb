@@ -10,6 +10,8 @@ with File;   	use File;
 with File.Misc; use File.Misc;
 
 with Keyword_Record; use Keyword_Record; -- FIndex needed
+with Header; use Header; -- CardsCntInblk needed
+
 
 package body Commands is
 

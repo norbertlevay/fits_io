@@ -17,6 +17,7 @@ with Ada.Streams.Stream_IO;  --use Ada.Streams.Stream_IO;
 with File;   use File;
 with Ada.Strings.Unbounded;
 
+with Header; use Header;
 with Optional; --use Keyword_Record;
 with Optional.Reserved;   use Optional.Reserved;
 
