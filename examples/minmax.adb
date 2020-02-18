@@ -18,6 +18,7 @@ with Ada.Streams.Stream_IO;
 with Interfaces;
 
 with File;   use File;
+with File_Funcs;  use File_Funcs;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
@@ -317,17 +318,6 @@ is
  
  -- info from Header
 
- function DU_Count(NAXISn : NAXIS_Arr) return SIO.Count
- is
-	Cnt : SIO.Count := 1;
- begin
-	for I in NAXISn'Range
-        loop
-		Cnt := Cnt * NAXISn(I);
-	end loop;
-	return Cnt;
- end DU_Count;
-
  BITPIX  : Integer;
  DUSize  : SIO.Positive_Count;
  DUStart : SIO.Positive_Count;
@@ -352,7 +342,7 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
   DUStart := File_Block_Index(InFile);
-  DUSize  := SIO.Positive_Count(DU_Count (HDUInfo.NAXISn));--FIXME FInteger
+  DUSize  := SIO.Positive_Count(Data_Unit_Size_elems(HDUInfo.NAXISn));
   BITPIX := HDUInfo.BITPIX;
  end;
  

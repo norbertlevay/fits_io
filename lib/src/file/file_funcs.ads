@@ -3,14 +3,18 @@
 --
 -- FIXME error/exception handling missing
 
---with Keyword_Record; use  Keyword_Record;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- Positive_Count needed
 
 with Mandatory; -- NAXIS_Arr needed
 
 
 package File_Funcs is
-        
+
+
+    function Data_Unit_Size_elems(NAXISn : Mandatory.NAXIS_Arr)
+        return Positive_Count;
+
+
     --
     -- Data array size calculations for all HDU types
     --

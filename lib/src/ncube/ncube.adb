@@ -66,19 +66,6 @@ use SIO;
 
 
 
- function DU_Length_elems(NAXISn : NAXIS_Arr) return Natural
- is
-  Len : Positive := 1;
- begin
-
-  for I in NAXISn'Range
-  loop
-    Len := Len * Positive(NAXISn(I));
-  end loop;
-  return Len;
- end DU_Length_elems;
- -- DU length in count of elements
-
 
 
  procedure Read_Valid_Scaled_Volume

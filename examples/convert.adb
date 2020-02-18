@@ -17,6 +17,7 @@ with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;
 
 with File;   use File;
+with File_Funcs;   use File_Funcs;--Data_Unit_Size_elems() needed
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
@@ -31,17 +32,6 @@ is
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
-
- function DU_Count(NAXISn : NAXIS_Arr) return SIO.Count
- is
-    Cnt : SIO.Count := 1;
- begin
-    for I in NAXISn'Range
-        loop
-        Cnt := Cnt * NAXISn(I);
-    end loop;
-    return Cnt;
- end DU_Count;
 
 
  OutFileName : constant String := Command_Name & ".fits";
@@ -111,7 +101,7 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(InFile);
  begin
   BITPIX := HDUInfo.BITPIX;
-  DUSize := DU_Count (HDUInfo.NAXISn);
+  DUSize := Data_Unit_Size_elems (HDUInfo.NAXISn);
  end;
 
  -- read write sequentially by Blocks

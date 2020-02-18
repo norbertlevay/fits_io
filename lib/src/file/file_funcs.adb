@@ -2,10 +2,25 @@
 
 
 with Mandatory; -- NAXIS_Arr needed
-with Keyword_Record;
-use Keyword_Record;
 
 package body File_Funcs is
+
+
+    function Data_Unit_Size_elems(NAXISn : Mandatory.NAXIS_Arr) return Positive_Count
+    is
+        Elem_Count : Positive_Count := 1;
+    begin
+
+        for I in NAXISn'Range
+        loop
+            Elem_Count := Elem_Count * NAXISn(I);
+        end loop;
+
+        return Elem_Count;
+    end Data_Unit_Size_elems;
+
+
+
 
     -- implements [FITS] Eq(1)
 
@@ -16,7 +31,7 @@ package body File_Funcs is
         Nbits : Positive_Count := 1;
     begin
 
-        for I in NAXIS'Range
+       for I in NAXIS'Range
         loop
             Nbits := Nbits * NAXIS(I);
         end loop;

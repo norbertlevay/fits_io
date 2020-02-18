@@ -28,6 +28,7 @@ with NCube_Funcs; use NCube_Funcs;
 --with Keyword_Record; use Keyword_Record;-- FPositive needed
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
+with File_Funcs; use File_Funcs;
 with Data_Funcs; use Data_Funcs;
 
 with Optional;
@@ -55,16 +56,6 @@ use Value_Functions;
     new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
 
 
- function DU_Count(NAXISn : NAXIS_Arr) return SIO.Positive_Count
- is
-        Cnt : SIO.Positive_Count := 1;
- begin
-        for I in NAXISn'Range
-        loop
-                Cnt := Cnt * NAXISn(I);
-        end loop;
-        return Cnt;
- end DU_Count;
 
  -- vars
  
@@ -132,7 +123,7 @@ begin
   HDUInfo : HDU_Info_Type := Read_Header(File);
  begin
   DUStart := File_Block_Index(File);
-  DUSize  := SIO.Positive_Count(DU_Count (HDUInfo.NAXISn));--FIXME FInteger 
+  DUSize  := SIO.Positive_Count(Data_Unit_Size_elems(HDUInfo.NAXISn));
   BITPIX := HDUInfo.BITPIX;
  
  TIO.Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
