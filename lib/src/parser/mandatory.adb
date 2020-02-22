@@ -61,9 +61,9 @@ type State_Type is
 
         Name            : State_Name;
         XTENSION_Val    : XT_Type;
-        NAXIS_Val       : KW.FIndex;
+        NAXIS_Val       : Natural;--KW.FIndex; FIXME 
         NAXIS1_Val  : SIO.Count;
-        TFIELDS_Val     : KW.FIndex;
+        TFIELDS_Val     : Natural;--KW.FIndex; FIXME
 
     -- Mandatory
         SIMPLE   : CardValue(20);
