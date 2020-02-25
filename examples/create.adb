@@ -59,6 +59,27 @@ end To_Value_String;
 
 
 
+function To_Value_String( V : in SIO.Count) return String
+is
+    Vstr: String(1 .. 20);
+begin
+    Move(SIO.Count'Image(V), Vstr, Error, Right);
+    return Vstr;
+end To_Value_String;
+
+
+
+function To_Value_String( V : in Float_32) return String
+is
+    Vstr: String(1 .. 20);
+begin
+    Move(Float_32'Image(V), Vstr, Error, Right);
+    return Vstr;
+end To_Value_String;
+
+
+
+
 function To_Value_String( V : in Boolean) return String
 is
     Vstr : String(1 .. 20);
@@ -77,17 +98,18 @@ type Image_Rec(NAXIS : Natural) is
         NAXISn : NAXIS_Arr(1 .. NAXIS);
     end record;
 
+-- FIXME later consider make this Write-attrib : Image_Rec'Write
 function To_Cards( Im : in Image_Rec ) return Card_Arr
 is
 Cards : Card_Arr
     := (
     Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
     Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
-    Create_Mandatory_Card("NAXIS",   To_Value_String(Natural(Im.NAXIS))),-- FIXME
-    Create_Mandatory_Card("NAXIS1",  To_Value_String(Positive(Im.NAXISn(1)))),-- FIXME
-    Create_Mandatory_Card("NAXIS2",  To_Value_String(Positive(Im.NAXISn(2)))),-- FIXME convs
-    Create_Mandatory_Card("DATAMIN", To_Value_String(0)),
-    Create_Mandatory_Card("DATAMAX", To_Value_String(255)),
+    Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
+    Create_Mandatory_Card("NAXIS1",  To_Value_String(Im.NAXISn(1))),
+    Create_Mandatory_Card("NAXIS2",  To_Value_String(Im.NAXISn(2))),
+    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
+    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
     ENDCard
     );
 begin
@@ -98,14 +120,13 @@ end To_Cards;
 ------------------------------------------------------------------------------------------
 
 
-
  -- describe data format
 
  RowsCnt : constant SIO.Positive_Count := 500;
  ColsCnt : constant SIO.Positive_Count := 500;
 
 Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
-Cards : Card_Arr := To_Cards(Im);
+Cards : Card_Arr  := To_Cards(Im);
 
  -- create the data values
 
@@ -122,15 +143,6 @@ Cards : Card_Arr := To_Cards(Im);
  NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
 begin
-
--- NEW BEGIN
-for I in Cards'Range
-loop
-    Put_Line("DBG NEW >"& Cards(I) & "<");
-end loop;
-
-
--- NEW END
 
  Put_Line("Usage  " & Command_Name );
  Put("Writing " & FileName & " ... ");
