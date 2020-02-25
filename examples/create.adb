@@ -79,7 +79,6 @@ end To_Value_String;
 
 
 
-
 function To_Value_String( V : in Boolean) return String
 is
     Vstr : String(1 .. 20);
@@ -98,12 +97,27 @@ type Image_Rec(NAXIS : Natural) is
         NAXISn : NAXIS_Arr(1 .. NAXIS);
     end record;
 
+type HDU_Type is (Primary, Extension);
+
+function Create_First_Card(HDU : in HDU_Type) return String_80
+is
+begin
+    case(HDU) is
+    when Primary   => return Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
+    when Extension => return Create_Mandatory_Card("XTENSION",  "'IMAGE   '");
+    end case;
+end Create_First_Card;
+
+-- FIXME consider: Create_First_Card be in separate array and written separately,
+-- similar to writing END-card at 'closing' _independently_ of what (IMAGE TABLE etc)
+-- is being written into it: Primary is tied 
+-- to File_Block_Index=1 and Extension File_Block_Index/=1
 -- FIXME later consider make this Write-attrib : Image_Rec'Write
-function To_Cards( Im : in Image_Rec ) return Card_Arr
+function To_Cards( Im : in Image_Rec; HDU : in HDU_Type ) return Card_Arr
 is
 Cards : Card_Arr
     := (
-    Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
+    Create_First_Card(HDU),
     Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
     Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
     Create_Mandatory_Card("NAXIS1",  To_Value_String(Im.NAXISn(1))),
@@ -126,7 +140,7 @@ end To_Cards;
  ColsCnt : constant SIO.Positive_Count := 500;
 
 Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
-Cards : Card_Arr  := To_Cards(Im);
+Cards : Card_Arr  := To_Cards(Im, Primary);
 
  -- create the data values
 
