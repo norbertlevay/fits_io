@@ -71,39 +71,43 @@ begin
     return Vstr;
 end To_Value_String;
 
+type Image_Rec(NAXIS : Natural) is
+    record
+        BITPIX : Integer;
+        NAXISn : NAXIS_Arr(1 .. NAXIS);
+    end record;
+
+function To_Cards( Im : in Image_Rec ) return Card_Arr
+is
+Cards : Card_Arr
+    := (
+    Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
+    Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
+    Create_Mandatory_Card("NAXIS",   To_Value_String(Natural(Im.NAXIS))),-- FIXME
+    Create_Mandatory_Card("NAXIS1",  To_Value_String(Positive(Im.NAXISn(1)))),-- FIXME
+    Create_Mandatory_Card("NAXIS2",  To_Value_String(Positive(Im.NAXISn(2)))),-- FIXME convs
+    Create_Mandatory_Card("DATAMIN", To_Value_String(0)),
+    Create_Mandatory_Card("DATAMAX", To_Value_String(255)),
+    ENDCard
+    );
+begin
+    return Cards;
+end To_Cards;
 
 -- END this should go to lib
 ------------------------------------------------------------------------------------------
 
 
 
- -- Describe the Data
+ -- describe data format
 
- RowsCnt : constant SIO.Positive_Count := 500;-- = ColumnLength
- ColsCnt : constant SIO.Positive_Count := 500;-- = Row   Length
+ RowsCnt : constant SIO.Positive_Count := 500;
+ ColsCnt : constant SIO.Positive_Count := 500;
 
--- FIXME lessons learned: 
--- below: TFIELDS_Last and CardsCount should not be required to be given
-Mand : Mandatory.Result_Rec
-    := (HDU =>IMAGE, NAXIS_Last => 2, TFIELDS_Last => 0,
-        CardsCount => 8, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
+Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
+Cards : Card_Arr := To_Cards(Im);
 
--- FIXME there should be function to convert Result_Rec -> Card_Arr
-
-Cards : Card_Arr(1 .. Positive(Mand.CardsCount)) -- FIXME conversion
-    := (
-    Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
-    Create_Mandatory_Card("BITPIX",  To_Value_String(Mand.BITPIX)),
-    Create_Mandatory_Card("NAXIS",   To_Value_String(Natural(Mand.NAXIS_Last))),-- FIXME
-    Create_Mandatory_Card("NAXIS1",  To_Value_String(Positive(Mand.NAXISn(1)))),-- FIXME
-    Create_Mandatory_Card("NAXIS2",  To_Value_String(Positive(Mand.NAXISn(2)))),-- FIXME convs
-    Create_Mandatory_Card("DATAMIN", To_Value_String(0)),
-    Create_Mandatory_Card("DATAMAX", To_Value_String(255)),
-    ENDCard
-    );
-
-
-
+ -- create the data values
 
  function SomeData(OffInDU : SIO.Positive_Count) return Float_32
  is
