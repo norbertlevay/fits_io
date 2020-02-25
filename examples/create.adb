@@ -91,12 +91,6 @@ begin
     return Vstr;
 end To_Value_String;
 
-type Image_Rec(NAXIS : Natural) is
-    record
-        BITPIX : Integer;
-        NAXISn : NAXIS_Arr(1 .. NAXIS);
-    end record;
-
 type HDU_Type is (Primary, Extension);
 
 function Create_First_Card(HDU : in HDU_Type) return String_80
@@ -108,27 +102,70 @@ begin
     end case;
 end Create_First_Card;
 
+function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr
+is
+    Cards : Card_Arr(1 .. NAXISn'Last);
+begin
+    for I in NAXISn'Range
+    loop
+        Cards(I) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
+                                        To_Value_String(NAXISn(I)));
+    end loop;
+    return Cards;
+end Create_NAXIS_Card_Arr;
+
+
+type Image_Rec(NAXIS : Natural) is
+    record
+        BITPIX : Integer;
+        NAXISn : NAXIS_Arr(1 .. NAXIS);
+    end record;
+
 -- FIXME consider: Create_First_Card be in separate array and written separately,
 -- similar to writing END-card at 'closing' _independently_ of what (IMAGE TABLE etc)
 -- is being written into it: Primary is tied 
 -- to File_Block_Index=1 and Extension File_Block_Index/=1
 -- FIXME later consider make this Write-attrib : Image_Rec'Write
-function To_Cards( Im : in Image_Rec; HDU : in HDU_Type ) return Card_Arr
+function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr
 is
-Cards : Card_Arr
+Cards : Card_Arr(1 .. (3 + Im.NAXISn'Length + 1))
     := (
-    Create_First_Card(HDU),
-    Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
-    Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
-    Create_Mandatory_Card("NAXIS1",  To_Value_String(Im.NAXISn(1))),
-    Create_Mandatory_Card("NAXIS2",  To_Value_String(Im.NAXISn(2))),
-    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
-    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
-    ENDCard
+    1 => Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
+    2 => Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
+    3 => Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
+    others => ENDCard -- FIXME unnecessary writes
+   -- FIXME DATAnnn goes to Optional set for write
+--    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
+--    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
+--    ENDCard
     );
 begin
+    Cards(4 .. (4 + Im.NAXISn'Length) - 1) := Create_NAXIS_Card_Arr(Im.NAXISn);
     return Cards;
-end To_Cards;
+end To_Primary_Cards;
+
+
+
+function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr
+is
+Cards : Card_Arr(1 .. (3 + Im.NAXISn'Length + 2 + 1))
+    := (
+    1 => Create_Mandatory_Card("XTENSION",  "'IMAGE   '"),
+    2 => Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
+    3 => Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
+    others => ENDCard  -- FIXME writes unnecessary
+   -- FIXME DATAnnn goes to Optional set for write
+--    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
+--    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
+--    ENDCard
+    );
+begin
+    Cards(4 .. (4 + Im.NAXISn'Length) - 1) := Create_NAXIS_Card_Arr(Im.NAXISn);
+    Cards(4 + Im.NAXISn'Length) := Create_Mandatory_Card("PCOUNT", To_Value_String(SIO.Count(0)));
+    Cards(5 + Im.NAXISn'Length) := Create_Mandatory_Card("GCOUNT", To_Value_String(SIO.Count(1)));
+    return Cards;
+end To_Extension_Cards;
+
 
 -- END this should go to lib
 ------------------------------------------------------------------------------------------
@@ -140,7 +177,7 @@ end To_Cards;
  ColsCnt : constant SIO.Positive_Count := 500;
 
 Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
-Cards : Card_Arr  := To_Cards(Im, Primary);
+Cards : Card_Arr  := To_Primary_Cards(Im);
 
  -- create the data values
 
