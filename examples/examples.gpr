@@ -3,7 +3,7 @@ project examples is
    for Languages use ("Ada");
 -- FIXME dont build the library in lib/src   
    --for Source_Dirs use (".");
-   for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/data", "../lib/src/ncube", "../lib/src/file","../lib/src/header");
+   for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/data", "../lib/src/ncube", "../lib/src/file","../lib/src/header","../lib/src/image");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("create.adb","convert.adb","minmax.adb",

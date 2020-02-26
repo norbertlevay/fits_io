@@ -14,13 +14,9 @@ with Ada.Streams.Stream_IO;
 with V3_Types;   use V3_Types;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record; -- FPositive needed
-with Mandatory; use Mandatory; -- Positive_Arr needed
+with Mandatory; use Mandatory; -- NAXISn_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed 
-
--- NEW BEGIN
-with Ada.Strings; use Ada.Strings;
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
--- NEW END
+with Image; use Image;
 
 procedure create
 is
@@ -32,143 +28,6 @@ is
  FileName : constant String := Command_Name & ".fits";
  File     : SIO.File_Type;
 
-
-------------------------------------------------------------------------------------------
--- BEGIN this should go to lib
-
-function Create_Mandatory_Card(Key : in String; Value : in String) return String_80
-is
-    C : String(1 .. 80);
-begin
-    Move(Key,   C(1 .. 8));
-    Move("= ",  C(9 ..10));
-    Move(Value, C(11..30));
-    Move(" ",   C(31..80));
-    return C;
-end Create_Mandatory_Card;
-
-
-
-function To_Value_String( V : in Integer) return String
-is
-    Vstr: String(1 .. 20);
-begin
-    Move(Integer'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
-
-
-function To_Value_String( V : in SIO.Count) return String
-is
-    Vstr: String(1 .. 20);
-begin
-    Move(SIO.Count'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
-
-
-function To_Value_String( V : in Float_32) return String
-is
-    Vstr: String(1 .. 20);
-begin
-    Move(Float_32'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
-
-
-function To_Value_String( V : in Boolean) return String
-is
-    Vstr : String(1 .. 20);
-begin
-    if(V = True) then
-        Move("T", Vstr, Error, Right);
-    else
-        Move("F", Vstr, Error, Right);
-    end if;
-    return Vstr;
-end To_Value_String;
-
-type HDU_Type is (Primary, Extension);
-
-function Create_First_Card(HDU : in HDU_Type) return String_80
-is
-begin
-    case(HDU) is
-    when Primary   => return Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
-    when Extension => return Create_Mandatory_Card("XTENSION",  "'IMAGE   '");
-    end case;
-end Create_First_Card;
-
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr
-is
-    Cards : Card_Arr(1 .. NAXISn'Last);
-begin
-    for I in NAXISn'Range
-    loop
-        Cards(I) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
-                                        To_Value_String(NAXISn(I)));
-    end loop;
-    return Cards;
-end Create_NAXIS_Card_Arr;
-
-
-type Image_Rec(NAXIS : Natural) is
-    record
-        BITPIX : Integer;
-        NAXISn : NAXIS_Arr(1 .. NAXIS);
-    end record;
-
--- FIXME consider: Create_First_Card be in separate array and written separately,
--- similar to writing END-card at 'closing' _independently_ of what (IMAGE TABLE etc)
--- is being written into it: Primary is tied 
--- to File_Block_Index=1 and Extension File_Block_Index/=1
--- FIXME later consider make this Write-attrib : Image_Rec'Write
-function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr
-is
-Cards : Card_Arr(1 .. (3 + Im.NAXISn'Length + 1))
-    := (
-    1 => Create_Mandatory_Card("SIMPLE",  To_Value_String(True)),
-    2 => Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
-    3 => Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
-    others => ENDCard -- FIXME unnecessary writes
-   -- FIXME DATAnnn goes to Optional set for write
---    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
---    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
---    ENDCard
-    );
-begin
-    Cards(4 .. (4 + Im.NAXISn'Length) - 1) := Create_NAXIS_Card_Arr(Im.NAXISn);
-    return Cards;
-end To_Primary_Cards;
-
-
-
-function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr
-is
-Cards : Card_Arr(1 .. (3 + Im.NAXISn'Length + 2 + 1))
-    := (
-    1 => Create_Mandatory_Card("XTENSION",  "'IMAGE   '"),
-    2 => Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX)),
-    3 => Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS)),
-    others => ENDCard  -- FIXME writes unnecessary
-   -- FIXME DATAnnn goes to Optional set for write
---    Create_Mandatory_Card("DATAMIN", To_Value_String(0.0)),
---    Create_Mandatory_Card("DATAMAX", To_Value_String(255.0)),
---    ENDCard
-    );
-begin
-    Cards(4 .. (4 + Im.NAXISn'Length) - 1) := Create_NAXIS_Card_Arr(Im.NAXISn);
-    Cards(4 + Im.NAXISn'Length) := Create_Mandatory_Card("PCOUNT", To_Value_String(SIO.Count(0)));
-    Cards(5 + Im.NAXISn'Length) := Create_Mandatory_Card("GCOUNT", To_Value_String(SIO.Count(1)));
-    return Cards;
-end To_Extension_Cards;
-
-
--- END this should go to lib
-------------------------------------------------------------------------------------------
 
 
  -- describe data format
