@@ -36,7 +36,15 @@ is
  ColsCnt : constant SIO.Positive_Count := 500;
 
 Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
-Cards : Card_Arr  := To_Primary_Cards(Im);
+MandCards : Card_Arr  := To_Primary_Cards(Im);
+OptCards  : Card_Arr :=
+            (
+                Create_Card("DATAMIN",  "0"),
+                Create_Card("DATAMAX","255")
+            );
+-- NOTE free-format integer must be right justified ? Standard ambigous Sect 4.2.3
+Cards : Card_Arr := (MandCards & OptCards & ENDCard);
+
 
  -- create the data values
 

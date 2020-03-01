@@ -21,6 +21,7 @@
 
 with Mandatory; use Mandatory; -- NAXISn_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed
+ with Keyword_Record; use Keyword_Record; -- String_80 needed$
 
 package Image is
 
@@ -33,6 +34,9 @@ type Image_Rec(NAXIS : Natural) is
 function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr;
 
 function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr;
+
+
+function Create_Card(Key : in String; Value : in String) return String_80;
 
 
 end Image;

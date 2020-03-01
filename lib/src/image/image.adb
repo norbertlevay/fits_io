@@ -11,6 +11,20 @@ package body Image is
 
  package SIO renames Ada.Streams.Stream_IO;
 
+function Create_Card(Key : in String; Value : in String) return String_80
+is
+    C : String(1 .. 80);
+    Val_Len : Positive := Value'Length;
+begin
+    Move(Key,   C(1  .. 8));
+    Move("= ",  C(9  ..10));
+    Move(Value, C(11 ..(10 + Value'Length)));
+    Move(" ",   C((11 + Value'Length) .. 80));
+    return C;
+end Create_Card;
+
+
+
 function Create_Mandatory_Card(Key : in String; Value : in String) return String_80
 is
     C : String(1 .. 80);
@@ -99,11 +113,10 @@ end To_Cards;
 function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr
 is
     ImCardsCnt : Positive := 2 + Im.NAXISn'Length;
-    Cards : Card_Arr(1 .. (1 + ImCardsCnt + 1));
+    Cards : Card_Arr(1 .. (1 + ImCardsCnt));
 begin
     Cards(1) := Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
     Cards(2 .. (1 + ImCardsCnt)) := To_Cards(Im);
-    Cards(Cards'Last) := ENDCard;
     return Cards;
 end To_Primary_Cards;
 
@@ -112,13 +125,12 @@ function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr
 is
     ImCardsCnt : Positive := 2 + Im.NAXISn'Length;
     Cards  : Card_Arr(1 .. (1 + ImCardsCnt + 2 + 1));
-    ImLast : Positive := 1 + ImCardsCnt;
+    ImLast : Positive := ImCardsCnt;
 begin
     Cards(1) := Create_Mandatory_Card("XTENSION",  "'IMAGE   '");
     Cards(2 .. ImLast) := To_Cards(Im);
     Cards(ImLast+1) := Create_Mandatory_Card("PCOUNT", To_Value_String(SIO.Count(0)));
     Cards(ImLast+2) := Create_Mandatory_Card("GCOUNT", To_Value_String(SIO.Count(1)));
-    Cards(Cards'Last) := ENDCard;
     return Cards;
 end To_Extension_Cards;
 
