@@ -42,7 +42,8 @@ OptCards  : Card_Arr :=
                 Create_Card("DATAMIN",  "0"),
                 Create_Card("DATAMAX","255")
             );
--- NOTE free-format integer must be right justified ? Standard ambigous Sect 4.2.3
+-- NOTE free-format integer must be right justified ? 
+-- Standard ambigous Sect 4.2.3; fitsverify: no complain
 Cards : Card_Arr := (MandCards & OptCards & ENDCard);
 
 
