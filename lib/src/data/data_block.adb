@@ -20,6 +20,15 @@ package body Data_Block is
     end Get_Value;
     pragma Inline(Get_Value);
 
+
+    procedure Set_Value(Blk: in out Block; Index : in Positive; Value : in T)
+    is
+    begin
+        Blk(Index) := Value;
+    end Set_Value;
+    pragma Inline(Get_Value);
+
+
   -- Endianness
 
    procedure Revert_Bytes( Data : in out T )

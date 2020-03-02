@@ -11,7 +11,8 @@ with GNAT.Traceback.Symbolic;
 
 with Ada.Streams.Stream_IO;
 
-with V3_Types;   use V3_Types;
+with V3_Types;      use V3_Types;
+with V3_Data_Unit;  use V3_Data_Unit;
 with File.Misc;   use File.Misc;
 with Keyword_Record; use Keyword_Record; -- FPositive needed
 with Mandatory; use Mandatory; -- NAXISn_Arr needed
@@ -52,13 +53,19 @@ Cards : Card_Arr := (MandCards & OptCards & ENDCard);
  function SomeData(OffInDU : SIO.Positive_Count) return Float_32
  is
  begin
-   return Float_32(OffInDU mod 256);
+   return Float_32((OffInDU mod RowsCnt) mod 256);
  end SomeData;
 
- procedure F32_Write_Data_Unit is
-       new Write_Data_Unit(Float_32,0.0,SomeData);
+-- procedure F32_Write_Data_Unit is
+--       new Write_Data_Unit(Float_32,0.0,SomeData);
  -- NOTE IEEE float represents +0.0 as signbit=0 Exp=0 Fraction=0 e.g. fully zero bit array
  -- which is the same as defineition of Pad Value for Daua Unit in FITS standard
+
+ procedure F32_Write_Data_Unit is
+        new F32_DU.Write_Array_Values(0.0,SomeData);
+
+
+
  NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
 begin
@@ -78,6 +85,7 @@ begin
  -- write Data sequentially
 
  F32_Write_Data_Unit(File, NDataElems);
+-- Write_Padding(File,SIO.Index(File),DataPadValue);
 
  SIO.Close(File);
 

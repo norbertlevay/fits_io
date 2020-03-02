@@ -27,16 +27,18 @@ is
 
   gValue : T;
   Last_Block_Start : Positive;
+  LocFirst : Positive := First;
  begin
 
         for I in 1 .. (Length_blocks - 1)
         loop
                 gen.Block'Read(SIO.Stream(F),gBlock);
-                for K in First .. gen.N -- FIXME Block size
+                for K in LocFirst .. gen.N -- FIXME Block size
                 loop
                         gValue := gen.Get_Value(gBlock, K);
                         Element(gValue);
                 end loop;
+                LocFirst := 1;
         end loop;
 
         -- Last Block of InFile
@@ -54,6 +56,63 @@ is
         end loop;
 
 end Read_Array_Values;
+
+
+
+procedure Write_Array_Values
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    First  : in Positive := 1)
+is
+   gBlock : gen.Block;
+   gen_N  : Positive_Count := Positive_Count(gen.N);--FIXME Block size
+
+   -- calc data array limits
+   Length_blocks : constant Positive_Count
+            := DU_Block_Index(Positive_Count(First) + Length - 1, T'Size/8);--FIXME Block
+   Last_Data_Element_In_Block : constant Positive
+            := Offset_In_Block(Positive_Count(First) + Length - 1, gen_N);--FIXME Block
+
+  gValue : T;
+  Last_Block_Start : Positive;
+  Offset : SIO.Positive_Count := 1;
+  LocFirst : Positive := First;
+ begin
+
+        for I in 1 .. (Length_blocks - 1)
+        loop
+                for K in LocFirst .. gen.N -- FIXME Block size
+                loop
+                        gValue := Element(Offset);
+                        Offset := Offset + 1;
+                        gen.Set_Value(gBlock, K, gValue);
+                end loop;
+                gen.Block'Write(SIO.Stream(F),gBlock);
+                LocFirst := 1;
+        end loop;
+
+        -- Last Block of InFile
+
+    if(Length_blocks = 1)
+    then Last_Block_Start := First;--FIXME Block size
+    else Last_Block_Start := 1;
+    end if;
+ 
+    for K in Last_Block_Start .. (Last_Data_Element_In_Block)
+    loop
+        gValue := Element(Offset);
+        Offset := Offset + 1;
+        gen.Set_Value(gBlock, K, gValue);
+    end loop;
+    -- write padding
+    for K in (Last_Data_Element_In_Block + 1) .. gen.N
+    loop
+        gen.Set_Value(gBlock, K, PadValue);
+    end loop;
+    gen.Block'Write(SIO.Stream(F),gBlock);
+
+end Write_Array_Values;
+
 
 
 

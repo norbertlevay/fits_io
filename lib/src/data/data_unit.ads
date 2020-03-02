@@ -1,7 +1,4 @@
 
--- Data Unit resides in FITS File
--- File access needed
-
 
 with Ada.Streams.Stream_IO;
 
@@ -25,12 +22,18 @@ procedure Read_Array_Values
 -- First = 1 and Length = DUSize will read all Data Unit
 -- current Block is where SIO.File_Index points to
 
+generic
+    PadValue : T;
+    with function Element (Offset : in SIO.Positive_Count) return T;
+procedure Write_Array_Values
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    First  : in Positive := 1);
+
 
 
 -- Conversion to physical values
 -- Vphys = BZERO + BSCALE * Varr
- 
--- converted values have physical meaning as BUNIT
 
  generic
   type Tout is private;

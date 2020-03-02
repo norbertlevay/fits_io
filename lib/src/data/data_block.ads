@@ -15,7 +15,8 @@ package Data_Block is
     type Block is array (Positive range 1 .. N) of T;
     pragma Pack (Block);
 
-    function Get_Value(Blk : in Block; Index : in Positive) return T;
+    function  Get_Value(Blk : in Block; Index : in Positive) return T;
+    procedure Set_Value(Blk : in out Block; Index : in Positive; Value : in T);
 
 private
 
