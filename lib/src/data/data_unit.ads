@@ -100,6 +100,25 @@ generic
         First  : in Positive := 1);
 
 
+
+ -- new trial
+ generic
+    with procedure Element_Value(V : in Tout);
+    with procedure Invalid is <>;
+ procedure Read_Scaled_Values
+        (F : SIO.File_Type; 
+        Length : in Positive_Count;
+        BZERO  : in Tout;
+        BSCALE : in Tout;
+        Undef_Val : in Tout;
+        First  : in Positive := 1) is null;
+
+
+
+
+
+
+
 end Physical;
 
 
