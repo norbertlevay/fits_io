@@ -90,7 +90,8 @@ private
 
 -- new trial
 
--- without BLANK use:
+-- integers (BLANK gets also converted - higher level func should 
+-- convert and return converted BLANK-value
 
  generic
     type Tf is private;
@@ -98,26 +99,12 @@ private
     type Tc is digits <>;
     BZERO  : in Tc;
     BSCALE : in Tc;
-    with function "+"(R : in Tc) return Tm;
-    with function "+"(R : in Tf) return Tc;
+    with function "+"(R : in Tc) return Tm is <>;
+    with function "+"(R : in Tf) return Tc is <>;
  function Scale(Vf : Tf) return Tm;
 
--- with BLANK use
 
- generic
-    type Tf is private;
-    type Tm is private;
-    type Tc is digits <>;
-    BLANK : in Tf;
-    BZERO  : in Tc;
-    BSCALE : in Tc;
-    Undef  : in Tm;
-    with function "+"(R : in Tc) return Tm;
-    with function "+"(R : in Tf) return Tc;
- function Scale_BLANK(Vf : Tf) return Tm;
-
-
--- float (no BLANK but NaN)
+-- float, check with 'Valid
 
  generic
     type Tf is digits <>;
@@ -126,8 +113,8 @@ private
     BZERO  : in Tc;
     BSCALE : in Tc;
     Undef  : in Tm;
-    with function "+"(R : in Tc) return Tm;
-    with function "+"(R : in Tf) return Tc;
+    with function "+"(R : in Tc) return Tm is <>;
+    with function "+"(R : in Tf) return Tc is <>;
  function Scale_Float(Vf : Tf) return Tm;
 
 

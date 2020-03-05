@@ -86,9 +86,6 @@ package body Data_Value is
  is
  begin
 
- -- Vf may be invalid value (for floats) or (for integers) = BLANK
- -- e.g. we must not perform arithmetics
-
     return +( BZERO + BSCALE * (+Vf) );
 
  end Scale;
@@ -97,26 +94,9 @@ package body Data_Value is
 
 
 
- function Scale_BLANK(Vf : in Tf) return Tm
- is
- begin
-
- if(Vf = BLANK) 
- then
-    return Undef;
- else
-    return +( BZERO + BSCALE * (+Vf) );
- end if;
- end Scale_BLANK;
-
-
-
-
  function Scale_Float(Vf : in Tf) return Tm
  is
  begin
-
- --if(Tf'Valid(Vf))
  if(Vf'Valid)
  then
     return Undef;
