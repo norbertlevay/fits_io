@@ -72,7 +72,7 @@ package Data_Value is
 
 
 
-private
+--private
 
  -- implements Vout = BZERO + BSCALE * (+Vin)
  generic
@@ -112,7 +112,7 @@ private
     type Tc is digits <>;
     BZERO  : in Tc;
     BSCALE : in Tc;
-    Undef  : in Tm;
+    Undef  : in Tm; -- returns this when Vf invalid
     with function "+"(R : in Tc) return Tm is <>;
     with function "+"(R : in Tf) return Tc is <>;
  function Scale_Float(Vf : Tf) return Tm;
