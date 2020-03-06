@@ -16,6 +16,18 @@ procedure Read_Array_Values
     Length : in Positive_Count;
     First  : in Positive := 1);
 
+
+generic
+  type T is private;
+  PadValue : T;
+  with function Element (Offset : in SIO.Positive_Count) return T;
+procedure Write_Array_Values
+  (F : SIO.File_Type;
+   Length : in Positive_Count;
+   First  : in Positive := 1);
+
+
+
 -- int, no need for Validity check: all bit-patterns
 -- are valid nunmbers, ergo computation/scaling can be safely
 -- performed also for BLANK which yields new BLANK in Tm

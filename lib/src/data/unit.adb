@@ -13,6 +13,15 @@ begin
     null;
 end Read_Array_Values;
 
+procedure Write_Array_Values
+   (F : SIO.File_Type;
+    Length : in Positive_Count;
+    First  : in Positive := 1)
+is
+begin
+    null;
+end Write_Array_Values;
+
 
 
  function Scale(Vf : in Tf) return Tm
