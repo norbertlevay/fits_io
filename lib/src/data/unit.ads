@@ -7,7 +7,6 @@ package Unit is
 package SIO renames Ada.Streams.Stream_IO;
 
 
--- raw data
 
 generic
   type T is private;
@@ -17,41 +16,33 @@ procedure Read_Array_Values
     Length : in Positive_Count;
     First  : in Positive := 1);
 
+-- int, no need for Validity check: all bit-patterns
+-- are valid nunmbers, ergo computation/scaling can be safely
+-- performed also for BLANK which yields new BLANK in Tm
 
--- physical data
-
-generic
+ generic
     type Tf is private;
     type Tm is private;
     type Tc is digits <>;
-    with procedure Element_Value(V : in Tm);
+    BZERO  : in Tc;
+    BSCALE : in Tc;
     with function "+"(R : in Tc) return Tm is <>;
     with function "+"(R : in Tf) return Tc is <>;
- procedure Read_Values
-        (F : SIO.File_Type;
-        BZERO  : in Tc;
-        BSCALE : in Tc;
-        Length : in Positive_Count;
-        First  : in Positive := 1);
+ function Scale(Vf : Tf) return Tm;
 
 
+-- float, check with 'Valid
 
-
-generic
+ generic
     type Tf is digits <>;
     type Tm is private;
     type Tc is digits <>;
-    with procedure Element_Value(V : in Tm);
-    with procedure Invalid(Index : in Positive_Count) is <>;
+    BZERO  : in Tc;
+    BSCALE : in Tc;
+    Undef  : in Tm; -- returns this when Vf invalid
     with function "+"(R : in Tc) return Tm is <>;
     with function "+"(R : in Tf) return Tc is <>;
- procedure Read_Float_Values
-        (F : SIO.File_Type;
-        BZERO  : in Tc;
-        BSCALE : in Tc;
-        Undef  : in Tm;
-        Length : in Positive_Count;
-        First  : in Positive := 1);
+ function Scale_Float(Vf : Tf) return Tm;
 
 end Unit;
 
