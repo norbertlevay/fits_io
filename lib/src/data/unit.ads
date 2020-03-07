@@ -10,21 +10,24 @@ package SIO renames Ada.Streams.Stream_IO;
 
 generic
   type T is private;
-  with procedure Element (V : in T);
-procedure Read_Array_Values
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Read_Array
    (F : SIO.File_Type;
-    Length : in Positive_Count;
+    Values : out T_Arr;
     First  : in Positive := 1);
+
+
 
 
 generic
   type T is private;
-  PadValue : T;
-  with function Element (Offset : in SIO.Positive_Count) return T;
-procedure Write_Array_Values
-  (F : SIO.File_Type;
-   Length : in Positive_Count;
-   First  : in Positive := 1);
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Write_Array
+   (F : SIO.File_Type;
+    Values : in T_Arr;
+    First  : in Positive := 1);
+
+
 
 
 
