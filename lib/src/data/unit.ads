@@ -12,8 +12,8 @@ generic
   type T_Arr is array (Positive_Count range <>) of T;
 procedure Read_Array
   (F : SIO.File_Type;
-   DUStart : in Positive_Count;
-   First   : in Positive_Count := 1;
+   DUStart : in Positive_Count;      -- index in File of first Data-unit block
+   First   : in Positive_Count := 1; -- index in DU of first data element to be read
    Values  : out T_Arr);
 
 
@@ -24,8 +24,8 @@ generic
   type T_Arr is array (Positive_Count range <>) of T;
 procedure Write_Array
    (F : SIO.File_Type;
-   DUStart : in Positive_Count;
-   First   : in Positive_Count := 1;
+   DUStart : in Positive_Count;       -- index in File of first Data-unit block
+   First   : in Positive_Count := 1;  -- index in DU of first data element to be written
    Values  : in T_Arr);
 
 
