@@ -32,6 +32,95 @@ use SIO;
 
 
 
+ procedure Read_Raw_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    Volume  : out T_Arr) -- FIXME  later make T_Arr private$
+ is
+   procedure Read_One_Line
+    is new Read_Raw_Line(T,T_Arr);
+
+   LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
+   Line: T_Arr(1 .. LineLength);
+
+   -- generate coords vars
+   Winit : FIndex := 2;
+   W : FIndex;
+   C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
+   CV : NAXIS_Arr := First;  -- Current coords in target Volume
+   Vf, Vl : Positive_Count;
+   Unity : constant NAXIS_Arr(First'Range) := (others => 1);
+   VolNAXISn : NAXIS_Arr(First'Range);
+ begin
+
+ for I in First'Range loop
+   VolNAXISn(I) := Unity(I) + Last(I) - First(I);
+ end loop;
+
+  W := Winit;
+  C := First;
+  for I in First'Range loop
+   CV(I) := Unity(I) + C(I) - First(I);
+  end loop;
+
+
+  --print_coord(C)
+  Read_One_Line(File, DUStart, NAXISn, C, Line);
+
+  Vf := To_Offset(CV,VolNAXISn);
+  Vl := Vf + LineLength - 1;
+  Volume(Vf .. Vl) := Line;
+  -- store read line
+
+  Outer_Loop:
+  loop
+
+    loop
+
+        if( C(W) = Last(W) )
+        then
+         C(W) := First(W);
+         W := W + 1;
+         exit Outer_Loop when ( W > Last'Last );
+        else
+         C(W) := C(W) + 1;
+         W := Winit;
+         exit;
+        end if;
+
+    end loop;
+
+   -- print_coord(C);
+   Read_One_Line(File, DUStart, NAXISn, C, Line);
+
+   for I in First'Range loop
+    CV(I) := Unity(I) + C(I) - First(I);
+   end loop;
+
+   Vf := To_Offset(CV,VolNAXISn);
+   Vl := Vf + LineLength - 1;
+   Volume(Vf .. Vl) := Line;
+  -- store read line
+
+  end loop Outer_Loop;
+
+ end Read_Raw_Volume;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
  procedure Read_Valid_Scaled_Line

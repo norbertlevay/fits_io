@@ -18,6 +18,20 @@ package NCube is
     First   : in NAXIS_Arr;
     Values  : out T_Arr);
 
+ generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+ procedure Read_Raw_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    Volume  : out T_Arr); -- FIXME  later make T_Arr private
+
+
+
+
 
  generic
   type T is private;
