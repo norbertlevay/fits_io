@@ -89,14 +89,34 @@ procedure Read_Array
 
 
 
-procedure Write_Array
+procedure Write_Array_From_Current_Block
    (F : SIO.File_Type;
     Values : in T_Arr;
     First  : in Positive := 1)
 is
 begin
     null;
-end Write_Array;
+end Write_Array_From_Current_Block;
+
+procedure Write_Array
+  (F : SIO.File_Type;
+   DUStart : in Positive_Count;
+   First   : in Positive_Count := 1;
+   Values  : in T_Arr)
+ is
+  DUBlockIx : Positive_Count := DU_Block_Index(First, T'Size/8);
+  OffsetInBlock : Positive := Offset_In_Block(First, 2880/(T'Size/8));
+  procedure WriteArrFCurrBlk is new Write_Array_From_Current_Block(T, T_Arr);
+ begin
+  Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
+  WriteArrFCurrBlk(F, Values, OffsetInBlock);
+  -- FIXME Write_Array writes by blocks, but may read all in one:
+  -- T_Arr'Write(Stream(F), Values) <- must have endianness
+ end Write_Array;
+
+
+
+
 
 
 

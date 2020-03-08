@@ -31,10 +31,19 @@ procedure Read_Array
 generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
-procedure Write_Array
+procedure Write_Array_From_Current_Block
    (F : SIO.File_Type;
     Values : in T_Arr;
     First  : in Positive := 1);
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Write_Array
+   (F : SIO.File_Type;
+   DUStart : in Positive_Count;
+   First   : in Positive_Count := 1;
+   Values  : in T_Arr);
 
 
 
