@@ -9,7 +9,7 @@ package body Unit is
 
 
 
-procedure Read_Array
+procedure Read_Array_From_Current_Block
    (F : SIO.File_Type;
     Values : out T_Arr;
     First  : in Positive := 1)
@@ -63,7 +63,27 @@ begin
                 Values(DUIndex) := gValue;
         end loop;
 
-end Read_Array;
+end Read_Array_From_Current_Block;
+
+
+procedure Read_Array
+  (F : SIO.File_Type;
+   DUStart : in Positive_Count;
+   First   : in Positive_Count := 1;
+   Values  : out T_Arr)
+ is
+  DUBlockIx : Positive_Count := DU_Block_Index(First, T'Size/8);
+  OffsetInBlock : Positive := Offset_In_Block(First, 2880/(T'Size/8));
+  procedure ReadArrFCurrBlk is new Read_Array_From_Current_Block(T, T_Arr);
+ begin
+  Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
+  ReadArrFCurrBlk(F, Values, OffsetInBlock);
+  -- FIXME Read_Array reads by blocks, but may read all in one:
+  -- T_Arr'Read(Stream(F), Values) <- must have endianness
+ end Read_Array;
+
+
+
 
 
 
