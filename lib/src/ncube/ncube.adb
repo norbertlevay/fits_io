@@ -2,6 +2,7 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with Data_Unit;
+with Unit;
 with Data_Funcs;    use Data_Funcs;
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
@@ -11,6 +12,30 @@ with NCube_Funcs; use NCube_Funcs;
 package body NCube is
 
 use SIO;
+
+
+
+ procedure Read_Raw_Line
+   (F : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Values  : out T_Arr)
+ is
+  Offset    : Positive_Count := To_Offset(First, NAXISn);
+  DUBlockIx : Positive_Count := DU_Block_Index(Offset, T'Size/8);
+  OffsetInBlock : Positive := Offset_In_Block(Offset, 2880/(T'Size/8));
+  procedure ReadArr is new Unit.Read_Array(T, T_Arr);
+ begin
+  Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
+  ReadArr(F, Values, OffsetInBlock);
+  -- FIXME Read_Array reads by blocks, but may read all in one:
+  -- T_Arr'Read(Stream(F), Values) <- must have endianness
+ end Read_Raw_Line;
+
+
+
+
 
  procedure Read_Valid_Scaled_Line
    (F : SIO.File_Type;
