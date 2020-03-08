@@ -6,8 +6,13 @@ with Data_Block;
 
 package body Unit is
 
-
-
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Read_Array_From_Current_Block
+   (F : SIO.File_Type;
+    Values : out T_Arr;
+    First  : in Positive := 1);
 
 procedure Read_Array_From_Current_Block
    (F : SIO.File_Type;
@@ -17,8 +22,7 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
-
-  package gen is new Data_Block (T => T);
+ package gen is new Data_Block (T => T);
 
    gBlock : gen.Block;
    gen_N  : Positive_Count := Positive_Count(gen.N);--FIXME Block size
@@ -84,10 +88,13 @@ procedure Read_Array
 
 
 
-
-
-
-
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Write_Array_From_Current_Block
+   (F : SIO.File_Type;
+    Values : in T_Arr;
+    First  : in Positive := 1);
 
 procedure Write_Array_From_Current_Block
    (F : SIO.File_Type;

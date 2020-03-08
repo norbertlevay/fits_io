@@ -7,15 +7,6 @@ package Unit is
 package SIO renames Ada.Streams.Stream_IO;
 
 
-
-generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
-procedure Read_Array_From_Current_Block
-   (F : SIO.File_Type;
-    Values : out T_Arr;
-    First  : in Positive := 1);
-
 generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
@@ -27,14 +18,6 @@ procedure Read_Array
 
 
 
-
-generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
-procedure Write_Array_From_Current_Block
-   (F : SIO.File_Type;
-    Values : in T_Arr;
-    First  : in Positive := 1);
 
 generic
   type T is private;
