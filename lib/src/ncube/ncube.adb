@@ -13,7 +13,23 @@ package body NCube is
 
 use SIO;
 
+-- sequential access
 
+-- if T_Arr'Length = NAXISi*NAXISi-1*...*NAXIS1
+-- then repeating Read (NAXISn*NAXISn-1*...NAXISi+1)-times 
+-- reads all DU sequentially
+-- NOTE position to DUStart before 1st call
+ procedure Read_Raw_Plane
+   (F : SIO.File_Type;
+    Plane  : out T_Arr)
+ is
+  procedure ReadPlane is new Unit.Read_Array_From_Current_Block(T, T_Arr);
+ begin
+  ReadPlane(F, Plane, 1);-- First=1: always read from beginng of block
+ end Read_Raw_Plane;
+
+
+-- random access
 
  procedure Read_Raw_Line
    (F : SIO.File_Type;

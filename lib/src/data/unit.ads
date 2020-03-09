@@ -14,6 +14,24 @@ package Unit is
 package SIO renames Ada.Streams.Stream_IO;
 
 
+
+-- sequential access
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+procedure Read_Array_From_Current_Block
+   (F : SIO.File_Type;
+    Values : out T_Arr;
+    First  : in Positive := 1); -- index within current block
+-- reads i-dimensional sub-cube if:
+-- First=1 & T_Arr'Length=NAXISi*...*NAXIS1
+-- repeat call (NAXISn*...NAXISj)-times (j=i+1) to read all DU sequentially
+
+
+
+-- random access
+
 generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;

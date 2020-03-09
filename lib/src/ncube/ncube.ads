@@ -8,6 +8,18 @@ package NCube is
 
  package SIO renames Ada.Streams.Stream_IO;
 
+
+-- sequential access 
+
+ generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+ procedure Read_Raw_Plane
+   (F : SIO.File_Type;
+    Plane  : out T_Arr);
+
+-- random access
+
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
