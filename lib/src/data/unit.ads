@@ -3,8 +3,8 @@
 
 
 -- NOTE data presents 3 orthogonal problems:
--- positioning by linear-index (data/unit)  vs coordintes (NCube)
--- sequential access by ICube's (I<N), random access of sub-Cube (maxi-coord < NAXISi)
+-- Positioning by linear-index (data/unit)  vs coordintes (NCube)
+-- Access: sequential access by ICube's (I<N), random access of sub-Cube (maxi-coord < NAXISi)
 -- data types (template programming, deferred to user inerface)
 
 
