@@ -9,7 +9,7 @@ package NCube is
  package SIO renames Ada.Streams.Stream_IO;
 
 
--- Raw Values
+-- Raw Values NOTE uses data/Unit
 
 -- sequential access 
 
@@ -36,7 +36,7 @@ package NCube is
 
 
 
--- Physical Values
+-- Physical Values NOTE uses data/Data_Unit
 
 -- sequentil access 
 -- TBD
