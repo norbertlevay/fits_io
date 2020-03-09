@@ -23,9 +23,10 @@ use SIO;
    (F : SIO.File_Type;
     Plane  : out T_Arr)
  is
-  procedure ReadPlane is new Unit.Read_Array_From_Current_Block(T, T_Arr);
+  --procedure ReadPlane is new Unit.Read_Array_From_Current_Block(T, T_Arr);
  begin
-  ReadPlane(F, Plane, 1);-- First=1: always read from beginng of block
+  --ReadPlane(F, Plane, 1);-- First=1: always read from beginng of block
+    T_Arr'Read(SIO.Stream(F),Plane);
  end Read_Raw_Plane;
 
 
