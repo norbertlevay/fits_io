@@ -9,6 +9,8 @@ package NCube is
  package SIO renames Ada.Streams.Stream_IO;
 
 
+-- Raw Values
+
 -- sequential access 
 
  generic
@@ -19,16 +21,6 @@ package NCube is
     Plane  : out T_Arr);
 
 -- random access
-
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Raw_Line
-   (F : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    Values  : out T_Arr);
 
  generic
   type T is private;
@@ -44,6 +36,13 @@ package NCube is
 
 
 
+-- Physical Values
+
+-- sequentil access 
+-- TBD
+
+
+-- random access
 
  generic
   type T is private;
@@ -63,7 +62,6 @@ package NCube is
     First  : in NAXIS_Arr;
     Length : in Positive_Count; --  at most NAXIS1
     Values : out Tout_Arr);
-
 
 
 

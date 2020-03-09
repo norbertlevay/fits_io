@@ -31,6 +31,18 @@ use SIO;
 
 -- random access
 
+
+
+ generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+ procedure Read_Raw_Line
+   (F : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Values  : out T_Arr);
+
  procedure Read_Raw_Line
    (F : SIO.File_Type;
     DUStart : in Positive_Count;
