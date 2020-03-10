@@ -17,6 +17,8 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
 with Interfaces;
 
+with Ada.Unchecked_Conversion;
+
 with File;   use File;
 with File_Funcs;  use File_Funcs;
 with File.Misc;   use File.Misc;
@@ -43,6 +45,36 @@ is
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
+
+
+    generic
+        type T is private;
+   procedure Revert_Bytes( Data : in out T );
+   procedure Revert_Bytes( Data : in out T )
+   is 
+     Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
+     type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
+
+     function Data_To_Arr is
+       new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
+     function Arr_To_Data is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
+
+     Arr  : Arr4xU8 := Data_To_Arr(Data);
+     ArrO : Arr4xU8;
+   begin
+
+     for I in Arr'Range
+     loop
+       ArrO(I) := Arr(1 + Size_Bytes - I); 
+     end loop;
+
+     Data := Arr_To_Data(ArrO);
+
+   end Revert_Bytes;
+
+
+
 
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
@@ -80,8 +112,10 @@ begin
    PlaneLength : constant SIO.Positive_Count := NAXISn(1)*NAXISn(2);
    type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
    procedure ReadRawPlane is new NCube.Read_Raw_Plane(Float_32, F32_Plane);
+   procedure RevBytes is new Revert_Bytes(Float_32);
     F32Plane : F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
+    Value : Float_32;
  begin
     for I in 1..NAXISn(3)
     loop
@@ -89,7 +123,11 @@ begin
         ReadRawPlane(InFile,F32Plane);
         for I in F32Plane'Range
         loop
-           if(F32Plane(I)>Max) then Max := F32Plane(I); end if; 
+            RevBytes(F32Plane(I));
+            if(F32Plane(I)'Valid)
+            then
+                if(F32Plane(I)>Max) then Max := F32Plane(I); end if; 
+            end if;
         end loop;
         TIO.Put(Float_32'Image(Max));
     end loop;
