@@ -115,7 +115,8 @@ begin
    procedure RevBytes is new Revert_Bytes(Float_32);
     F32Plane : F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
-    Value : Float_32;
+    --Value : Float_32;
+    Invalid_Count : Natural := 0;
  begin
     for I in 1..NAXISn(3)
     loop
@@ -126,11 +127,17 @@ begin
             RevBytes(F32Plane(I));
             if(F32Plane(I)'Valid)
             then
-                if(F32Plane(I)>Max) then Max := F32Plane(I); end if; 
+                if(F32Plane(I)>Max) then Max := F32Plane(I); end if;
+            else
+                Invalid_Count := Invalid_Count + 1;
             end if;
         end loop;
-        TIO.Put(Float_32'Image(Max));
+        --TIO.Put(Float_32'Image(Max));
     end loop;
+    TIO.New_Line;
+    TIO.Put_Line("Max Value :" & Float_32'Image(Max));
+    TIO.Put_Line("Invalid Count: " & Natural'Image(Invalid_Count));
+    TIO.Put_Line("Invalid Count [%]: " & Float_32'Image(100.0*Float_32(Invalid_Count)/Float_32(DUSize)));
 end;
 
  SIO.Close(InFile);
