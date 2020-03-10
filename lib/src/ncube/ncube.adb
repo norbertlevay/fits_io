@@ -1,5 +1,9 @@
 
+with Ada.Text_IO;
+
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with Ada.Unchecked_Conversion;
+with Interfaces;
 
 with Data_Unit;
 with Unit;
@@ -12,6 +16,8 @@ with NCube_Funcs; use NCube_Funcs;
 package body NCube is
 
 use SIO;
+
+ package TIO renames Ada.Text_IO;
 
 -- sequential access
 
@@ -28,6 +34,93 @@ use SIO;
   --ReadPlane(F, Plane, 1);-- First=1: always read from beginng of block
     T_Arr'Read(SIO.Stream(F),Plane);
  end Read_Raw_Plane;
+
+
+ -- endianness
+
+   generic
+        type T is private;
+   procedure Revert_Bytes( Data : in out T );
+   procedure Revert_Bytes( Data : in out T )
+   is
+     Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
+     type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
+
+     function Data_To_Arr is
+       new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
+     function Arr_To_Data is
+       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
+
+     Arr  : Arr4xU8 := Data_To_Arr(Data);
+     ArrO : Arr4xU8;
+   begin
+
+     for I in Arr'Range
+     loop
+       ArrO(I) := Arr(1 + Size_Bytes - I); 
+     end loop;
+
+     Data := Arr_To_Data(ArrO);
+
+   end Revert_Bytes;
+
+
+
+
+procedure Read_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : out Tm_Arr)
+is
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
+    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+    RawPlane : Tf_Arr(1..Length);
+    procedure RevertBytes is new Revert_Bytes(Tf);
+begin
+
+    ReadRawPlane(F, RawPlane);
+
+    for I in RawPlane'Range
+    loop
+        RevertBytes(RawPlane(I));
+        Plane(I) := LinScale(RawPlane(I));
+    end loop;
+
+
+end Read_Plane;
+
+
+
+
+
+ procedure Read_Float_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : out Tm_Arr)
+is
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
+    function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    RawPlane : Tf_Arr(1..Length);
+    procedure RevertBytes is new Revert_Bytes(Tf);
+begin
+
+    ReadRawPlane(F, RawPlane);
+
+    for I in RawPlane'Range
+    loop
+        RevertBytes(RawPlane(I));
+        Plane(I) := LinFloatScale(RawPlane(I));
+    end loop;
+
+    --TIO.New_Line;
+
+end Read_Float_Plane;
+
+
 
 
 -- random access
@@ -67,7 +160,7 @@ use SIO;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
-    Volume  : out T_Arr) -- FIXME  later make T_Arr private$
+    Volume  : out T_Arr) -- FIXME  later make T_Arr private
  is
    procedure Read_One_Line
     is new Read_Raw_Line(T,T_Arr);

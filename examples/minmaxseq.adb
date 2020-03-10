@@ -46,35 +46,37 @@ is
  package SIO renames Ada.Streams.Stream_IO;
  use SIO;
 
-
-    generic
-        type T is private;
-   procedure Revert_Bytes( Data : in out T );
-   procedure Revert_Bytes( Data : in out T )
-   is 
-     Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
-     type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
-
-     function Data_To_Arr is
-       new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
-     function Arr_To_Data is
-       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
-
-     Arr  : Arr4xU8 := Data_To_Arr(Data);
-     ArrO : Arr4xU8;
-   begin
-
-     for I in Arr'Range
-     loop
-       ArrO(I) := Arr(1 + Size_Bytes - I); 
-     end loop;
-
-     Data := Arr_To_Data(ArrO);
-
-   end Revert_Bytes;
+ function Get_Int_16
+                (Key : in String; 
+                Cards : in Optional.Card_Arr) return Integer_16
+ is
+ begin
+    for I in Cards'Range
+    loop
+        if(Cards(I)(1..Key'Length) = Key)
+        then
+            return Integer_16'Value(Cards(I)(11..30));
+        end if;
+    end loop;
+    return 0;-- FIXME raise exception "Not_Found"
+ end Get_Int_16;
 
 
-
+ function Get_Float_32
+                (Key : in String; 
+                Cards : in Optional.Card_Arr; 
+                Default_Value : in Float_32) return Float_32
+ is
+ begin
+    for I in Cards'Range
+    loop
+        if(Cards(I)(1..Key'Length) = Key)
+        then
+            return Float_32'Value(Cards(I)(11..30));
+        end if;
+    end loop;
+    return Default_Value;
+ end Get_Float_32;
 
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
@@ -108,31 +110,58 @@ begin
  Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
  Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
 
+ Set_File_Block_Index(InFile,HDUStart);
+
  declare
    PlaneLength : constant SIO.Positive_Count := NAXISn(1)*NAXISn(2);
    type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
-   procedure ReadRawPlane is new NCube.Read_Raw_Plane(Float_32, F32_Plane);
-   procedure RevBytes is new Revert_Bytes(Float_32);
+   type I16_Plane is array(SIO.Positive_Count range <>) of Integer_16;
+
+   F32Undef : Float_32 := Float_32(16#7F800001#);
+   procedure ReadFloatPlane is 
+            new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
+
+   procedure I16_ReadPlane is 
+            new NCube.Read_Plane(Integer_16, Float_32, F32_Plane, Float_32);
+
     F32Plane : F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
-    --Value : Float_32;
     Invalid_Count : Natural := 0;
+
+    Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Array_Keys);
+    BZERO  : Float_32 := Get_Float_32("BZERO",  Cards, 0.0);
+    BSCALE : Float_32 := Get_Float_32("BSCALE", Cards, 1.0);
+    BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
+    NewBLANK : Float_32 := BZERO + BSCALE * Float_32(BLANK);
+
+
  begin
+    TIO.Put_Line("BZERO  : " & Float_32'Image(BZERO));
+    TIO.Put_Line("BSCALE : " & Float_32'Image(BSCALE));
+    TIO.Put_Line("BLANK    : " & Integer_16'Image(BLANK));
+    TIO.Put_Line("NewBLANK : " & Float_32'Image(NewBLANK));
+
     for I in 1..NAXISn(3)
     loop
---        TIO.Put(SIO.Positive_Count'Image(I));
-        ReadRawPlane(InFile,F32Plane);
+
+        case(BITPIX) is
+        when -32 => ReadFloatPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane);
+        when  16 => 
+            I16_ReadPlane (InFile,BZERO,BSCALE,PlaneLength,F32Plane);
+            F32Undef := NewBLANK;
+        when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented yet.");
+        end case;
+
         for I in F32Plane'Range
         loop
-            RevBytes(F32Plane(I));
-            if(F32Plane(I)'Valid)
+            if(F32Plane(I) /= F32Undef)
             then
                 if(F32Plane(I)>Max) then Max := F32Plane(I); end if;
             else
                 Invalid_Count := Invalid_Count + 1;
             end if;
         end loop;
-        --TIO.Put(Float_32'Image(Max));
+
     end loop;
     TIO.New_Line;
     TIO.Put_Line("Max Value :" & Float_32'Image(Max));

@@ -136,9 +136,9 @@ procedure Write_Array
  begin
  if(Vf'Valid)
  then
-    return Undef;
- else
     return +( BZERO + BSCALE * (+Vf) );
+ else
+    return Undef;
  end if;
  end Scale_Float;
 

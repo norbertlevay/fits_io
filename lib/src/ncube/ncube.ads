@@ -34,6 +34,44 @@ package NCube is
     Volume  : out T_Arr); -- FIXME  later make T_Arr private
 
 
+-- Scaled variants - sequential
+
+ generic
+  type Tf is private;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  with function "+"(R : in Tf) return Tc is <>;
+  with function "+"(R : in Tc) return Tm is <>;
+ procedure Read_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : out Tm_Arr);
+
+
+ generic
+  type Tf is digits <>;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  Undef_Val : in Tm;
+  with function "+"(R : in Tf) return Tc is <>;
+  with function "+"(R : in Tc) return Tm is <>;
+ procedure Read_Float_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : out Tm_Arr);
+
+
+
+
+
+
+
+
+
 
 
 -- Physical Values NOTE uses data/Data_Unit
