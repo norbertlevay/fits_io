@@ -113,27 +113,22 @@ begin
  Set_File_Block_Index(InFile,HDUStart);
 
  declare
-   PlaneLength : constant SIO.Positive_Count := NAXISn(1)*NAXISn(2);
-   type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
-   type I16_Plane is array(SIO.Positive_Count range <>) of Integer_16;
-
-   F32Undef : Float_32 := Float_32(16#7F800001#);
-   procedure ReadFloatPlane is 
-            new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
-
-   procedure I16_ReadPlane is 
-            new NCube.Read_Plane(Integer_16, Float_32, F32_Plane, Float_32);
-
-    F32Plane : F32_Plane(1..PlaneLength);
-    Max : Float_32 := Float_32'First;
-    Invalid_Count : Natural := 0;
-
     Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Array_Keys);
     BZERO  : Float_32 := Get_Float_32("BZERO",  Cards, 0.0);
     BSCALE : Float_32 := Get_Float_32("BSCALE", Cards, 1.0);
     BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
     NewBLANK : Float_32 := BZERO + BSCALE * Float_32(BLANK);
 
+   PlaneLength : constant SIO.Positive_Count := NAXISn(1)*NAXISn(2);
+   type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
+
+   F32Undef : Float_32 := Float_32(16#7F800001#);
+   procedure F32_ReadPlane is new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
+   procedure I16_ReadPlane is new NCube.Read_Plane(Integer_16, Float_32, F32_Plane, Float_32);
+
+    F32Plane : F32_Plane(1..PlaneLength);
+    Max : Float_32 := Float_32'First;
+    Invalid_Count : Natural := 0;
 
  begin
     TIO.Put_Line("BZERO  : " & Float_32'Image(BZERO));
@@ -145,10 +140,8 @@ begin
     loop
 
         case(BITPIX) is
-        when -32 => ReadFloatPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane);
-        when  16 => 
-            I16_ReadPlane (InFile,BZERO,BSCALE,PlaneLength,F32Plane);
-            F32Undef := NewBLANK;
+        when -32 => F32_ReadPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane);
+        when  16 => I16_ReadPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane); F32Undef := NewBLANK;
         when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented yet.");
         end case;
 
