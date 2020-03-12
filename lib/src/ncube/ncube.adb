@@ -1,4 +1,10 @@
 
+-- Sequential Access:
+-- if T_Arr'Length = NAXISi*NAXISi-1*...*NAXIS1
+-- then repeating Read (NAXISn*NAXISn-1*...NAXISi+1)-times 
+-- reads all DU sequentially
+-- NOTE position to DUStart before 1st call in Read/Write_x_Plane
+
 with Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
@@ -18,23 +24,6 @@ package body NCube is
 use SIO;
 
  package TIO renames Ada.Text_IO;
-
--- sequential access
-
--- if T_Arr'Length = NAXISi*NAXISi-1*...*NAXIS1
--- then repeating Read (NAXISn*NAXISn-1*...NAXISi+1)-times 
--- reads all DU sequentially
--- NOTE position to DUStart before 1st call
- procedure Read_Raw_Plane
-   (F : SIO.File_Type;
-    Plane  : out T_Arr)
- is
-  --procedure ReadPlane is new Unit.Read_Array_From_Current_Block(T, T_Arr);
- begin
-  --ReadPlane(F, Plane, 1);-- First=1: always read from beginng of block
-    T_Arr'Read(SIO.Stream(F),Plane);
- end Read_Raw_Plane;
-
 
  -- endianness
 
@@ -66,6 +55,19 @@ use SIO;
 
 
 
+-- Sequential access
+
+
+ procedure Read_Raw_Plane
+   (F : SIO.File_Type;
+    Plane  : out T_Arr)
+ is
+ begin
+    T_Arr'Read(SIO.Stream(F),Plane);
+ end Read_Raw_Plane;
+
+
+
 procedure Read_Int_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
@@ -89,10 +91,7 @@ begin
         Plane(I) := LinScale(RawPlane(I));
     end loop;
 
-
 end Read_Int_Plane;
-
-
 
 
 
@@ -119,14 +118,12 @@ begin
         Plane(I) := LinFloatScale(RawPlane(I));
     end loop;
 
-    --TIO.New_Line;
-
 end Read_Float_Plane;
 
 
 
 
--- random access
+-- Random access
 
 
 
@@ -153,13 +150,17 @@ end Read_Float_Plane;
   procedure RevertBytes is new Revert_Bytes(T);
   Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
  begin
+
   Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+
   T_Arr'Read(SIO.Stream(F), Vals);
+
   for I in Vals'Range
   loop
     RevertBytes(Vals(I));
     Values(I) := Vals(I);
   end loop;
+
  end Read_Raw_Line;
 
 
@@ -283,11 +284,14 @@ end Read_Float_Plane;
     procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
  begin
+
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+
     for I in RawVol'Range
     loop
         Volume(I) := LinScale(RawVol(I));
     end loop;
+
  end Read_Int_Volume;
 
 
@@ -311,11 +315,14 @@ end Read_Float_Plane;
     procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
  begin
+
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+
     for I in RawVol'Range
     loop
         Volume(I) := LinScale(RawVol(I));
     end loop;
+
  end Read_Float_Volume;
 
 
