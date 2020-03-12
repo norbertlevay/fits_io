@@ -9,7 +9,6 @@ package NCube is
  package SIO renames Ada.Streams.Stream_IO;
 
 
--- Raw Values NOTE uses data/Unit
 
 -- sequential access 
 
@@ -20,30 +19,15 @@ package NCube is
    (F : SIO.File_Type;
     Plane  : out T_Arr);
 
--- random access
-
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Raw_Volume
-   (File : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
-    Volume  : out T_Arr); -- FIXME  later make T_Arr private
-
-
--- Scaled variants - sequential
 
  generic
   type Tf is private;
   type Tm is private;
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
-  with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
- procedure Read_Plane
+  with function "+"(R : in Tf) return Tc is <>;
+ procedure Read_Int_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
@@ -67,21 +51,66 @@ package NCube is
 
 
 
-
-
-
-
-
-
-
--- Physical Values NOTE uses data/Data_Unit
-
--- sequentil access 
--- TBD
-
-
 -- random access
 
+ generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+ procedure Read_Raw_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    Volume  : out T_Arr); -- FIXME  later make T_Arr private
+
+
+ generic
+  type Tf is private;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  with function "+"(R : in Tc) return Tm is <>;
+  with function "+"(R : in Tf) return Tc is <>;
+ procedure Read_Int_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    BZERO, BSCALE : in Tc;
+    Volume  : out Tm_Arr); -- FIXME  later make T_Arr private
+
+
+ generic
+  type Tf is digits <>;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  with function "+"(R : in Tc) return Tm is <>;
+  with function "+"(R : in Tf) return Tc is <>;
+ procedure Read_Float_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    BZERO, BSCALE : in Tc;
+    Undef   : in Tm;
+    Volume  : out Tm_Arr); -- FIXME  later make T_Arr private
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------
+-- Obsolete
  generic
   type T is private;
   type Tout is private;

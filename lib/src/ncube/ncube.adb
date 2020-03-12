@@ -66,19 +66,20 @@ use SIO;
 
 
 
-
-procedure Read_Plane
+procedure Read_Int_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
     Plane  : out Tm_Arr)
 is
+    procedure RevertBytes is new Revert_Bytes(Tf);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
+    RawPlane : Tf_Arr(1..Length);
     procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
-    RawPlane : Tf_Arr(1..Length);
-    procedure RevertBytes is new Revert_Bytes(Tf);
 begin
+
+    TIO.Put_Line("Read_Plane");
 
     ReadRawPlane(F, RawPlane);
 
@@ -89,7 +90,7 @@ begin
     end loop;
 
 
-end Read_Plane;
+end Read_Int_Plane;
 
 
 
@@ -107,6 +108,8 @@ is
     RawPlane : Tf_Arr(1..Length);
     procedure RevertBytes is new Revert_Bytes(Tf);
 begin
+
+    TIO.Put_Line("Read_Float_Plane");
 
     ReadRawPlane(F, RawPlane);
 
@@ -135,6 +138,7 @@ end Read_Float_Plane;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
+    Length  : in Positive_Count;
     Values  : out T_Arr);
 
  procedure Read_Raw_Line
@@ -142,15 +146,22 @@ end Read_Float_Plane;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
+    Length  : in Positive_Count;
     Values  : out T_Arr)
  is
-  Offset    : Positive_Count := To_Offset(First, NAXISn);
-  procedure ReadArr is new Unit.Read_Array(T, T_Arr);
+  DUIndex : Positive_Count := To_Offset(First, NAXISn);
+  procedure RevertBytes is new Revert_Bytes(T);
+  Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
  begin
-  ReadArr(F, DUStart, Offset, Values);
-  -- FIXME Read_Array reads by blocks, but may read all in one:
-  -- T_Arr'Read(Stream(F), Values) <- must have endianness
+  Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+  T_Arr'Read(SIO.Stream(F), Vals);
+  for I in Vals'Range
+  loop
+    RevertBytes(Vals(I));
+    Values(I) := Vals(I);
+  end loop;
  end Read_Raw_Line;
+
 
 
 
@@ -190,7 +201,7 @@ end Read_Float_Plane;
 
 
   --print_coord(C)
-  Read_One_Line(File, DUStart, NAXISn, C, Line);
+  Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
 
   Vf := To_Offset(CV,VolNAXISn);
   Vl := Vf + LineLength - 1;
@@ -216,7 +227,7 @@ end Read_Float_Plane;
     end loop;
 
    -- print_coord(C);
-   Read_One_Line(File, DUStart, NAXISn, C, Line);
+   Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
 
    for I in First'Range loop
     CV(I) := Unity(I) + C(I) - First(I);
@@ -237,6 +248,75 @@ end Read_Float_Plane;
 
 
 
+ function Volume_Length
+            (First : in NAXIS_Arr;
+            Last   : in NAXIS_Arr) return Positive_Count
+ is
+    L : Positive_Count := 1;
+ begin
+
+  -- FIXME sanity check that First & Last are equal length
+
+    for I in First'Range
+    loop
+        L := L * (1 + Positive_Count(Last(I) - First(I)));
+    end loop;
+    return L;
+ end Volume_Length;
+ 
+
+
+ procedure Read_Int_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    BZERO, BSCALE : in Tc;
+    Volume  : out Tm_Arr)
+ is
+    VolLength : Positive_Count := Volume_Length(First, Last);
+
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    RawVol: Tf_Arr(1 .. VolLength);
+
+    procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
+    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+ begin
+    ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+    for I in RawVol'Range
+    loop
+        Volume(I) := LinScale(RawVol(I));
+    end loop;
+ end Read_Int_Volume;
+
+
+
+
+
+ procedure Read_Float_Volume
+   (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    Last    : in NAXIS_Arr;
+    BZERO, BSCALE : in Tc;
+    Undef   : in Tm;
+    Volume  : out Tm_Arr)
+ is
+    VolLength : Positive_Count := Volume_Length(First, Last);
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    RawVol: Tf_Arr(1 .. VolLength);
+
+    procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
+    function LinScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
+ begin
+    ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+    for I in RawVol'Range
+    loop
+        Volume(I) := LinScale(RawVol(I));
+    end loop;
+ end Read_Float_Volume;
 
 
 
@@ -244,6 +324,12 @@ end Read_Float_Plane;
 
 
 
+
+
+
+
+--------------------------------------------------------------------------------
+-- obsolete
 
  procedure Read_Valid_Scaled_Line
    (F : SIO.File_Type;
