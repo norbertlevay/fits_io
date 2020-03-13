@@ -100,6 +100,9 @@ is
  DUSize  : SIO.Positive_Count;
  DUStart : SIO.Positive_Count;
 
+ PlaneLength :  SIO.Positive_Count;
+ NPlanes     :  SIO.Positive_Count;
+ 
 begin 
 
  if(Argument_Count /= 1 )
@@ -131,6 +134,12 @@ begin
     Put_Line(Integer'Image(I) & " : " & SIO.Positive_Count'Image(NAXISn(I)));
  end loop;
 
+ NPlanes     := NAXISn(3);
+ PlaneLength := NAXISn(1)*NAXISn(2);
+ -- Size of Plane must be reasonable
+ Put_Line("Plane Size [Bytes]:" & SIO.Positive_Count'Image(PlaneLength * SIO.Positive_Count( abs BITPIX/8 ))); 
+ Put_Line("NPlanes           :" & SIO.Positive_Count'Image(NPlanes)); 
+ 
  declare
     Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Array_Keys);
     F64_BZERO  : Float_64   := F64_Get_Float("BZERO",  Cards, 0.0);
@@ -139,26 +148,29 @@ begin
     F32_BSCALE : Float_32   := F32_Get_Float("BSCALE", Cards, 1.0);
     I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
-     function I16F32_Scale is
+    function I16F32_Scale is
             new Unit.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
-     NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
+    NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
 
-   PlaneLength :  SIO.Positive_Count := NAXISn(NAXISn'First);
-    -- Size of Plane must be reasonable
-   type F64_Plane is array(SIO.Positive_Count range <>) of Float_64;
-   type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
+    type F64_Plane is array(SIO.Positive_Count range <>) of Float_64;
+    type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
+    type F64_Plane_Acc is Access F64_Plane;
+    type F32_Plane_Acc is Access F32_Plane;
 
-   F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
-   F32Undef : Float_32 := Float_32(16#7F800001#);
-   procedure F64_ReadPlane is
+
+    F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
+    F32Undef : Float_32 := Float_32(16#7F800001#);
+    procedure F64_ReadPlane is
         new NCube.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64, F64Undef);
-   procedure F32_ReadPlane is
+    procedure F32_ReadPlane is
         new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
-   procedure I16_ReadPlane is
+    procedure I16_ReadPlane is
         new NCube.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
 
-    F64Plane : F64_Plane(1..PlaneLength);
-    F32Plane : F32_Plane(1..PlaneLength);
+--    F64Plane : F64_Plane(1..PlaneLength);
+--    F32Plane : F32_Plane(1..PlaneLength);
+    F64PlaneAcc : F64_Plane_Acc := new F64_Plane;
+    F32PlaneAcc : F32_Plane_Acc := new F32_Plane;
     Max : Float_32 := Float_32'First;
     Invalid_Count : Natural := 0;
 
@@ -168,12 +180,12 @@ begin
     TIO.Put_Line("   BLANK : " & Integer_16'Image(I16_BLANK));
     TIO.Put_Line("NewBLANK : " & Float_32'Image(NewBLANK));
 
-    for I in 1..NAXISn(2)*NAXISn(3)
+    for I in 1..NPlanes
     loop
 
         case(BITPIX) is
-        when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Plane);
-        when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane);
+        when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64PlaneAcc.All);
+        when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32PlaneAcc.All);
         when  64 => null;
         when  32 => null;
         when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane); F32Undef := NewBLANK;
