@@ -81,8 +81,6 @@ is
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
 begin
 
-    TIO.Put_Line("Read_Plane");
-
     ReadRawPlane(F, RawPlane);
 
     for I in RawPlane'Range
@@ -107,8 +105,6 @@ is
     RawPlane : Tf_Arr(1..Length);
     procedure RevertBytes is new Revert_Bytes(Tf);
 begin
-
-    TIO.Put_Line("Read_Float_Plane");
 
     ReadRawPlane(F, RawPlane);
 

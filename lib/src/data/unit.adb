@@ -1,10 +1,13 @@
-
+with Ada.Text_IO;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Data_Value; use Data_Value;
 with Data_Funcs; use Data_Funcs;
 with Data_Block;
 
 package body Unit is
+
+ package TIO renames Ada.Text_IO;
+
 
 procedure Read_Array_From_Current_Block
    (F : SIO.File_Type;

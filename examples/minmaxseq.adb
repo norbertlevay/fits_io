@@ -36,6 +36,7 @@ with Data_Funcs; use Data_Funcs;
 
 with Data_Block;
 with Data_Unit;
+with Unit;
 with NCube;
 with Data_Value; use Data_Value;
 
@@ -62,21 +63,34 @@ is
  end Get_Int_16;
 
 
- function Get_Float_32
+ generic
+    type T is digits <>;
+ function Get_Float
                 (Key : in String; 
-                Cards : in Optional.Card_Arr; 
-                Default_Value : in Float_32) return Float_32
+                Cards : in Optional.Card_Arr;
+                Default_Value : in T) return T;
+
+ function Get_Float
+                (Key : in String;
+                Cards : in Optional.Card_Arr;
+                Default_Value : in T) return T
  is
  begin
     for I in Cards'Range
     loop
         if(Cards(I)(1..Key'Length) = Key)
         then
-            return Float_32'Value(Cards(I)(11..30));
+            TIO.Put_Line(Cards(I)(11..30));
+            return T'Value(Cards(I)(11..30));
         end if;
     end loop;
     return Default_Value;
- end Get_Float_32;
+ end Get_Float;
+
+ function F64_Get_Float is new Get_Float(Float_64);
+ function F32_Get_Float is new Get_Float(Float_32);
+
+
 
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
@@ -112,38 +126,62 @@ begin
 
  Set_File_Block_Index(InFile,HDUStart);
 
+ for I in NAXISn'Range
+ loop
+    Put_Line(Integer'Image(I) & " : " & SIO.Positive_Count'Image(NAXISn(I)));
+ end loop;
+
  declare
     Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Array_Keys);
-    BZERO  : Float_32 := Get_Float_32("BZERO",  Cards, 0.0);
-    BSCALE : Float_32 := Get_Float_32("BSCALE", Cards, 1.0);
-    BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
-    NewBLANK : Float_32 := BZERO + BSCALE * Float_32(BLANK);
+    F64_BZERO  : Float_64   := F64_Get_Float("BZERO",  Cards, 0.0);
+    F64_BSCALE : Float_64   := F64_Get_Float("BSCALE", Cards, 1.0);
+    F32_BZERO  : Float_32   := F32_Get_Float("BZERO",  Cards, 0.0);
+    F32_BSCALE : Float_32   := F32_Get_Float("BSCALE", Cards, 1.0);
+    I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
-   PlaneLength : constant SIO.Positive_Count := NAXISn(1)*NAXISn(2);
+     function I16F32_Scale is
+            new Unit.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
+     NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
+
+   PlaneLength :  SIO.Positive_Count := NAXISn(NAXISn'First);
+    -- Size of Plane must be reasonable
+   type F64_Plane is array(SIO.Positive_Count range <>) of Float_64;
    type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
 
+   F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
    F32Undef : Float_32 := Float_32(16#7F800001#);
-   procedure F32_ReadPlane is new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
-   procedure I16_ReadPlane is new NCube.Read_Plane(Integer_16, Float_32, F32_Plane, Float_32);
+   procedure F64_ReadPlane is
+        new NCube.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64, F64Undef);
+   procedure F32_ReadPlane is
+        new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
+   procedure I16_ReadPlane is
+        new NCube.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
 
+    F64Plane : F64_Plane(1..PlaneLength);
     F32Plane : F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
     Invalid_Count : Natural := 0;
 
  begin
-    TIO.Put_Line("BZERO  : " & Float_32'Image(BZERO));
-    TIO.Put_Line("BSCALE : " & Float_32'Image(BSCALE));
-    TIO.Put_Line("BLANK    : " & Integer_16'Image(BLANK));
+    TIO.Put_Line("BZERO    : " & Float_32'Image(F32_BZERO));
+    TIO.Put_Line("BSCALE   : " & Float_32'Image(F32_BSCALE));
+    TIO.Put_Line("   BLANK : " & Integer_16'Image(I16_BLANK));
     TIO.Put_Line("NewBLANK : " & Float_32'Image(NewBLANK));
 
-    for I in 1..NAXISn(3)
+    for I in 1..NAXISn(2)*NAXISn(3)
     loop
 
         case(BITPIX) is
-        when -32 => F32_ReadPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane);
-        when  16 => I16_ReadPlane(InFile,BZERO,BSCALE,PlaneLength,F32Plane); F32Undef := NewBLANK;
-        when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented yet.");
+        when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Plane);
+        when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane);
+        when  64 => null;
+        when  32 => null;
+        when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane); F32Undef := NewBLANK;
+        when   8 => null;
+        when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;
+
+        -- FIXME implement generic (F64Plane ...)
 
         for I in F32Plane'Range
         loop
