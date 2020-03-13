@@ -134,8 +134,8 @@ begin
     Put_Line(Integer'Image(I) & " : " & SIO.Positive_Count'Image(NAXISn(I)));
  end loop;
 
- NPlanes     := NAXISn(3);
- PlaneLength := NAXISn(1)*NAXISn(2);
+ NPlanes     := NAXISn(3)*NAXISn(2);
+ PlaneLength := NAXISn(1);
  -- Size of Plane must be reasonable
  Put_Line("Plane Size [Bytes]:" & SIO.Positive_Count'Image(PlaneLength * SIO.Positive_Count( abs BITPIX/8 ))); 
  Put_Line("NPlanes           :" & SIO.Positive_Count'Image(NPlanes)); 
@@ -169,8 +169,8 @@ begin
 
 --    F64Plane : F64_Plane(1..PlaneLength);
 --    F32Plane : F32_Plane(1..PlaneLength);
-    F64PlaneAcc : F64_Plane_Acc := new F64_Plane;
-    F32PlaneAcc : F32_Plane_Acc := new F32_Plane;
+    F64Plane : F64_Plane_Acc := new F64_Plane(1..PlaneLength);
+    F32Plane : F32_Plane_Acc := new F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
     Invalid_Count : Natural := 0;
 
@@ -184,11 +184,11 @@ begin
     loop
 
         case(BITPIX) is
-        when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64PlaneAcc.All);
-        when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32PlaneAcc.All);
+        when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Plane.All);
+        when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane.All);
         when  64 => null;
         when  32 => null;
-        when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane); F32Undef := NewBLANK;
+        when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane.All); F32Undef := NewBLANK;
         when   8 => null;
         when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;
