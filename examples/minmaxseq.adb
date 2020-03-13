@@ -167,9 +167,9 @@ begin
     procedure I16_ReadPlane is
         new NCube.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
 
---    F64Plane : F64_Plane(1..PlaneLength);
+--    F64Plane : F64_Plane(1..PlaneLength); -- On Stack
 --    F32Plane : F32_Plane(1..PlaneLength);
-    F64Plane : F64_Plane_Acc := new F64_Plane(1..PlaneLength);
+    F64Plane : F64_Plane_Acc := new F64_Plane(1..PlaneLength); -- On Heap
     F32Plane : F32_Plane_Acc := new F32_Plane(1..PlaneLength);
     Max : Float_32 := Float_32'First;
     Invalid_Count : Natural := 0;
