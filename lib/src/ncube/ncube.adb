@@ -21,257 +21,256 @@ with NCube_Funcs; use NCube_Funcs;
 
 package body NCube is
 
-use SIO;
+  use SIO;
 
- package TIO renames Ada.Text_IO;
+  package TIO renames Ada.Text_IO;
 
- -- endianness
+  -- endianness
 
-   generic
-        type T is private;
-   procedure Revert_Bytes( Data : in out T );
-   procedure Revert_Bytes( Data : in out T )
-   is
-     Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
-     type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
+  generic
+  type T is private;
+  procedure Revert_Bytes( Data : in out T );
+  procedure Revert_Bytes( Data : in out T )
+  is
+    Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
+    type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
 
-     function Data_To_Arr is
-       new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
-     function Arr_To_Data is
-       new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
+    function Data_To_Arr is new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
+    function Arr_To_Data is
+      new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
 
-     Arr  : Arr4xU8 := Data_To_Arr(Data);
-     ArrO : Arr4xU8;
-   begin
+    Arr  : Arr4xU8 := Data_To_Arr(Data);
+    ArrO : Arr4xU8;
+  begin
 
-     for I in Arr'Range
-     loop
-       ArrO(I) := Arr(1 + Size_Bytes - I); 
-     end loop;
+    for I in Arr'Range
+    loop
+      ArrO(I) := Arr(1 + Size_Bytes - I); 
+    end loop;
 
-     Data := Arr_To_Data(ArrO);
+    Data := Arr_To_Data(ArrO);
 
-   end Revert_Bytes;
-
+  end Revert_Bytes;
 
 
--- Sequential access
+
+  -- Sequential access
 
 
- procedure Read_Raw_Plane
-   (F : SIO.File_Type;
+  procedure Read_Raw_Plane
+    (F : SIO.File_Type;
     Plane  : out T_Arr)
- is
- begin
+  is
+  begin
     T_Arr'Read(SIO.Stream(F),Plane);
- end Read_Raw_Plane;
+  end Read_Raw_Plane;
 
 
 
-procedure Read_Int_Plane
-   (F : SIO.File_Type;
+  procedure Read_Int_Plane
+    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
     Plane  : out Tm_Arr)
-is
+  is
     procedure RevertBytes is new Revert_Bytes(Tf);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawPlane : Tf_Arr(1..Length);
     procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
-begin
+  begin
 
     ReadRawPlane(F, RawPlane);
 
     for I in RawPlane'Range
     loop
-        RevertBytes(RawPlane(I));
-        Plane(I) := LinScale(RawPlane(I));
+      RevertBytes(RawPlane(I));
+      Plane(I) := LinScale(RawPlane(I));
     end loop;
 
-end Read_Int_Plane;
+  end Read_Int_Plane;
 
 
 
- procedure Read_Float_Plane
-   (F : SIO.File_Type;
+  procedure Read_Float_Plane
+    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
     Plane  : out Tm_Arr)
-is
+  is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawPlane : Tf_Arr(1..Length);
     procedure RevertBytes is new Revert_Bytes(Tf);
-begin
+  begin
 
     ReadRawPlane(F, RawPlane);
 
     for I in RawPlane'Range
     loop
-        RevertBytes(RawPlane(I));
-        Plane(I) := LinFloatScale(RawPlane(I));
+      RevertBytes(RawPlane(I));
+      Plane(I) := LinFloatScale(RawPlane(I));
     end loop;
 
-end Read_Float_Plane;
+  end Read_Float_Plane;
 
 
 
 
--- Random access
+  -- Random access
 
 
 
- generic
+  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Raw_Line
-   (F : SIO.File_Type;
+  procedure Read_Raw_Line
+    (F : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Length  : in Positive_Count;
     Values  : out T_Arr);
 
- procedure Read_Raw_Line
-   (F : SIO.File_Type;
+  procedure Read_Raw_Line
+    (F : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Length  : in Positive_Count;
     Values  : out T_Arr)
- is
-  DUIndex : Positive_Count := To_Offset(First, NAXISn);
-  procedure RevertBytes is new Revert_Bytes(T);
-  Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
- begin
+  is
+    DUIndex : Positive_Count := To_Offset(First, NAXISn);
+    procedure RevertBytes is new Revert_Bytes(T);
+    Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
+  begin
 
-  Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+    Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
 
-  T_Arr'Read(SIO.Stream(F), Vals);
+    T_Arr'Read(SIO.Stream(F), Vals);
 
-  for I in Vals'Range
-  loop
-    RevertBytes(Vals(I));
-    Values(I) := Vals(I);
-  end loop;
+    for I in Vals'Range
+    loop
+      RevertBytes(Vals(I));
+      Values(I) := Vals(I);
+    end loop;
 
- end Read_Raw_Line;
-
-
+  end Read_Raw_Line;
 
 
- procedure Read_Raw_Volume
-   (File : SIO.File_Type;
+
+
+  procedure Read_Raw_Volume
+    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
- is
-   procedure Read_One_Line
+  is
+    procedure Read_One_Line
     is new Read_Raw_Line(T,T_Arr);
 
-   LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
-   Line: T_Arr(1 .. LineLength);
+    LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
+    Line: T_Arr(1 .. LineLength);
 
-   -- generate coords vars
-   Winit : FIndex := 2;
-   W : FIndex;
-   C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
-   CV : NAXIS_Arr := First;  -- Current coords in target Volume
-   Vf, Vl : Positive_Count;
-   Unity : constant NAXIS_Arr(First'Range) := (others => 1);
-   VolNAXISn : NAXIS_Arr(First'Range);
- begin
+    -- generate coords vars
+    Winit : FIndex := 2;
+    W : FIndex;
+    C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
+    CV : NAXIS_Arr := First;  -- Current coords in target Volume
+    Vf, Vl : Positive_Count;
+    Unity : constant NAXIS_Arr(First'Range) := (others => 1);
+    VolNAXISn : NAXIS_Arr(First'Range);
+  begin
 
- for I in First'Range loop
-   VolNAXISn(I) := Unity(I) + Last(I) - First(I);
- end loop;
+    for I in First'Range loop
+      VolNAXISn(I) := Unity(I) + Last(I) - First(I);
+    end loop;
 
-  W := Winit;
-  C := First;
-  for I in First'Range loop
-   CV(I) := Unity(I) + C(I) - First(I);
-  end loop;
+    W := Winit;
+    C := First;
+    for I in First'Range loop
+      CV(I) := Unity(I) + C(I) - First(I);
+    end loop;
 
 
-  --print_coord(C)
-  Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
+    --print_coord(C)
+    Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
 
-  Vf := To_Offset(CV,VolNAXISn);
-  Vl := Vf + LineLength - 1;
-  Volume(Vf .. Vl) := Line;
-  -- store read line
+    Vf := To_Offset(CV,VolNAXISn);
+    Vl := Vf + LineLength - 1;
+    Volume(Vf .. Vl) := Line;
+    -- store read line
 
-  Outer_Loop:
-  loop
-
+    Outer_Loop:
     loop
+
+      loop
 
         if( C(W) = Last(W) )
         then
-         C(W) := First(W);
-         W := W + 1;
-         exit Outer_Loop when ( W > Last'Last );
+          C(W) := First(W);
+          W := W + 1;
+          exit Outer_Loop when ( W > Last'Last );
         else
-         C(W) := C(W) + 1;
-         W := Winit;
-         exit;
+          C(W) := C(W) + 1;
+          W := Winit;
+          exit;
         end if;
 
-    end loop;
+      end loop;
 
-   -- print_coord(C);
-   Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
+      -- print_coord(C);
+      Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
 
-   for I in First'Range loop
-    CV(I) := Unity(I) + C(I) - First(I);
-   end loop;
+      for I in First'Range loop
+        CV(I) := Unity(I) + C(I) - First(I);
+      end loop;
 
-   Vf := To_Offset(CV,VolNAXISn);
-   Vl := Vf + LineLength - 1;
-   Volume(Vf .. Vl) := Line;
-  -- store read line
+      Vf := To_Offset(CV,VolNAXISn);
+      Vl := Vf + LineLength - 1;
+      Volume(Vf .. Vl) := Line;
+      -- store read line
 
-  end loop Outer_Loop;
+    end loop Outer_Loop;
 
- end Read_Raw_Volume;
-
-
+  end Read_Raw_Volume;
 
 
 
 
 
- function Volume_Length
-            (First : in NAXIS_Arr;
-            Last   : in NAXIS_Arr) return Positive_Count
- is
+
+
+  function Volume_Length
+    (First : in NAXIS_Arr;
+    Last   : in NAXIS_Arr) return Positive_Count
+  is
     L : Positive_Count := 1;
- begin
+  begin
 
-  -- FIXME sanity check that First & Last are equal length
+    -- FIXME sanity check that First & Last are equal length
 
     for I in First'Range
     loop
-        L := L * (1 + Positive_Count(Last(I) - First(I)));
+      L := L * (1 + Positive_Count(Last(I) - First(I)));
     end loop;
     return L;
- end Volume_Length;
- 
+  end Volume_Length;
 
 
- procedure Read_Int_Volume
-   (File : SIO.File_Type;
+
+  procedure Read_Int_Volume
+    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr)
- is
+  is
     VolLength : Positive_Count := Volume_Length(First, Last);
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
@@ -279,23 +278,23 @@ end Read_Float_Plane;
 
     procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
- begin
+  begin
 
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop
-        Volume(I) := LinScale(RawVol(I));
+      Volume(I) := LinScale(RawVol(I));
     end loop;
 
- end Read_Int_Volume;
+  end Read_Int_Volume;
 
 
 
 
 
- procedure Read_Float_Volume
-   (File : SIO.File_Type;
+  procedure Read_Float_Volume
+    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
@@ -303,23 +302,23 @@ end Read_Float_Plane;
     BZERO, BSCALE : in Tc;
     Undef   : in Tm;
     Volume  : out Tm_Arr)
- is
+  is
     VolLength : Positive_Count := Volume_Length(First, Last);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
     procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
- begin
+  begin
 
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop
-        Volume(I) := LinScale(RawVol(I));
+      Volume(I) := LinScale(RawVol(I));
     end loop;
 
- end Read_Float_Volume;
+  end Read_Float_Volume;
 
 
 
@@ -331,11 +330,11 @@ end Read_Float_Plane;
 
 
 
---------------------------------------------------------------------------------
--- obsolete
+  --------------------------------------------------------------------------------
+  -- obsolete
 
- procedure Read_Valid_Scaled_Line
-   (F : SIO.File_Type;
+  procedure Read_Valid_Scaled_Line
+    (F : SIO.File_Type;
     BZERO  : in Tout;
     BSCALE : in Tout;
     Undef_Val : in Tout;
@@ -344,133 +343,133 @@ end Read_Float_Plane;
     First  : in NAXIS_Arr;
     Length : in Positive_Count; -- may be at most NAXIS1
     Values : out Tout_Arr)
- is
-  Offset    : Positive_Count := To_Offset(First, NAXISn);
-  DUBlockIx : Positive_Count := DU_Block_Index(Offset, Tout'Size/8);
-  OffsetInBlock : Positive := Offset_In_Block(Offset, 2880/(Tout'Size/8));
-
-  -- instantiate sequential reader
-  Ix : Positive_Count := 1;
-
-  procedure cbValue(V : in Tout) 
   is
-  begin
-   Values(Ix) := V;
-   Ix := Ix + 1;
-  end cbValue;
+    Offset    : Positive_Count := To_Offset(First, NAXISn);
+    DUBlockIx : Positive_Count := DU_Block_Index(Offset, Tout'Size/8);
+    OffsetInBlock : Positive := Offset_In_Block(Offset, 2880/(Tout'Size/8));
 
-  procedure cbInvalid
-  is
-  begin
-   Values(Ix) := Undef_Val;
-   Ix := Ix + 1;
-  end cbInvalid;
+    -- instantiate sequential reader
+    Ix : Positive_Count := 1;
 
-  package DU   is new Data_Unit(T);
-  package Phys is new DU.Physical(Tout);
-  use Phys;
-  procedure Read_Valid_Scaled_Vals
+    procedure cbValue(V : in Tout) 
+    is
+    begin
+      Values(Ix) := V;
+      Ix := Ix + 1;
+    end cbValue;
+
+    procedure cbInvalid
+    is
+    begin
+      Values(Ix) := Undef_Val;
+      Ix := Ix + 1;
+    end cbInvalid;
+
+    package DU   is new Data_Unit(T);
+    package Phys is new DU.Physical(Tout);
+    use Phys;
+    procedure Read_Valid_Scaled_Vals
     is new Phys.Read_Valid_Scaled_Values(cbValue, Is_Valid , cbInvalid);
 
- begin
+  begin
 
-  Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
+    Set_File_Block_Index(F, DUStart + DUBlockIx - 1);
 
-  Read_Valid_Scaled_Vals(F, Length, BZERO, BSCALE, Undef_Val, OffsetInBlock);  
+    Read_Valid_Scaled_Vals(F, Length, BZERO, BSCALE, Undef_Val, OffsetInBlock);  
 
- end Read_Valid_Scaled_Line;
-
-
-
-
-
- -- read Volume of N-dimensions
+  end Read_Valid_Scaled_Line;
 
 
 
 
 
- procedure Read_Valid_Scaled_Volume
-                (File : SIO.File_Type; 
-                BZERO  : in Tout;
-                BSCALE : in Tout;
-                Undef_Val : in Tout; 
-                DUStart   : in Positive_Count;
-                NAXISn : in NAXIS_Arr;-- NAXISn
-                First  : in NAXIS_Arr;
-                Last   : in NAXIS_Arr;
-                Volume : out Tout_Arr)
- is
-   procedure Read_One_Line
+  -- read Volume of N-dimensions
+
+
+
+
+
+  procedure Read_Valid_Scaled_Volume
+    (File : SIO.File_Type; 
+    BZERO  : in Tout;
+    BSCALE : in Tout;
+    Undef_Val : in Tout; 
+    DUStart   : in Positive_Count;
+    NAXISn : in NAXIS_Arr;-- NAXISn
+    First  : in NAXIS_Arr;
+    Last   : in NAXIS_Arr;
+    Volume : out Tout_Arr)
+  is
+    procedure Read_One_Line
     is new Read_Valid_Scaled_Line(T,Tout,Tout_Arr, Is_Valid, "+","*","+");
 
-   LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
-   Line: Tout_Arr(1 .. LineLength);
+    LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
+    Line: Tout_Arr(1 .. LineLength);
 
-   -- generate coords vars
-   Winit : FIndex := 2;
-   W : FIndex;
-   C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
-   CV : NAXIS_Arr := First;  -- Current coords in target Volume
-   Vf, Vl : Positive_Count;
-   Unity : constant NAXIS_Arr(First'Range) := (others => 1);
-   VolNAXISn : NAXIS_Arr(First'Range);
- begin
+    -- generate coords vars
+    Winit : FIndex := 2;
+    W : FIndex;
+    C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
+    CV : NAXIS_Arr := First;  -- Current coords in target Volume
+    Vf, Vl : Positive_Count;
+    Unity : constant NAXIS_Arr(First'Range) := (others => 1);
+    VolNAXISn : NAXIS_Arr(First'Range);
+  begin
 
- for I in First'Range loop
-   VolNAXISn(I) := Unity(I) + Last(I) - First(I);
- end loop;
+    for I in First'Range loop
+      VolNAXISn(I) := Unity(I) + Last(I) - First(I);
+    end loop;
 
-  W := Winit;
-  C := First;
-  for I in First'Range loop
-   CV(I) := Unity(I) + C(I) - First(I);
-  end loop;
+    W := Winit;
+    C := First;
+    for I in First'Range loop
+      CV(I) := Unity(I) + C(I) - First(I);
+    end loop;
 
 
-  --print_coord(C)  
-  Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,
-        NAXISn, C, LineLength, Line);
+    --print_coord(C)  
+    Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,
+    NAXISn, C, LineLength, Line);
 
-  Vf := To_Offset(CV,VolNAXISn);
-  Vl := Vf + LineLength - 1;
-  Volume(Vf .. Vl) := Line;
-  -- store read line
- 
-  Outer_Loop:
-  loop
+    Vf := To_Offset(CV,VolNAXISn);
+    Vl := Vf + LineLength - 1;
+    Volume(Vf .. Vl) := Line;
+    -- store read line
 
+    Outer_Loop:
     loop
+
+      loop
 
         if( C(W) = Last(W) )
         then
-         C(W) := First(W);
-         W := W + 1;
-         exit Outer_Loop when ( W > Last'Last );
+          C(W) := First(W);
+          W := W + 1;
+          exit Outer_Loop when ( W > Last'Last );
         else
-         C(W) := C(W) + 1;
-         W := Winit;
-         exit;
+          C(W) := C(W) + 1;
+          W := Winit;
+          exit;
         end if;
 
-    end loop;
+      end loop;
 
-   -- print_coord(C);
-   Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
-        NAXISn, C, LineLength, Line);
+      -- print_coord(C);
+      Read_One_Line(File,BZERO,BSCALE, Undef_Val,DUStart,   
+      NAXISn, C, LineLength, Line);
 
-   for I in First'Range loop
-    CV(I) := Unity(I) + C(I) - First(I);
-   end loop;
+      for I in First'Range loop
+        CV(I) := Unity(I) + C(I) - First(I);
+      end loop;
 
-   Vf := To_Offset(CV,VolNAXISn);
-   Vl := Vf + LineLength - 1;
-   Volume(Vf .. Vl) := Line;
-  -- store read line
+      Vf := To_Offset(CV,VolNAXISn);
+      Vl := Vf + LineLength - 1;
+      Volume(Vf .. Vl) := Line;
+      -- store read line
 
-  end loop Outer_Loop;
+    end loop Outer_Loop;
 
- end Read_Valid_Scaled_Volume;
+  end Read_Valid_Scaled_Volume;
 
 
 end NCube;
