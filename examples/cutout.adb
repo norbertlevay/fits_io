@@ -52,8 +52,13 @@ use Value_Functions;
  function F32_Is_Valid (V : in Float_32) return Boolean
     is begin return V'Valid; end F32_Is_Valid;
 
- procedure F32_Read_Volume is 
-    new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
+-- procedure F32_Read_Volume is 
+--    new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
+
+--    type F32_Arr is array (Positive_Count range <>) of Float_32;
+    procedure F32_Read_Volume is
+      new Read_Float_Volume(Float_32,Float_32,VolData,Float_32);
+
 
 
 
@@ -133,9 +138,10 @@ begin
  -- read data
  if(BITPIX = -32)
  then 
-    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, HDUInfo.NAXISn, 
-                    First, Last, Vol);
- else
+--    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, HDUInfo.NAXISn, 
+--                    First, Last, Vol);
+    F32_Read_Volume(File, DUStart, HDUInfo.NAXISn, First, Last, BZERO, BSCALE, Undef_Val, Vol);
+else
     TIO.Put_Line("Not FLoat_32 data in File.");
  end if;
 

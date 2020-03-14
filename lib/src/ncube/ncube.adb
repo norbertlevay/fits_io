@@ -144,6 +144,7 @@ package body NCube is
     DUIndex : Positive_Count := To_Offset(First, NAXISn);
     procedure RevertBytes is new Revert_Bytes(T);
     Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
+    -- FIXME Vals put to Heap, might be too big for Stack
   begin
 
     Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
