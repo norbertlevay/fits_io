@@ -19,6 +19,14 @@ package NCube is
    (F : SIO.File_Type;
     Plane  : out T_Arr);
 
+ generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+ procedure Write_Raw_Plane
+   (F : SIO.File_Type;
+    Plane  : in T_Arr);
+
+
 
  generic
   type Tf is private;
@@ -35,6 +43,20 @@ package NCube is
 
 
  generic
+  type Tf is private;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  with function "+"(R : in Tc) return Tm is <>;
+  with function "+"(R : in Tf) return Tc is <>;
+ procedure Write_Int_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+--    Length : in Positive_Count;
+    Plane  : in Tm_Arr);
+
+
+ generic
   type Tf is digits <>;
   type Tm is private;
   type Tm_Arr is array (Positive_Count range <>) of Tm;
@@ -47,6 +69,20 @@ package NCube is
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
     Plane  : out Tm_Arr);
+
+ generic
+  type Tf is digits <>;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  Undef_Val : in Tm;
+  with function "+"(R : in Tf) return Tc is <>;
+  with function "+"(R : in Tc) return Tm is <>;
+ procedure Write_Float_Plane
+   (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : in Tm_Arr);
 
 
 

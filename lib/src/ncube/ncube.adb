@@ -65,6 +65,14 @@ package body NCube is
     T_Arr'Read(SIO.Stream(F),Plane);
   end Read_Raw_Plane;
 
+  procedure Write_Raw_Plane
+    (F : SIO.File_Type;
+    Plane  : in T_Arr)
+  is
+  begin
+    T_Arr'Write(SIO.Stream(F),Plane);
+  end Write_Raw_Plane;
+
 
 
   procedure Read_Int_Plane
@@ -90,6 +98,30 @@ package body NCube is
 
   end Read_Int_Plane;
 
+  procedure Write_Int_Plane
+    (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+--    Length : in Positive_Count;
+    Plane  : in Tm_Arr)
+  is
+    procedure RevertBytes is new Revert_Bytes(Tf);
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    RawPlane : Tf_Arr(1..Plane'Last);
+    procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
+    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+  begin
+
+    for I in Plane'Range
+    loop
+      RawPlane(I) := LinScale(Plane(I));
+      RevertBytes(RawPlane(I));
+    end loop;
+
+    WriteRawPlane(F, RawPlane);
+
+  end Write_Int_Plane;
+
+
 
 
   procedure Read_Float_Plane
@@ -114,6 +146,30 @@ package body NCube is
     end loop;
 
   end Read_Float_Plane;
+
+  procedure Write_Float_Plane
+    (F : SIO.File_Type;
+    BZERO, BSCALE : in Tc;
+    Length : in Positive_Count;
+    Plane  : in Tm_Arr)
+  is
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
+    function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    RawPlane : Tf_Arr(1..Length);
+    procedure RevertBytes is new Revert_Bytes(Tf);
+  begin
+
+    for I in Plane'Range
+    loop
+      RawPlane(I) := LinFloatScale(Plane(I));
+      RevertBytes(RawPlane(I));
+    end loop;
+
+    WriteRawPlane(F, RawPlane);
+
+  end Write_Float_Plane;
+
 
 
 
