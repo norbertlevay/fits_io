@@ -2,6 +2,9 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed or is there FITS.Positive_count?
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
 
+with V3_Types; use V3_Types;
+
+
 package FITS_Image is
   
   package SIO renames Ada.Streams.Stream_IO;
@@ -25,11 +28,18 @@ function Read_Undef_Value(F : in SIO.File_Type) return Tm;
 
 
 -- Read data
+ -- Undef Values$
+ F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
+ F32NaN : constant Float_32 := Float_32(16#7F800001#);
 
 generic
-  type Tm is private;
+  --type Tm is (<>);--discrete
+  --type Tm is mod <>;-- Unsigned_N
+  --type Tm is range <>; -- Integer_N
+  type Tm is digits <>; -- Float_N
+  --type Tm is private;-- cant have because no conversion operator: for conc operator tyőe must be number
   type Tm_Arr is array (Positive_Count range <>) of Tm;
-procedure Read_Plane
+procedure Read_Plane_As_Float
   (F : in SIO.File_Type;
   Undef_Value : in Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
   NAXISi : in NAXIS_Arr; -- dimensions of Tm_Arr  (i < NAXISn'Length):  Length of Plane Tm_Arr
