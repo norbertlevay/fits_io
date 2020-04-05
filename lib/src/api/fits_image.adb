@@ -29,8 +29,9 @@ end Read_Undef_Value;
 
 procedure Read_Plane_As_Float
   (F : in SIO.File_Type;
-  Undef_Value : in Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
-  NAXISi : in NAXIS_Arr; -- dimensions of Tm_Arr  (i < NAXISn'Length):  Length of Plane Tm_Arr
+  Undef_Value : out Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
+--  NAXISi : in NAXIS_Arr; -- dimensions of Tm_Arr  (i < NAXISn'Length):  Length of Plane Tm_Arr
+  I : Positive;
   Plane : out Tm_Arr)
 is
   BITPIX : Integer;

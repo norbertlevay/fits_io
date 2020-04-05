@@ -35,8 +35,9 @@ package FITS_Image is
     type Tm_Arr is array (Positive_Count range <>) of Tm;
   procedure Read_Plane_As_Float
     (F : in SIO.File_Type;
-    Undef_Value : in Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
-    NAXISi : in NAXIS_Arr; -- dimensions of Tm_Arr  (i < NAXISn'Length):  Length of Plane Tm_Arr
+    Undef_Value : out Tm;   -- FIXME how to return "none"=no BLANK (for raw Integers data)
+--    NAXISi : in NAXIS_Arr; -- dimensions of Tm_Arr  (i < NAXISn'Length):  Length of Plane Tm_Arr
+    I : Positive; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
     Plane : out Tm_Arr);
 
 
