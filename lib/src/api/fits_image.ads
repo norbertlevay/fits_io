@@ -41,14 +41,13 @@ package FITS_Image is
 
 
   generic
-    type Tm is private;
+    type Tm is digits <>;
     type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Read_Volume
+  procedure Read_Volume_As_Float
     (F : in SIO.File_Type;          -- File F
     HDUStart : in Positive_Count;   -- at offset FDUStart (referenced by HDUNum)
-    NAXISn : in NAXIS_Arr;          -- contains n-dimensional array (n=NAXISn'Length)
-    Undef_Value : in Tm;
     First, Last : in NAXIS_Arr;     -- F and L point limiting the subcube of NAXISn
+    Undef_Value : out Tm;
     Plane : out Tm_Arr);
 
 

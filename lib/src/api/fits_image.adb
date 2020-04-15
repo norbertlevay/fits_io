@@ -1,3 +1,13 @@
+-- NOTE:
+--  if(BITPIX > 0)
+--  then
+    -- call ReadIntPlane()
+--    null;
+--  else
+    -- call ReadFloatPlane()
+--    null;
+--  end if;
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed or is there FITS.Positive_count?
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
@@ -58,7 +68,6 @@ is
   procedure F32F64ReadFloatPlane is new Read_Float_Plane(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
   procedure F64F64ReadFloatPlane is new Read_Float_Plane(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 
-
 begin
   Read_Dimensions(F, BITPIX, NAXISn);
 
@@ -74,29 +83,69 @@ begin
 
 end Read_Plane_As_Float;
 
--- note:
---  if(BITPIX > 0)
---  then
-    -- call ReadIntPlane()
---    null;
---  else
-    -- call ReadFloatPlane()
---    null;
---  end if;
 
 
 
 
-procedure Read_Volume
-  (F : in SIO.File_Type;          -- File F
-  HDUStart : in Positive_Count;   -- at offset FDUStart (referenced by HDUNum)
-  NAXISn : in NAXIS_Arr;          -- contains n-dimensional array (n=NAXISn'Length)
-  Undef_Value : in Tm;
-  First, Last : in NAXIS_Arr;     -- F and L point limiting the subcube of NAXISn
-  Plane : out Tm_Arr)
+
+
+
+procedure Read_Volume_As_Float
+  (F : in SIO.File_Type;         -- File F
+  HDUStart : in Positive_Count;  -- at offset FDUStart (referenced by HDUNum)
+  First, Last : in NAXIS_Arr;    -- F and L point limiting the subcube of NAXISn
+  Undef_Value : out Tm;
+  Volume : out Tm_Arr)
 is
+--  BITPIX : Integer;
+--  NAXISn : NAXIS_Arr(1..1);-- FIXME
+
+  subtype Tcalc is Float_64;
+  F64BZERO  : Tcalc := 0.0;
+  F64BSCALE : Tcalc := 1.0;
+
+  procedure  U8ReadIntVolume      is new Read_Int_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure I16ReadIntVolume      is new Read_Int_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F32F64ReadFloatVolume is new Read_Float_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F64F64ReadFloatVolume is new Read_Float_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 begin
-  null;
+
+  Set_File_Block_Index(File, HDUStart);
+
+  declare
+    Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
+  begin
+    for I in Cards'Range
+    loop
+      TIO.Put_Line("RESKEYS: >" & Cards(I) & "<" );
+      case(Cards(I)(1..8)) is
+        when "BZERO   " => F64BZERO  := Float_64.Value(Cards(I)(11..30));
+        when "BSCALE  " => F64BSCALE := Float_64.Value(Cards(I)(11..30));
+        when "BLANK   " => null; -- FIXME ??
+      end case;
+    end loop;
+  end;
+
+  Set_File_Block_Index(File, HDUStart);
+
+  declare
+    HDUInfo : HDU_Info_Type := Read_Header(File);
+    NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
+    BITPIX  : Integer   := HDUInfo.BITPIX;
+  begin
+    DUStart := File_Block_Index(File);
+    --DUSize  := Data_Unit_Size_elems(HDUInfo.NAXISn);
+
+    case(BITPIX) is
+      when  16 => U8ReadIntVolume  (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when  16 => I16ReadIntVolume (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when -32 => F32F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+      when -64 => F64F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+      when others => null; -- FIXME Error
+    end case;
+
+  end;
+
 end Read_Volume;
 
 
