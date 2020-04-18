@@ -1,4 +1,4 @@
--- NOTE:
+-- NOTE from Read_Volume_As_Float:
 --  if(BITPIX > 0)
 --  then
     -- call ReadIntPlane()
@@ -8,12 +8,34 @@
 --    null;
 --  end if;
 
+--DUSize  := Data_Unit_Size_elems(HDUInfo.NAXISn);
+
+    -- Set Undef val in Read_Volume_As_Int/UInt()
+--    case(BITPIX) is
+--      when   8 => Undef_Value := ScaleUI8(BLANK_Str); -- UndefVal = A + B * BLANK_Str;
+--      when  16 => Undef_Value := ScaleI16(BLANK_Str);
+--      when -32 => Undef_Value := Tm(F64NaN);-- FIXME weird
+--      when -64 => Undef_Value := Tm(F64NaN);-- FIXME weird
+--      when others => null; -- FIXME Error
+--    end case;
+
+-- decode BLANK as string:
+-- BLANK_Str : String(1..20);
+-- ignore in Read_* _As_Float:      elsif(Key = "BLANK   ") then BLANK_Str := Cards(I)(11..30);
+
+
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed or is there FITS.Positive_count?
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
-
+with Optional;
+with Optional.Reserved;
+with Header; use Header;
+with File;
 with V3_Types; use V3_Types;-- types needed
 with NCube; use NCube;
+
+with Data_Funcs; use Data_Funcs;-- Set_File_Block_Index needed
 
 package body FITS_Image is
 
@@ -37,6 +59,7 @@ end Read_Undef_Value;
 
 -- Read data
 
+
 procedure Read_Plane_As_Float
   (F : in SIO.File_Type;
   Undef_Value : out Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
@@ -47,14 +70,12 @@ is
   NAXISn : NAXIS_Arr(1..1);-- FIXME
   Length : Positive_Count := 1; -- calc from NAXISn
 
-
   -- NOTE Scaling always calced in Float_64 (=Tc)
   -- For starters: always Float_64: Card-Values string has 20 chars 
   -- -> Float_64 has 15 digits validity -> use for card-value floating point always Float 64
   subtype Tcalc is Float_64;
   F64BZERO, F64BSCALE : Tcalc;
-
-  -- From Tc -> Tm
+-- From Tc -> Tm
   function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
 
   -- From Tf -> Tc
@@ -62,6 +83,7 @@ is
   function "+"(R : in Integer_16) return Tcalc is begin return Tcalc(R); end "+";
   function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
+
   --                                                     Tf                   Tc
   procedure  U8ReadIntPlane is      new Read_Int_Plane(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
   procedure I16ReadIntPlane is      new Read_Int_Plane(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
@@ -100,9 +122,19 @@ is
 --  BITPIX : Integer;
 --  NAXISn : NAXIS_Arr(1..1);-- FIXME
 
+  DUStart : Positive_Count;
+
   subtype Tcalc is Float_64;
   F64BZERO  : Tcalc := 0.0;
   F64BSCALE : Tcalc := 1.0;
+-- From Tc -> Tm
+  function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
+
+  -- From Tf -> Tc
+  function "+"(R : in Unsigned_8) return Tcalc is begin return Tcalc(R); end "+";
+  function "+"(R : in Integer_16) return Tcalc is begin return Tcalc(R); end "+";
+  function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
+  function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
   procedure  U8ReadIntVolume      is new Read_Int_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
   procedure I16ReadIntVolume      is new Read_Int_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
@@ -110,34 +142,38 @@ is
   procedure F64F64ReadFloatVolume is new Read_Float_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 begin
 
-  Set_File_Block_Index(File, HDUStart);
+  Set_File_Block_Index(F, HDUStart);
 
   declare
-    Cards : Optional.Card_Arr := Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
+    Cards : Optional.Card_Arr := Read_Optional(F, Optional.Reserved.Reserved_Keys);
+    Key : String(1..8);
   begin
     for I in Cards'Range
     loop
-      TIO.Put_Line("RESKEYS: >" & Cards(I) & "<" );
-      case(Cards(I)(1..8)) is
-        when "BZERO   " => F64BZERO  := Float_64.Value(Cards(I)(11..30));
-        when "BSCALE  " => F64BSCALE := Float_64.Value(Cards(I)(11..30));
-        when "BLANK   " => null; -- FIXME ??
-      end case;
+      Key := Cards(I)(1..8);
+      if   (Key = "BZERO   ") then F64BZERO  := Float_64'Value(Cards(I)(11..30));
+      elsif(Key = "BSCALE  ") then F64BSCALE := Float_64'Value(Cards(I)(11..30));
+      end if;
     end loop;
   end;
 
-  Set_File_Block_Index(File, HDUStart);
+  Set_File_Block_Index(F, HDUStart);
 
   declare
-    HDUInfo : HDU_Info_Type := Read_Header(File);
+    HDUInfo : File.HDU_Info_Type := File.Read_Header(F);
     NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
     BITPIX  : Integer   := HDUInfo.BITPIX;
   begin
-    DUStart := File_Block_Index(File);
-    --DUSize  := Data_Unit_Size_elems(HDUInfo.NAXISn);
+    DUStart := File_Block_Index(F);
+
+    case(Tm'Size) is
+      when 32 => Undef_Value := Tm(F32NaN);
+      when 64 => Undef_Value := Tm(F32NaN);
+      when others => null; -- Error
+    end case;
 
     case(BITPIX) is
-      when  16 => U8ReadIntVolume  (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when   8 => U8ReadIntVolume  (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
       when  16 => I16ReadIntVolume (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
       when -32 => F32F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
       when -64 => F64F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
@@ -146,7 +182,7 @@ begin
 
   end;
 
-end Read_Volume;
+end Read_Volume_As_Float;
 
 
 

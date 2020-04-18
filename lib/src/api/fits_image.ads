@@ -48,7 +48,7 @@ package FITS_Image is
     HDUStart : in Positive_Count;   -- at offset FDUStart (referenced by HDUNum)
     First, Last : in NAXIS_Arr;     -- F and L point limiting the subcube of NAXISn
     Undef_Value : out Tm;
-    Plane : out Tm_Arr);
+    Volume : out Tm_Arr);
 
 
 
