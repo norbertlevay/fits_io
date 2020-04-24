@@ -113,7 +113,7 @@ package body NCube is
 
     for I in Plane'Range
     loop
-      RawPlane(I) := LinScale(Plane(I));
+      -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):  RawPlane(I) := LinScale(Plane(I));
       RevertBytes(RawPlane(I));
     end loop;
 
@@ -128,6 +128,7 @@ package body NCube is
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Length : in Positive_Count;
+    Undef_Val : in Tm;
     Plane  : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
@@ -162,7 +163,7 @@ package body NCube is
 
     for I in Plane'Range
     loop
-      RawPlane(I) := LinFloatScale(Plane(I));
+      -- FIXME incorrect Write needs Reverse-LisnScale and Tm-> Tf RawPlane(I) := LinFloatScale(Plane(I));
       RevertBytes(RawPlane(I));
     end loop;
 

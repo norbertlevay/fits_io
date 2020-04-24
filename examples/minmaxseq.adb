@@ -158,12 +158,13 @@ is
       type F32_Plane_Acc is Access F32_Plane;
 
 
+
       F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
       F32Undef : Float_32 := Float_32(16#7F800001#);
       procedure F64_ReadPlane is
-        new NCube.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64, F64Undef);
+        new NCube.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64);
       procedure F32_ReadPlane is
-        new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32, F32Undef);
+        new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32);
       procedure I16_ReadPlane is
         new NCube.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
 
@@ -184,8 +185,8 @@ is
       loop
 
         case(BITPIX) is
-          when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Plane.All);
-          when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane.All);
+          when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Undef,F64Plane.All);
+          when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Undef,F32Plane.All);
           when  64 => null;
           when  32 => null;
           when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane.All); F32Undef := NewBLANK;

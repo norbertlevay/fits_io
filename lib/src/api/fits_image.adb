@@ -119,15 +119,13 @@ procedure Read_Volume_As_Float
   Undef_Value : out Tm;
   Volume : out Tm_Arr)
 is
---  BITPIX : Integer;
---  NAXISn : NAXIS_Arr(1..1);-- FIXME
-
   DUStart : Positive_Count;
 
   subtype Tcalc is Float_64;
   F64BZERO  : Tcalc := 0.0;
   F64BSCALE : Tcalc := 1.0;
--- From Tc -> Tm
+
+  -- From Tc -> Tm
   function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
 
   -- From Tf -> Tc
@@ -166,6 +164,7 @@ begin
   begin
     DUStart := File_Block_Index(F);
 
+    -- FIXME this case is weird - known at instantiation
     case(Tm'Size) is
       when 32 => Undef_Value := Tm(F32NaN);
       when 64 => Undef_Value := Tm(F32NaN);
