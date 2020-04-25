@@ -41,49 +41,25 @@ procedure cutout
 is
  package SIO renames Ada.Streams.Stream_IO;
  package TIO renames Ada.Text_IO;
-
- package Value_Functions is new Ada.Numerics.Generic_Elementary_Functions (
-     Float_32);
-use Value_Functions;
+ 
+ package Value_Functions is new Ada.Numerics.Generic_Elementary_Functions(Float_32);
+ use Value_Functions;
  -- instantiate Read Volume func for Float_32
 
  type VolData is array (SIO.Positive_Count range <>) of Float_32;
-
- function F32_Is_Valid (V : in Float_32) return Boolean
-    is begin return V'Valid; end F32_Is_Valid;
-
--- procedure F32_Read_Volume is 
---    new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
-
---    type F32_Arr is array (Positive_Count range <>) of Float_32;
---    procedure F32_Read_Volume is
---      new Read_Float_Volume(Float_32,Float_32,VolData,Float_32);
-
-    procedure F32_Read_Volume is
-      new Read_Volume_As_Float(Float_32,VolData);
-
-
-
-
- -- vars
+ procedure F32_Read_Volume is new Read_Volume_As_Float(Float_32,VolData);
  
  -- file related
  File : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
- DUStart : SIO.Positive_Count;
- DUSize  : SIO.Positive_Count;
- BITPIX  : Integer;
-
-
 
  -- data related
  
- First : NAXIS_Arr(1..2);-- := ( 1, 1 );-- FIXME use 'First etc...
- Last  : NAXIS_Arr(1..2);-- := ( 1, 1 );-- FIXME instead explicit index def (1..2)
--- First : NAXIS_Arr := ( 50,    1);
--- Last  : NAXIS_Arr := (100,   31);
- Nx : SIO.Positive_Count;-- := Last(1) - First(1) + 1;
- Ny : SIO.Positive_Count;-- := Last(2) - First(2) + 1;
+ First : NAXIS_Arr(1..2);-- FIXME use 'First etc...
+ Last  : NAXIS_Arr(1..2);-- FIXME instead explicit index def (1..2)
+
+ Nx : SIO.Positive_Count;
+ Ny : SIO.Positive_Count;
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 
@@ -98,7 +74,6 @@ use Value_Functions;
  OffInVol : SIO.Positive_Count;
  Scaling : Float_32 := 1.0;
 begin
-
 
  if(Argument_Count < 5 ) 
  then 
@@ -121,72 +96,41 @@ begin
 
 declare 
  Vol : VolData( 1 .. (Nx*Ny));
- UI8ConvVal : Unsigned_8; 
 begin
 
  Set_File_Block_Index(File,HDUStart);
 
- -- interpret header: DataUnit length and type needed, also store DUStart
-
- declare
-  HDUInfo : HDU_Info_Type := Read_Header(File);
- begin
-  DUStart := File_Block_Index(File);
-  DUSize  := Data_Unit_Size_elems(HDUInfo.NAXISn);
-  BITPIX  := HDUInfo.BITPIX;
- 
- TIO.Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
- TIO.Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
-
- -- read data
- if(BITPIX = -32)
- then 
---    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, HDUInfo.NAXISn, 
---                    First, Last, Vol);
---    F32_Read_Volume(File, DUStart, HDUInfo.NAXISn, First, Last, BZERO, BSCALE, Undef_Val, Vol);
-
-   F32_Read_Volume(File, HDUStart, First, Last, Undef_Val, Vol);
-else
-    TIO.Put_Line("Not FLoat_32 data in File.");
- end if;
-
- end; -- declare Read_Header()...
+ F32_Read_Volume(File, HDUStart, First, Last, Undef_Val, Vol);
+ -- FIXME above proc should raise exception if File::HDU is not BITPIX=-32
 
  SIO.Close(File);
 
 
 
  -- work on data
- 
- for J in 1 .. (1 + Last(2) - First(2))
+
+ for J in 1 .. Ny
  loop
- for I in 1 .. (1 + Last(1) - First(1))
+ for I in 1 .. Nx
  loop
 
    OffInVol := To_Offset((I,J),(Nx,Ny));
-  --Put(item => Integer(I), width => 4);
-  --Put(item => Integer(J), width => 4);
-  --Put(item => Integer(OffInVol), width => 6);
    F32Value := Vol(OffInVol);
 
-    if(Undef_Val = F32Value) then Undef_Cnt := Undef_Cnt + 1; end if;
-
-   if(F32Min > F32Value) then F32Min := F32Value; end if;
-   if(F32Max < F32Value) then F32Max := F32Value; PosMaxI:=I; PosMaxJ:=J; end if;
+   if(Undef_Val = F32Value OR F32Value'Valid /= True)
+   then
+     Undef_Cnt := Undef_Cnt + 1;
+     TIO.Put(' ');
+   else
+    if(F32Min > F32Value) then F32Min := F32Value; end if;
+    if(F32Max < F32Value) then F32Max := F32Value; PosMaxI:=I; PosMaxJ:=J; end if;
 
     F32Value := Scaling * (abs F32Value);
-    if(F32Value > 127.0) then F32Value := 126.0; end if;
-    UI8Value := 32 + Unsigned_8(F32Value);
+    if(F32Value > (127.0 - 35.0)) then F32Value := 126.0 - 35.0; end if;
 
-    case(UI8Value) is
-    when   0 ..  64 => UI8ConvVal := 32; -- space
-    when  65 .. 128 => UI8ConvVal := 46; -- dot
-    when 129 .. 192 => UI8ConvVal := 43; -- plus
-    when 193 .. 255 => UI8ConvVal := 35; -- hash
-    end case;
-
-   TIO.Put(Character'Val(UI8Value));
---   TIO.Put(Character'Val(UI8ConvVal));
+    UI8Value :=  32 + Unsigned_8(F32Value);
+    TIO.Put(Character'Val(UI8Value));
+   end if;
 
  end loop;
  TIO.Put_Line("<");
@@ -197,8 +141,23 @@ end; -- VolData declare
  TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));
  TIO.Put_Line("Max : " & Float_32'Image(F32Max));
- TIO.Put_Line("Pos Max : " & SIO.Positive_Count'Image(PosMaxI) & ", " & SIO.Positive_Count'Image(PosMaxJ));
+ TIO.Put_Line("Max Pos : " & SIO.Positive_Count'Image(PosMaxI) & ", " & SIO.Positive_Count'Image(PosMaxJ));
 
 
 end cutout;
+
+
+-- NOTES:
+--
+  --Put(item => Integer(I), width => 4);
+  --Put(item => Integer(J), width => 4);
+  --Put(item => Integer(OffInVol), width => 6);
+ 
+--    case(UI8Value) is
+--    when   0 ..  64 => UI8ConvVal := 32; -- space
+--    when  65 .. 128 => UI8ConvVal := 46; -- dot
+--    when 129 .. 192 => UI8ConvVal := 43; -- plus
+--    when 193 .. 255 => UI8ConvVal := 35; -- hash
+--    end case;
+--   TIO.Put(Character'Val(UI8ConvVal));
 

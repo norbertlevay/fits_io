@@ -33,7 +33,7 @@ package body NCube_Funcs is
     end loop;
   end;
 
-  Offset := Coords(1);
+  Offset := Coords(Coords'First);
   for I in (Coords'First + 1) .. Coords'Last
   loop
    Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);

@@ -157,11 +157,11 @@ package body NCube is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
-    RawPlane : Tf_Arr(1..Length);
+    RawPlane : Tf_Arr(1..Length); -- FIXME convert and scale ? := Plane;
     procedure RevertBytes is new Revert_Bytes(Tf);
   begin
 
-    for I in Plane'Range
+    for I in RawPlane'Range
     loop
       -- FIXME incorrect Write needs Reverse-LisnScale and Tm-> Tf RawPlane(I) := LinFloatScale(Plane(I));
       RevertBytes(RawPlane(I));
@@ -188,30 +188,30 @@ package body NCube is
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Length  : in Positive_Count;
-    Values  : out T_Arr);
+    AValues  : in out T_Arr);
+    -- FIXME AValues put to Heap, might be too big for Stack
 
   procedure Read_Raw_Line
     (F : SIO.File_Type;
-    DUStart : in Positive_Count;
+    DUStart : in Positive_Count; -- block count
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Length  : in Positive_Count;
-    Values  : out T_Arr)
+    AValues  : in out T_Arr)
   is
-    DUIndex : Positive_Count := To_Offset(First, NAXISn);
+    -- StreamElem count (File_Index) from File begining:
+    DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
+    DUIndex : Positive_Count := NCube_Funcs.To_Offset(First, NAXISn);
     procedure RevertBytes is new Revert_Bytes(T);
-    Vals : T_Arr(1 .. 1 + Length - 1);-- FIXME use 'Firsrt 'Length
-    -- FIXME Vals put to Heap, might be too big for Stack
-  begin
+ begin
 
-    Set_Index(F, DUStart*2880 + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+    SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
 
-    T_Arr'Read(SIO.Stream(F), Vals);
+    T_Arr'Read(SIO.Stream(F), AValues);
 
-    for I in Vals'Range
+    for I in AValues'Range
     loop
-      RevertBytes(Vals(I));
-      Values(I) := Vals(I);
+      RevertBytes(AValues(I));
     end loop;
 
   end Read_Raw_Line;
