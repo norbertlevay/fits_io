@@ -24,7 +24,7 @@
 -- ignore in Read_* _As_Float:      elsif(Key = "BLANK   ") then BLANK_Str := Cards(I)(11..30);
 
 
-
+with Ada.Text_IO; --use Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed or is there FITS.Positive_count?
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
@@ -139,6 +139,8 @@ is
   procedure F32F64ReadFloatVolume is new Read_Float_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
   procedure F64F64ReadFloatVolume is new Read_Float_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 begin
+  Ada.Text_IO.Put_Line("DBG: Read_Volume_As_Float");
+
 
   Set_File_Block_Index(F, HDUStart);
 

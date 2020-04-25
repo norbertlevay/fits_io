@@ -34,7 +34,7 @@ with Data_Funcs; use Data_Funcs;
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
 
-
+with FITS_Image; use FITS_Image;
 
 
 procedure cutout
@@ -56,8 +56,11 @@ use Value_Functions;
 --    new Read_Valid_Scaled_Volume(Float_32, Float_32, VolData, F32_Is_Valid);
 
 --    type F32_Arr is array (Positive_Count range <>) of Float_32;
+--    procedure F32_Read_Volume is
+--      new Read_Float_Volume(Float_32,Float_32,VolData,Float_32);
+
     procedure F32_Read_Volume is
-      new Read_Float_Volume(Float_32,Float_32,VolData,Float_32);
+      new Read_Volume_As_Float(Float_32,VolData);
 
 
 
@@ -140,7 +143,9 @@ begin
  then 
 --    F32_Read_Volume(File, BZERO, BSCALE, Undef_Val, DUStart, HDUInfo.NAXISn, 
 --                    First, Last, Vol);
-    F32_Read_Volume(File, DUStart, HDUInfo.NAXISn, First, Last, BZERO, BSCALE, Undef_Val, Vol);
+--    F32_Read_Volume(File, DUStart, HDUInfo.NAXISn, First, Last, BZERO, BSCALE, Undef_Val, Vol);
+
+   F32_Read_Volume(File, HDUStart, First, Last, Undef_Val, Vol);
 else
     TIO.Put_Line("Not FLoat_32 data in File.");
  end if;
