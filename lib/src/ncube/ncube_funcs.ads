@@ -1,12 +1,11 @@
 
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
---with Keyword_record; use Keyword_Record; -- FPositive needed
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- Positive_Count needed
 
 package NCube_Funcs is
 
- function To_Offset (Coords    : in  NAXIS_Arr;
+ function To_DU_Index (Coords    : in  NAXIS_Arr;
                      MaxCoords : in  NAXIS_Arr)
    return Positive_Count;
 

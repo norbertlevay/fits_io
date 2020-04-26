@@ -4,11 +4,11 @@ with Mandatory; use Mandatory;-- NAXIS_Arr needed
 package body NCube_Funcs is
 
 
- function To_Offset (Coords    : in  NAXIS_Arr;
+ function To_DU_Index (Coords    : in  NAXIS_Arr;
                      MaxCoords : in  NAXIS_Arr)
    return Positive_Count
  is
-  Offset : Positive_Count;
+  DUIndex : Positive_Count;
   Sizes  : NAXIS_Arr := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
@@ -33,14 +33,14 @@ package body NCube_Funcs is
     end loop;
   end;
 
-  Offset := Coords(Coords'First);
+  DUIndex := Coords(Coords'First);
   for I in (Coords'First + 1) .. Coords'Last
   loop
-   Offset := Offset + (Coords(I) - 1) * Sizes(I - 1);
+   DUIndex := DUIndex + (Coords(I) - 1) * Sizes(I - 1);
   end loop;
 
-  return Offset;
- end To_Offset;
+  return DUIndex;
+ end To_DU_Index;
 
 
 

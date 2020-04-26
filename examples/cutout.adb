@@ -24,7 +24,7 @@ with Ada.Numerics.Generic_Elementary_Functions;
 
 with V3_Types; use V3_Types;
 with Physical; use Physical;
-with NCube_Funcs; use NCube_Funcs;
+with NCube_Funcs; --use NCube_Funcs;
 --with Keyword_Record; use Keyword_Record;-- FPositive needed
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
@@ -114,7 +114,7 @@ begin
  for I in 1 .. Nx
  loop
 
-   OffInVol := To_Offset((I,J),(Nx,Ny));
+   OffInVol := NCube_Funcs.To_DU_Index((I,J),(Nx,Ny));
    F32Value := Vol(OffInVol);
 
    if(Undef_Val = F32Value OR F32Value'Valid /= True)

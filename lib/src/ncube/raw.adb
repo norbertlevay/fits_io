@@ -100,7 +100,7 @@ package body Raw is
   is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
-    DUIndex : Positive_Count := NCube_Funcs.To_Offset(First, NAXISn);
+    DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
     procedure RevertBytes is new Revert_Bytes(T);
  begin
 
@@ -159,7 +159,7 @@ package body Raw is
     --print_coord(C)
     Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
 
-    Vf := To_Offset(CV,VolNAXISn);
+    Vf := To_DU_Index(CV,VolNAXISn);
     Vl := Vf + LineLength - 1;
     Volume(Vf .. Vl) := Line;
     -- store read line
@@ -187,7 +187,7 @@ package body Raw is
         CV(I) := Unity(I) + C(I) - First(I);
       end loop;
 
-      Vf := To_Offset(CV,VolNAXISn);
+      Vf := To_DU_Index(CV,VolNAXISn);
       Vl := Vf + LineLength - 1;
       Volume(Vf .. Vl) := Line;
       -- store read line
