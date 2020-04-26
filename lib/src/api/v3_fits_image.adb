@@ -205,7 +205,7 @@ procedure Write_Volume
   HDUStart : in Positive_Count;
   NAXISn : in NAXIS_Arr;
   First, Last : in NAXIS_Arr;
-  Plane : in Tm_Arr)
+  Volume : in Tm_Arr)
 is
 begin
   null;

@@ -2,6 +2,11 @@
 -- FIXME  later make T_Arr private
 -- such record should also store: NAXISi BITPIX, Undef_Val/BLANK
 
+-- FIXME all Read should be generator functions returning 
+-- Plane or Volume arrays sized according to input params: 
+-- for Plane add param NAXISi
+-- for Volume there is Last - First (both NAXISn)
+
 -- NOTE
 -- Read_Plane:  needs size but not First:
 -- * needs T_Arr of exact plane-size but does not calculate position of First 
