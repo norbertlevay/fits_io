@@ -27,34 +27,6 @@ package body Physical is
 
   package TIO renames Ada.Text_IO;
 
-  -- endianness
-
-  generic
-  type T is private;
-  procedure Revert_Bytes( Data : in out T );
-  procedure Revert_Bytes( Data : in out T )
-  is
-    Size_Bytes : Positive := T'Size / Interfaces.Unsigned_8'Size;
-    type Arr4xU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
-
-    function Data_To_Arr is new Ada.Unchecked_Conversion(Source => T, Target => Arr4xU8);
-    function Arr_To_Data is
-      new Ada.Unchecked_Conversion(Source => Arr4xU8, Target => T);
-
-    Arr  : Arr4xU8 := Data_To_Arr(Data);
-    ArrO : Arr4xU8;
-  begin
-
-    for I in Arr'Range
-    loop
-      ArrO(I) := Arr(1 + Size_Bytes - I); 
-    end loop;
-
-    Data := Arr_To_Data(ArrO);
-
-  end Revert_Bytes;
-
-
 
   -- Sequential access
 
@@ -62,48 +34,30 @@ package body Physical is
   procedure Read_Int_Plane
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
     Plane  : out Tm_Arr)
   is
-    procedure RevertBytes is new Revert_Bytes(Tf);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    RawPlane : Tf_Arr(1..Length);
+    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
     procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
-
     ReadRawPlane(F, RawPlane);
-
-    for I in RawPlane'Range
-    loop
-      RevertBytes(RawPlane(I));
-      Plane(I) := LinScale(RawPlane(I));
-    end loop;
-
   end Read_Int_Plane;
 
 
   procedure Write_Int_Plane
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
---    Length : in Positive_Count;
     Plane  : in Tm_Arr)
   is
-    procedure RevertBytes is new Revert_Bytes(Tf);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawPlane : Tf_Arr(1..Plane'Last);
     procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
-
-    for I in Plane'Range
-    loop
-      -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):  RawPlane(I) := LinScale(Plane(I));
-      RevertBytes(RawPlane(I));
-    end loop;
-
+    -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
+    -- RawPlane(I) := LinScale(Plane(I));
     WriteRawPlane(F, RawPlane);
-
   end Write_Int_Plane;
 
 
@@ -111,49 +65,40 @@ package body Physical is
   procedure Read_Float_Plane
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
     Undef_Val : in Tm;
     Plane  : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
-    RawPlane : Tf_Arr(1..Length);
-    procedure RevertBytes is new Revert_Bytes(Tf);
+    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
   begin
-
     ReadRawPlane(F, RawPlane);
-
+    -- FIXME verify this
     for I in RawPlane'Range
     loop
-      RevertBytes(RawPlane(I));
       Plane(I) := LinFloatScale(RawPlane(I));
     end loop;
-
   end Read_Float_Plane;
 
 
   procedure Write_Float_Plane
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
     Plane  : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
-    RawPlane : Tf_Arr(1..Length); -- FIXME convert and scale ? := Plane;
-    procedure RevertBytes is new Revert_Bytes(Tf);
+    RawPlane : Tf_Arr(Plane'First .. Plane'Last); -- FIXME convert and scale ? := Plane;
   begin
-
     for I in RawPlane'Range
     loop
-      -- FIXME incorrect Write needs Reverse-LisnScale and Tm-> Tf RawPlane(I) := LinFloatScale(Plane(I));
-      RevertBytes(RawPlane(I));
+      -- FIXME incorrect Write needs Reverse-LisnScale and Tm
+      -- -> Tf RawPlane(I) := LinFloatScale(Plane(I));
+      null;
     end loop;
-
     WriteRawPlane(F, RawPlane);
-
   end Write_Float_Plane;
 
 

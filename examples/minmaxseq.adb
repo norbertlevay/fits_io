@@ -185,11 +185,11 @@ is
       loop
 
         case(BITPIX) is
-          when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,PlaneLength,F64Undef,F64Plane.All);
-          when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Undef,F32Plane.All);
+          when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,F64Undef,F64Plane.All);
+          when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,F32Undef,F32Plane.All);
           when  64 => null;
           when  32 => null;
-          when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,PlaneLength,F32Plane.All); F32Undef := NewBLANK;
+          when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,F32Plane.All); F32Undef := NewBLANK;
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

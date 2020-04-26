@@ -28,7 +28,6 @@ package Physical is
  procedure Read_Int_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
     Plane  : out Tm_Arr);
 
 
@@ -42,8 +41,7 @@ package Physical is
  procedure Read_Float_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
-    Undef_Val : in Tm;
+    Undef_Val : in Tm; -- FIXME reconsider: is this needed: for Float known per definition (=NaN)
     Plane  : out Tm_Arr);
 
 
@@ -60,7 +58,6 @@ package Physical is
  procedure Write_Int_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
---    Length : in Positive_Count;
     Plane  : in Tm_Arr);
 
 
@@ -75,7 +72,6 @@ package Physical is
  procedure Write_Float_Plane
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Length : in Positive_Count;
     Plane  : in Tm_Arr);
 
 
@@ -97,7 +93,7 @@ package Physical is
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     BZERO, BSCALE : in Tc;
-    Volume  : out Tm_Arr);
+    Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
 
 
  generic
@@ -114,8 +110,8 @@ package Physical is
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     BZERO, BSCALE : in Tc;
-    Undef   : in Tm;
-    Volume  : out Tm_Arr);
+    Undef   : in Tm; -- FIXME reconsider: known at instantiation (NaN)
+    Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
 
 
 end Physical;

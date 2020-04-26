@@ -124,13 +124,9 @@ package body Raw is
     DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
     procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
  begin
-
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
-
     T_Arr'Read(SIO.Stream(F), AValues);
-
     CheckAndRevert(AValues);
-
   end Read_Raw_Line;
 
 

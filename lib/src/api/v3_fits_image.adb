@@ -96,10 +96,10 @@ begin
   -- FIXME read BZERO BSCALE (BLANK)
 
   case(BITPIX) is
-    when   8 => U8ReadIntPlane   (F, F64BZERO, F64BSCALE, Length, Plane);
-    when  16 => I16ReadIntPlane  (F, F64BZERO, F64BSCALE, Length, Plane);
-    when -32 => F32F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Length, Undef_Value, Plane);
-    when -64 => F64F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Length, Undef_Value, Plane);
+    when   8 => U8ReadIntPlane   (F, F64BZERO, F64BSCALE, Plane);
+    when  16 => I16ReadIntPlane  (F, F64BZERO, F64BSCALE, Plane);
+    when -32 => F32F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+    when -64 => F64F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
     when others => null; -- FIXME Error
   end case;
 

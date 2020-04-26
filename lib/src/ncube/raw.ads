@@ -2,6 +2,14 @@
 -- FIXME  later make T_Arr private
 -- such record should also store: NAXISi BITPIX, Undef_Val/BLANK
 
+-- NOTE
+-- Read_Plane:  needs size but not First:
+-- * needs T_Arr of exact plane-size but does not calculate position of First 
+-- * (assumes File_Index is at Plane boundary)
+-- Read_Volume: needs First but not size:
+-- * needs to calc position to First but size can be whatever
+-- * (but not going beyond DU-end)
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
