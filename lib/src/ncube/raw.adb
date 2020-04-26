@@ -28,7 +28,7 @@ package body Raw is
   -- Endianness
 
   generic
-  type T is private;
+    type T is private;
   procedure Revert_Bytes( Data : in out T );
   procedure Revert_Bytes( Data : in out T )
   is
@@ -53,6 +53,22 @@ package body Raw is
   end Revert_Bytes;
 
 
+  generic
+    type T is private;
+    type T_Arr is array (Positive_Count range <>) of T;
+  procedure Check_And_Revert(Arr : in out T_Arr);
+  procedure Check_And_Revert(Arr : in out T_Arr)
+  is
+    procedure RevertBytes is new Revert_Bytes(T);
+  begin
+    -- FIXME add here check endianness: revert bytes only of needed
+    -- FIXME build-time or run-time issue ?
+    for I in Arr'Range
+    loop
+      RevertBytes(Arr(I));
+    end loop;
+  end Check_And_Revert;
+
 
   -- Sequential access
 
@@ -61,16 +77,21 @@ package body Raw is
     (F : SIO.File_Type;
     Plane  : out T_Arr)
   is
+    procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
   begin
     T_Arr'Read(SIO.Stream(F),Plane);
+    CheckAndRevert(Plane);
   end Read_Raw_Plane;
 
   procedure Write_Raw_Plane
     (F : SIO.File_Type;
     Plane  : in T_Arr)
   is
+    LocalPlane : T_Arr := Plane;
+    procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
   begin
-    T_Arr'Write(SIO.Stream(F),Plane);
+    CheckAndRevert(LocalPlane);
+    T_Arr'Write(SIO.Stream(F),LocalPlane);
   end Write_Raw_Plane;
 
 
@@ -101,17 +122,14 @@ package body Raw is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
     DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
-    procedure RevertBytes is new Revert_Bytes(T);
+    procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
  begin
 
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
 
     T_Arr'Read(SIO.Stream(F), AValues);
 
-    for I in AValues'Range
-    loop
-      RevertBytes(AValues(I));
-    end loop;
+    CheckAndRevert(AValues);
 
   end Read_Raw_Line;
 
@@ -210,12 +228,6 @@ package body Raw is
    -- FIXME not implemented
    null;
  end Write_Raw_Volume;
-
-
-
-
-
-
 
 end Raw;
 
