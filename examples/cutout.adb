@@ -23,7 +23,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Numerics.Generic_Elementary_Functions; 
 
 with V3_Types; use V3_Types;
-with NCube; use NCube;
+with Physical; use Physical;
 with NCube_Funcs; use NCube_Funcs;
 --with Keyword_Record; use Keyword_Record;-- FPositive needed
 with Mandatory; use Mandatory; -- NAXIS_Arr needed

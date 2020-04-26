@@ -21,7 +21,7 @@ with NCube_Funcs; use NCube_Funcs;
 with Raw; use Raw;
 
 
-package body NCube is
+package body Physical is
 
   use SIO;
 
@@ -163,13 +163,6 @@ package body NCube is
   -- Random access
 
 
-
-
-
-
-
-
-
   function Volume_Length
     (First : in NAXIS_Arr;
     Last   : in NAXIS_Arr) return Positive_Count
@@ -247,5 +240,5 @@ package body NCube is
   end Read_Float_Volume;
 
 
-end NCube;
+end Physical;
 

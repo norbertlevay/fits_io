@@ -37,7 +37,7 @@ with Data_Funcs; use Data_Funcs;
 with Data_Block;
 with Data_Unit;
 with Unit;
-with NCube;
+with Physical;
 with Data_Value; use Data_Value;
 
 procedure minmaxseq
@@ -162,11 +162,11 @@ is
       F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
       F32Undef : Float_32 := Float_32(16#7F800001#);
       procedure F64_ReadPlane is
-        new NCube.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64);
+        new Physical.Read_Float_Plane(Float_64, Float_64, F64_Plane, Float_64);
       procedure F32_ReadPlane is
-        new NCube.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32);
+        new Physical.Read_Float_Plane(Float_32, Float_32, F32_Plane, Float_32);
       procedure I16_ReadPlane is
-        new NCube.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
+        new Physical.Read_Int_Plane(Integer_16, Float_32, F32_Plane, Float_32);
 
       --    F64Plane : F64_Plane(1..PlaneLength); -- On Stack
       --    F32Plane : F32_Plane(1..PlaneLength);

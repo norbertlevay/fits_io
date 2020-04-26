@@ -33,7 +33,7 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
-with NCube; use NCube;
+with Physical; use Physical;
 
 with Data_Funcs; use Data_Funcs;-- Set_File_Block_Index needed
 

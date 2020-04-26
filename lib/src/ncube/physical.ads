@@ -9,7 +9,7 @@ with Raw; use Raw;
 
 
 
-package NCube is
+package Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -118,5 +118,5 @@ package NCube is
     Volume  : out Tm_Arr);
 
 
-end NCube;
+end Physical;
 
