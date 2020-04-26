@@ -37,7 +37,7 @@ with Physical; use Physical;
 
 with Data_Funcs; use Data_Funcs;-- Set_File_Block_Index needed
 
-package body FITS_Image is
+package body V3_FITS_Image is
 
 procedure Read_Dimensions
   (F : in SIO.File_Type;
@@ -212,5 +212,5 @@ begin
 end Write_Volume;
 
 
-end FITS_Image;
+end V3_FITS_Image;
 

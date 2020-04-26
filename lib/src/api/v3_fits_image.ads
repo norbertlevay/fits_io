@@ -5,7 +5,7 @@ with Mandatory; use Mandatory;-- NAXIS_Arr needed
 with V3_Types; use V3_Types;
 
 
-package FITS_Image is
+package V3_FITS_Image is
 
   package SIO renames Ada.Streams.Stream_IO;
 
@@ -73,5 +73,5 @@ package FITS_Image is
     Plane : in Tm_Arr);
 
 
-end FITS_Image;
+end V3_FITS_Image;
 

@@ -34,7 +34,7 @@ with Data_Funcs; use Data_Funcs;
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
 
-with FITS_Image; use FITS_Image;
+with V3_FITS_Image; use V3_FITS_Image;
 
 
 procedure cutout
