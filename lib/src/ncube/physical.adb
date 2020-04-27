@@ -108,22 +108,6 @@ package body Physical is
   -- Random access
 
 
-  function Volume_Length
-    (First : in NAXIS_Arr;
-    Last   : in NAXIS_Arr) return Positive_Count
-  is
-    L : Positive_Count := 1;
-  begin
-
-    -- FIXME sanity check that First & Last are equal length
-
-    for I in First'Range
-    loop
-      L := L * (1 + Positive_Count(Last(I) - First(I)));
-    end loop;
-    return L;
-  end Volume_Length;
-
 
 
   procedure Read_Int_Volume
@@ -135,7 +119,7 @@ package body Physical is
     BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr)
   is
-    VolLength : Positive_Count := Volume_Length(First, Last);
+    VolLength : Positive_Count := Raw.Volume_Length(First, Last);
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
@@ -167,7 +151,7 @@ package body Physical is
     Undef   : in Tm;
     Volume  : out Tm_Arr)
   is
-    VolLength : Positive_Count := Volume_Length(First, Last);
+    VolLength : Positive_Count := Raw.Volume_Length(First, Last);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
