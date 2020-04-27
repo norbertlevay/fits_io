@@ -63,12 +63,15 @@ package body Physical is
     Plane  : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    RawPlane : Tf_Arr(1..Plane'Last);
+    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
     procedure WriteRawPlane is new Raw.Write_Plane(Tf,Tf_Arr);
-    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+--    function LinScale is new Unit.Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
-    -- RawPlane(I) := LinScale(Plane(I));
+--    for I in Plane'Range
+--    loop
+--      RawPlane(I) := LinScale(Plane(I));
+--    end loop;>
     WriteRawPlane(F, RawPlane);
   end Write_Int_Plane;
 
