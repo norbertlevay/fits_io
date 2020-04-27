@@ -5,9 +5,6 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
-with Raw; use Raw;
-
-
 
 package Physical is
 

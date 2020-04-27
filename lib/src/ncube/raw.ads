@@ -26,7 +26,7 @@ package Raw is
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Raw_Plane
+ procedure Read_Plane
    (F : SIO.File_Type;
     Plane  : out T_Arr);
 
@@ -34,7 +34,7 @@ package Raw is
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Write_Raw_Plane
+ procedure Write_Plane
    (F : SIO.File_Type;
     Plane  : in T_Arr);
 
@@ -42,7 +42,7 @@ package Raw is
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Raw_Volume
+ procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
@@ -54,7 +54,7 @@ package Raw is
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Write_Raw_Volume
+ procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;

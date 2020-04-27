@@ -18,7 +18,7 @@ with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 
 with NCube_Funcs; use NCube_Funcs;
-with Raw; use Raw;
+with Raw;
 
 
 package body Physical is
@@ -38,7 +38,7 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawPlane : Tf_Arr(Plane'First .. Plane'Last);
-    procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
+    procedure ReadRawPlane is new Raw.Read_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
     ReadRawPlane(F, RawPlane);
@@ -52,7 +52,7 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawPlane : Tf_Arr(1..Plane'Last);
-    procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
+    procedure WriteRawPlane is new Raw.Write_Plane(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
@@ -69,7 +69,7 @@ package body Physical is
     Plane  : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure ReadRawPlane is new Read_Raw_Plane(Tf,Tf_Arr);
+    procedure ReadRawPlane is new Raw.Read_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawPlane : Tf_Arr(Plane'First .. Plane'Last);
   begin
@@ -88,7 +88,7 @@ package body Physical is
     Plane  : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure WriteRawPlane is new Write_Raw_Plane(Tf,Tf_Arr);
+    procedure WriteRawPlane is new Raw.Write_Plane(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawPlane : Tf_Arr(Plane'First .. Plane'Last); -- FIXME convert and scale ? := Plane;
   begin
@@ -140,7 +140,7 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
-    procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
+    procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
 
@@ -171,7 +171,7 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
-    procedure ReadRawVolume is new Read_Raw_Volume(Tf,Tf_Arr);
+    procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
     function LinScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
   begin
 

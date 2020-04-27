@@ -73,7 +73,7 @@ package body Raw is
   -- Sequential access
 
 
-  procedure Read_Raw_Plane
+  procedure Read_Plane
     (F : SIO.File_Type;
     Plane  : out T_Arr)
   is
@@ -81,9 +81,9 @@ package body Raw is
   begin
     T_Arr'Read(SIO.Stream(F),Plane);
     CheckAndRevert(Plane);
-  end Read_Raw_Plane;
+  end Read_Plane;
 
-  procedure Write_Raw_Plane
+  procedure Write_Plane
     (F : SIO.File_Type;
     Plane  : in T_Arr)
   is
@@ -92,7 +92,7 @@ package body Raw is
   begin
     CheckAndRevert(LocalPlane);
     T_Arr'Write(SIO.Stream(F),LocalPlane);
-  end Write_Raw_Plane;
+  end Write_Plane;
 
 
 
@@ -136,7 +136,7 @@ package body Raw is
 
 
 
-  procedure Read_Raw_Volume
+  procedure Read_Volume
     (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
@@ -208,11 +208,11 @@ package body Raw is
 
     end loop Outer_Loop;
 
-  end Read_Raw_Volume;
+  end Read_Volume;
 
 
 
- procedure Write_Raw_Volume
+ procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
@@ -223,7 +223,7 @@ package body Raw is
  begin
    -- FIXME not implemented
    null;
- end Write_Raw_Volume;
+ end Write_Volume;
 
 end Raw;
 
