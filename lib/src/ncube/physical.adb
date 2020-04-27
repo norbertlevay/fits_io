@@ -5,6 +5,14 @@
 -- reads all DU sequentially
 -- NOTE position to DUStart before 1st call in Read/Write_x_Plane
 
+
+-- NOTE we separate to Int and Float because Scale_Float checks 
+-- that value is valid and Scale used fpr Int does not check validity.
+-- Because in case of (U)Int, BLANK is in range of valid values
+-- whereas for Floats NaN is invalid in Ada, woudl raise exception
+-- for (U)Int:  new-BLANK = A + B * BLANK
+-- for Float:   A + B * NaN -> raises exception
+
 with Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
