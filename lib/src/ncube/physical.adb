@@ -50,6 +50,10 @@ package body Physical is
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
     ReadRawPlane(F, RawPlane);
+    for I in RawPlane'Range
+    loop
+      Plane(I) := LinScale(RawPlane(I));
+    end loop;
   end Read_Int_Plane;
 
 
@@ -82,7 +86,6 @@ package body Physical is
     RawPlane : Tf_Arr(Plane'First .. Plane'Last);
   begin
     ReadRawPlane(F, RawPlane);
-    -- FIXME verify this
     for I in RawPlane'Range
     loop
       Plane(I) := LinFloatScale(RawPlane(I));
