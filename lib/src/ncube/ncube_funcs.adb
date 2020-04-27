@@ -93,6 +93,39 @@ package body NCube_Funcs is
 
 
 
+  -- Plane and Volume Lnegths
+
+
+  function Plane_Length
+    (Plane : in NAXIS_Arr) return Positive_Count
+  is
+    PlaneLen : Positive_Count := 1;
+  begin
+    for I in Plane'Range
+    loop
+      PlaneLen := PlaneLen * Plane(I);
+    end loop;
+    return PlaneLen;
+  end Plane_Length;
+
+
+  function Volume_Length
+    (First : in NAXIS_Arr;
+    Last   : in NAXIS_Arr) return Positive_Count
+  is
+    L : Positive_Count := 1;
+  begin
+
+    -- FIXME sanity check that First & Last are equal length
+
+    for I in First'Range
+    loop
+      L := L * (1 + Positive_Count(Last(I) - First(I)));
+    end loop;
+    return L;
+  end Volume_Length;
+
+
 end NCube_Funcs;
 
 

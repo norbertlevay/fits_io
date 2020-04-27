@@ -36,7 +36,6 @@ with Optional.Reserved; use Optional.Reserved;
 
 with V3_FITS_Image; use V3_FITS_Image;
 
-
 procedure cutout
 is
  package SIO renames Ada.Streams.Stream_IO;
@@ -95,7 +94,7 @@ begin
  Ny := 1 + Last(2) - First(2);
 
 declare 
- Vol : VolData( 1 .. (Nx*Ny));
+ Vol : VolData( 1 .. NCube_Funcs.Volume_Length(First,Last));
 begin
 
  Set_File_Block_Index(File,HDUStart);

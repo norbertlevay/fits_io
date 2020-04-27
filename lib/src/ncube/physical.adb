@@ -119,7 +119,7 @@ package body Physical is
     BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr)
   is
-    VolLength : Positive_Count := Raw.Volume_Length(First, Last);
+    VolLength : Positive_Count := Volume_Length(First, Last);
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
@@ -151,7 +151,7 @@ package body Physical is
     Undef   : in Tm;
     Volume  : out Tm_Arr)
   is
-    VolLength : Positive_Count := Raw.Volume_Length(First, Last);
+    VolLength : Positive_Count := Volume_Length(First, Last);
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 

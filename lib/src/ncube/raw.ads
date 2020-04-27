@@ -24,11 +24,6 @@ package Raw is
  package SIO renames Ada.Streams.Stream_IO;
 
 
- function Plane_Length  (Plane       : in NAXIS_Arr) return Positive_Count;
- function Volume_Length (First, Last : in NAXIS_Arr) return Positive_Count;
- -- should be used to size T_Arr
-
-
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
