@@ -122,11 +122,10 @@ package body Raw is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
     DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
-    procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
+    procedure ReadPlane is new Read_Plane(T,T_Arr);
  begin
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
-    T_Arr'Read(SIO.Stream(F), AValues);
-    CheckAndRevert(AValues);
+    ReadPlane(F, AValues);
   end Read_Raw_Line;
 
 
