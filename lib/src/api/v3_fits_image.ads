@@ -14,30 +14,6 @@ package V3_FITS_Image is
   F32NaN : constant Float_32 := Float_32(16#7F800001#);
 
 
-  -- Read metadata
-  -- internal FIST_Image model: type, undefined value, dimensions
-
-  procedure Read_Dimensions
-    (F : in SIO.File_Type;
-    BITPIX : out Integer;
-    NAXISn : out NAXIS_Arr);
-
-  generic
-    type Tm is private;
-  function Read_Undef_Value(F : in SIO.File_Type) return Tm;
-
-
-
--- Read data
-
-  generic
-    type Tm is digits <>;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Read_Array_As_Float
-    (F : in SIO.File_Type;
-    Undef_Value : out Tm;   -- FIXME how to return "none"=no BLANK (for raw Integers data)
-    I : in Positive; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
-    Plane : out Tm_Arr);
 
 
   generic
@@ -51,17 +27,6 @@ package V3_FITS_Image is
     Volume : out Tm_Arr);
 
 
-
-  -- Write,  BITPIX, Undef_Value, NAXISn are known
-
-  generic
-    type Tm is private;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Write_Array
-    (F : in SIO.File_Type;
-    Plane : in Tm_Arr);
-
-
   generic
     type Tm is private;
     type Tm_Arr is array (Positive_Count range <>) of Tm;
@@ -71,6 +36,29 @@ package V3_FITS_Image is
     NAXISn : in NAXIS_Arr;
     First, Last : in NAXIS_Arr;
     Volume : in Tm_Arr);
+
+
+
+
+  generic
+    type Tm is digits <>;
+    type Tm_Arr is array (Positive_Count range <>) of Tm;
+    with procedure Plane_Data(Plane : in Tm_Arr; PlaneCount : in Positive_Count);
+  procedure Read_Plane_As_Float
+    (F : in SIO.File_Type;
+    NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
+    Undef_Value : out Tm); -- FIXME how to return "none"=no BLANK (for raw Integers data)
+
+
+  generic
+    type Tm is private;
+    type Tm_Arr is array (Positive_Count range <>) of Tm;
+    with procedure Plane_Data(Plane : out Tm_Arr; PlaneCount : in Positive_Count);
+  procedure Write_Plane_As_Float
+    (F : in SIO.File_Type;
+    NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
+    Undef_Value : in Tm); -- FIXME how to return "none"=no BLANK (for raw Integers data)
+
 
 
 end V3_FITS_Image;
