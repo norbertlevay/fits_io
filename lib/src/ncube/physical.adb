@@ -170,14 +170,14 @@ package body Physical is
     RawVol: Tf_Arr(1 .. VolLength);
 
     procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
-    function LinScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
+    function LinScaleFloat is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
   begin
 
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop
-      Volume(I) := LinScale(RawVol(I));
+      Volume(I) := LinScaleFloat(RawVol(I));
     end loop;
 
   end Read_Float_Volume;

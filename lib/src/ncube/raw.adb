@@ -5,6 +5,10 @@
 -- reads all DU sequentially
 -- NOTE position to DUStart before 1st call in Read/Write_x_Data
 
+-- FIXME Read/Write_Array should be 'separate'-file and have two variants:
+-- with and without Revert_Bytes depending on build-target being
+-- Little- or BigEndian code
+
 with Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
@@ -18,6 +22,9 @@ with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 
 with NCube_Funcs; use NCube_Funcs;
+
+
+
 
 package body Raw is
 
@@ -70,6 +77,7 @@ package body Raw is
   end Check_And_Revert;
 
 
+
   -- Sequential access
 
 
@@ -107,8 +115,7 @@ package body Raw is
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
-    Length  : in Positive_Count;
-    AValues  : in out T_Arr);
+    AValues : in out T_Arr);
     -- FIXME AValues put to Heap, might be too big for Stack
 
   procedure Read_Raw_Line
@@ -116,8 +123,7 @@ package body Raw is
     DUStart : in Positive_Count; -- block count
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
-    Length  : in Positive_Count;
-    AValues  : in out T_Arr)
+    AValues : in out T_Arr)
   is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
@@ -131,10 +137,6 @@ package body Raw is
 
 
 
-
-
-
-
   procedure Read_Volume
     (File : SIO.File_Type;
     DUStart : in Positive_Count;
@@ -143,10 +145,9 @@ package body Raw is
     Last    : in NAXIS_Arr;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
   is
-    procedure Read_One_Line
-    is new Read_Raw_Line(T,T_Arr);
+    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
 
-    LineLength : Positive_Count := 1 + Positive_Count(Last(1) - First(1)); -- FIXME FInteger
+    LineLength : Positive_Count := 1 + (Last(1) - First(1));
     Line: T_Arr(1 .. LineLength);
 
     -- generate coords vars
@@ -170,7 +171,7 @@ package body Raw is
     end loop;
 
     --print_coord(C)
-    Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
+    Read_One_Line(File, DUStart, NAXISn, C, Line);
 
     Vf := To_DU_Index(CV,VolNAXISn);
     Vl := Vf + LineLength - 1;
@@ -194,7 +195,7 @@ package body Raw is
       end loop;
 
       -- print_coord(C);
-      Read_One_Line(File, DUStart, NAXISn, C, LineLength, Line);
+      Read_One_Line(File, DUStart, NAXISn, C, Line);
 
       for I in First'Range loop
         CV(I) := Unity(I) + C(I) - First(I);
