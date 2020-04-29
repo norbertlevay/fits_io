@@ -3,7 +3,7 @@
 -- if T_Arr'Length = NAXISi*NAXISi-1*...*NAXIS1
 -- then repeating Read (NAXISn*NAXISn-1*...NAXISi+1)-times 
 -- reads all DU sequentially
--- NOTE position to DUStart before 1st call in Read/Write_x_Plane
+-- NOTE position to DUStart before 1st call in Read/Write_x_Data
 
 with Ada.Text_IO;
 
@@ -73,26 +73,26 @@ package body Raw is
   -- Sequential access
 
 
-  procedure Read_Plane
+  procedure Read_Array
     (F : SIO.File_Type;
-    Plane  : out T_Arr)
+    Data  : out T_Arr)
   is
     procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
   begin
-    T_Arr'Read(SIO.Stream(F),Plane);
-    CheckAndRevert(Plane);
-  end Read_Plane;
+    T_Arr'Read(SIO.Stream(F),Data);
+    CheckAndRevert(Data);
+  end Read_Array;
 
-  procedure Write_Plane
+  procedure Write_Array
     (F : SIO.File_Type;
-    Plane  : in T_Arr)
+    Data  : in T_Arr)
   is
-    LocalPlane : T_Arr := Plane;
+    LocalData : T_Arr := Data;
     procedure CheckAndRevert is new Check_And_Revert(T,T_Arr);
   begin
-    CheckAndRevert(LocalPlane);
-    T_Arr'Write(SIO.Stream(F),LocalPlane);
-  end Write_Plane;
+    CheckAndRevert(LocalData);
+    T_Arr'Write(SIO.Stream(F),LocalData);
+  end Write_Array;
 
 
 
@@ -122,10 +122,10 @@ package body Raw is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
     DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
-    procedure ReadPlane is new Read_Plane(T,T_Arr);
+    procedure ReadArray is new Read_Array(T,T_Arr);
  begin
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
-    ReadPlane(F, AValues);
+    ReadArray(F, AValues);
   end Read_Raw_Line;
 
 

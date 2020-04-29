@@ -22,10 +22,10 @@ package Physical is
   type Tc is digits <>;
   with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
- procedure Read_Int_Plane
+ procedure Read_Int_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : out Tm_Arr);
+    Data : out Tm_Arr);
 
 
  generic
@@ -35,11 +35,11 @@ package Physical is
   type Tc is digits <>;
   with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
- procedure Read_Float_Plane
+ procedure Read_Float_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Undef_Val : in Tm; -- FIXME reconsider: is this needed: for Float known per definition (=NaN)
-    Plane  : out Tm_Arr);
+    Data : out Tm_Arr);
 
 
 
@@ -52,10 +52,10 @@ package Physical is
   type Tc is digits <>;
   with function "+"(R : in Tc) return Tm is <>;
   with function "+"(R : in Tf) return Tc is <>;
- procedure Write_Int_Plane
+ procedure Write_Int_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : in Tm_Arr);
+    Data : in Tm_Arr);
 
 
  generic
@@ -66,10 +66,10 @@ package Physical is
   Undef_Val : in Tm;
   with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
- procedure Write_Float_Plane
+ procedure Write_Float_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : in Tm_Arr);
+    Data : in Tm_Arr);
 
 
 

@@ -60,7 +60,7 @@ end Read_Undef_Value;
 -- Read data
 
 
-procedure Read_Plane_As_Float
+procedure Read_Array_As_Float
   (F : in SIO.File_Type;
   Undef_Value : out Tm;   -- FIXME how to give "none" no BLANK provided (for raw Integers data)
   I : in Positive;-- needed to derive Tm_Arr length = NAXIS1*NAXIS2*...*NAXISi
@@ -85,10 +85,10 @@ is
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
   --                                                     Tf                   Tc
-  procedure  U8ReadIntPlane is      new Read_Int_Plane(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure I16ReadIntPlane is      new Read_Int_Plane(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F32F64ReadFloatPlane is new Read_Float_Plane(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F64F64ReadFloatPlane is new Read_Float_Plane(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure  U8ReadIntPlane is      new Read_Int_Array(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure I16ReadIntPlane is      new Read_Int_Array(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F32F64ReadFloatPlane is new Read_Float_Array(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F64F64ReadFloatPlane is new Read_Float_Array(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 
 begin
   Read_Dimensions(F, BITPIX, NAXISn);
@@ -103,7 +103,7 @@ begin
     when others => null; -- FIXME Error
   end case;
 
-end Read_Plane_As_Float;
+end Read_Array_As_Float;
 
 
 
@@ -189,13 +189,13 @@ end Read_Volume_As_Float;
 
 -- Write,  BITPIX, Undef_Value, NAXISn are known
 
-procedure Write_Plane
+procedure Write_Array
   (F : in SIO.File_Type;
   Plane : in Tm_Arr)
 is
 begin
   null;
-end Write_Plane;
+end Write_Array;
 
 
 

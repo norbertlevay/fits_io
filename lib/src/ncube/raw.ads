@@ -29,17 +29,17 @@ package Raw is
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Read_Plane
+ procedure Read_Array
    (F : SIO.File_Type;
-    Plane  : out T_Arr);
+    Data : out T_Arr);
 
 
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
- procedure Write_Plane
+ procedure Write_Array
    (F : SIO.File_Type;
-    Plane  : in T_Arr);
+   Data : in T_Arr);
 
 
  generic

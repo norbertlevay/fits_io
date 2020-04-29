@@ -33,7 +33,7 @@ package V3_FITS_Image is
   generic
     type Tm is digits <>;
     type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Read_Plane_As_Float
+  procedure Read_Array_As_Float
     (F : in SIO.File_Type;
     Undef_Value : out Tm;   -- FIXME how to return "none"=no BLANK (for raw Integers data)
     I : in Positive; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
@@ -57,7 +57,7 @@ package V3_FITS_Image is
   generic
     type Tm is private;
     type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Write_Plane
+  procedure Write_Array
     (F : in SIO.File_Type;
     Plane : in Tm_Arr);
 

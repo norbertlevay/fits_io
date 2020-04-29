@@ -3,7 +3,7 @@
 -- if T_Arr'Length = NAXISi*NAXISi-1*...*NAXIS1
 -- then repeating Read (NAXISn*NAXISn-1*...NAXISi+1)-times 
 -- reads all DU sequentially
--- NOTE position to DUStart before 1st call in Read/Write_x_Plane
+-- NOTE position to DUStart before 1st call in Read/Write_x_Data
 
 
 -- NOTE we separate to Int and Float because Scale_Float checks 
@@ -39,32 +39,32 @@ package body Physical is
   -- Sequential access
 
 
-  procedure Read_Int_Plane
+  procedure Read_Int_Array
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : out Tm_Arr)
+    Data  : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
-    procedure ReadRawPlane is new Raw.Read_Plane(Tf,Tf_Arr);
+    RawData : Tf_Arr(Data'First .. Data'Last);
+    procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
     function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
-    ReadRawPlane(F, RawPlane);
-    for I in RawPlane'Range
+    ReadRawArray(F, RawData);
+    for I in RawData'Range
     loop
-      Plane(I) := LinScale(RawPlane(I));
+      Data(I) := LinScale(RawData(I));
     end loop;
-  end Read_Int_Plane;
+  end Read_Int_Array;
 
 
-  procedure Write_Int_Plane
+  procedure Write_Int_Array
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : in Tm_Arr)
+    Data : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
-    procedure WriteRawPlane is new Raw.Write_Plane(Tf,Tf_Arr);
+    RawData : Tf_Arr(Data'First .. Data'Last);
+    procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
 --    function LinScale is new Unit.Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
@@ -72,48 +72,48 @@ package body Physical is
 --    loop
 --      RawPlane(I) := LinScale(Plane(I));
 --    end loop;>
-    WriteRawPlane(F, RawPlane);
-  end Write_Int_Plane;
+    WriteRawArray(F, RawData);
+  end Write_Int_Array;
 
 
 
-  procedure Read_Float_Plane
+  procedure Read_Float_Array
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
     Undef_Val : in Tm;
-    Plane  : out Tm_Arr)
+    Data : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure ReadRawPlane is new Raw.Read_Plane(Tf,Tf_Arr);
+    procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
-    RawPlane : Tf_Arr(Plane'First .. Plane'Last);
+    RawData : Tf_Arr(Data'First .. Data'Last);
   begin
-    ReadRawPlane(F, RawPlane);
-    for I in RawPlane'Range
+    ReadRawArray(F, RawData);
+    for I in RawData'Range
     loop
-      Plane(I) := LinFloatScale(RawPlane(I));
+      Data(I) := LinFloatScale(RawData(I));
     end loop;
-  end Read_Float_Plane;
+  end Read_Float_Array;
 
 
-  procedure Write_Float_Plane
+  procedure Write_Float_Array
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
-    Plane  : in Tm_Arr)
+    Data : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure WriteRawPlane is new Raw.Write_Plane(Tf,Tf_Arr);
+    procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
     function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
-    RawPlane : Tf_Arr(Plane'First .. Plane'Last); -- FIXME convert and scale ? := Plane;
+    RawData : Tf_Arr(Data'First .. Data'Last); -- FIXME convert and scale ? := Plane;
   begin
-    for I in RawPlane'Range
+    for I in RawData'Range
     loop
       -- FIXME incorrect Write needs Reverse-LisnScale and Tm
-      -- -> Tf RawPlane(I) := LinFloatScale(Plane(I));
+      -- -> Tf RawData(I) := LinFloatScale(Data(I));
       null;
     end loop;
-    WriteRawPlane(F, RawPlane);
-  end Write_Float_Plane;
+    WriteRawArray(F, RawData);
+  end Write_Float_Array;
 
 
 
