@@ -153,7 +153,8 @@ procedure Write_Array
  is
  begin
  --if(Vf'Valid) -- evaluates false besides NaN also for +/-Inf
- if(Vf = Vf) -- true for any number except NaN NOTE make sure compiler does not optimize it out
+-- pragma Optimize(Off); -- turn off optional optimizations
+   if(Vf = Vf) -- true for any number except NaN NOTE make sure compiler does not optimize it out
  then
     return +( BZERO + BSCALE * (+Vf) );
  else
