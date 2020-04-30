@@ -20,7 +20,7 @@ with Ada.Unchecked_Conversion;
 with Interfaces;
 
 with Data_Unit;
-with Unit;
+--with Unit;
 with Data_Funcs;    use Data_Funcs;
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
@@ -36,6 +36,49 @@ package body Physical is
   package TIO renames Ada.Text_IO;
 
 
+-- Vout = A + B * Vin 
+
+ function Scale(Vf : in Tf) return Tm
+ is
+ begin
+    return +( BZERO + BSCALE * (+Vf) );
+ end Scale;
+
+-- NOTE See also 'Machine_Overflows True/False in conjuction with
+ -- floating point behaviour  ->  whether NaN Inf will be generated as
+ -- result of float operations or some exception raised
+ -- GNAT switches like -mieee and -gnato?? affect exception (and also some pragmas?)
+
+ -- How to test for NaN:
+ -- example from Rosetta Code (And IEEE-Standard says) shows: NaN = NaN is FALSE,
+ -- but PInf = Pinf is TRUE as for any other number
+
+ -- unverified from iNet:
+ -- Catching NaN requires a three-way test, viz.:
+ -- if Value /= 0.0 and then (not (Value < 0.0)) and then (not (Value > 0.0))
+ -- then
+ --   <Value is NaN>;
+ -- end if;
+
+ function Scale_Float(Vf : in Tf) return Tm
+ is
+ begin
+ --if(Vf'Valid) -- evaluates false besides NaN also for +/-Inf
+-- pragma Optimize(Off); -- turn off optional optimizations
+   if(Vf = Vf) -- true for any number except NaN NOTE make sure compiler does not optimize it out
+ then
+    return +( BZERO + BSCALE * (+Vf) );
+ else
+    return Undef;-- retun NaN in Tm type
+ end if;
+ end Scale_Float;
+
+
+
+
+
+
+
   -- Sequential access
 
 
@@ -47,7 +90,7 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
-    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+    function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
     ReadRawArray(F, RawData);
     for I in RawData'Range
@@ -65,7 +108,7 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
---    function LinScale is new Unit.Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
+--    function LinScale is new Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
 --    for I in Plane'Range
@@ -85,7 +128,7 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
-    function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawData : Tf_Arr(Data'First .. Data'Last);
   begin
     ReadRawArray(F, RawData);
@@ -103,7 +146,7 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
-    function LinFloatScale is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawData : Tf_Arr(Data'First .. Data'Last); -- FIXME convert and scale ? := Plane;
   begin
     for I in RawData'Range
@@ -139,7 +182,7 @@ package body Physical is
     RawVol: Tf_Arr(1 .. VolLength);
 
     procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
-    function LinScale is new Unit.Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+    function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
 
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
@@ -170,7 +213,7 @@ package body Physical is
     RawVol: Tf_Arr(1 .. VolLength);
 
     procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
-    function LinScaleFloat is new Unit.Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
+    function LinScaleFloat is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
   begin
 
     ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
