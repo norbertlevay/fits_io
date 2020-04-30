@@ -25,7 +25,7 @@ package Physical is
  function Scale(Vf : Tf) return Tm;
 
 
--- float, check with 'Valid
+-- float, check for NaN
 
  generic
     type Tf is digits <>;
