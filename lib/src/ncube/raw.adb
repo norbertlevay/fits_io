@@ -214,15 +214,50 @@ package body Raw is
 
  procedure Write_Volume
    (File : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
+    DUStart : in Positive_Count; -- count in Blocks
+    NAXISn  : in NAXIS_Arr;    -- organization of data in DU
     First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
-    Volume  : in T_Arr)
+    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
+    Volume     : in T_Arr)
  is
+   LineLength : Positive_Count := VolumeSize(1);
+   Line       : T_Arr(1 .. LineLength);
+   LineFirst  : Positive_Count;
+   LineLast   : Positive_Count := LineLength;
+   C     : NAXIS_Arr(First'First .. First'Last);
+   DestC : NAXIS_Arr(First'First .. First'Last);
+   DestDUIndex : Positive_Count;
+   SIOFileIndex : SIO.Positive_Count;
+   procedure Write_One_Line is new Write_Array(T, T_Arr);
  begin
-   -- FIXME not implemented
-   null;
+
+   for I in 2 .. Volume'Length 
+   loop
+
+      for L in 1 .. VolumeSize(I)
+      loop
+        C(I) := L;
+        -- get Line from Source
+        LineFirst := LineLast + 1;
+        LineLast  := LineFirst + LineLength - 1;
+        Line := Volume(LineFirst .. LineLast);
+
+        -- put Line into Dest
+        for K in 1 .. C'Length
+        loop
+          DestC(K) := First(K) + C(K) - 1;
+        end loop;
+
+        DestDUIndex  := To_DU_Index(DestC, NAXISn);
+        SIOFileIndex := DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880;
+        SIO.Set_Index(File, SIOFileIndex);
+        Write_One_Line(File, Line);
+      end loop;
+
+      C(I) := 1;
+
+   end loop;
+
  end Write_Volume;
 
 end Raw;
