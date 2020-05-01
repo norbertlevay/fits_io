@@ -24,14 +24,14 @@ begin
 
   for I in 1 .. (DULength_blks - 1)
   loop
-    First := Calc_Block_First(I);
-    Data(First, Block);
+    --First := Calc_Block_First(I);
+    Data(Block);
     T_Arr'Write(Stream(File), Block);
   end loop;
 
   -- last block handle separately because needs padding
-  First := Calc_Block_First(DULength_blks);
-  Data(First, Block);
+  --First := Calc_Block_First(DULength_blks);
+  Data(Block);
   Block((DataLength rem 2880/(T'Size/8)) .. 2880/(T'Size/8)) := (others => Tf_DataPadding);
   T_Arr'Write(Stream(File), Block);
 
@@ -50,9 +50,9 @@ begin
 
   for I in 1 .. DULength_blks
   loop
-    First := Calc_Block_First(I);
+    --First := Calc_Block_First(I);
     T_Arr'Read(Stream(File), Block);
-    Data(First, Block);
+    Data(Block);
   end loop;
 
 end Read;
@@ -81,7 +81,7 @@ begin
 
   for I in 1 .. PlaneCount
   loop
-    Data(Coord_From_Index(Coords, I), Plane);
+    Data(Plane);
     Write_Plane(File, Plane);
   end loop;
 
@@ -110,7 +110,7 @@ begin
   for I in 1 .. PlaneCount
   loop
     Read_Plane(File, Plane);
-    Data(Coord_From_Index(Coords, I), Plane);
+    Data(Plane);
   end loop;
 
 end Read_Planes;
