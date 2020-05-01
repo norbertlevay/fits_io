@@ -64,7 +64,8 @@ package Raw is
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
     Volume     : in T_Arr);
-
+ -- Write will cut file if Mode is OUT, only for Mode INOUT will update
+ -- pre-condition: File must have Mode INOUT
 
 end Raw;
 
