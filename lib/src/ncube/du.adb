@@ -39,11 +39,31 @@ end Write;
 
 
 
-
-
-  --with procedure Data(PlaneCoord: in NAXIS_Arr; Plane : in T_Arr);
-  -- implemented as read-by-planes
 procedure Read
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr)
+is
+  DULength_blks : Positive_Count := DU_Length(NAXISn);
+  First : NAXIS_Arr(NAXISn'First .. NAXISn'Last);
+  Block : is array (Positive_Count range 1 .. 2880) of T;
+begin
+
+  for I in 1 .. DULength_blks
+  loop
+    First := Calc_Block_First(I);
+    T_Arr'Read(Stream(File), Block);
+    Data(First, Block);
+  end loop;
+
+end Read;
+
+
+
+
+-- access Planes
+
+
+procedure Write_Planes
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
   I : in Integer) -- 1 .. 999
@@ -52,15 +72,50 @@ is
   PlaneLength : Positive_Count := Calc_Size(NAXISi);
   Coords : NAXIS_Arr := NAXISn((I+1) .. NAXISn'Last);
   PlaneCount : Positive_Count := Calc_Size(Coords);
+  procedure Write_Plane is new Write_Array(T,T_Arr);
+  DULength : Positive_Count := Calc_Size(NAXISn);
+  PaddingLength .= Positive_Count := DULength - PlaneLength*PlaneCount;
+  T_Padding : T := T(0); -- FIXME how to set 0 for all types ??
+  Padding : NAXIS_Arr(1 .. PaddingLength) := (others => T_Padding);
 begin
 
   for I in 1 .. PlaneCount
   loop
-    Raed_Plane(File, Plane);
+    Data(Coord_From_Index(Coords, I), Plane);
+    Write_Plane(File, Plane);
+  end loop;
+
+  -- FIXME add write padding
+  Write_Plane(File, Padding);
+
+end Write_Planes;
+
+
+
+
+  --with procedure Data(PlaneCoord: in NAXIS_Arr; Plane : in T_Arr);
+  -- implemented as read-by-planes
+procedure Read_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer) -- 1 .. 999
+is
+  NAXISi : NAXIS_Arr := NAXISn(1 .. I);
+  PlaneLength : Positive_Count := Calc_Size(NAXISi);
+  Coords : NAXIS_Arr := NAXISn((I+1) .. NAXISn'Last);
+  PlaneCount : Positive_Count := Calc_Size(Coords);
+  procedure Read_Plane is new Read_Array(T,T_Arr);
+begin
+
+  for I in 1 .. PlaneCount
+  loop
+    Read_Plane(File, Plane);
     Data(Coord_From_Index(Coords, I), Plane);
   end loop;
 
-end Read;
+end Read_Planes;
+
+
 
 end DU;
 

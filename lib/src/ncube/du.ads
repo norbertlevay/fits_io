@@ -15,6 +15,9 @@ package DU is
 
 -- both DU.Create and DU.Read require File Index set at first data in DU
 
+
+-- access by Blocks
+
 generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
@@ -27,12 +30,34 @@ procedure Write
   -- pre-condition: File must have Mode = OUT or APPEND
 
 
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(First : in NAXIS_Arr; Block : in T_Arr);
+procedure Read
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+
+-- access by Planes
+
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(PlaneCoord: in NAXIS_Arr; Plane : out T_Arr);
+procedure Write_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer); -- 1 .. 999
+
 
 generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
   with procedure Data(PlaneCoord: in NAXIS_Arr; Plane : in T_Arr);
-procedure Read
+procedure Read_Planes
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
   I : in Integer); -- 1 .. 999
