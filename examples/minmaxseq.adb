@@ -38,6 +38,7 @@ with Data_Block;
 with Data_Unit;
 --with Unit;
 with Physical;
+with Physical_Funcs;
 with Data_Value; use Data_Value;
 
 procedure minmaxseq
@@ -149,7 +150,7 @@ is
       I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
       function I16F32_Scale is
-        new Physical.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
+        new Physical_Funcs.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
       NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
 
       type F64_Plane is array(SIO.Positive_Count range <>) of Float_64;

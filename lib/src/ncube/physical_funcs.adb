@@ -13,7 +13,6 @@ with Ada.Text_IO;
 
 package body Physical_Funcs is
 
-  use SIO;
 
   package TIO renames Ada.Text_IO;
 
