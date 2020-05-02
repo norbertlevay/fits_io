@@ -116,7 +116,7 @@ package body File.Misc is
 
   -- Write Data Unit
 
- procedure Write_Data_Unit (File : in SIO.File_Type;
+ procedure OLD_Write_Data_Unit (File : in SIO.File_Type;
                             DataElementCount : in SIO.Positive_Count)
  is
 
@@ -179,7 +179,7 @@ package body File.Misc is
 
   AnyType.Block'Write(SIO.Stream(File), B);
 
- end Write_Data_Unit;
+ end OLD_Write_Data_Unit;
 
 
 

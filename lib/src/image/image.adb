@@ -11,6 +11,9 @@ package body Image is
 
  package SIO renames Ada.Streams.Stream_IO;
 
+
+-- NOTE free-format integer must be right justified ? $
+-- Standard ambigous Sect 4.2.3; fitsverify: no complain$
 function Create_Card(Key : in String; Value : in String) return String_80
 is
     C : String(1 .. 80);
