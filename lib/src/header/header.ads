@@ -3,7 +3,7 @@ with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 with Keyword_Record; use Keyword_Record; -- String_80 needed
-with Mandatory; -- NAXIS_Arr needed
+with Mandatory; use Mandatory;-- NAXIS_Arr needed
 with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
 
 package Header is
@@ -28,4 +28,25 @@ package Header is
 -- FIXME consider returning also position at which the card was in the Header
 -- and hen consider returning also separately key and value/comment??
 
+
+
+
+
+    -- from earlier image/image.ads
+
+type Image_Rec(NAXIS : Natural) is
+    record
+        BITPIX : Integer;
+        NAXISn : NAXIS_Arr(1 .. NAXIS);
+    end record;
+
+function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr;
+
+function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr;
+
+
+function Create_Card(Key : in String; Value : in String) return String_80;
+
+
 end Header;
+
