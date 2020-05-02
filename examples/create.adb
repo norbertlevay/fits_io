@@ -79,7 +79,8 @@ begin
   end loop;
 end DUFloatData;
 
-procedure F32_Write_Data_Unit is new Raw.Write(Float_32, 0.0, F32_Arr, DUFloatData);
+package F32_Raw is new Raw(Float_32, F32_Arr);
+procedure F32_Write_Data_Unit is new F32_Raw.Write_Data_Unit(0.0, DUFloatData);
 
  NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 

@@ -48,10 +48,11 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
-    procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+--    procedure ReadRawArray renames Tf_Raw.Read_Array;
     function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
-    ReadRawArray(F, RawData);
+    Tf_Raw.Read_Array(F, RawData);
     for I in RawData'Range
     loop
       Data(I) := LinScale(RawData(I));
@@ -66,7 +67,7 @@ package body Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
-    procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
 --    function LinScale is new Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
@@ -74,7 +75,7 @@ package body Physical is
 --    loop
 --      RawPlane(I) := LinScale(Plane(I));
 --    end loop;>
-    WriteRawArray(F, RawData);
+    Tf_Raw.Write_Array(F, RawData);
   end Write_Int_Array;
 
 
@@ -86,11 +87,11 @@ package body Physical is
     Data : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure ReadRawArray is new Raw.Read_Array(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
     function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawData : Tf_Arr(Data'First .. Data'Last);
   begin
-    ReadRawArray(F, RawData);
+    Tf_Raw.Read_Array(F, RawData);
     for I in RawData'Range
     loop
       Data(I) := LinFloatScale(RawData(I));
@@ -104,7 +105,7 @@ package body Physical is
     Data : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
-    procedure WriteRawArray is new Raw.Write_Array(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
     function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
     RawData : Tf_Arr(Data'First .. Data'Last); -- FIXME convert and scale ? := Plane;
   begin
@@ -114,7 +115,7 @@ package body Physical is
       -- -> Tf RawData(I) := LinFloatScale(Data(I));
       null;
     end loop;
-    WriteRawArray(F, RawData);
+    Tf_Raw.Write_Array(F, RawData);
   end Write_Float_Array;
 
 
@@ -140,11 +141,11 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
-    procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
     function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
 
-    ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+    Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop
@@ -171,11 +172,11 @@ package body Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);
 
-    procedure ReadRawVolume is new Raw.Read_Volume(Tf,Tf_Arr);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
     function LinScaleFloat is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
   begin
 
-    ReadRawVolume(File, DUStart, NAXISn, First, Last, RawVol);
+    Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop

@@ -21,6 +21,9 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
 package Raw is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -29,37 +32,27 @@ package Raw is
 -- sequential access
 
 
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
  procedure Read_Array
    (F : SIO.File_Type;
     Data : out T_Arr);
 
 
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
  procedure Write_Array
    (F : SIO.File_Type;
    Data : in T_Arr);
 
 
 generic
-  type T is private;
   T_DataPadding : T;
-  type T_Arr is array (Positive_Count range <>) of T;
   with procedure Data(Block : out T_Arr);
-procedure Write
+procedure Write_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr);
 
 
 generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
   with procedure Data(Block : in T_Arr);
-procedure Read
+procedure Read_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr);
 
@@ -68,9 +61,6 @@ procedure Read
 -- random access
 
 
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
  procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
@@ -80,9 +70,6 @@ procedure Read
     Volume  : out T_Arr);
 
 
- generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
  procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;

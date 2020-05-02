@@ -107,17 +107,6 @@ package body Raw is
   -- Random access
 
 
-  generic
-  type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
-  procedure Read_Raw_Line
-    (F : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    AValues : in out T_Arr);
-    -- FIXME AValues put to Heap, might be too big for Stack
-
   procedure Read_Raw_Line
     (F : SIO.File_Type;
     DUStart : in Positive_Count; -- block count
@@ -128,10 +117,10 @@ package body Raw is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
     DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
-    procedure ReadArray is new Read_Array(T,T_Arr);
+    --procedure ReadArray is new Read_Array(T,T_Arr);
  begin
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
-    ReadArray(F, AValues);
+    Read_Array(F, AValues);
   end Read_Raw_Line;
 
 
@@ -164,7 +153,7 @@ end DU_Data_Count;
 
 
 
-procedure Write
+procedure Write_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr)
 is
@@ -175,7 +164,7 @@ is
   First : NAXIS_Arr := NAXISn; -- FIXME we don't need values only size
   Block : T_Arr(1 .. 2880/(T'Size/8));
   -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
-  procedure Write_Block is new Write_Array(T, T_Arr);
+  --procedure Write_Block is new Write_Array(T, T_Arr);
 begin
 
   TIO.Put_Line("T'Size        : " & Positive_Count'Image(T'Size));
@@ -185,7 +174,7 @@ begin
   for I in 1 .. (DULength_blks - 1)
   loop
     Data(Block);
-    Write_Block(File, Block);
+    Write_Array(File, Block);
   end loop;
 
   -- last block handle separately because needs padding
@@ -197,14 +186,14 @@ begin
   TIO.Put_Line("PaddingLast   : " & Positive_Count'Image(PaddingLast));
 
   Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
-  Write_Block(File, Block);
+  Write_Array(File, Block);
 
-end Write;
-
-
+end Write_Data_Unit;
 
 
-procedure Read
+
+
+procedure Read_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr)
 is
@@ -212,16 +201,16 @@ is
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
   First : NAXIS_Arr := NAXISn;
   Block : T_Arr(1 .. 2880); -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
-  procedure Read_Block is new Read_Array(T, T_Arr);
+--  procedure Read_Block is new Read_Array(T, T_Arr);
 begin
 
   for I in 1 .. DULength_blks
   loop
-    Read_Block(File, Block);
+    Read_Array(File, Block);
     Data(Block);
   end loop;
 
-end Read;
+end Read_Data_Unit;
 
 
 
@@ -241,7 +230,7 @@ end Read;
     Last    : in NAXIS_Arr;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
   is
-    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
+--    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
 
     LineLength : Positive_Count := 1 + (Last(1) - First(1));
     Line: T_Arr(1 .. LineLength);
@@ -267,7 +256,7 @@ end Read;
     end loop;
 
     --print_coord(C)
-    Read_One_Line(File, DUStart, NAXISn, C, Line);
+    Read_Raw_Line(File, DUStart, NAXISn, C, Line);
 
     Vf := To_DU_Index(CV,VolNAXISn);
     Vl := Vf + LineLength - 1;
@@ -291,7 +280,7 @@ end Read;
       end loop;
 
       -- print_coord(C);
-      Read_One_Line(File, DUStart, NAXISn, C, Line);
+      Read_Raw_Line(File, DUStart, NAXISn, C, Line);
 
       for I in First'Range loop
         CV(I) := Unity(I) + C(I) - First(I);
@@ -324,7 +313,7 @@ end Read;
    DestC : NAXIS_Arr(First'First .. First'Last);
    DestDUIndex : Positive_Count;
    SIOFileIndex : SIO.Positive_Count;
-   procedure Write_One_Line is new Write_Array(T, T_Arr);
+--   procedure Write_One_Line is new Write_Array(T, T_Arr);
  begin
 
    for I in 2 .. Volume'Length 
@@ -347,7 +336,7 @@ end Read;
         DestDUIndex  := To_DU_Index(DestC, NAXISn);
         SIOFileIndex := DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880;
         SIO.Set_Index(File, SIOFileIndex);
-        Write_One_Line(File, Line);
+        Write_Array(File, Line);
       end loop;
 
       C(I) := 1;
