@@ -25,7 +25,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 -- new Data interface
 with V3_Types; use V3_Types;
 with Data_Funcs; use Data_Funcs;
-
+with Image; -- Create_Card needed
 with Raw;
 
 procedure convertraw
@@ -47,14 +47,11 @@ is
  BITPIX : Integer;
  DUSize : SIO.Positive_Count;
 
- BITPIXnewCard : String_80 :=
-"BITPIX  =                   16 /                                                ";
- BSCALECard : String_80 :=
-"BSCALE  =          0.003891051 / floating point value                           ";
- BZEROCard : String_80 :=
-"BZERO   =        127.501945525 / floating point value                           ";
--- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
+ BITPIXnewCard : String_80 := Image.Create_Card("BITPIX", "16");
+ BSCALECard    : String_80 := Image.Create_Card("BSCALE",  "0.003891051");
+ BZEROCard     : String_80 := Image.Create_Card("BZERO" ,"127.501945525");
 
+ -- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
 
  LastWrittenIdx : SIO.Positive_Count;
 begin
@@ -64,13 +61,11 @@ begin
 
  SIO.Open   (InFile,  SIO.In_File,  InFileName);
  SIO.Create (OutFile, SIO.Out_File, OutFileName);
- -- FIXME check behaviour AdaRM: overwrites if file already exists ?
- -- FIXME if AdaRM says SIO.Create guarantees File Index
- -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- -- FIXME now only Primary HDU, later consider other HDUs
 
- -- write Header
+ -- Copy Header
+ -- but replace BITPIX card and insert BZERO BSCALE
+ -- cards after DATAMAX card
 
  Set_Index(InFile, Positive(1));
  loop
@@ -87,15 +82,15 @@ begin
     String_80'Write(SIO.Stream(OutFile),BSCALECard);
   end if; 
 
-
  exit when Card = ENDCard;
  end loop;
- LastWrittenIdx := SIO.Index(OutFile);
- -- Index to StreamElement (after) the last written one
 
+ LastWrittenIdx := SIO.Index(OutFile);
  Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
  -- NOTE also make sure InFile Padding is skipped: now 
  -- Get() reads by Blocks
+
+
 
  SIO.Set_Index(InFile,1);
  -- interpret header: DataUnit length and type needed
@@ -106,7 +101,7 @@ begin
   DUSize := Data_Unit_Size_elems (HDUInfo.NAXISn);
 -- end;
 
- -- read write sequentially by Blocks
+ -- Read Write sequentially by Blocks
 
  declare
   type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;

@@ -21,8 +21,10 @@ is
 begin
     Move(Key,   C(1  .. 8));
     Move("= ",  C(9  ..10));
-    Move(Value, C(11 ..(10 + Value'Length)));
-    Move(" ",   C((11 + Value'Length) .. 80));
+ --   Move(Value, C(11 ..(10 + Value'Length)));
+    Move(" ",   C(11 .. 80));
+    Move(Value, C( (1 + 30 - Value'Length) .. 30 ) );
+--    Move(" ",   C((11 + Value'Length) .. 80));
     return C;
 end Create_Card;
 
