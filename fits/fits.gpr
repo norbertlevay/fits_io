@@ -1,7 +1,7 @@
 project fits is
 
    for Languages use ("Ada");
-   for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/data", "../lib/src/ncube", "../lib/src/file", "../lib/src/header", "../lib/src/image", "../lib/src/api" ,"png/png_4_6", "png/zlib-ada");
+   for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/file", "../lib/src/header", "../lib/src/image", "../lib/src/api" ,"png/png_4_6", "png/zlib-ada");
    for Object_Dir use "obj";
    for Exec_Dir use ".";
    for Main use ("main.adb");

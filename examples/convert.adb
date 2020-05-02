@@ -24,8 +24,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 -- new Data interface
 with V3_Types; use V3_Types;
---with Data_Funcs; use Data_Funcs;
-with Image; -- Create_Card needed
+with Header; -- Create_Card needed
 with Raw;
 
 procedure convert
@@ -47,9 +46,9 @@ is
  BITPIX : Integer;
  DUSize : SIO.Positive_Count;
 
- BITPIXnewCard : String_80 := Image.Create_Card("BITPIX", "16");
- BSCALECard    : String_80 := Image.Create_Card("BSCALE",  "0.003891051");
- BZEROCard     : String_80 := Image.Create_Card("BZERO" ,"127.501945525");
+ BITPIXnewCard : String_80 := Header.Create_Card("BITPIX", "16");
+ BSCALECard    : String_80 := Header.Create_Card("BSCALE",  "0.003891051");
+ BZEROCard     : String_80 := Header.Create_Card("BZERO" ,"127.501945525");
 
  -- FIXME find Data Min Max and calc BSCALE BZERO (set BLANK if necessary)
 

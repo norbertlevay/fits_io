@@ -12,7 +12,7 @@ with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
 with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
 with Optional;        use Optional;       -- Card_Arr & ENDCard needed 
-with Image;           use Image;          -- needed to setup Header-record
+with Header;          use Header;         -- needed to setup Header-record
 with Raw;                                 -- writes data unit
 
 with File.Misc;       use File.Misc; -- needs Write_Padding for Header
