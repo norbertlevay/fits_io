@@ -6,8 +6,6 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Interfaces;
 
 with Header; use Header;
-with Data_Block;
-with Data_Funcs; use Data_Funcs;
 with V3_Types;
 
 with Keyword_Record; use Keyword_Record;-- String_80 needed
@@ -113,73 +111,6 @@ package body File.Misc is
     Coords := Rems(Rems'First) & Divs(Rems'First..Divs'Last-1);
    end To_Coords;
 
-
-  -- Write Data Unit
-
- procedure OLD_Write_Data_Unit (File : in SIO.File_Type;
-                            DataElementCount : in SIO.Positive_Count)
- is
-
-  package AnyType is new Data_Block(T => T);
-
-  B : AnyType.Block;
-  T_Size_bytes : constant Positive_Count := T'SIze / 8;  
-  CountOfBlocks       : constant Positive_Count := DU_Block_Index(DataElementCount, T_Size_bytes);
-  OffsetToLastElement : constant Positive := Offset_In_Block(DataElementCount, T_Size_bytes);
-  OffInDU : Positive_Count := 1;
- begin
-
-  -- write all except last block
-
-  for NB in 1 .. (CountOfBlocks - 1)
-  loop
-
-    for O in 1 .. AnyType.N
-    loop
-      B(O) := Element(OffInDU);
-      OffInDU := OffInDU + 1;
-    end loop;
-
-    AnyType.Block'Write(SIO.Stream(File), B); 
-
-  end loop;
-
-  -- write last block's data
-
-  for O in 1 .. OffsetToLastElement
-  loop
-    B(O) := Element(OffInDU);
-    OffInDU := OffInDU + 1;
-  end loop;
-
-  -- write padding
-
-  for O in (OffsetToLastElement+1) .. AnyType.N
-  loop
-    B(O) := PadValue;
-
--- type-independent implementation commented out: PadValue generic param implementation 
--- prefered because 
--- A, it does not require Unchecked_Conversion 
--- and 
--- B, IEEE-float standard guarantees that bit pattern of +0.0 floats is always zeros which 
--- is the same as Pad-value in DataUnit in FITS
---
---    declare
---     Size_Bytes : constant Positive := T'Size / Interfaces.Unsigned_8'Size;
---     type ArrU8 is array (1..Size_Bytes) of Interfaces.Unsigned_8;
---     function Arr_To_Data is
---       new Ada.Unchecked_Conversion(Source => ArrU8, Target => T); 
---     Padding : ArrU8 := (others => 0);
---    begin
---      B(O) := Arr_To_Data(Padding);
---    end;
-
-  end loop;
-
-  AnyType.Block'Write(SIO.Stream(File), B);
-
- end OLD_Write_Data_Unit;
 
 
 

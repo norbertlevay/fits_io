@@ -23,16 +23,6 @@ package File.Misc is
    -- Write_Padding puts PadValue from FileOffset until end of the block.
    -- If Block is filled up, Write_Padding does nothing.
 
- 
- generic
-  type T is private; -- any type with size known at compile-time
-  PadValue : T; -- zero bit pattern for all types in Data Unit
-  with function Element (Offset_In_Data_Unit : in SIO.Positive_Count) return T;
- procedure OLD_Write_Data_Unit (File : in SIO.File_Type;
-                            DataElementCount : in SIO.Positive_Count);
- -- write all Data plus Padding
-
-
 
   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Count; 
         -- used in commands
