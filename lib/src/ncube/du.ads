@@ -36,6 +36,7 @@ package DU is
 
 generic
   type T is private;
+  T_DataPadding : T;
   type T_Arr is array (Positive_Count range <>) of T;
   with procedure Data(Block : out T_Arr);
 procedure Write

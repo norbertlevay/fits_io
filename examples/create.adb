@@ -19,6 +19,8 @@ with Mandatory; use Mandatory; -- NAXISn_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed 
 with Image; use Image;
 
+with DU;
+
 procedure create
 is
 
@@ -61,17 +63,29 @@ Cards : Card_Arr := (MandCards & OptCards & ENDCard);
  -- NOTE IEEE float represents +0.0 as signbit=0 Exp=0 Fraction=0 e.g. fully zero bit array
  -- which is the same as defineition of Pad Value for Daua Unit in FITS standard
 
- procedure F32_Write_Data_Unit is
-        new F32_DU.Write_Array_Values(0.0,SomeData);
+-- procedure F32_Write_Data_Unit is
+--        new F32_DU.Write_Array_Values(0.0,SomeData);
 
+-- DU BEGIN
+type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
+procedure DUFLoatData(Data : out F32_Arr)
+is
+begin
+  for I in Data'Range
+  loop
+    Data(I) := Float_32(I mod 256);
+  end loop;
+end DUFloatData;
 
+procedure F32_Write_Data_Unit is new DU.Write(Float_32, 0.0, F32_Arr, DUFloatData);
+-- DU END
 
  NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
 begin
 
  Put_Line("Usage  " & Command_Name );
- Put("Writing " & FileName & " ... ");
+ Put_Line("Writing " & FileName & " ... ");
 
  SIO.Create (File, SIO.Out_File, FileName);
  -- FIXME check behaviour AdaRM: overwrites if file already exists ?
@@ -84,7 +98,8 @@ begin
 
  -- write Data sequentially
 
- F32_Write_Data_Unit(File, NDataElems);
+ F32_Write_Data_Unit(File, Im.NAXISn);
+-- F32_Write_Data_Unit(File, NDataElems);
 -- Write_Padding(File,SIO.Index(File),DataPadValue);
 
  SIO.Close(File);

@@ -1,4 +1,5 @@
 
+with Ada.Text_IO;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with File_Funcs;
@@ -6,6 +7,7 @@ with Raw; use Raw;
 
 package body DU is
 
+  package TIO renames Ada.Text_IO;
 
 -- both DU.Create and DU.Read require File Index set at first data in DU
 
@@ -42,11 +44,15 @@ is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size, NAXISn);
   PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME T'Size instead of BITPIX ok?
-  First : NAXIS_Arr := NAXISn; -- FIXME we don't values only size
-  T_DataPadding : constant T;-- := T(0); -- FIXME how to set 0 for all types ??
-  Block : T_Arr(1 .. 2880); -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
+  First : NAXIS_Arr := NAXISn; -- FIXME we don't need values only size
+  Block : T_Arr(1 .. 2880/(T'Size/8));
+  -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
   procedure Write_Block is new Write_Array(T, T_Arr);
 begin
+
+  TIO.Put_Line("T'Size        : " & Positive_Count'Image(T'Size));
+  TIO.Put_Line("DULength      : " & Positive_Count'Image(DULength));
+  TIO.Put_Line("DULength_blks : " & Positive_Count'Image(DULength_blks));
 
   for I in 1 .. (DULength_blks - 1)
   loop
@@ -58,6 +64,10 @@ begin
   Data(Block);
   PaddingFirst := DULength rem (2880/(T'Size/8));
   PaddingLast  := 2880/(T'Size/8);-- Block end
+
+  TIO.Put_Line("PaddingFirst  : " & Positive_Count'Image(PaddingFirst));
+  TIO.Put_Line("PaddingLast   : " & Positive_Count'Image(PaddingLast));
+
   Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
   Write_Block(File, Block);
 
