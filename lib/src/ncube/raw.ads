@@ -42,16 +42,18 @@ package Raw is
    Data : in T_Arr);
 
 
+subtype T_Data_Block is T_Arr(1 .. 2880/(T'Size/8));
+
 generic
   T_DataPadding : T;
-  with procedure Data(Block : out T_Arr);
+  with procedure Data(Block : out T_Data_Block);
 procedure Write_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr);
 
 
 generic
-  with procedure Data(Block : in T_Arr);
+  with procedure Data(Block : in T_Data_Block);
 procedure Read_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr);

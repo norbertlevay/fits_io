@@ -162,9 +162,7 @@ is
   PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME T'Size instead of BITPIX ok?
   First : NAXIS_Arr := NAXISn; -- FIXME we don't need values only size
-  Block : T_Arr(1 .. 2880/(T'Size/8)); -- FIXME why we define size of buffer here ?
-  -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
-  --procedure Write_Block is new Write_Array(T, T_Arr);
+  Block : T_Data_Block;
 begin
 
   TIO.Put_Line("T'Size        : " & Positive_Count'Image(T'Size));
@@ -200,9 +198,7 @@ is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
   First : NAXIS_Arr := NAXISn;
-  Block : T_Arr(1 .. 2880/(T'Size/8));
-  -- FIXME explicit ranges instead of 'First .. 'First + 2880 - 1
---  procedure Read_Block is new Read_Array(T, T_Arr);
+  Block : T_Data_Block;
 begin
 
   for I in 1 .. DULength_blks
