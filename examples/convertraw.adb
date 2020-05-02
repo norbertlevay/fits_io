@@ -26,6 +26,8 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with V3_Types; use V3_Types;
 with Data_Funcs; use Data_Funcs;
 
+with Raw;
+
 procedure convertraw
 is
 
@@ -102,95 +104,57 @@ begin
  begin
   BITPIX := HDUInfo.BITPIX;
   DUSize := Data_Unit_Size_elems (HDUInfo.NAXISn);
- end;
+-- end;
 
  -- read write sequentially by Blocks
 
  declare
-  InBlock  : V3_Types.F32.Block;
-  OutBlock : V3_Types.Int16.Block;
-  DUSize_blocks : constant SIO.Positive_Count
-            := DU_Block_Index(SIO.Positive_Count(DUSize),4);--4->Float_32 InFile --FIXME FInteger
-  -- NOTE DUSize = 0 -> raise excpetion -> correct: dont call this if there is no data
-  Last_Data_Element_In_Block : constant Positive := 
-        Offset_In_Block(SIO.Positive_Count(DUSize), SIO.Positive_Count(V3_Types.F32.N));-- FIXME FInteger
-  F32Value : V3_Types.Float_32;
-  I16Value : V3_Types.Integer_16;
-  L : Positive := 1;
+  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
+  type I16_Arr is array (SIO.Positive_Count range <>) of Integer_16;
+  package F32_Raw is new Raw(Float_32,   F32_Arr);
+  package I16_Raw is new Raw(Integer_16, I16_Arr);
+
+  K : SIO.Positive_Count := 1 + 2880/4;
+  InBlock  : F32_Arr(1 .. 2880/4);
+  --OutBlock : I16_Arr(1 .. 2880/2);
+  --FIXME consider: buffer/block size define inside Raw.Write_Data_Unit !?
 
   BSCALE : constant V3_Types.Float_32 :=   0.003891051;
   BZERO  : constant V3_Types.Float_32 := 127.501945525;
-  F32Temp : V3_Types.Float_32;
+
+
+  procedure ConvertData(Block : out I16_Arr)
+  is
+    F32Value : Float_32;
+    I16Value : Integer_16;
+  begin
+    for I in Block'Range
+    loop
+
+      if(K > 2880/4)
+      then
+        F32_Raw.Read_Array(InFile, InBlock);
+        K := 1;
+      end if;
+      F32Value := InBlock(K);
+      K := K + 1;
+
+      -- scale and convert
+      if(F32Value > 255.0) then F32Value := 255.0; end if;
+--      F32Value  := (F32Value - BZERO) / BSCALE; -- FIXME why this ??
+      I16Value := Integer_16(F32Value);
+
+      Block(I) := I16Value;
+    end loop;
+  end ConvertData;
+
+  procedure I16_Write_DU is new I16_Raw.Write_Data_Unit(0,ConvertData);
+
+
  begin
-    for I in 1 .. (DUSize_Blocks - 1)
-    loop
-        F32.Block'Read(SIO.Stream(InFile),InBlock);
-        for K in InBlock'Range
-        loop
-            F32Value := InBlock(K);
-            
-            -- convert
-
-            if(F32Value > 255.0) then F32Value := 255.0; end if;
-            F32Temp  := (F32Value - BZERO) / BSCALE;
-            I16Value := V3_Types.Integer_16( F32Temp );
-            -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
-            -- calculate BZERO BSCALE (and BLANK if needed)
-
---          Put_Line(
---              V3_Types.Float_32'Image(F32Value) 
---              &" vs "& V3_Types.Float_32'Image(F32Temp) 
---              &" vs "& V3_Types.Integer_16'Image(I16Value));
-
-            -- store converted
-            OutBlock(L) := I16Value;
-            L := L + 1;
-
-            if L > OutBlock'Last 
-            then
-                Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-                L := 1;
-            end if;
-
-        end loop;
-    end loop;
-
-    -- Last Block of InFIle
-    
-    F32.Block'Read(SIO.Stream(InFile),InBlock);
-    for K in 1 .. Last_Data_Element_In_Block
-    loop
-        F32Value := InBlock(K);
-            
-        -- convert
-        if(F32Value > 255.0) then F32Value := 255.0; end if;
-        F32Temp  := (F32Value - BZERO) / BSCALE;
-        I16Value := V3_Types.Integer_16(F32Temp);
-        -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
-        -- calculate BZERO BSCALE (and BLANK if needed)
-
-        -- store converted
-        OutBlock(L) := I16Value;
-        L := L + 1;
-
-        if L > OutBlock'Last 
-        then
-            Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-            L := 1;
-        end if;
-
-    end loop;
-
-    -- write padding if needed
-    if L /= 1
-    then 
-        for LL in L .. OutBlock'Last
-        loop
-            OutBlock(LL) := 0;
-        end loop;
-        Int16.Block'Write(SIO.Stream(OutFile),OutBlock);
-    end if;
- end;
+  I16_Write_DU(OutFile, HDUInfo.NAXISn);
+ end;--read Raw
+ end;--read HDUInfo
 
  SIO.Close(OutFile);
  SIO.Close(InFile);
