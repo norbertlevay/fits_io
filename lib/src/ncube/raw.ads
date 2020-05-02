@@ -26,6 +26,9 @@ package Raw is
  package SIO renames Ada.Streams.Stream_IO;
 
 
+-- sequential access
+
+
  generic
   type T is private;
   type T_Arr is array (Positive_Count range <>) of T;
@@ -40,6 +43,29 @@ package Raw is
  procedure Write_Array
    (F : SIO.File_Type;
    Data : in T_Arr);
+
+
+generic
+  type T is private;
+  T_DataPadding : T;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(Block : out T_Arr);
+procedure Write
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(Block : in T_Arr);
+procedure Read
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+
+-- random access
 
 
  generic
@@ -64,8 +90,7 @@ package Raw is
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
     Volume     : in T_Arr);
- -- Write will cut file if Mode is OUT, only for Mode INOUT will update
- -- pre-condition for update: File must have Mode INOUT
+
 
 end Raw;
 

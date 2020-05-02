@@ -19,7 +19,7 @@ with Mandatory; use Mandatory; -- NAXISn_Arr needed
 with Optional; use Optional; -- Card_Arr & ENDCard needed 
 with Image; use Image;
 
-with DU;
+with Raw;
 
 procedure create
 is
@@ -66,7 +66,6 @@ Cards : Card_Arr := (MandCards & OptCards & ENDCard);
 -- procedure F32_Write_Data_Unit is
 --        new F32_DU.Write_Array_Values(0.0,SomeData);
 
--- DU BEGIN
  ColCnt : SIO.Positive_Count := 1;
 
 type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
@@ -80,8 +79,7 @@ begin
   end loop;
 end DUFloatData;
 
-procedure F32_Write_Data_Unit is new DU.Write(Float_32, 0.0, F32_Arr, DUFloatData);
--- DU END
+procedure F32_Write_Data_Unit is new Raw.Write(Float_32, 0.0, F32_Arr, DUFloatData);
 
  NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
