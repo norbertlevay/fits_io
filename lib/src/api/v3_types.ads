@@ -5,7 +5,6 @@
 -- instantiates generics for all types defined by FITS Standard Version3
 
 with Interfaces;
---with Data_Block;
 
 
 package V3_Types is
@@ -26,16 +25,6 @@ package V3_Types is
    type Unsigned_16 is new Interfaces.Unsigned_16;
    type Unsigned_32 is new Interfaces.Unsigned_32;
    type Unsigned_64 is new Interfaces.Unsigned_64;
-
-
-   -- provides data Block type for all V3-types
--- FIXME needed ? used in convert.adb
---   package UInt8 is new Data_Block(T => Unsigned_8);
---   package Int16 is new Data_Block(T => Integer_16);
---   package Int32 is new Data_Block(T => Integer_32);
---   package Int64 is new Data_Block(T => Integer_64);
---   package F32   is new Data_Block(T => Float_32);
---   package F64   is new Data_Block(T => Float_64);
 
 
  -- integer -> float converions
