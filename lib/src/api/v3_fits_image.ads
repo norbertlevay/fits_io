@@ -9,6 +9,14 @@ package V3_FITS_Image is
 
   package SIO renames Ada.Streams.Stream_IO;
 
+
+function File_Block_Index(File : File_Type) return Positive_Count;
+procedure Set_File_Block_Index
+        (File        : File_Type;
+         Block_Index : in Positive_Count);
+
+
+
   -- Undef Values$
   F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
   F32NaN : constant Float_32 := Float_32(16#7F800001#);

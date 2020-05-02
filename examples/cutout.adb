@@ -25,11 +25,9 @@ with Ada.Numerics.Generic_Elementary_Functions;
 with V3_Types; use V3_Types;
 with Physical; use Physical;
 with NCube_Funcs; --use NCube_Funcs;
---with Keyword_Record; use Keyword_Record;-- FPositive needed
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
 with File_Funcs; use File_Funcs;
-with Data_Funcs; use Data_Funcs;
 
 with Optional;
 with Optional.Reserved; use Optional.Reserved;

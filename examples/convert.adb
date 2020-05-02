@@ -24,7 +24,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 -- new Data interface
 with V3_Types; use V3_Types;
-with Data_Funcs; use Data_Funcs;
+--with Data_Funcs; use Data_Funcs;
 with Image; -- Create_Card needed
 with Raw;
 
