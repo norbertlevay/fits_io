@@ -6,7 +6,7 @@ project examples is
    for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/data", "../lib/src/ncube", "../lib/src/file","../lib/src/header","../lib/src/image","../lib/src/api");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
-   for Main use ("create.adb","convert.adb","minmax.adb","minmaxseq.adb",
+   for Main use ("create.adb","convert.adb","convertraw.adb","minmax.adb","minmaxseq.adb",
 		"list.adb","reserved_keys.adb",
 		"data_test.adb","data_print.adb", "cutout.adb");
 
