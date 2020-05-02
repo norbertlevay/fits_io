@@ -55,5 +55,42 @@ procedure Read
   NAXISn : in NAXIS_Arr);
 
 
+
+-- access by Planes
+
+-- NAXISn divided by i <= N=NAXIS index into
+-- NAXISi  : NAXIS(1 .. i) - the Plane itself
+-- NAXISin : NAXIS(i+1 .. N) - coordinates of one plane
+
+-- similarlrly as in access by blocks:
+-- in callbacks count number of planes and call
+-- Cooridante(PlaneNum, NAXISi) -> Coord((i+1)..N) of given Plane
+  procedure Plane_Coordinates
+    (NAXISin : in NAXIS_Arr;
+    PlaneNum : in Positive_Count; 
+    Coord : out NAXIS_Arr) is null;
+
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(Plane : out T_Arr);
+procedure Write_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer); -- 1 .. 999
+
+
+generic
+  type T is private;
+  type T_Arr is array (Positive_Count range <>) of T;
+  with procedure Data(Plane : in T_Arr);
+procedure Read_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer); -- 1 .. 999
+  -- implemented as read-by-planes
+
+
 end DU;
 

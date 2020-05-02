@@ -85,5 +85,67 @@ begin
 end Read;
 
 
+
+
+-- access Planes
+
+
+procedure Write_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer) -- 1 .. 999
+is
+  NAXISi : NAXIS_Arr := NAXISn(1 .. I);
+  PlaneLength : Positive_Count := DU_Data_Count(NAXISi);
+  Plane : T_Arr(1 .. PlaneLength);
+  Coords : NAXIS_Arr := NAXISn((I+1) .. NAXISn'Last);
+  PlaneCount : Positive_Count := DU_Data_Count(Coords);
+  procedure Write_Plane is new Write_Array(T,T_Arr);
+  DULength : Positive_Count := DU_Data_Count(NAXISn);
+  T_DataPadding : constant T;-- := T(0); -- FIXME how to set 0 for all types ??
+  PaddingLength : Positive_Count := DULength - PlaneLength*PlaneCount;
+--  PaddingFirst, PaddingLast : Positive_Count;
+  Padding : T_Arr := (Positive_Count(NAXISi'First) .. Positive_Count(NAXISi'First)+PaddingLength-1 => T_DataPadding);
+begin
+
+  for I in 1 .. PlaneCount
+  loop
+    Data(Plane);
+    Write_Plane(File, Plane);
+  end loop;
+
+  -- FIXME add write padding
+  Write_Plane(File, Padding);
+
+end Write_Planes;
+
+
+
+
+  --with procedure Data(PlaneCoord: in NAXIS_Arr; Plane : in T_Arr);
+  -- implemented as read-by-planes
+procedure Read_Planes
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  I : in Integer) -- 1 .. 999
+is
+  NAXISi : NAXIS_Arr := NAXISn(1 .. I);
+  PlaneLength : Positive_Count := DU_Data_Count(NAXISi);
+  Plane : T_Arr(1 .. PlaneLength);
+  Coords : NAXIS_Arr := NAXISn((I+1) .. NAXISn'Last);
+  PlaneCount : Positive_Count := DU_Data_Count(Coords);
+  procedure Read_Plane is new Read_Array(T,T_Arr);
+begin
+
+  for I in 1 .. PlaneCount
+  loop
+    Read_Plane(File, Plane);
+    Data(Plane);
+  end loop;
+
+end Read_Planes;
+
+
+
 end DU;
 
