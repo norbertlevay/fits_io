@@ -22,7 +22,6 @@ is
 
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
- use SIO; -- NOTE because 'operator not visible'
 
  FileName : constant String := Command_Name & ".fits";
  File     : SIO.File_Type;
@@ -44,13 +43,14 @@ is
  Cards : Card_Arr := (MandCards & OptCards & ENDCard);
 
 
- -- generate data values
+ -- callback to generate data values
 
  ColCnt : SIO.Positive_Count := 1;
  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
 
  procedure DUFLoatData(Data : out F32_Arr)
  is
+   use SIO; -- NOTE 'mod' "+" : 'operator not visible'
  begin
   for I in Data'Range
   loop
@@ -61,8 +61,6 @@ is
 
  package F32_Raw is new Raw(Float_32, F32_Arr);
  procedure F32_Write_Data_Unit is new F32_Raw.Write_Data_Unit(0.0, DUFloatData);
-
- NDataElems : constant SIO.Positive_Count := RowsCnt*ColsCnt;
 
 
 begin
