@@ -20,6 +20,17 @@ package NCube_Funcs is
  function Volume_Length (First, Last : in NAXIS_Arr) return Positive_Count;
  -- should be used to size T_Arr in Raw and Physical
 
-end NCube_Funcs;
 
+  procedure Coordinates
+    (NAXISn : in NAXIS_Arr; 
+    BlockNum : in Positive_Count; 
+    IndexInBlock : in Positive; 
+    Coord : out NAXIS_Arr) is null;
+  -- util can be called within callbacks of DU Read/Write to determine coordinates of 
+  -- any point if needed
+  -- In callbacks do count Blocks and call above Coordinates() to determine
+  -- coord of any data element in Block
+
+
+end NCube_Funcs;
 
