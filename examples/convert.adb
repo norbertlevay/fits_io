@@ -130,7 +130,8 @@ begin
             F32Value := InBlock(K);
             
             -- convert
-            
+
+            if(F32Value > 255.0) then F32Value := 255.0; end if;
             F32Temp  := (F32Value - BZERO) / BSCALE;
             I16Value := V3_Types.Integer_16( F32Temp );
             -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU
@@ -162,6 +163,7 @@ begin
         F32Value := InBlock(K);
             
         -- convert
+        if(F32Value > 255.0) then F32Value := 255.0; end if;
         F32Temp  := (F32Value - BZERO) / BSCALE;
         I16Value := V3_Types.Integer_16(F32Temp);
         -- FIXME not correct: needs Data Min..Max: DATAMIN DATAMAX cards or from DU

@@ -67,13 +67,16 @@ Cards : Card_Arr := (MandCards & OptCards & ENDCard);
 --        new F32_DU.Write_Array_Values(0.0,SomeData);
 
 -- DU BEGIN
+ ColCnt : SIO.Positive_Count := 1;
+
 type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
 procedure DUFLoatData(Data : out F32_Arr)
 is
 begin
   for I in Data'Range
   loop
-    Data(I) := Float_32(I mod 256);
+    Data(I) := Float_32(ColCnt mod ColsCnt);
+    ColCnt := ColCnt + 1;
   end loop;
 end DUFloatData;
 
