@@ -21,12 +21,12 @@ clean:
 
 
 run:
-	./create
-	fitsheader create.fits
-	fits2bitmap create.fits
-	gio open create.png
-	./convert create.fits
-	fitsheader convert.fits
-	fits2bitmap convert.fits
-	gio open convert.png
+	./bin/create
+	fitsheader bin/create.fits
+	fits2bitmap bin/create.fits
+	gio open bin/create.png
+	./bin/convert bin/create.fits
+	fitsheader bin/convert.fits
+	fits2bitmap bin/convert.fits
+	gio open bin/convert.png
 
