@@ -25,8 +25,8 @@ run:
 	fitsheader bin/create.fits
 	fits2bitmap bin/create.fits
 	gio open bin/create.png
-	./bin/convertraw bin/create.fits
-	fitsheader bin/convertraw.fits
-	fits2bitmap bin/convertraw.fits
-	gio open bin/convertraw.png
+	./bin/convert bin/create.fits
+	fitsheader bin/convert.fits
+	fits2bitmap bin/convert.fits
+	gio open bin/convert.png
 
