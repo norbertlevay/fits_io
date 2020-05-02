@@ -43,7 +43,7 @@ with Physical_Funcs;
 with V3_FITS_Image; use V3_FITS_Image; -- Set_File_Block_index needed
 
 
-procedure minmaxseq
+procedure minmax
 is
 
   package TIO renames Ada.Text_IO;
@@ -238,5 +238,5 @@ is
         -- Do the same manually, use:
         -- addr2line -e ./fits addr1 addr2 ...
       end;
-  end minmaxseq;
+  end minmax;
 
