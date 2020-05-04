@@ -19,7 +19,6 @@ package Floats_Physical is
   type Tm is private;
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
-  with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
  procedure Read_Array
    (F : SIO.File_Type;
@@ -34,7 +33,6 @@ package Floats_Physical is
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
   Undef_Val : in Tm;
-  with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
  procedure Write_Array
    (F : SIO.File_Type;
@@ -51,7 +49,6 @@ package Floats_Physical is
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
   with function "+"(R : in Tc) return Tm is <>;
-  with function "+"(R : in Tf) return Tc is <>;
  procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;

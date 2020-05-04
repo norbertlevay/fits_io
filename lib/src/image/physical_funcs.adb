@@ -48,7 +48,7 @@ package body Physical_Funcs is
 -- pragma Optimize(Off); -- turn off optional optimizations
    if(Vf = Vf) -- true for any number except NaN NOTE make sure compiler does not optimize it out
  then
-    return +( BZERO + BSCALE * (+Vf) );
+    return +( BZERO + BSCALE * Tc(Vf) );
  else
     return Undef;-- retun NaN in Tm type
  end if;

@@ -102,9 +102,9 @@ is
   procedure  U8ReadIntPlane is new Ints_Physical.Read_Array(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
   procedure I16ReadIntPlane is new Ints_Physical.Read_Array(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
   procedure F32F64ReadFloatPlane is
-      new Floats_Physical.Read_Array(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+      new Floats_Physical.Read_Array(Float_32,Tm,Tm_Arr,Tcalc,"+");
   procedure F64F64ReadFloatPlane is
-      new Floats_Physical.Read_Array(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
+      new Floats_Physical.Read_Array(Float_64,Tm,Tm_Arr,Tcalc,"+");
 
 begin
   -- read Header keys
@@ -167,9 +167,9 @@ is
   procedure  U8ReadIntVolume is new Ints_Physical.Read_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
   procedure I16ReadIntVolume is new Ints_Physical.Read_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
   procedure F32F64ReadFloatVolume is
-      new Floats_Physical.Read_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+      new Floats_Physical.Read_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+");
   procedure F64F64ReadFloatVolume is
-      new Floats_Physical.Read_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
+      new Floats_Physical.Read_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+");
 begin
   Ada.Text_IO.Put_Line("DBG: Read_Volume_As_Float");
 

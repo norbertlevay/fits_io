@@ -45,7 +45,7 @@ package body Floats_Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+");
     RawData : Tf_Arr(Data'First .. Data'Last);
   begin
     Tf_Raw.Read_Array(F, RawData);
@@ -63,7 +63,7 @@ package body Floats_Physical is
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+","+");
+    function LinFloatScale is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE, Undef_Val, "+");
     RawData : Tf_Arr(Data'First .. Data'Last); -- FIXME convert and scale ? := Plane;
   begin
     for I in RawData'Range
@@ -97,7 +97,7 @@ package body Floats_Physical is
     RawVol: Tf_Arr(1 .. VolLength);
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    function LinScaleFloat is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+","+");
+    function LinScaleFloat is new Scale_Float(Tf,Tm,Tc, BZERO, BSCALE,Undef,"+");
   begin
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);

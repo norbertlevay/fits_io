@@ -29,7 +29,6 @@ package Physical_Funcs is
     BSCALE : in Tc;
     Undef  : in Tm; -- returns this when Vf invalid
     with function "+"(R : in Tc) return Tm is <>;
-    with function "+"(R : in Tf) return Tc is <>;
  function Scale_Float(Vf : Tf) return Tm;
 
 
