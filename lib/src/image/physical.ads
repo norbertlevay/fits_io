@@ -10,7 +10,8 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
   type Tm is private;
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
-  with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm;
+  Undef : in Tm; -- returns this when Vin invalid
+ with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm;
   with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
 package Physical is
