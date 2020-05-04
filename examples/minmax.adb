@@ -165,12 +165,17 @@ is
 
       F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
       F32Undef : Float_32 := Float_32(16#7F800001#);
-      procedure F64_ReadPlane is
-        new Floats_Physical.Read_Array(Float_64, Float_64, F64_Plane, Float_64);
-      procedure F32_ReadPlane is
-        new Floats_Physical.Read_Array(Float_32, Float_32, F32_Plane, Float_32);
-      procedure I16_ReadPlane is
-        new Ints_Physical.Read_Array(Integer_16, Float_32, F32_Plane, Float_32);
+
+      package F64_Physical is new Floats_Physical(Float_64, Float_64, F64_Plane, Float_64);
+      package F32_Physical is new Floats_Physical(Float_32, Float_32, F32_Plane, Float_32);
+      package I16_Physical is new Ints_Physical(Integer_16, Float_32, F32_Plane, Float_32);
+
+--      procedure F64_ReadPlane is
+--        new Floats_Physical.Read_Array(Float_64, Float_64, F64_Plane, Float_64);
+--      procedure F32_ReadPlane is
+--        new Floats_Physical.Read_Array(Float_32, Float_32, F32_Plane, Float_32);
+--      procedure I16_ReadPlane is
+--        new Ints_Physical.Read_Array(Integer_16, Float_32, F32_Plane, Float_32);
 
       --    F64Plane : F64_Plane(1..PlaneLength); -- On Stack
       --    F32Plane : F32_Plane(1..PlaneLength);
@@ -189,11 +194,11 @@ is
       loop
 
         case(BITPIX) is
-          when -64 => F64_ReadPlane(InFile,F64_BZERO,F64_BSCALE,F64Undef,F64Plane.All);
-          when -32 => F32_ReadPlane(InFile,F32_BZERO,F32_BSCALE,F32Undef,F32Plane.All);
+          when -64 => F64_Physical.Read_Array(InFile,F64_BZERO,F64_BSCALE,F64Undef,F64Plane.All);
+          when -32 => F32_Physical.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Undef,F32Plane.All);
           when  64 => null;
           when  32 => null;
-          when  16 => I16_ReadPlane(InFile,F32_BZERO,F32_BSCALE,F32Plane.All); F32Undef := NewBLANK;
+          when  16 => I16_Physical.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All); F32Undef := NewBLANK;
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

@@ -39,6 +39,12 @@ with Ints_Physical;
 
 package body V3_FITS_Image is
 
+
+
+
+
+
+
 -- NOTE taken from original place data/data_funcs.ad? when data/ deprecated
 -- indexing relative to file start
 BlockSize_bytes    : constant Positive_Count :=  2880;
@@ -99,12 +105,10 @@ is
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
   --                                                     Tf                   Tc
-  procedure  U8ReadIntPlane is new Ints_Physical.Read_Array(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure I16ReadIntPlane is new Ints_Physical.Read_Array(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F32F64ReadFloatPlane is
-      new Floats_Physical.Read_Array(Float_32,Tm,Tm_Arr,Tcalc,"+");
-  procedure F64F64ReadFloatPlane is
-      new Floats_Physical.Read_Array(Float_64,Tm,Tm_Arr,Tcalc,"+");
+  package U8_Physical  is new Ints_Physical(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  package I16_Physical is new Ints_Physical(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
+  package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
 
 begin
   -- read Header keys
@@ -114,10 +118,10 @@ begin
   for I in 1 .. (1 + NAXISn'Length - Length)
   loop
     case(BITPIX) is
-      when   8 => U8ReadIntPlane   (F, F64BZERO, F64BSCALE, Plane);
-      when  16 => I16ReadIntPlane  (F, F64BZERO, F64BSCALE, Plane);
-      when -32 => F32F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
-      when -64 => F64F64ReadFloatPlane(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+      when   8 =>  U8_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
+      when  16 => I16_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
+      when -32 => F32_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+      when -64 => F64_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
       when others => null; -- FIXME Error
     end case;
     Plane_Data(Plane, I);
@@ -164,12 +168,11 @@ is
   function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
-  procedure  U8ReadIntVolume is new Ints_Physical.Read_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure I16ReadIntVolume is new Ints_Physical.Read_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F32F64ReadFloatVolume is
-      new Floats_Physical.Read_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+");
-  procedure F64F64ReadFloatVolume is
-      new Floats_Physical.Read_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+");
+  package U8_Physical  is new Ints_Physical(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  package I16_Physical is new Ints_Physical(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
+  package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
+
 begin
   Ada.Text_IO.Put_Line("DBG: Read_Volume_As_Float");
 
@@ -206,10 +209,10 @@ begin
     end case;
 
     case(BITPIX) is
-      when   8 => U8ReadIntVolume  (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
-      when  16 => I16ReadIntVolume (F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
-      when -32 => F32F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
-      when -64 => F64F64ReadFloatVolume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+      when   8 => U8_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when  16 => I16_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when -32 => F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+      when -64 => F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
       when others => null; -- FIXME Error
     end case;
 

@@ -59,6 +59,7 @@ package body Floats_Physical is
   procedure Write_Array
     (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
+    Undef_Val : in Tm;
     Data : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;

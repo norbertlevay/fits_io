@@ -6,6 +6,16 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 
+
+
+
+
+ generic
+  type Tf is digits <>;
+  type Tm is private;
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
+  type Tc is digits <>;
+  with function "+"(R : in Tc) return Tm is <>;
 package Floats_Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -14,12 +24,6 @@ package Floats_Physical is
 -- sequential access
 
 
- generic
-  type Tf is digits <>;
-  type Tm is private;
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
-  type Tc is digits <>;
-  with function "+"(R : in Tc) return Tm is <>;
  procedure Read_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
@@ -27,28 +31,16 @@ package Floats_Physical is
     Data : out Tm_Arr);
 
 
- generic
-  type Tf is digits <>;
-  type Tm is private;
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
-  type Tc is digits <>;
-  Undef_Val : in Tm;
-  with function "+"(R : in Tc) return Tm is <>;
  procedure Write_Array
    (F : SIO.File_Type;
     BZERO, BSCALE : in Tc;
+    Undef_Val : in Tm;
     Data : in Tm_Arr);
 
 
 -- random access
 
 
- generic
-  type Tf is digits <>;
-  type Tm is private;
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
-  type Tc is digits <>;
-  with function "+"(R : in Tc) return Tm is <>;
  procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
