@@ -23,7 +23,6 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Numerics.Generic_Elementary_Functions; 
 
 with V3_Types; use V3_Types;
-with Physical; use Physical;
 with NCube_Funcs; --use NCube_Funcs;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;

@@ -33,7 +33,8 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
-with Physical; use Physical;
+with Floats_Physical;
+with Ints_Physical;
 
 
 package body V3_FITS_Image is
@@ -98,10 +99,12 @@ is
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
   --                                                     Tf                   Tc
-  procedure  U8ReadIntPlane is      new Read_Int_Array(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure I16ReadIntPlane is      new Read_Int_Array(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F32F64ReadFloatPlane is new Read_Float_Array(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F64F64ReadFloatPlane is new Read_Float_Array(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure  U8ReadIntPlane is new Ints_Physical.Read_Array(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure I16ReadIntPlane is new Ints_Physical.Read_Array(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F32F64ReadFloatPlane is
+      new Floats_Physical.Read_Array(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F64F64ReadFloatPlane is
+      new Floats_Physical.Read_Array(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 
 begin
   -- read Header keys
@@ -161,10 +164,12 @@ is
   function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
   function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
-  procedure  U8ReadIntVolume      is new Read_Int_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure I16ReadIntVolume      is new Read_Int_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F32F64ReadFloatVolume is new Read_Float_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
-  procedure F64F64ReadFloatVolume is new Read_Float_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure  U8ReadIntVolume is new Ints_Physical.Read_Volume(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure I16ReadIntVolume is new Ints_Physical.Read_Volume(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F32F64ReadFloatVolume is
+      new Floats_Physical.Read_Volume(Float_32,Tm,Tm_Arr,Tcalc,"+","+");
+  procedure F64F64ReadFloatVolume is
+      new Floats_Physical.Read_Volume(Float_64,Tm,Tm_Arr,Tcalc,"+","+");
 begin
   Ada.Text_IO.Put_Line("DBG: Read_Volume_As_Float");
 
