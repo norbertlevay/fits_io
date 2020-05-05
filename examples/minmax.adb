@@ -32,14 +32,13 @@ with Optional.Reserved; use Optional.Reserved;
 -- new Data interface
 with V3_Types; use V3_Types;
 with V3_Types.Conversions; use V3_Types.Conversions;
-
-with Physical_Funcs;
 with V3_FITS_Image; use V3_FITS_Image; -- Set_File_Block_index needed
 
 -- new BEGIN
 with FF;
 with FI;
 with Physical;
+with Linear_Conv;
 -- new END
 
 
@@ -154,8 +153,8 @@ is
       I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
       function I16F32_Scale is
-        new Physical_Funcs.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
-      NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
+        new Linear_Conv.FI(Integer_16, Float_32, Float_32);
+      NewBLANK : Float_32 := I16F32_Scale(F32_BZERO,F32_BSCALE,I16_BLANK);
 
 
       F64Undef : Float_64 := Float_64(16#7FF0000000000100#);

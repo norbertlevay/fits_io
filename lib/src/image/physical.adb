@@ -22,7 +22,6 @@ with Interfaces;
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 with NCube_Funcs; use NCube_Funcs;
-with Physical_Funcs; use Physical_Funcs;
 with Raw;
 
 
