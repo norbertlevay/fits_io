@@ -33,10 +33,14 @@ with Optional.Reserved; use Optional.Reserved;
 with V3_Types; use V3_Types;
 with V3_Types.Conversions; use V3_Types.Conversions;
 
-with Floats_Physical;
-with Ints_Physical;
 with Physical_Funcs;
 with V3_FITS_Image; use V3_FITS_Image; -- Set_File_Block_index needed
+
+-- new BEGIN
+with FF;
+with FI;
+with Physical;
+-- new END
 
 
 procedure minmax
@@ -95,7 +99,8 @@ is
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
 
     BITPIX  : Integer;
-    NAXISn  : NAXIS_Arr(1..3);
+    NAXISn  : NAXIS_Arr(1..2);
+    --NAXISn  : NAXIS_Arr(1..3);
     DUSize  : SIO.Positive_Count;
     DUStart : SIO.Positive_Count;
 
@@ -133,7 +138,8 @@ is
       Put_Line(Integer'Image(I) & " : " & SIO.Positive_Count'Image(NAXISn(I)));
     end loop;
 
-    NPlanes     := NAXISn(3)*NAXISn(2);
+    --NPlanes     := NAXISn(3)*NAXISn(2);
+    NPlanes     := NAXISn(2);
     PlaneLength := NAXISn(1);
     -- Size of Plane must be reasonable
     Put_Line("Plane Size [Bytes]:" & SIO.Positive_Count'Image(PlaneLength * SIO.Positive_Count( abs BITPIX/8 ))); 
@@ -151,31 +157,23 @@ is
         new Physical_Funcs.Scale(Integer_16, Float_32, Float_32, F32_BZERO, F32_BSCALE);
       NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
 
-      type F64_Plane is array(SIO.Positive_Count range <>) of Float_64;
-      type F32_Plane is array(SIO.Positive_Count range <>) of Float_32;
-      type F64_Plane_Acc is Access F64_Plane;
-      type F32_Plane_Acc is Access F32_Plane;
-
-
 
       F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
       F32Undef : Float_32 := Float_32(16#7F800001#);
 
-      package F64_Physical is new Floats_Physical(Float_64, Float_64, F64_Plane, Float_64);
-      package F32_Physical is new Floats_Physical(Float_32, Float_32, F32_Plane, Float_32);
-      package I16_Physical is new Ints_Physical(Integer_16, Float_32, F32_Plane, Float_32);
+      -- new BEGIN
+      package F64F64 is new FF(Float_64, Float_64);
+      package F32F32 is new FF(Float_32, Float_32);
+      package F32I16 is new FI(Float_32, Integer_16);
+      type F64_Plane_Acc is Access F64F64.Phys.Tm_Arr;
+      type F32_Plane_Acc is Access F32F32.Phys.Tm_Arr;
+      type F32I16_Plane_Acc is Access F32I16.Phys.Tm_Arr;
+      -- FIXME not ok: useless distuiguish F32F32Plane vs F32I16Plane
+      -- new END
 
---      procedure F64_ReadPlane is
---        new Floats_Physical.Read_Array(Float_64, Float_64, F64_Plane, Float_64);
---      procedure F32_ReadPlane is
---        new Floats_Physical.Read_Array(Float_32, Float_32, F32_Plane, Float_32);
---      procedure I16_ReadPlane is
---        new Ints_Physical.Read_Array(Integer_16, Float_32, F32_Plane, Float_32);
-
-      --    F64Plane : F64_Plane(1..PlaneLength); -- On Stack
-      --    F32Plane : F32_Plane(1..PlaneLength);
-      F64Plane : F64_Plane_Acc := new F64_Plane(1..PlaneLength); -- On Heap
-      F32Plane : F32_Plane_Acc := new F32_Plane(1..PlaneLength);
+      F64Plane : F64_Plane_Acc := new F64F64.Phys.Tm_Arr(1..PlaneLength);
+      F32Plane : F32_Plane_Acc := new F32F32.Phys.Tm_Arr(1..PlaneLength);
+      F32I16Plane : F32I16_Plane_Acc := new F32I16.Phys.Tm_Arr(1..PlaneLength);
       Max : Float_32 := Float_32'First;
       Invalid_Count : Natural := 0;
 
@@ -189,11 +187,15 @@ is
       loop
 
         case(BITPIX) is
-          when -64 => F64_Physical.Read_Array(InFile,F64_BZERO,F64_BSCALE,F64Undef,F64Plane.All);
-          when -32 => F32_Physical.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Undef,F32Plane.All);
+          when -64 =>
+              F64F64.Phys.Read_Array(InFile,F64_BZERO,F64_BSCALE,F64Plane.All);
+          when -32 =>
+              F32F32.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All);
           when  64 => null;
           when  32 => null;
-          when  16 => I16_Physical.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All); F32Undef := NewBLANK;
+          when  16 =>
+              F32I16.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32I16Plane.All);
+              F32Plane.All := F32F32.Phys.Tm_Arr(F32I16Plane.All); 
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

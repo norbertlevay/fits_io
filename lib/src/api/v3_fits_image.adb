@@ -33,8 +33,8 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
-with Floats_Physical;
-with Ints_Physical;
+--with Floats_Physical;
+--with Ints_Physical;
 
 with FI;
 
