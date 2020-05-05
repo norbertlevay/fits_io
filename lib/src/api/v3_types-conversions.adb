@@ -1,7 +1,7 @@
 
 with Ada.Unchecked_Conversion;
 
-package body V3_Types is
+package body V3_Types.Conversions is
 
  -- Integer-Float conversions
 
@@ -61,7 +61,7 @@ package body V3_Types is
    else             return  Integer_8( R );
    end if;
  end "+";
- 
 
-end V3_Types;
+
+end V3_Types.Conversions;
 

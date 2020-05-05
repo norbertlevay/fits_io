@@ -31,16 +31,11 @@ with Optional.Reserved; use Optional.Reserved;
 
 -- new Data interface
 with V3_Types; use V3_Types;
---with V3_Data_Unit; use V3_Data_Unit;
---with Data_Funcs; use Data_Funcs;
+with V3_Types.Conversions; use V3_Types.Conversions;
 
---with Data_Block;
---with Data_Unit;
---with Unit;
 with Floats_Physical;
 with Ints_Physical;
 with Physical_Funcs;
---with Data_Value; use Data_Value;
 with V3_FITS_Image; use V3_FITS_Image; -- Set_File_Block_index needed
 
 
