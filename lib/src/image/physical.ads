@@ -20,10 +20,7 @@ generic
   type Tm is private;       -- type in memory (data is returned to caller in this type)
   type Tc is digits <>;     -- type in which scaling is calculated
   type Tf is private;       -- type in fits-file;
---  with function Is_NaN(Vin : in Tf) return Boolean is <>;
   with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm is <>;
---  with function "+"(R : in Tf) return Tc is <>;
---  with function "+"(R : in Tc) return Tm is <>;
 package Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
