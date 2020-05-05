@@ -8,18 +8,19 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
  generic
   type Tf is private;
   type Tm is private;
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;
   Undef : in Tm; -- returns this when Vin invalid
- with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm;
+  with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm is <>;
   with function "+"(R : in Tf) return Tc is <>;
   with function "+"(R : in Tc) return Tm is <>;
 package Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
 
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
 
--- sequential access
+
+  -- sequential access
 
 
 procedure Read_Array
@@ -34,7 +35,7 @@ procedure Read_Array
     Data : in Tm_Arr);
 
 
--- random access
+ -- random access
 
 
  procedure Read_Volume
