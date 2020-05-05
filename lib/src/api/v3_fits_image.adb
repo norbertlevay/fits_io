@@ -33,10 +33,10 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
---with Floats_Physical;
---with Ints_Physical;
 
+with FF;
 with FI;
+with Physical;
 
 package body V3_FITS_Image is
 
@@ -97,19 +97,19 @@ is
   subtype Tcalc is Float_64;
   F64BZERO, F64BSCALE : Tcalc;
 -- From Tc -> Tm
-  function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
+--  function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
 
   -- From Tf -> Tc
-  function "+"(R : in Unsigned_8) return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Integer_16) return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
+--  function "+"(R : in Unsigned_8) return Tcalc is begin return Tcalc(R); end "+";
+--  function "+"(R : in Integer_16) return Tcalc is begin return Tcalc(R); end "+";
+--  function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
+--  function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
 
   --                                                     Tf                   Tc
-  package U8_Physical  is new Ints_Physical(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  package I16_Physical is new Ints_Physical(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
-  package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
+--  package U8_Physical  is new Ints_Physical(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
+--  package I16_Physical is new Ints_Physical(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
+--  package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
+--  package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
 
 begin
   -- read Header keys
@@ -119,10 +119,10 @@ begin
   for I in 1 .. (1 + NAXISn'Length - Length)
   loop
     case(BITPIX) is
-      when   8 =>  U8_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
-      when  16 => I16_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
-      when -32 => F32_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
-      when -64 => F64_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+--      when   8 =>  U8_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
+--      when  16 => I16_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
+--      when -32 => F32_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+--      when -64 => F64_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
       when others => null; -- FIXME Error
     end case;
     Plane_Data(Plane, I);
@@ -160,22 +160,9 @@ is
   F64BZERO  : Tcalc := 0.0;
   F64BSCALE : Tcalc := 1.0;
 
-  -- From Tc -> Tm
-  function "+"(R : in Tcalc) return Tm is begin return Tm(R); end "+";
-
-  -- From Tf -> Tc
-  function "+"(R : in Unsigned_8) return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Integer_16) return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Float_32)   return Tcalc is begin return Tcalc(R); end "+";
-  function "+"(R : in Tcalc)   return Float_32 is begin return Float_32(R); end "+";
-
-  package U8_Physical  is new Ints_Physical(Unsigned_8,Tm,Tm_Arr,Tcalc,"+","+");
-  package I16_Physical is new Ints_Physical(Integer_16,Tm,Tm_Arr,Tcalc,"+","+");
-  package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
-  package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
-
-
--- test FI package:
+-- test FF/FI packages:
+  package F64F64 is new FF(Float_64,Float_64);
+  package F32F32 is new FF(Float_32,Float_32);
   package F32I16 is new FI(Float_32,Integer_16);
 
 begin
@@ -205,7 +192,9 @@ begin
     NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
     BITPIX  : Integer   := HDUInfo.BITPIX;
 
-    Vol : F32I16.Phys.Tm_Arr(1..2);
+    F64F64Vol : F64F64.Phys.Tm_Arr(Volume'Range);
+    F32F32Vol : F32F32.Phys.Tm_Arr(Volume'Range);
+    F32I16Vol : F32I16.Phys.Tm_Arr(Volume'Range);
 
   begin
     DUStart := File_Block_Index(F);
@@ -218,14 +207,21 @@ begin
     end case;
 
     case(BITPIX) is
-      when   8 => U8_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
-      when  16 => I16_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
+      when  16 =>
+          F32I16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), F32I16Vol);
+          for I in Volume'Range loop Volume(I) := Tm(F32I16Vol(I)); end loop;
+
       when -32 => 
---          F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
-          F32I16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), Vol);
-      when -64 => F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+          F32F32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), F32F32Vol);
+          for I in Volume'Range loop Volume(I) := Tm(F32F32Vol(I)); end loop;
+
+      when -64 =>
+          F64F64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_64(0.0),Float_64(1.0), F64F64Vol);
+          for I in Volume'Range loop Volume(I) := Tm(F64F64Vol(I)); end loop;
+
       when others => null; -- FIXME Error
     end case;
+
 
   end;
 
