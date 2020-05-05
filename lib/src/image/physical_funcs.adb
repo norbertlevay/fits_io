@@ -55,5 +55,24 @@ package body Physical_Funcs is
  end Scale_Float;
 
 
+
+generic
+type Tm is range <>;
+type Tc is digits <>;
+type Tf is digits <>;
+function IF_Linear(A,B : in Tc; Vin : in Tf) return Tm;
+function IF_Linear(A,B : in Tc; Vin : in Tf) return Tm
+is
+    function "+"(R : in Tc) return Tm is begin return Tm(R); end "+";
+    UndefFIXME : Tm := Tm(0);--FIXME wrong !!
+    function LocScale is
+        new Scale_Float(Tf => Tf, Tm => Tm, Tc => Tc, BZERO=>A, BSCALE=>B,Undef=>UndefFIXME);
+begin
+    return LocScale(Vin);
+end IF_Linear;
+
+
+
+
 end Physical_Funcs;
 
