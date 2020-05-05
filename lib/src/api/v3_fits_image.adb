@@ -36,6 +36,7 @@ with V3_Types; use V3_Types;-- types needed
 with Floats_Physical;
 with Ints_Physical;
 
+with FI;
 
 package body V3_FITS_Image is
 
@@ -173,7 +174,12 @@ is
   package F32_Physical is new Floats_Physical(Float_32,Tm,Tm_Arr,Tcalc,"+");
   package F64_Physical is new Floats_Physical(Float_64,Tm,Tm_Arr,Tcalc,"+");
 
+
+-- test FI package:
+  package F32I16 is new FI(Float_32,Integer_16);
+
 begin
+
   Ada.Text_IO.Put_Line("DBG: Read_Volume_As_Float");
 
 
@@ -198,6 +204,9 @@ begin
     HDUInfo : File.HDU_Info_Type := File.Read_Header(F);
     NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
     BITPIX  : Integer   := HDUInfo.BITPIX;
+
+    Vol : F32I16.Phys.Tm_Arr(1..2);
+
   begin
     DUStart := File_Block_Index(F);
 
@@ -211,7 +220,9 @@ begin
     case(BITPIX) is
       when   8 => U8_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
       when  16 => I16_Physical.Read_Volume(F, DUStart, NAXISn, First, Last, F64BZERO, F64BSCALE, Volume);
-      when -32 => F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+      when -32 => 
+--          F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
+          F32I16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), Vol);
       when -64 => F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, F64BZERO,F64BSCALE, Undef_Value, Volume);
       when others => null; -- FIXME Error
     end case;
