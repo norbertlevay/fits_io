@@ -60,7 +60,6 @@ is
 
  BZERO  : Float_32 := 0.0;
  BSCALE : FLoat_32 := 1.0; 
- Undef_Val : Float_32 := Float_32(16#7F801001#);
  Undef_Cnt : Natural := 0;
 
  F32Value : Float_32;
@@ -97,7 +96,7 @@ begin
 
  Set_File_Block_Index(File,HDUStart);
 
- F32_Read_Volume(File, HDUStart, First, Last, Undef_Val, Vol);
+ F32_Read_Volume(File, HDUStart, First, Last, Vol);
  -- FIXME above proc should raise exception if File::HDU is not BITPIX=-32
 
  SIO.Close(File);
@@ -114,7 +113,7 @@ begin
    OffInVol := Raw_Funcs.To_DU_Index((I,J),(Nx,Ny));
    F32Value := Vol(OffInVol);
 
-   if(Undef_Val = F32Value OR F32Value'Valid /= True)
+   if(F32Value = F32NaN OR F32Value'Valid /= True)
    then
      Undef_Cnt := Undef_Cnt + 1;
      TIO.Put(' ');

@@ -47,7 +47,6 @@ procedure Read_Volume
   (F : in SIO.File_Type;         -- File F
   HDUStart : in Positive_Count;  -- at offset FDUStart (referenced by HDUNum)
   First, Last : in NAXIS_Arr;    -- F and L point limiting the subcube of NAXISn
-  Undef_Value : out Tm;
   Volume : out Tm_Arr)
 is
   DUStart : Positive_Count;
@@ -128,17 +127,13 @@ end Write_Volume;
 -- FIXME how to give "none" no BLANK provided (for raw Integers data)
 procedure Read_Data_Unit_By_Planes
   (F : in SIO.File_Type;
-  NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
-  Undef_Value : out Tm) -- FIXME how to return "none"=no BLANK (for raw Integers data)
+  NAXISi : in NAXIS_Arr) -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
 is
   BITPIX : Integer;
   NAXISn : NAXIS_Arr(1..1);-- FIXME
   Length : Positive_Count := 1; -- calc from NAXISn
-
   Plane : Tm_Arr(1 .. Length);
-
   F64BZERO, F64BSCALE : Tcalc;
-
 begin
   -- read Header keys
   -- FIXME read BZERO BSCALE (BLANK)
@@ -164,8 +159,7 @@ end Read_Data_Unit_By_Planes;
 
 procedure Write_Data_Unit_By_Planes
     (F : in SIO.File_Type;
-    NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
-    Undef_Value : in Tm) -- FIXME how to return "none"=no BLANK (for raw Integers data)
+    NAXISi : in NAXIS_Arr) -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
 is
 begin
   null;
