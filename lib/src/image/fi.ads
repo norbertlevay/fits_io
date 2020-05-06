@@ -8,12 +8,13 @@ with Linear_Conv; use Linear_Conv;
 generic
 type Tout is digits <>;
 type Tout_Arr is array (Positive_Count range <>) of Tout;
+type Tcalc is digits <>;
 type Tin is range <>;
 package FI is
 
 
-function FI_LinConv is new Linear_Conv.FI(Tin, Tout, Tout);
-package Phys is new Physical(Tout, Tout_Arr, Tout, Tin, FI_LinConv);
+function FI_LinConv is new Linear_Conv.FI(Tin, Tcalc, Tout);
+package Phys is new Physical(Tout, Tout_Arr, Tcalc, Tin, FI_LinConv);
 
 
 -- instantiate and access:

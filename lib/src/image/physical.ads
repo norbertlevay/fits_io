@@ -18,6 +18,15 @@
 -- Tf: F64 F32 I64 .. I16 U8  ----->  6
 -- Tm: F64 F32 I64 ...I8 U64...U8 -> 10
 
+-- NOTE API:
+-- Physical and FF FI ... modules are the most general: 
+--  allow instantiation of whatever numeric types -> generic params: Tm Tc Tf
+-- api-V3: resolve all file-types:              generic params left: Tm Tc
+-- api-V3/CPI and implement some Tm type-set:   generic params left: Tc
+-- Last api-V3/CPU allows to trade precision vs CPU-speed for an algorithm already
+-- implemented.
+
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed

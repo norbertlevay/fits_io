@@ -163,9 +163,9 @@ is
       -- new BEGIN
         type F64_Arr is array(SIO.Positive_Count range <>) of Float_64;
         type F32_Arr is array(SIO.Positive_Count range <>) of Float_32;
-      package F64F64 is new FF(Float_64, F64_Arr, Float_64);
-      package F32F32 is new FF(Float_32, F32_Arr, Float_32);
-      package F32I16 is new FI(Float_32, F32_Arr, Integer_16);
+      package F64F64 is new FF(Float_64, F64_Arr, Float_64, Float_64);
+      package F32F32 is new FF(Float_32, F32_Arr, Float_32, Float_32);
+      package F32I16 is new FI(Float_32, F32_Arr, Float_32, Integer_16);
       type F64_Plane_Acc is Access F64_Arr;
       type F32_Plane_Acc is Access F32_Arr;
         -- FIXME how to implement algorithms 

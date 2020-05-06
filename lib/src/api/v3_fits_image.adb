@@ -156,16 +156,15 @@ procedure Read_Volume_As_Float
 is
   DUStart : Positive_Count;
 
-  subtype Tcalc is Float_64;
-  F64BZERO  : Tcalc := 0.0;
-  F64BSCALE : Tcalc := 1.0;
 
 -- test FF/FI packages:
---    type F64_Arr is array (Positive_Count range <>) of Float_64;
---    type F32_Arr is array (Positive_Count range <>) of Float_32;
-  package TmF64 is new FF(Tm, Tm_Arr, Float_64);
-  package TmF32 is new FF(Tm, Tm_Arr, Float_32);
-  package TmI16 is new FI(Tm, Tm_Arr, Integer_16);
+  subtype Tcalc is Long_Float;
+  TcBZERO  : Tcalc := 0.0;
+  TcBSCALE : Tcalc := 1.0;
+
+  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64);
+  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32);
+  package TmI16 is new FI(Tm, Tm_Arr, Tcalc, Integer_16);
 
 begin
 
@@ -181,8 +180,8 @@ begin
     for I in Cards'Range
     loop
       Key := Cards(I)(1..8);
-      if   (Key = "BZERO   ") then F64BZERO  := Float_64'Value(Cards(I)(11..30));
-      elsif(Key = "BSCALE  ") then F64BSCALE := Float_64'Value(Cards(I)(11..30));
+      if   (Key = "BZERO   ") then TcBZERO  := Tcalc'Value(Cards(I)(11..30));
+      elsif(Key = "BSCALE  ") then TcBSCALE := Tcalc'Value(Cards(I)(11..30));
       end if;
     end loop;
   end;
@@ -206,13 +205,13 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
+          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
 
       when -32 => 
-          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
+          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
 
       when -64 =>
-          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
+          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
 
       when others => null; -- FIXME Error
     end case;
