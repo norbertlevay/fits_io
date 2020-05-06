@@ -19,6 +19,9 @@ package V3_Types is
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
 
+   F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
+   F32NaN : constant Float_32 := Float_32(16#7F800001#);
+
    -- complementary types (after conversion array-value -> physical-value)
 
    type Integer_8   is new Interfaces.Integer_8;

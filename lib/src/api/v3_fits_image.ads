@@ -17,16 +17,11 @@ procedure Set_File_Block_Index
 
 
 
-  -- Undef Values$
-  F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
-  F32NaN : constant Float_32 := Float_32(16#7F800001#);
-
-
-
 
   generic
     type Tm is digits <>;
     type Tm_Arr is array (Positive_Count range <>) of Tm;
+    TmNaN : Tm;
   procedure Read_Volume_As_Float
     (F : in SIO.File_Type;          -- File F
     HDUStart : in Positive_Count;   -- at offset FDUStart (referenced by HDUNum)

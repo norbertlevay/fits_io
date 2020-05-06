@@ -162,8 +162,8 @@ is
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
 
-  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64);
-  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32);
+  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64, TmNaN);
+  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32, TmNaN);
   package TmI16 is new FI(Tm, Tm_Arr, Tcalc, Integer_16);
 
 begin

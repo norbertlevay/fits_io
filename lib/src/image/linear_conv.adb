@@ -12,7 +12,7 @@ package body Linear_Conv is
     -- -> example put NaN in V3_Types and user includes V3_Types at instatiation -> NaN gets resolved
     -- ONE SOLUTION: put NaN as generic parameter with enabled default and compiler will puul it in from Vn_Types
 
-function FF(A,B:Tc; Vin : Tin) return Tout is begin if(Vin = Vin) then return Tout(A+B*Tc(Vin)); else return Tout(0.0); end if; end FF;--FIXME Tout(0.0) should be Tout(NaN)
+function FF(A,B:Tc; Vin : Tin) return Tout is begin if(Vin = Vin) then return Tout(A+B*Tc(Vin)); else return ToutNaN; end if; end FF;--FIXME Tout(0.0) should be Tout(NaN)
 function FI(A,B:Tc; Vin : Tin) return Tout is begin return Tout(A+B*Tc(Vin)); end FI;
 function FU(A,B:Tc; Vin : Tin) return Tout is begin return Tout(A+B*Tc(Vin)); end FU;
 

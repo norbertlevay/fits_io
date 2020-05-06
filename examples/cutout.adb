@@ -43,7 +43,7 @@ is
  -- instantiate Read Volume func for Float_32
 
  type VolData is array (SIO.Positive_Count range <>) of Float_32;
- procedure F32_Read_Volume is new Read_Volume_As_Float(Float_32,VolData);
+ procedure F32_Read_Volume is new Read_Volume_As_Float(Float_32,VolData,F32NaN);
  
  -- file related
  File : SIO.File_Type;
