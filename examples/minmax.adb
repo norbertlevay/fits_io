@@ -31,14 +31,11 @@ with Optional.Reserved; use Optional.Reserved;
 
 -- new Data interface
 with V3_Types; use V3_Types;
-with V3_Types.Conversions; use V3_Types.Conversions;
 
--- new BEGIN
 with FF;
 with FI;
 with Physical;
 with Linear_Conv;
--- new END
 
 
 procedure minmax
