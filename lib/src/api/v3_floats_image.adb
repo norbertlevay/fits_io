@@ -38,7 +38,7 @@ with FF;
 with FI;
 with Physical;
 
-package body V3_FITS_Image is
+package body V3_Floats_Image is
 
 
 
@@ -181,5 +181,5 @@ end Write_Data_Unit_By_Planes;
 
 
 
-end V3_FITS_Image;
+end V3_Floats_Image;
 

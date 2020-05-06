@@ -7,7 +7,7 @@ with V3_Types; use V3_Types;
 generic
 type Tm is digits <>;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
-package V3_FITS_Image is
+package V3_Floats_Image is
 
   package SIO renames Ada.Streams.Stream_IO;
 
@@ -48,5 +48,5 @@ procedure Write_Data_Unit_By_Planes
     Undef_Value : in Tm); -- FIXME how to return "none"=no BLANK (for raw Integers data)
 
 
-end V3_FITS_Image;
+end V3_Floats_Image;
 
