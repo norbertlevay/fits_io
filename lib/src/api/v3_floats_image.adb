@@ -107,8 +107,8 @@ end Read_Volume;
 procedure Write_Volume
   (F : in SIO.File_Type;
   HDUStart : in Positive_Count;
-  NAXISn : in NAXIS_Arr;
   First, Last : in NAXIS_Arr;
+  NAXISn : in NAXIS_Arr;
   Volume : in Tm_Arr)
 is
 begin
