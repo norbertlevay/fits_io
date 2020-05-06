@@ -52,7 +52,6 @@ procedure Read_Volume
 is
   DUStart : Positive_Count;
 
-  subtype Tcalc is Long_Float;
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
 
@@ -138,10 +137,6 @@ is
 
   Plane : Tm_Arr(1 .. Length);
 
-  -- NOTE Scaling always calced in Float_64 (=Tc)
-  -- For starters: always Float_64: Card-Values string has 20 chars 
-  -- -> Float_64 has 15 digits validity -> use for card-value floating point always Float 64
-  subtype Tcalc is Float_64;
   F64BZERO, F64BSCALE : Tcalc;
 
 begin

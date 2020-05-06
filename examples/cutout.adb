@@ -42,8 +42,8 @@ is
  use Value_Functions;
  -- instantiate Read Volume func for Float_32
 
- type VolData is array (SIO.Positive_Count range <>) of Float_32;
- package F32_Image is new V3_Floats_Image(Float_32, VolData);
+ type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
+ package F32_Image is new V3_Floats_Image(Tm=>Float_32, Tm_Arr=>F32_Arr, Tcalc=>Long_Float);
  procedure F32_Read_Volume is new F32_Image.Read_Volume(F32NaN);
  
  -- file related
@@ -92,7 +92,7 @@ begin
  Ny := 1 + Last(2) - First(2);
 
 declare 
- Vol : VolData( 1 .. Raw_Funcs.Volume_Length(First,Last));
+ Vol : F32_Arr( 1 .. Raw_Funcs.Volume_Length(First,Last));
 begin
 
  Set_File_Block_Index(File,HDUStart);
@@ -133,7 +133,7 @@ begin
  TIO.Put_Line("<");
  end loop;
 
-end; -- VolData declare
+end; -- F32_Arr declare
 
  TIO.Put_Line("Undef_Cnt : " & Natural'Image(Undef_Cnt));
  TIO.Put_Line("Min : " & Float_32'Image(F32Min));

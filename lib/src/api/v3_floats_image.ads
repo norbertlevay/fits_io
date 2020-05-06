@@ -7,6 +7,7 @@ with V3_Types; use V3_Types;
 generic
 type Tm is digits <>;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
+type Tcalc is digits <>;
 package V3_Floats_Image is
 
   package SIO renames Ada.Streams.Stream_IO;
