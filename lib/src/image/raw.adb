@@ -17,7 +17,7 @@ with Interfaces;
 
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
-with NCube_Funcs; use NCube_Funcs;
+with Raw_Funcs;-- use Raw_Funcs;
 with File_Funcs;
 
 
@@ -111,7 +111,7 @@ package body Raw is
   is
     -- StreamElem count (File_Index) from File begining:
     DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
-    DUIndex : Positive_Count := NCube_Funcs.To_DU_Index(First, NAXISn);
+    DUIndex : Positive_Count := Raw_Funcs.To_DU_Index(First, NAXISn);
     --procedure ReadArray is new Read_Array(T,T_Arr);
  begin
     SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
@@ -250,7 +250,7 @@ end Read_Data_Unit;
     --print_coord(C)
     Read_Raw_Line(File, DUStart, NAXISn, C, Line);
 
-    Vf := To_DU_Index(CV,VolNAXISn);
+    Vf := Raw_Funcs.To_DU_Index(CV,VolNAXISn);
     Vl := Vf + LineLength - 1;
     Volume(Vf .. Vl) := Line;
     -- store read line
@@ -278,7 +278,7 @@ end Read_Data_Unit;
         CV(I) := Unity(I) + C(I) - First(I);
       end loop;
 
-      Vf := To_DU_Index(CV,VolNAXISn);
+      Vf := Raw_Funcs.To_DU_Index(CV,VolNAXISn);
       Vl := Vf + LineLength - 1;
       Volume(Vf .. Vl) := Line;
       -- store read line
@@ -325,7 +325,7 @@ end Read_Data_Unit;
           DestC(K) := First(K) + C(K) - 1;
         end loop;
 
-        DestDUIndex  := To_DU_Index(DestC, NAXISn);
+        DestDUIndex  := Raw_Funcs.To_DU_Index(DestC, NAXISn);
         SIOFileIndex := DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880;
         SIO.Set_Index(File, SIOFileIndex);
         Write_Array(File, Line);

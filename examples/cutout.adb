@@ -23,7 +23,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Numerics.Generic_Elementary_Functions; 
 
 with V3_Types; use V3_Types;
-with NCube_Funcs; --use NCube_Funcs;
+with Raw_Funcs;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
 with File_Funcs; use File_Funcs;
@@ -91,7 +91,7 @@ begin
  Ny := 1 + Last(2) - First(2);
 
 declare 
- Vol : VolData( 1 .. NCube_Funcs.Volume_Length(First,Last));
+ Vol : VolData( 1 .. Raw_Funcs.Volume_Length(First,Last));
 begin
 
  Set_File_Block_Index(File,HDUStart);
@@ -110,7 +110,7 @@ begin
  for I in 1 .. Nx
  loop
 
-   OffInVol := NCube_Funcs.To_DU_Index((I,J),(Nx,Ny));
+   OffInVol := Raw_Funcs.To_DU_Index((I,J),(Nx,Ny));
    F32Value := Vol(OffInVol);
 
    if(Undef_Val = F32Value OR F32Value'Valid /= True)

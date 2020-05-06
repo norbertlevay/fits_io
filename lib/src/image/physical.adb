@@ -21,7 +21,7 @@ with Interfaces;
 
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
-with NCube_Funcs; use NCube_Funcs;
+with Raw_Funcs; use Raw_Funcs;
 with Raw;
 
 
@@ -90,7 +90,7 @@ package body Physical is
     BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr)
   is
-    VolLength : Positive_Count := Volume_Length(First, Last);
+    VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawVol: Tf_Arr(1 .. VolLength);

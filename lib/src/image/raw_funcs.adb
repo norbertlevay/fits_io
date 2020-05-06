@@ -1,7 +1,7 @@
 
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
 
-package body NCube_Funcs is
+package body Raw_Funcs is
 
 
  function To_DU_Index (Coords    : in  NAXIS_Arr;
@@ -126,6 +126,6 @@ package body NCube_Funcs is
   end Volume_Length;
 
 
-end NCube_Funcs;
+end Raw_Funcs;
 
 
