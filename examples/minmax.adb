@@ -153,12 +153,9 @@ is
       NewBLANK : Float_32 := I16F32_Scale(F32_BZERO,F32_BSCALE,I16_BLANK);
 
 
-      F64Undef : Float_64 := Float_64(16#7FF0000000000100#);
-      F32Undef : Float_32 := Float_32(16#7F800001#);
-
       -- new BEGIN
-        type F64_Arr is array(SIO.Positive_Count range <>) of Float_64;
-        type F32_Arr is array(SIO.Positive_Count range <>) of Float_32;
+      type F64_Arr is array(SIO.Positive_Count range <>) of Float_64;
+      type F32_Arr is array(SIO.Positive_Count range <>) of Float_32;
       package F64F64 is new FF(Float_64, F64_Arr, Float_64, Float_64, F64NaN);
       package F32F32 is new FF(Float_32, F32_Arr, Float_32, Float_32, F32NaN);
       package F32I16 is new FI(Float_32, F32_Arr, Float_32, Integer_16);
@@ -206,7 +203,7 @@ is
 
         for I in F32Plane'Range
         loop
-          if(F32Plane(I) /= F32Undef)
+          if(F32Plane(I) /= F32NaN)
           then
             if(F32Plane(I)>Max) then Max := F32Plane(I); end if;
           else
