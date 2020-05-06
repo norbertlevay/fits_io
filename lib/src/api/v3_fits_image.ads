@@ -1,28 +1,21 @@
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed or is there FITS.Positive_count?
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
 with Mandatory; use Mandatory;-- NAXIS_Arr needed
 
 with V3_Types; use V3_Types;
 
-
+generic
+type Tm is digits <>;
+type Tm_Arr is array (Positive_Count range <>) of Tm;
 package V3_FITS_Image is
 
   package SIO renames Ada.Streams.Stream_IO;
 
 
-function File_Block_Index(File : File_Type) return Positive_Count;
-procedure Set_File_Block_Index
-        (File        : File_Type;
-         Block_Index : in Positive_Count);
 
-
-
-
-  generic
-    type Tm is digits <>;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-    TmNaN : Tm;
-  procedure Read_Volume_As_Float
+generic
+TmNaN : Tm;
+procedure Read_Volume
     (F : in SIO.File_Type;          -- File F
     HDUStart : in Positive_Count;   -- at offset FDUStart (referenced by HDUNum)
     First, Last : in NAXIS_Arr;     -- F and L point limiting the subcube of NAXISn
@@ -30,10 +23,7 @@ procedure Set_File_Block_Index
     Volume : out Tm_Arr);
 
 
-  generic
-    type Tm is private;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-  procedure Write_Volume
+procedure Write_Volume
     (F : in SIO.File_Type;
     HDUStart : in Positive_Count;
     NAXISn : in NAXIS_Arr;
@@ -42,26 +32,20 @@ procedure Set_File_Block_Index
 
 
 
-
-  generic
-    type Tm is digits <>;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-    with procedure Plane_Data(Plane : in Tm_Arr; PlaneCount : in Positive_Count);
-  procedure Read_Plane_As_Float
+generic
+with procedure Plane_Data(Plane : in Tm_Arr; PlaneCount : in Positive_Count);
+procedure Read_Data_Unit_By_Planes
     (F : in SIO.File_Type;
     NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
     Undef_Value : out Tm); -- FIXME how to return "none"=no BLANK (for raw Integers data)
 
 
-  generic
-    type Tm is private;
-    type Tm_Arr is array (Positive_Count range <>) of Tm;
-    with procedure Plane_Data(Plane : out Tm_Arr; PlaneCount : in Positive_Count);
-  procedure Write_Plane_As_Float
+generic
+with procedure Plane_Data(Plane : out Tm_Arr; PlaneCount : in Positive_Count);
+procedure Write_Data_Unit_By_Planes
     (F : in SIO.File_Type;
     NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
     Undef_Value : in Tm); -- FIXME how to return "none"=no BLANK (for raw Integers data)
-
 
 
 end V3_FITS_Image;

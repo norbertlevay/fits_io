@@ -32,7 +32,6 @@ with Optional.Reserved; use Optional.Reserved;
 -- new Data interface
 with V3_Types; use V3_Types;
 with V3_Types.Conversions; use V3_Types.Conversions;
-with V3_FITS_Image; use V3_FITS_Image; -- Set_File_Block_index needed
 
 -- new BEGIN
 with FF;
@@ -116,7 +115,7 @@ is
       SIO.Open(InFile, SIO.In_File, (Argument(1)));
     end if;
 
-    Set_File_Block_Index(InFile,HDUStart);
+    File.Set_File_Block_Index(InFile,HDUStart);
 
     declare
       HDUInfo : HDU_Info_Type := Read_Header(InFile);
@@ -130,7 +129,7 @@ is
     Put_Line("DU Start [blocks] :" & SIO.Positive_Count'Image(DUStart)); 
     Put_Line("DU Size  [element count]:" & SIO.Positive_Count'Image(DUSize)); 
 
-    Set_File_Block_Index(InFile,HDUStart);
+    File.Set_File_Block_Index(InFile,HDUStart);
 
     for I in NAXISn'Range
     loop

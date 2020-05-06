@@ -168,6 +168,38 @@ begin
 end Set_Index;
 
 
+-- NOTE taken from original place data/data_funcs.ad? when data/ deprecated
+-- indexing relative to file start
+BlockSize_bytes    : constant Positive_Count :=  2880;
+BlockSize_bits     : constant Positive_Count := 23040;
+BlockSize_sioelems : constant Positive_Count
+    := BlockSize_bits / Ada.Streams.Stream_Element'Size;
+-- size counted in SIO file-index elements
+
+
+function File_Block_Index(File : File_Type) return Positive_Count
+is
+    SIO_Index : Positive_Count := Index(File);
+begin
+    return (1 + (SIO_Index - 1) / BlockSize_sioelems);
+end File_Block_Index;
+
+
+
+procedure Set_File_Block_Index
+        (File        : File_Type; 
+         Block_Index : in Positive_Count)
+is
+    SIO_Index : Positive_Count :=  
+        1 + (Block_Index - 1) * BlockSize_sioelems;
+begin
+    Set_Index(File, SIO_Index);
+end Set_File_Block_Index;
+
+
+
+
+
 
 end File;
 

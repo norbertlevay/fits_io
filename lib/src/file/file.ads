@@ -35,6 +35,13 @@ package File is
    procedure Set_Index(File : in SIO.File_Type;
                        HDUNum   : in Positive);
 
+   function File_Block_Index(File : SIO.File_Type) return SIO.Positive_Count;
+
+   procedure Set_File_Block_Index
+       (File        : SIO.File_Type;
+       Block_Index : in SIO.Positive_Count);
+
+
 
 private
 

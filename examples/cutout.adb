@@ -31,7 +31,7 @@ with File_Funcs; use File_Funcs;
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
 
-with V3_FITS_Image; use V3_FITS_Image;
+with V3_FITS_Image;
 
 procedure cutout
 is
@@ -43,7 +43,8 @@ is
  -- instantiate Read Volume func for Float_32
 
  type VolData is array (SIO.Positive_Count range <>) of Float_32;
- procedure F32_Read_Volume is new Read_Volume_As_Float(Float_32,VolData,F32NaN);
+ package F32_Image is new V3_FITS_Image(Float_32, VolData);
+ procedure F32_Read_Volume is new F32_Image.Read_Volume(F32NaN);
  
  -- file related
  File : SIO.File_Type;
