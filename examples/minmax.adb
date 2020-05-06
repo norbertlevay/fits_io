@@ -161,18 +161,26 @@ is
       F32Undef : Float_32 := Float_32(16#7F800001#);
 
       -- new BEGIN
-      package F64F64 is new FF(Float_64, Float_64);
-      package F32F32 is new FF(Float_32, Float_32);
-      package F32I16 is new FI(Float_32, Integer_16);
-      type F64_Plane_Acc is Access F64F64.Phys.Tm_Arr;
-      type F32_Plane_Acc is Access F32F32.Phys.Tm_Arr;
-      type F32I16_Plane_Acc is Access F32I16.Phys.Tm_Arr;
-      -- FIXME not ok: useless distuiguish F32F32Plane vs F32I16Plane
+        type F64_Arr is array(SIO.Positive_Count range <>) of Float_64;
+        type F32_Arr is array(SIO.Positive_Count range <>) of Float_32;
+      package F64F64 is new FF(Float_64, F64_Arr, Float_64);
+      package F32F32 is new FF(Float_32, F32_Arr, Float_32);
+      package F32I16 is new FI(Float_32, F32_Arr, Integer_16);
+      type F64_Plane_Acc is Access F64_Arr;
+      type F32_Plane_Acc is Access F32_Arr;
+        -- FIXME how to implement algorithms 
+      -- * for all V3 file-types but one Tm type (Float_64)
+      -- * for all combinations of V3 types Tm x Tf : 10 x 6 = 60 combinations
+      --
+      -- consider writing generic parametrized by Tm/Tm_Arr
+      -- which implements Read_Array in case(BITPIX)... 
+      -- for all V3 types: TmF64 TmF32 TmI64 TmI32...
+      -- then instantiate for one (or all) 
+      -- V3-Tm types: F64 (F32 I64 ... I8 U64 U32 .. U8)
       -- new END
 
-      F64Plane : F64_Plane_Acc := new F64F64.Phys.Tm_Arr(1..PlaneLength);
-      F32Plane : F32_Plane_Acc := new F32F32.Phys.Tm_Arr(1..PlaneLength);
-      F32I16Plane : F32I16_Plane_Acc := new F32I16.Phys.Tm_Arr(1..PlaneLength);
+      F64Plane : F64_Plane_Acc := new F64_Arr(1..PlaneLength);
+      F32Plane : F32_Plane_Acc := new F32_Arr(1..PlaneLength);
       Max : Float_32 := Float_32'First;
       Invalid_Count : Natural := 0;
 
@@ -193,8 +201,7 @@ is
           when  64 => null;
           when  32 => null;
           when  16 =>
-              F32I16.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32I16Plane.All);
-              F32Plane.All := F32F32.Phys.Tm_Arr(F32I16Plane.All); 
+              F32I16.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All);
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

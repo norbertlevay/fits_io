@@ -12,12 +12,19 @@
 -- * package F32I16_Physical is new Physical(Float_32, Long_Float, Integer_16);
 
 
+-- FIXME: API should support writing generic algorithms which will cover all
+-- combinations of type sets Tf and Tm -> e.g. Ada-compiler will expand such user-code
+-- Example: for V3-types, would end up in 60 combinations 10 x 6:
+-- Tf: F64 F32 I64 .. I16 U8  ----->  6
+-- Tm: F64 F32 I64 ...I8 U64...U8 -> 10
+
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 generic
   type Tm is private;       -- type in memory (data is returned to caller in this type)
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;     -- type in which scaling is calculated
   type Tf is private;       -- type in fits-file;
   with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm is <>;
@@ -25,7 +32,6 @@ package Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
 
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
 
 
   -- sequential access

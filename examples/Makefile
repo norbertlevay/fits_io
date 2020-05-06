@@ -29,4 +29,4 @@ run:
 	fitsheader bin/convert.fits
 	fits2bitmap bin/convert.fits
 	gio open bin/convert.png
-
+	./bin/minmax bin/convert.fits

@@ -161,9 +161,11 @@ is
   F64BSCALE : Tcalc := 1.0;
 
 -- test FF/FI packages:
-  package F64F64 is new FF(Float_64,Float_64);
-  package F32F32 is new FF(Float_32,Float_32);
-  package F32I16 is new FI(Float_32,Integer_16);
+--    type F64_Arr is array (Positive_Count range <>) of Float_64;
+--    type F32_Arr is array (Positive_Count range <>) of Float_32;
+  package TmF64 is new FF(Tm, Tm_Arr, Float_64);
+  package TmF32 is new FF(Tm, Tm_Arr, Float_32);
+  package TmI16 is new FI(Tm, Tm_Arr, Integer_16);
 
 begin
 
@@ -192,10 +194,6 @@ begin
     NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
     BITPIX  : Integer   := HDUInfo.BITPIX;
 
-    F64F64Vol : F64F64.Phys.Tm_Arr(Volume'Range);
-    F32F32Vol : F32F32.Phys.Tm_Arr(Volume'Range);
-    F32I16Vol : F32I16.Phys.Tm_Arr(Volume'Range);
-
   begin
     DUStart := File_Block_Index(F);
 
@@ -208,16 +206,13 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          F32I16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), F32I16Vol);
-          for I in Volume'Range loop Volume(I) := Tm(F32I16Vol(I)); end loop;
+          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
 
       when -32 => 
-          F32F32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_32(0.0),Float_32(1.0), F32F32Vol);
-          for I in Volume'Range loop Volume(I) := Tm(F32F32Vol(I)); end loop;
+          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
 
       when -64 =>
-          F64F64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Float_64(0.0),Float_64(1.0), F64F64Vol);
-          for I in Volume'Range loop Volume(I) := Tm(F64F64Vol(I)); end loop;
+          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Tm(0.0),Tm(1.0), Volume);
 
       when others => null; -- FIXME Error
     end case;
