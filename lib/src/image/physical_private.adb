@@ -61,10 +61,10 @@ package body Physical_Private is
     package Tf_Raw is new Raw(Tf,Tf_Arr);
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
---    for I in Plane'Range
+--    for I in Data'Range
 --    loop
---      RawPlane(I) := LinScale(Plane(I));
---    end loop;>
+--      RawData(I) := Linear(Data(I));
+--    end loop;
     Tf_Raw.Write_Array(F, RawData);
   end Write_Array;
 

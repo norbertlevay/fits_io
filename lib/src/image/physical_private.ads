@@ -45,19 +45,18 @@ package Physical_Private is
 
   -- sequential access
 
-
  procedure Read_Array
    (F : SIO.File_Type;
     Data : out Tm_Arr);
 
-
+ generic -- FIXME Linear has 2 forms: Tf->Tm for Read and Tm->Tf for Write
+  with function Linear(Vin : in Tm) return Tf is <>;
  procedure Write_Array
    (F : SIO.File_Type;
     Data : in Tm_Arr);
 
 
  -- random access
-
 
  procedure Read_Volume
    (File : SIO.File_Type;
