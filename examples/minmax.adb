@@ -149,16 +149,16 @@ is
       I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
       function I16F32_Scale is
-        new Linear_Conv.FI(Integer_16, Float_32, Float_32);
-      NewBLANK : Float_32 := I16F32_Scale(F32_BZERO,F32_BSCALE,I16_BLANK);
+        new Linear_Conv.FI(Integer_16, Float_32, Float_32,F32_BZERO,F32_BSCALE);
+      NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
 
 
       -- new BEGIN
       type F64_Arr is array(SIO.Positive_Count range <>) of Float_64;
       type F32_Arr is array(SIO.Positive_Count range <>) of Float_32;
-      package F64F64 is new FF(Float_64, F64_Arr, Float_64, Float_64, F64NaN);
-      package F32F32 is new FF(Float_32, F32_Arr, Float_32, Float_32, F32NaN);
-      package F32I16 is new FI(Float_32, F32_Arr, Float_32, Integer_16);
+      package F64F64 is new FF(Float_64, F64_Arr, Float_64, Float_64, F64_BZERO,F64_BSCALE,F64NaN);
+      package F32F32 is new FF(Float_32, F32_Arr, Float_32, Float_32, F32_BZERO,F32_BSCALE,F32NaN);
+      package F32I16 is new FI(Float_32, F32_Arr, Float_32, Integer_16, F32_BZERO,F32_BSCALE);
       type F64_Plane_Acc is Access F64_Arr;
       type F32_Plane_Acc is Access F32_Arr;
         -- FIXME how to implement algorithms 
@@ -188,13 +188,13 @@ is
 
         case(BITPIX) is
           when -64 =>
-              F64F64.Phys.Read_Array(InFile,F64_BZERO,F64_BSCALE,F64Plane.All);
+              F64F64.Phys.Read_Array(InFile,F64Plane.All);
           when -32 =>
-              F32F32.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All);
+              F32F32.Phys.Read_Array(InFile,F32Plane.All);
           when  64 => null;
           when  32 => null;
           when  16 =>
-              F32I16.Phys.Read_Array(InFile,F32_BZERO,F32_BSCALE,F32Plane.All);
+              F32I16.Phys.Read_Array(InFile,F32Plane.All);
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

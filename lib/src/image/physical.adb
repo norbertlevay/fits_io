@@ -38,13 +38,11 @@ package body Physical is
 
   procedure Read_Array
     (F : SIO.File_Type;
-    BZERO, BSCALE : in Tc;
     Data  : out Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    --function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
   begin
     Tf_Raw.Read_Array(F, RawData);
     for I in RawData'Range
@@ -56,13 +54,11 @@ package body Physical is
 
   procedure Write_Array
     (F : SIO.File_Type;
-    BZERO, BSCALE : in Tc;
     Data : in Tm_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
---    function LinScale is new Scale(Tm,Tf,Tc, BZERO, BSCALE,"+","+");
   begin
     -- FIXME incorrect this is in Write(Tm->Tf) not Read(Tf->Tm):
 --    for I in Plane'Range

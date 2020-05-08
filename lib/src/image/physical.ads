@@ -48,13 +48,11 @@ package Physical is
 
  procedure Read_Array
    (F : SIO.File_Type;
-    BZERO, BSCALE : in Tc;
     Data : out Tm_Arr);
 
 
  procedure Write_Array
    (F : SIO.File_Type;
-    BZERO, BSCALE : in Tc;
     Data : in Tm_Arr);
 
 

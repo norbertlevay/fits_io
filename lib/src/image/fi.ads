@@ -10,7 +10,7 @@ type Tout is digits <>;
 type Tout_Arr is array (Positive_Count range <>) of Tout;
 type Tcalc is digits <>;
 type Tin is range <>;
-A,B : Tcalc;
+A,B : in out Tcalc;
 package FI is
 
 
