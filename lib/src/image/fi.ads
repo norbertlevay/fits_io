@@ -10,10 +10,11 @@ type Tout is digits <>;
 type Tout_Arr is array (Positive_Count range <>) of Tout;
 type Tcalc is digits <>;
 type Tin is range <>;
+A,B : Tcalc;
 package FI is
 
 
-function FI_LinConv is new Linear_Conv.FI(Tin, Tcalc, Tout);
+function FI_LinConv is new Linear_Conv.FI(Tin, Tcalc, Tout, A,B);
 package Phys is new Physical(Tout, Tout_Arr, Tcalc, Tin, FI_LinConv);
 
 

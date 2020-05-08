@@ -36,7 +36,7 @@ generic
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;     -- type in which scaling is calculated
   type Tf is private;       -- type in fits-file;
-  with function Linear(BZERO,BSCALE : in Tc; Vin : in Tf) return Tm is <>;
+  with function Linear(Vin : in Tf) return Tm is <>;
 package Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -67,7 +67,6 @@ package Physical is
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
-    BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
 
 

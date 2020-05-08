@@ -49,7 +49,7 @@ package body Physical is
     Tf_Raw.Read_Array(F, RawData);
     for I in RawData'Range
     loop
-      Data(I) := Linear(BZERO,BSCALE,RawData(I));
+      Data(I) := Linear(RawData(I));
     end loop;
   end Read_Array;
 
@@ -87,7 +87,6 @@ package body Physical is
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
-    BZERO, BSCALE : in Tc;
     Volume  : out Tm_Arr)
   is
     VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
@@ -96,14 +95,14 @@ package body Physical is
     RawVol: Tf_Arr(1 .. VolLength);
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
---    function LinScale is new Scale(Tf,Tm,Tc, BZERO, BSCALE,"+","+");
+
   begin
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop
-      Volume(I) := Linear(BZERO,BSCALE,RawVol(I));
+      Volume(I) := Linear(RawVol(I));
     end loop;
 
   end Read_Volume;

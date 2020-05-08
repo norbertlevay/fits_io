@@ -38,6 +38,7 @@ with FF;
 with FI;
 with Physical;
 
+
 package body V3_Floats_Image is
 
 
@@ -54,9 +55,10 @@ is
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
 
-  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64, TmNaN);
-  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32, TmNaN);
-  package TmI16 is new FI(Tm, Tm_Arr, Tcalc, Integer_16);
+  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN);
+  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN);
+  package TmI16 is new FI(Tm, Tm_Arr, Tcalc, Integer_16, TcBZERO, TcBSCALE);
+
 begin
   Ada.Text_IO.Put_Line("DBG: V3_Floats_Image::Read_Volume");
 
@@ -86,11 +88,11 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
+          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -32 => 
-          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
+          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -64 =>
-          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, TcBZERO,TcBSCALE, Volume);
+          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when others => null; -- FIXME Error
     end case;
 

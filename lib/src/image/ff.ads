@@ -10,11 +10,11 @@ type Tout is digits <>;
 type Tout_Arr is array (Positive_Count range <>) of Tout;
 type Tcalc is digits <>; -- scaling always in Floats
 type Tin  is digits <>;
+A,B: in out Tcalc;
 ToutNaN : Tout;
 package FF is
 
-
-function FF_LinConv is new Linear_Conv.FF(Tin, Tcalc, Tout, ToutNaN);
+function FF_LinConv is new Linear_Conv.FF(Tin, Tcalc, Tout, A, B, ToutNaN);
 package Phys is new Physical(Tout, Tout_Arr, Tcalc, Tin, FF_LinConv);
 
 
