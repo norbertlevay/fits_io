@@ -148,7 +148,7 @@ end DU_Data_Count;
 
 
 
-procedure Write_Data_Unit
+procedure Write_All_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr)
 is
@@ -181,12 +181,12 @@ begin
   Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
   Write_Array(File, Block);
 
-end Write_Data_Unit;
+end Write_All_Data_Unit;
 
 
 
 
-procedure Read_Data_Unit
+procedure Read_All_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr)
 is
@@ -202,7 +202,7 @@ begin
     Data(Block);
   end loop;
 
-end Read_Data_Unit;
+end Read_All_Data_Unit;
 
 
 

@@ -60,7 +60,7 @@ is
  end DUFloatData;
 
  package F32_Raw is new Raw(Float_32, F32_Arr);
- procedure F32_Write_Data_Unit is new F32_Raw.Write_Data_Unit(0.0, DUFloatData);
+ procedure F32_Write_Data_Unit is new F32_Raw.Write_All_Data_Unit(0.0, DUFloatData);
 
 
 begin
