@@ -34,8 +34,7 @@ with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
 
-with FF;
-with FI;
+with Image_Data;
 with Physical;
 
 
@@ -55,9 +54,9 @@ is
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
 
-  package TmF64 is new FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN);
-  package TmF32 is new FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN);
-  package TmI16 is new FI(Tm, Tm_Arr, Tcalc, Integer_16, TcBZERO, TcBSCALE);
+  package TmF64 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN);
+  package TmF32 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN);
+  package TmI16 is new Image_Data.FI(Tm, Tm_Arr, Tcalc, Integer_16, TcBZERO, TcBSCALE);
 
 begin
   Ada.Text_IO.Put_Line("DBG: V3_Floats_Image::Read_Volume");
