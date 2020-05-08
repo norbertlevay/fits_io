@@ -35,7 +35,7 @@ with File;
 with V3_Types; use V3_Types;-- types needed
 
 with Image_Data;
-with Physical;
+--with Physical;
 
 
 package body V3_Floats_Image is
@@ -87,11 +87,11 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          TmI16.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmI16.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -32 => 
-          TmF32.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF32.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -64 =>
-          TmF64.Phys.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF64.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when others => null; -- FIXME Error
     end case;
 

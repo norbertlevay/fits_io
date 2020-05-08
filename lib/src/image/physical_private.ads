@@ -37,7 +37,7 @@ generic
   type Tc is digits <>;     -- type in which scaling is calculated
   type Tf is private;       -- type in fits-file;
   with function Linear(Vin : in Tf) return Tm is <>;
-package Physical is
+package Physical_Private is
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -68,5 +68,5 @@ package Physical is
     Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
 
 
-end Physical;
+end Physical_Private;
 

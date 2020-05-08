@@ -25,7 +25,7 @@ with Raw_Funcs; use Raw_Funcs;
 with Raw;
 
 
-package body Physical is
+package body Physical_Private is
 
   use SIO;
 
@@ -104,5 +104,5 @@ package body Physical is
   end Read_Volume;
 
 
-end Physical;
+end Physical_Private;
 

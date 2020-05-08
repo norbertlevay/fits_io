@@ -33,7 +33,7 @@ with Optional.Reserved; use Optional.Reserved;
 with V3_Types; use V3_Types;
 
 with Image_Data;
-with Physical;
+--with Physical;
 with Linear_Conv;
 
 
@@ -187,13 +187,13 @@ is
 
         case(BITPIX) is
           when -64 =>
-              F64F64.Phys.Read_Array(InFile,F64Plane.All);
+              F64F64.Physical.Read_Array(InFile,F64Plane.All);
           when -32 =>
-              F32F32.Phys.Read_Array(InFile,F32Plane.All);
+              F32F32.Physical.Read_Array(InFile,F32Plane.All);
           when  64 => null;
           when  32 => null;
           when  16 =>
-              F32I16.Phys.Read_Array(InFile,F32Plane.All);
+              F32I16.Physical.Read_Array(InFile,F32Plane.All);
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;
