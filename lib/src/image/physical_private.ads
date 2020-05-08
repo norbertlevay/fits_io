@@ -36,7 +36,6 @@ generic
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>;     -- type in which scaling is calculated
   type Tf is private;       -- type in fits-file;
-  with function Linear(Vin : in Tf) return Tm is <>;
 package Physical_Private is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -44,12 +43,13 @@ package Physical_Private is
 
 
   -- sequential access
-
+ generic
+  with function Linear(Vin : in Tf) return Tm is <>;
  procedure Read_Array
    (F : SIO.File_Type;
     Data : out Tm_Arr);
 
- generic -- FIXME Linear has 2 forms: Tf->Tm for Read and Tm->Tf for Write
+ generic
   with function Linear(Vin : in Tm) return Tf is <>;
  procedure Write_Array
    (F : SIO.File_Type;
@@ -58,6 +58,8 @@ package Physical_Private is
 
  -- random access
 
+ generic
+  with function Linear(Vin : in Tf) return Tm is <>;
  procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;

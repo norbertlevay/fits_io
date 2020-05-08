@@ -18,8 +18,13 @@ package body Linear_Conv is
     -- IF UF -> no   BLANK -> user did not give BLANK, but NaN found -> raise exception "Data contains undefined values (NaN) but no BLANK given"
     -- IF UF -> with BLANK -> if(NaN) -> return BLANK & check that no value after conversion results in BLANK: if(Vout=BLANK) raise exception "BLANK among valid values"
 
-function FF(Vin : Tin) return Tout is begin if(Vin = Vin) then return Tout(A+B*Tc(Vin)); else return ToutNaN; end if; end FF;
-function FI(Vin : Tin) return Tout is begin return Tout(A+B*Tc(Vin)); end FI;
+function FF4R(Vin : Tin) return Tout is begin if(Vin = Vin) then return Tout(A+B*Tc(Vin)); else return ToutNaN; end if; end FF4R;
+function FF4W(Vin : Tout) return Tin is begin if(Vin = Vin) then return Tin(A+B*Tc(Vin)); else return TinNaN; end if; end FF4W;
+
+function FI4R(Vin : Tin) return Tout is begin return Tout(A+B*Tc(Vin)); end FI4R;
+function FI4W(Vin : Tout) return Tin is begin return Tin(A+B*Tc(Vin)); end FI4W;
+
+
 function FU(Vin : Tin) return Tout is begin return Tout(A+B*Tc(Vin)); end FU;
 function FI_BLANK(Vin : Tin) return Tout is begin if(Vin = BLANK) then return ToutNaN; else return Tout(A+B*Tc(Vin)); end if; end FI_BLANK;
 function FU_BLANK(Vin : Tin) return Tout is begin if(Vin = BLANK) then return ToutNaN; else return Tout(A+B*Tc(Vin)); end if; end FU_BLANK;

@@ -17,9 +17,15 @@ type Tcalc is digits <>; -- scaling always in Floats
 type Tin  is digits <>;
 A,B: in out Tcalc;
 ToutNaN : Tout;
+TinNaN : Tin;
 package FF is
-function Linear  is new Linear_Conv.FF(Tin, Tcalc, Tout, A, B, ToutNaN);
-package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin, Linear);
+package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
+function Linear4R  is new Linear_Conv.FF4R(Tin, Tcalc, Tout, A, B, ToutNaN);
+function Linear4W  is new Linear_Conv.FF4W(Tin, Tcalc, Tout, A, B, TinNaN);
+procedure Read_Array  is new Physical.Read_Array(Linear4R);
+procedure Write_Array is new Physical.Write_Array(Linear4W);
+procedure Read_Volume is new Physical.Read_Volume(Linear4R);
+
 end FF;
 
 
@@ -31,8 +37,13 @@ type Tcalc is digits <>;
 type Tin is range <>;
 A,B : in out Tcalc;
 package FI is
-function Linear  is new Linear_Conv.FI(Tin, Tcalc, Tout, A,B);
-package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin, Linear);
+package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
+function Linear4R  is new Linear_Conv.FI4R(Tin, Tcalc, Tout, A,B);
+function Linear4W  is new Linear_Conv.FI4W(Tin, Tcalc, Tout, A,B);
+procedure Read_Array  is new Physical.Read_Array(Linear4R);
+procedure Write_Array is new Physical.Write_Array(Linear4W);
+procedure Read_Volume is new Physical.Read_Volume(Linear4R);
+
 end FI;
 
 

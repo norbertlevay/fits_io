@@ -6,10 +6,16 @@ package Linear_Conv is
 
 -- convert to Floats
 
-generic type Tin is digits <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc; ToutNaN : Tout; function FF(Vin : Tin) return Tout;
+generic type Tin is digits <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc; ToutNaN : Tout; function FF4R(Vin : Tin) return Tout;
+generic type Tin is digits <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc; TinNaN : Tin; function FF4W(Vin : Tout) return Tin;
+
 generic type Tin is range  <>; type Tc is digits <>; type Tout is digits <>; BLANK: in out Tin; A,B: in out Tc; ToutNaN : Tout; function FI_BLANK(Vin : Tin) return Tout;
 generic type Tin is mod    <>; type Tc is digits <>; type Tout is digits <>; BLANK: in out Tin; A,B: in out Tc; ToutNaN : Tout; function FU_BLANK(Vin : Tin) return Tout;
-generic type Tin is range  <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc;                 function FI(Vin : Tin) return Tout;
+
+generic type Tin is range  <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc;                 function FI4R(Vin : Tin) return Tout;
+generic type Tin is range  <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc;                 function FI4W(Vin : Tout) return Tin;
+
+
 generic type Tin is mod    <>; type Tc is digits <>; type Tout is digits <>;                    A,B: in out Tc;                 function FU(Vin : Tin) return Tout;
 
 

@@ -54,8 +54,8 @@ is
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
 
-  package TmF64 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN);
-  package TmF32 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN);
+  package TmF64 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN,F64NaN);
+  package TmF32 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN,F32NaN);
   package TmI16 is new Image_Data.FI(Tm, Tm_Arr, Tcalc, Integer_16, TcBZERO, TcBSCALE);
 
 begin
@@ -87,11 +87,11 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          TmI16.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmI16.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -32 => 
-          TmF32.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF32.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -64 =>
-          TmF64.Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF64.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when others => null; -- FIXME Error
     end case;
 
