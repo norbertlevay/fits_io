@@ -3,7 +3,9 @@
 
 package body Linear_Conv is
 
--- FIXME make better names
+-- FIXME divide to Input Output so that Tin Tout are swaped:
+    -- In  Tin=Tf  Tout=Tm
+    -- Out Tin=Tm  Tout=Tf
 
 -- NOTE Vin = Vin is check for NaN: for NaN result is False
 
