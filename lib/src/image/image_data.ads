@@ -11,18 +11,18 @@ package Image_Data is
 
 
 generic
-type Tout is digits <>;
-type Tout_Arr is array (Positive_Count range <>) of Tout;
-type Tcalc is digits <>; -- scaling always in Floats
-type Tin  is digits <>;
+type Tmem is digits <>;
+type Tmem_Arr is array (Positive_Count range <>) of Tmem;
+type Tcalc is digits <>;
+type Tfile  is digits <>;
 A,B: in out Tcalc;
-ToutNaN : Tout;
-TinNaN : Tin;
+TmemNaN : Tmem;
+TfileNaN : Tfile;
 package FF is
 
-    package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
-    function Linear4R is new Linear_Conv.FF(Tin, Tcalc, Tout, A, B, ToutNaN);
-    function Linear4W is new Linear_Conv.FF(Tout, Tcalc, Tin, A, B, TinNaN);
+    package Physical is new Physical_Private(Tmem, Tmem_Arr, Tcalc, Tfile);
+    function Linear4R is new Linear_Conv.FF(Tfile, Tcalc, Tmem, A, B, TmemNaN);
+    function Linear4W is new Linear_Conv.FF(Tmem, Tcalc, Tfile, A, B, TfileNaN);
 
     package Physical_In  is new Physical.Input(Linear4R);
     package Physical_Out is new Physical.Output(Linear4W);
@@ -32,16 +32,16 @@ end FF;
 
 
 generic
-type Tout is digits <>;
-type Tout_Arr is array (Positive_Count range <>) of Tout;
+type Tmem is digits <>;
+type Tmem_Arr is array (Positive_Count range <>) of Tmem;
 type Tcalc is digits <>;
-type Tin is range <>;
+type Tfile is range <>;
 A,B : in out Tcalc;
 package FI is
 
-    package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
-    function Linear4R  is new Linear_Conv.FI(Tin, Tcalc, Tout, A,B);
-    function Linear4W  is new Linear_Conv.rF(Tout, Tcalc, Tin, A,B);
+    package Physical is new Physical_Private(Tmem, Tmem_Arr, Tcalc, Tfile);
+    function Linear4R  is new Linear_Conv.FI(Tfile, Tcalc, Tmem, A,B);
+    function Linear4W  is new Linear_Conv.rF(Tmem, Tcalc, Tfile, A,B);
 
     package Physical_In  is new Physical.Input(Linear4R);
     package Physical_Out is new Physical.Output(Linear4W);
