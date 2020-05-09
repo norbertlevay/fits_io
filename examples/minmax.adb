@@ -187,13 +187,13 @@ is
 
         case(BITPIX) is
           when -64 =>
-              F64F64.Read_Array(InFile,F64Plane.All);
+              F64F64.Physical_In.Read_Array(InFile,F64Plane.All);
           when -32 =>
-              F32F32.Read_Array(InFile,F32Plane.All);
+              F32F32.Physical_In.Read_Array(InFile,F32Plane.All);
           when  64 => null;
           when  32 => null;
           when  16 =>
-              F32I16.Read_Array(InFile,F32Plane.All);
+              F32I16.Physical_In.Read_Array(InFile,F32Plane.All);
           when   8 => null;
           when others => TIO.Put_Line("BITPIX " & Integer'Image(BITPIX) & " not implemented.");
         end case;

@@ -42,31 +42,38 @@ package Physical_Private is
 
 
 
-  -- sequential access
  generic
   with function Linear(Vin : in Tf) return Tm is <>;
- procedure Read_Array
-   (F : SIO.File_Type;
-    Data : out Tm_Arr);
+ package Input is
+
+     procedure Read_Array
+         (F : SIO.File_Type;
+         Data : out Tm_Arr);
+
+     procedure Read_Volume
+         (File : SIO.File_Type;
+         DUStart : in Positive_Count;
+         NAXISn  : in NAXIS_Arr;
+         First   : in NAXIS_Arr;
+         Last    : in NAXIS_Arr;
+         Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
+
+ end Input;
+
+
+
 
  generic
   with function Linear(Vin : in Tm) return Tf is <>;
- procedure Write_Array
-   (F : SIO.File_Type;
-    Data : in Tm_Arr);
+ package Output is
+
+     procedure Write_Array
+         (F : SIO.File_Type;
+         Data : in Tm_Arr);
+ 
+ end Output;
 
 
- -- random access
-
- generic
-  with function Linear(Vin : in Tf) return Tm is <>;
- procedure Read_Volume
-   (File : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
-    Volume  : out Tm_Arr);-- FIXME Volume'Length must match with (Last - First)
 
 
 end Physical_Private;

@@ -33,8 +33,7 @@ package body Physical_Private is
 
 
 
-  -- Sequential access
-
+ package body Input is
 
   procedure Read_Array
     (F : SIO.File_Type;
@@ -50,30 +49,6 @@ package body Physical_Private is
       Data(I) := Linear(RawData(I));
     end loop;
   end Read_Array;
-
-
-  procedure Write_Array
-    (F : SIO.File_Type;
-    Data : in Tm_Arr)
-  is
-    type Tf_Arr is array (Positive_Count range <>) of Tf;
-    RawData : Tf_Arr(Data'First .. Data'Last);
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
-  begin
-    for I in Data'Range
-    loop
-      RawData(I) := Linear(Data(I));
-    end loop;
-    Tf_Raw.Write_Array(F, RawData);
-  end Write_Array;
-
-
-
-
-
-
-
-  -- Random access
 
 
   procedure Read_Volume
@@ -101,6 +76,30 @@ package body Physical_Private is
     end loop;
 
   end Read_Volume;
+
+ end Input;
+
+
+
+ package body Output is
+
+
+  procedure Write_Array
+    (F : SIO.File_Type;
+    Data : in Tm_Arr)
+  is
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    RawData : Tf_Arr(Data'First .. Data'Last);
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+  begin
+    for I in Data'Range
+    loop
+      RawData(I) := Linear(Data(I));
+    end loop;
+    Tf_Raw.Write_Array(F, RawData);
+  end Write_Array;
+
+ end Output;
 
 
 end Physical_Private;

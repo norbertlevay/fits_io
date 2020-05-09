@@ -87,11 +87,11 @@ begin
 
     case(BITPIX) is
       when  16 =>
-          TmI16.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmI16.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -32 => 
-          TmF32.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF32.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when -64 =>
-          TmF64.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+          TmF64.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when others => null; -- FIXME Error
     end case;
 
