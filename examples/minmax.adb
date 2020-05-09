@@ -148,7 +148,7 @@ is
       I16_BLANK  : Integer_16 := Get_Int_16("BLANK", Cards);
 
       function I16F32_Scale is
-        new Linear_Conv.FI4R(Integer_16, Float_32, Float_32,F32_BZERO,F32_BSCALE);
+        new Linear_Conv.FI(Integer_16, Float_32, Float_32,F32_BZERO,F32_BSCALE);
       NewBLANK : Float_32 := I16F32_Scale(I16_BLANK);
 
 

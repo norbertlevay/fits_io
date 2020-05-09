@@ -21,8 +21,8 @@ TinNaN : Tin;
 package FF is
 
     package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
-    function Linear4R  is new Linear_Conv.FF4R(Tin, Tcalc, Tout, A, B, ToutNaN);
-    function Linear4W  is new Linear_Conv.FF4W(Tin, Tcalc, Tout, A, B, TinNaN);
+    function Linear4R is new Linear_Conv.FF(Tin, Tcalc, Tout, A, B, ToutNaN);
+    function Linear4W is new Linear_Conv.FF(Tout, Tcalc, Tin, A, B, TinNaN);
 
     package Physical_In  is new Physical.Input(Linear4R);
     package Physical_Out is new Physical.Output(Linear4W);
@@ -40,8 +40,8 @@ A,B : in out Tcalc;
 package FI is
 
     package Physical is new Physical_Private(Tout, Tout_Arr, Tcalc, Tin);
-    function Linear4R  is new Linear_Conv.FI4R(Tin, Tcalc, Tout, A,B);
-    function Linear4W  is new Linear_Conv.FI4W(Tin, Tcalc, Tout, A,B);
+    function Linear4R  is new Linear_Conv.FI(Tin, Tcalc, Tout, A,B);
+    function Linear4W  is new Linear_Conv.rF(Tout, Tcalc, Tin, A,B);
 
     package Physical_In  is new Physical.Input(Linear4R);
     package Physical_Out is new Physical.Output(Linear4W);

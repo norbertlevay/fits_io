@@ -83,6 +83,26 @@ into chosen new type in case of downconversions (like from Integer\_32 -> Intege
 Otherwise Constraint\_Error exception will be raised.
 Also in case of Floating point types, downconversion comes with loss of precision.
 
+Notes from adb files:
+
+package body Linear_Conv is
+
+-- NOTE Vin = Vin is check for NaN: for NaN result is False
+
+-- FIXME
+    -- cases which involve Float have to deal with NaN as mark for undefined values
+    -- FF -> simple: if(NaN) -> Tout(NaN) and Vn_Types will procide NaN defienitions
+
+    -- FI FU & no   BLANK from Header -> simply scale, no check
+    -- FI FU & with BLANK from Header -> if(BLANK) -> Tout(NaN)
+
+    -- IF UF -> what BLANK to use if NaN encoutered in Vin ? -> Ask user to provide BLANK (he must know the data-range, should be able to provide BLANK
+    -- IF UF -> no   BLANK -> user did not give BLANK, but NaN found -> raise exception "Data contains undefined values (NaN) but no BLANK given"
+    -- IF UF -> with BLANK -> if(NaN) -> return BLANK & check that no value after conversion results in BLANK: if(Vout=BLANK) raise exception "BLANK among valid values"
+
+
+
+
 
 \subsubsection{Positioning within Data Unit}
 
