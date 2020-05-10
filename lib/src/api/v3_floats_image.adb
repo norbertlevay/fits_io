@@ -40,6 +40,53 @@ with Image_Data;
 
 package body V3_Floats_Image is
 
+package TIO renames Ada.Text_IO;
+
+
+function Scan_Header
+    (F : in SIO.File_Type;
+    HDUStart : in  Positive_Count; -- blocks
+    DUStart  : out Positive_Count; -- blocks
+    BITPIX : out Integer;
+    TcBZERO, TcBSCALE : in out Tcalc;
+    BLANK_Val : out String) return NAXIS_Arr
+is
+begin
+
+  File.Set_File_Block_Index(F, HDUStart);
+
+  BLANK_Val :=(others => ' ');-- FIXME not nice; use Boolean to mark valid or not
+    -- set 'null' meaning 'not found'
+
+  declare
+    Cards : Optional.Card_Arr := Read_Optional(F, Optional.Reserved.Reserved_Keys);
+    Key : String(1..8);
+  begin
+    for I in Cards'Range
+    loop
+      Key := Cards(I)(1..8);
+      if   (Key = "BZERO   ") then TcBZERO  := Tcalc'Value(Cards(I)(11..30));
+      elsif(Key = "BSCALE  ") then TcBSCALE := Tcalc'Value(Cards(I)(11..30));
+      elsif(Key = "BLANK   ") then BLANK_Val := Cards(I)(11..30);
+      end if;
+    end loop;
+  end;
+
+  File.Set_File_Block_Index(F, HDUStart);
+
+  declare
+    HDUInfo : File.HDU_Info_Type := File.Read_Header(F);
+  begin
+    DUStart := File.File_Block_Index(F);
+    BITPIX  := HDUInfo.BITPIX;
+    return HDUInfo.NAXISn;
+  end;
+
+end Scan_Header;
+
+
+
+
 
 
 
@@ -53,45 +100,40 @@ is
 
   TcBZERO  : Tcalc := 0.0;
   TcBSCALE : Tcalc := 1.0;
+  BLANK_Val : String(1 .. 20); -- card value
 
   package TmF64 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_64, TcBZERO, TcBSCALE, TmNaN,F64NaN);
   package TmF32 is new Image_Data.FF(Tm, Tm_Arr, Tcalc, Float_32, TcBZERO, TcBSCALE, TmNaN,F32NaN);
+  package TmI64 is new Image_Data.FI(Tm, Tm_Arr, Tcalc, Integer_64, TcBZERO, TcBSCALE);
+  package TmI32 is new Image_Data.FI(Tm, Tm_Arr, Tcalc, Integer_32, TcBZERO, TcBSCALE);
   package TmI16 is new Image_Data.FI(Tm, Tm_Arr, Tcalc, Integer_16, TcBZERO, TcBSCALE);
+  package TmU8  is new Image_Data.FU(Tm, Tm_Arr, Tcalc, Unsigned_8, TcBZERO, TcBSCALE);
 
 begin
-  Ada.Text_IO.Put_Line("DBG: V3_Floats_Image::Read_Volume");
+  TIO.Put_Line("DBG: V3_Floats_Image::Read_Volume");
 
   File.Set_File_Block_Index(F, HDUStart);
 
   declare
-    Cards : Optional.Card_Arr := Read_Optional(F, Optional.Reserved.Reserved_Keys);
-    Key : String(1..8);
-  begin
-    for I in Cards'Range
-    loop
-      Key := Cards(I)(1..8);
-      if   (Key = "BZERO   ") then TcBZERO  := Tcalc'Value(Cards(I)(11..30));
-      elsif(Key = "BSCALE  ") then TcBSCALE := Tcalc'Value(Cards(I)(11..30));
-      end if;
-    end loop;
-  end;
+    BITPIX  : Integer;
+    NAXISn  : NAXIS_Arr := Scan_Header(F, HDUStart,
+                            DUStart,BITPIX, TcBZERO, TcBSCALE, BLANK_Val);
+ begin
 
-  File.Set_File_Block_Index(F, HDUStart);
-
-  declare
-    HDUInfo : File.HDU_Info_Type := File.Read_Header(F);
-    NAXISn  : NAXIS_Arr := HDUInfo.NAXISn;
-    BITPIX  : Integer   := HDUInfo.BITPIX;
-  begin
-    DUStart := File.File_Block_Index(F);
+    TIO.Put_Line("HDUStart [blocks] : " & Positive_Count'Image(HDUStart));
+    TIO.Put_Line("DUStart  [blocks] : " & Positive_Count'Image(DUStart));
+    TIO.Put_Line("BITPIX : " & Integer'Image(BITPIX));
+    TIO.Put_Line("BZERO  : " & Tcalc'Image(TcBZERO));
+    TIO.Put_Line("BSCALE : " & Tcalc'Image(TcBSCALE));
+    TIO.Put_Line("BLANK  : " & BLANK_Val);
 
     case(BITPIX) is
-      when  16 =>
-          TmI16.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
-      when -32 => 
-          TmF32.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
-      when -64 =>
-          TmF64.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when   8 => TmU8.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when  16 => TmI16.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when  32 => TmI32.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when  64 => TmI64.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when -32 => TmF32.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
+      when -64 => TmF64.Physical_In.Read_Volume(F,DUStart,NAXISn, First,Last, Volume);
       when others => null; -- FIXME Error
     end case;
 

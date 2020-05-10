@@ -50,4 +50,24 @@ end FI;
 
 
 
+generic
+type Tmem is digits <>;
+type Tmem_Arr is array (Positive_Count range <>) of Tmem;
+type Tcalc is digits <>;
+type Tfile is mod <>;
+A,B : in out Tcalc;
+package FU is
+
+    package Physical is new Physical_Private(Tmem, Tmem_Arr, Tcalc, Tfile);
+    function Linear4R  is new Linear_Conv.FU(Tfile, Tcalc, Tmem, A,B);
+    function Linear4W  is new Linear_Conv.UF(Tmem, Tcalc, Tfile, A,B);
+
+    package Physical_In  is new Physical.Input(Linear4R);
+    package Physical_Out is new Physical.Output(Linear4W);
+
+end FU;
+
+
+
+
 end Image_Data;
