@@ -85,6 +85,10 @@ is
   I16_BLANKin : Integer_16;-- FIXME convert from String
   U8_BLANKin  : Unsigned_8;-- FIXME convert from String
 
+
+  -- FIXME also missing case when BLANK is not supplied in Header -> Is_Undef() return False
+
+
   -- helper funcs
 
   function TmF64_Is_Undef(Vin : in Float_64) return Boolean is begin return (not (Vin = Vin)); end TmF64_Is_Undef;
@@ -93,7 +97,6 @@ is
   function TmI32_Is_Undef(Vin : in Integer_32) return Boolean is begin return (Vin = I32_BLANKin); end TmI32_Is_Undef;
   function TmI16_Is_Undef(Vin : in Integer_16) return Boolean is begin return (Vin = I16_BLANKin); end TmI16_Is_Undef;
   function TmU8_Is_Undef (Vin : in Unsigned_8) return Boolean is begin return (Vin = U8_BLANKin); end TmU8_Is_Undef;
-
 
   function TmF64_Handle_Undef(Vin : in Float_64) return Tm is begin return TmUndef; end TmF64_Handle_Undef;
   function TmF32_Handle_Undef(Vin : in Float_32) return Tm is begin return TmUndef; end TmF32_Handle_Undef;
@@ -110,14 +113,14 @@ is
   function "+"(R : Unsigned_8) return Tcalc is begin return Tcalc(R); end "+";
 
 
-  -- functionality &packages
-
   function TmF64_Linear   is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Float_64,   Tm, TmF64_Is_Undef, TmF64_Handle_Undef,"+","+");
   function TmF32_Linear   is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Float_32,   Tm, TmF32_Is_Undef, TmF32_Handle_Undef,"+","+");
   function TmI64_Linear   is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Integer_64, Tm, TmI64_Is_Undef, TmI64_Handle_Undef,"+","+");
   function TmI32_Linear   is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Integer_32, Tm, TmI32_Is_Undef, TmI32_Handle_Undef,"+","+");
   function TmI16_Linear   is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Integer_16, Tm, TmI16_Is_Undef, TmI16_Handle_Undef,"+","+");
   function TmU8_Linear    is new Linear_Private.Linear(Tcalc, TcBZERO, TcBSCALE, Unsigned_8, Tm, TmU8_Is_Undef,  TmU8_Handle_Undef, "+","+");
+
+  -- functionality &packages
 
   package  TmF64_Physical is new Physical_Private(Tm, Tm_Arr, Tcalc, Float_64);
   package  TmF32_Physical is new Physical_Private(Tm, Tm_Arr, Tcalc, Float_32);
