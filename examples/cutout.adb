@@ -31,7 +31,8 @@ with File_Funcs; use File_Funcs;
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
 
-with V3_Floats_Image;
+--with V3_Floats_Image;
+with V3_Privs_Image;
 
 procedure cutout
 is
@@ -43,7 +44,10 @@ is
  -- instantiate Read Volume func for Float_32
 
  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
- package F32_Image is new V3_Floats_Image(Tm=>Float_32, Tm_Arr=>F32_Arr, Tcalc=>Long_Float);
+-- package F32_Image is new V3_Floats_Image(Tm=>Float_32, Tm_Arr=>F32_Arr, Tcalc=>Long_Float);
+ type Tcalc is new Long_Float;
+ function "+"(R : Tcalc) return Float_32 is begin return Float_32(R); end "+";
+ package F32_Image is new V3_Privs_Image(Tm=>Float_32, Tm_Arr=>F32_Arr, Tcalc=>Tcalc);
  procedure F32_Read_Volume is new F32_Image.Read_Volume(F32NaN);
  
  -- file related
