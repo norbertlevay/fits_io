@@ -1,7 +1,8 @@
 with Ada.Text_IO; use Ada.Text_IO;
  
 procedure IEEE is -- Non portable, bad, never do this!
-   Zero  : Float := 0.0;
+    A,B:Float;
+    Zero  : Float := 0.0;
    PInf  : Float := 1.0 / Zero;
    NInf  : Float := -PInf;
    PZero : Float := 1.0 / PInf;
@@ -31,5 +32,10 @@ begin
    Put_Line ("Valid -oo is " & Boolean'Image (NInf'Valid));
    Put_Line ("Valid +oo is " & Boolean'Image (PInf'Valid));
    Put_Line ("Valid NaN is " & Boolean'Image (NaN'Valid));
+   
+   Put_Line ("(A + B * NaN) = " & Float'Image (A + B * NaN));
+   A := 2.0; 
+   B := 3.0;
+   Put_Line ("Int(A + B * NaN) = " & Integer'Image (Integer(A + B * NaN)));
  
 end IEEE;
