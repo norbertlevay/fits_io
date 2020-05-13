@@ -148,6 +148,28 @@ end DU_Data_Count;
 
 
 
+procedure Read_All_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr)
+is
+  DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
+  -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
+  First : NAXIS_Arr := NAXISn;
+  Block : T_Data_Block;
+begin
+
+  for I in 1 .. DULength_blks
+  loop
+    Read_Array(File, Block);
+    Data(Block);
+  end loop;
+
+end Read_All_Data_Unit;
+
+
+
+
+
 procedure Write_All_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr)
@@ -183,26 +205,6 @@ begin
 
 end Write_All_Data_Unit;
 
-
-
-
-procedure Read_All_Data_Unit
-  (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
-is
-  DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
-  -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
-  First : NAXIS_Arr := NAXISn;
-  Block : T_Data_Block;
-begin
-
-  for I in 1 .. DULength_blks
-  loop
-    Read_Array(File, Block);
-    Data(Block);
-  end loop;
-
-end Read_All_Data_Unit;
 
 
 
