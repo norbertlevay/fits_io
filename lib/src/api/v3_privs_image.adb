@@ -198,14 +198,26 @@ function DataArrLength(A : NAXIS_Arr) return SIO.Positive_Count
 is
     Acc : SIO.Positive_Count := 1;
 begin
+    TIO.Put_Line("NAXISi'Length : " & Positive_Count'Image(A'Length));
     for I in A'Range
     loop
         Acc := Acc * A(I);
     end loop;
+    TIO.Put_Line("DataArrLength : " & Positive_Count'Image(Acc));
     return Acc;
 end DataArrLength;
 
-
+function Calc_NPlanes(I : Integer; NAXISn:NAXIS_Arr) return Positive_Count
+is
+    Acc : Positive_Count := 1;
+begin
+    for K in NAXISn(I+1 .. NAXISn'Last)'Range
+    loop
+        Acc := Acc * NAXISn(K);
+    end loop;
+    TIO.Put_Line("NPlanes : " & Positive_Count'Image(Acc));
+    return Acc;
+end Calc_NPlanes;
 
 -- pack generics: Tm Tm_Arr Tcalc "+"
 -- func generics: TmUndef
@@ -218,7 +230,7 @@ is
     ImData   : Scan_Header.Image_Data_Rec := Scan_Header.Data_Unit_Info(F,HDUStart);
 
     PlaneLength : Positive_Count := DataArrLength(NAXISi);
-    NPlanes     : Positive_Count := 1 + ImData.NAXISn'Length - PlaneLength;
+    NPlanes     : Positive_Count := Calc_NPlanes(NAXISi'Last, ImData.NAXISn);
     Plane : Tm_Arr(1 .. PlaneLength);
 
     TcBZERO, TcBSCALE : Tcalc;
@@ -277,6 +289,7 @@ begin
        when  64 => if(ImData.BLANK_Valid) then I64_BLANKin := Integer_64'Value(ImData.BLANK); end if;
        when others => null; -- FIXME Error
     end case;
+
 
     for I in 1 .. NPlanes
     loop
