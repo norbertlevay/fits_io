@@ -139,17 +139,23 @@ is
 
     -- algorithm
     Max : Tm := Tm'First;
+    Min : Tm := Tm'Last;
     Undef_Count : Natural := 0;
-    procedure Tm_MinMax(DD : in Tm; Max : in out Tm) is begin if (DD > Max) then Max := DD; end if; end Tm_MinMax;
+    procedure Tm_MinMax(DD : in Tm; Max : in out Tm; Min : in out Tm)
+    is
+    begin 
+        if (DD > Max) then Max := DD; end if;
+        if (DD < Min) then Min := DD; end if;
+    end Tm_MinMax;
 
     -- instant Data()
 
-    procedure Data(E : Float_64) is DD: Tm; begin DD := LinearFromF64(E);   Tm_MinMax(DD,Max); end;
-    procedure Data(E : Float_32) is DD: Tm; begin DD := LinearFromF32(E);   Tm_MinMax(DD,Max); end;
-    procedure Data(E : Integer_64) is DD: Tm; begin DD := LinearFromI64(E); Tm_MinMax(DD,Max); end;
-    procedure Data(E : Integer_32) is DD: Tm; begin DD := LinearFromI32(E); Tm_MinMax(DD,Max); end;
-    procedure Data(E : Integer_16) is DD: Tm; begin DD := LinearFromI16(E); Tm_MinMax(DD,Max); end;
-    procedure Data(E : Unsigned_8) is DD: Tm; begin DD := LinearFromU8(E);  Tm_MinMax(DD,Max); end;
+    procedure Data(E : Float_64) is DD: Tm; begin DD := LinearFromF64(E);   Tm_MinMax(DD,Max,Min); end;
+    procedure Data(E : Float_32) is DD: Tm; begin DD := LinearFromF32(E);   Tm_MinMax(DD,Max,Min); end;
+    procedure Data(E : Integer_64) is DD: Tm; begin DD := LinearFromI64(E); Tm_MinMax(DD,Max,Min); end;
+    procedure Data(E : Integer_32) is DD: Tm; begin DD := LinearFromI32(E); Tm_MinMax(DD,Max,Min); end;
+    procedure Data(E : Integer_16) is DD: Tm; begin DD := LinearFromI16(E); Tm_MinMax(DD,Max,Min); end;
+    procedure Data(E : Unsigned_8) is DD: Tm; begin DD := LinearFromU8(E);  Tm_MinMax(DD,Max,Min); end;
 
     type F64_Arr is array (SIO.Positive_Count range <>) of Float_64;
     type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
@@ -245,6 +251,7 @@ is
 
       TIO.New_Line;
       TIO.Put_Line("Max Value :" & Tm'Image(Max));
+      TIO.Put_Line("Min Value :" & Tm'Image(Min));
       TIO.Put_Line("Invalid Count: " & Natural'Image(Undef_Count));
       TIO.Put_Line("Invalid Count [%]: " & Float_32'Image(100.0*Float_32(Undef_Count)/Float_32(DUSize)));
     end;
