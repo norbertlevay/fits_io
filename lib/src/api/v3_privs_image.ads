@@ -34,7 +34,7 @@ procedure Write_Volume
 
 
 generic
-TmNaN : Tm;
+TmUndef : Tm;
 with procedure Plane_Data(Plane : in Tm_Arr; PlaneCount : in Positive_Count);
 procedure Read_Data_Unit_By_Planes
     (F : in SIO.File_Type;
