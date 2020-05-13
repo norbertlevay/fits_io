@@ -110,16 +110,18 @@ is
 --    type F64_Arr_Acc is access F64_Arr;
     package F64_V3_Image is new V3_Privs_Image(Float_64,F64_Arr,Float_64);
 
+    Max : Float_64 := Float_64'First;
+    Invalid_Count : Natural := 0;
+
     procedure CB_PlaneData(Plane : in F64_Arr; PlaneCount : in SIO.Positive_Count)
     is
-        Max : Float_64 := Float_64'First;
-        Invalid_Count : Natural := 0;
     begin
         TIO.Put(" " & SIO.Positive_Count'Image(PlaneCount));
         for I in Plane'Range
         loop
           if(Plane(I) /= F64NaN)
           then
+            --TIO.Put(" " & Float_64'Image(Plane(I)));
             if(Plane(I)>Max) then Max := Plane(I); end if;
           else
             Invalid_Count := Invalid_Count + 1;
