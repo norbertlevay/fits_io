@@ -51,6 +51,41 @@ package body Physical_Private is
   end Read_Array;
 
 
+
+-- generic
+--  with procedure Data(Block : in Tm_Data_Block);
+ procedure Read_All_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr)
+ is
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+
+    procedure RawData(Block : in Tf_Raw.T_Data_Block)
+    is
+        ConvBlock : Tm_Data_Block;
+    begin
+        for I in Block'Range
+        loop
+            ConvBlock(I) := Linear(Block(I));
+        end loop;
+        Data(ConvBlock);
+    end RawData;
+
+    procedure Read_DU is new Tf_Raw.Read_All_Data_Unit(RawData);
+ begin
+     Read_DU(File, NAXISn);
+ end Read_All_Data_Unit;
+
+
+
+
+
+
+
+
+
+
   procedure Read_Volume
     (File : SIO.File_Type;
     DUStart : in Positive_Count;

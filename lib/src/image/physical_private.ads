@@ -46,9 +46,22 @@ package Physical_Private is
   with function Linear(Vin : in Tf) return Tm is <>;
  package Input is
 
+
+
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr);
+
+
+
+     subtype Tm_Data_Block is Tm_Arr(1 .. 2880/(Tm'Size/8));
+     generic
+     with procedure Data(Block : in Tm_Data_Block);
+     procedure Read_All_Data_Unit
+         (File : SIO.File_Type;
+         NAXISn : in NAXIS_Arr);
+
+
 
      procedure Read_Volume
          (File : SIO.File_Type;
