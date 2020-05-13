@@ -116,7 +116,7 @@ is
     procedure CB_PlaneData(Plane : in F64_Arr; PlaneCount : in SIO.Positive_Count)
     is
     begin
-        TIO.Put(" " & SIO.Positive_Count'Image(PlaneCount));
+        --TIO.Put(" " & SIO.Positive_Count'Image(PlaneCount));
         for I in Plane'Range
         loop
           if(Plane(I) /= F64NaN)
@@ -132,6 +132,7 @@ is
     procedure Read_DU is new F64_V3_Image.Read_Data_Unit_By_Planes(F64NaN, CB_PlaneData);
 
 
+    NAXISi : NAXIS_Arr(1..1) := (others => 500);--NAXISn(NAXISn'First..NAXISn'First);
 
   begin 
 
@@ -152,13 +153,8 @@ is
     Put_Line("Plane Size [count]:" & SIO.Positive_Count'Image(PlaneLength)); 
     Put_Line("NPlanes           :" & SIO.Positive_Count'Image(NPlanes)); 
 
-    declare
-        Max : Float_64 := Float_64'First;
-        Invalid_Count : Natural := 0;
-        NAXISi : NAXIS_Arr(1..1) := (others => 500);--NAXISn(NAXISn'First..NAXISn'First);
-    begin
 
-        Read_DU(InFile, NAXISi);
+      Read_DU(InFile, NAXISi);
 
 
       TIO.New_Line;
@@ -166,7 +162,6 @@ is
       TIO.Put_Line("Invalid Count: " & Natural'Image(Invalid_Count));
       TIO.Put_Line("Invalid Count [%]: " &
                 Float_64'Image(100.0*Float_64(Invalid_Count)/Float_64(DUSize)));
-    end;
 
     SIO.Close(InFile);
     Put_Line("done.");
