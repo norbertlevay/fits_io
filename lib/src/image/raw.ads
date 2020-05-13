@@ -50,6 +50,13 @@ procedure Read_All_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr);
 
+generic
+  with procedure Data_Elem(E : in T);
+procedure Read_All
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
 
 generic
   T_DataPadding : T;
