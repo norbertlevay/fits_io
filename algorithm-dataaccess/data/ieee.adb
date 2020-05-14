@@ -33,9 +33,12 @@ begin
    Put_Line ("Valid +oo is " & Boolean'Image (PInf'Valid));
    Put_Line ("Valid NaN is " & Boolean'Image (NaN'Valid));
    
-   Put_Line ("(A + B * NaN) = " & Float'Image (A + B * NaN));
+   Put_Line ("Long_Float(NaN) = " & Long_Float'Image (Long_Float(NaN)));
+   Put_Line ("(A + B * NaN)   = " & Float'Image (A + B * NaN));
+   Put_Line ("Long_Float(A + B * NaN)   = " & Long_Float'Image (Long_Float(A + B * NaN)));
    A := 2.0; 
    B := 3.0;
+   Put_Line ("Int(NaN) = " & Integer'Image (Integer(NaN)));
    Put_Line ("Int(A + B * NaN) = " & Integer'Image (Integer(A + B * NaN)));
  
 end IEEE;
