@@ -15,7 +15,7 @@ package body Linear_Impl is
 --type Tin  is private;
 --type Tout is private;
 procedure From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout;
-     BV : out Boolean; UndefIn : out Tin; UndefOut : out Tout)
+     BV : out Boolean; Undef : out Tin)
 is
 begin
     TIO.Put_Line("Linear_Impl::From_Header");
@@ -24,8 +24,7 @@ begin
     BV := HData.BV;
     if(HData.BV)
     then
-        UndefIn  := To_V3Type(HData.BLANK);
-      null;
+        Undef := To_V3Type(HData.BLANK);
     end if;
 
 end From_Header;

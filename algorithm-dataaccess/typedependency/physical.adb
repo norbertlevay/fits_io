@@ -9,10 +9,10 @@ procedure Conv_Header
     (HData : in Header.Linear_Conv_Rec;
     A : out Tm; B: out Tm;
     BV : out Boolean;
-    UndefIn : out Tf; UndefOut : out Tm)
+    UndefIn : out Tf)
 is
 begin
-    Header_Info(HData, A,B, BV, UndefIn, UndefOut);
+    Header_Info(HData, A,B, BV, UndefIn);
 end Conv_Header;
 
 

@@ -36,15 +36,17 @@ I16UndefIn : Integer_16;
 
 begin
 
-F64F64.Conv_Header(HInf, F64A,F64B, BV, F64UndefIn, F64UndefOut);
-F32F32.Conv_Header(HInf, F32A,F32B, BV, F32UndefIn, F32UndefOut);
-F64I16.Conv_Header(HInf, F64A,F64B, BV, I16UndefIn, F64UndefOut);
-F32I16.Conv_Header(HInf, F32A,F32B, BV, I16UndefIn, F32UndefOut);
+F64F64.Conv_Header(HInf, F64A,F64B, BV, F64UndefIn);
+F32F32.Conv_Header(HInf, F32A,F32B, BV, F32UndefIn);
+F64I16.Conv_Header(HInf, F64A,F64B, BV, I16UndefIn);
+F32I16.Conv_Header(HInf, F32A,F32B, BV, I16UndefIn);
 
 TIO.Put_Line(Float_64'Image(F64A));
 TIO.Put_Line(Float_64'Image(F64B));
 TIO.Put_Line(Float_64'Image(F64UndefIn));
 TIO.Put_Line(Float_64'Image( Linear(F64UndefIn,F64A,F64B) ));
+TIO.Put_Line(Float_32'Image( Linear(F32UndefIn,F32A,F32B) ));
+TIO.Put_Line(Float_32'Image( Linear(I16UndefIn,F32A,F32B) ));
 
 
 F64F64.Read_Array(1);
