@@ -16,6 +16,7 @@ package body Linear_Impl is
 procedure From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout;
      BV : out Boolean; UndefIn : out Tin; UndefOut : out Tout)
 is
+    function Lin is new Linear_Pure(Tin,Tout);
 begin
     TIO.Put_Line("Linear_Impl::From_Header");
     A := To_V3Type(HData.A);
@@ -24,7 +25,7 @@ begin
     if(HData.BV)
     then
         UndefIn  := To_V3Type(HData.BLANK);
--- FIXME not here       UndefOut := Linear_Pure(UndefIn,A,B);
+        UndefOut := Lin(UndefIn,A,B);
       null;
     end if;
 
