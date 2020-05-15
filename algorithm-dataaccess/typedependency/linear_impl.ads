@@ -17,6 +17,9 @@ procedure From_Header(HData : in Header.Linear_Conv_Rec; A : out Tout; B : out T
 generic
 type Tin  is private;
 type Tout is private;
+with function "+"(R : Tin) return Tout is <>;
+with function "*"(L,R : Tout) return Tout is <>;
+with function "+"(L,R : Tout) return Tout is <>;
 function Linear_Pure(Vin : Tin; A,B:Tout) return Tout;
 
 
