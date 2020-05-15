@@ -1,6 +1,7 @@
 
 with V3_Types; use V3_Types;
 with Linear_Impl; use Linear_Impl;
+with Pool_From_String; use Pool_From_String;
 
 package Pool is
 

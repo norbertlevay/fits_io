@@ -1,10 +1,13 @@
 
 with Ada.Text_IO;
 
+with Pool_From_String; use Pool_From_String;
 
 package body Linear_Impl is
 
     package TIO renames Ada.Text_IO;
+
+
 
 
 --generic
@@ -15,6 +18,16 @@ procedure From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout;
 is
 begin
     TIO.Put_Line("Linear_Impl::From_Header");
+    A := To_V3Type(HData.A);
+    B := To_V3Type(HData.B);
+    BV := HData.BV;
+    if(HData.BV)
+    then
+        UndefIn  := To_V3Type(HData.BLANK);
+-- FIXME not here       UndefOut := Linear_Pure(UndefIn,A,B);
+      null;
+    end if;
+
 end From_Header;
 
 
