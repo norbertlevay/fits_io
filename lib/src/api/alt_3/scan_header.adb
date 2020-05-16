@@ -31,7 +31,11 @@ begin
     TIO.New_Line;
     TIO.Put_Line("BZERO  : " & Rec.BZERO);
     TIO.Put_Line("BSCALE : " & Rec.BSCALE);
-    TIO.Put_Line("BLANK  : " & Rec.BLANK);
+    if(Rec.BLANK_Valid)
+    then TIO.Put_Line("BLANK  : " & Rec.BLANK);
+    else TIO.Put_Line("BLANK not found");
+    end if;
+
 end Put_Image_Data_Rec;
 
 

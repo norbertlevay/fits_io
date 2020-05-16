@@ -10,7 +10,7 @@ project examples is
    for Exec_Dir use "bin";
    for Main use ("create.adb","convert.adb","minmax.adb","minmaxraw.adb","minmaxfloats.adb",
 		"list.adb","reserved_keys.adb",
-		"cutout.adb");
+		"cutout.adb","undefvals.adb");
 
    package Compiler is
       for Default_Switches ("ada") use ("-gnat12");
