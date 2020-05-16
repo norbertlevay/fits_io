@@ -7,7 +7,6 @@ with V3_Types; use V3_Types;
 with V3_Arrays; use V3_Arrays;
 with File;
 with Raw;
-with Raw_BLANK;
 
 with Optional;
 with Optional.Reserved;
@@ -105,7 +104,6 @@ begin
                 when others => null; -- FIXME error
             end case;
         end if;
-
 
         case(HDUInfo.BITPIX) is
             when   8 => U8_Read_All (InFile,HDUInfo.NAXISn);
