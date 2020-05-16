@@ -6,11 +6,12 @@ with Ada.Command_Line; use Ada.Command_Line;
 with V3_Types; use V3_Types;
 with V3_Arrays; use V3_Arrays;
 with File;
---with Optional;
 with Raw;
 with Raw_BLANK;
 
-with Scan_Header;
+with Optional;
+with Optional.Reserved;
+with Header;
 
 
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
@@ -60,7 +61,7 @@ procedure undefvals is
 
     -- END application
 
--- FIXME using Scan_Header instead - re-consider which approach is better ??    
+-- FIXME not needed?? 
 --    package F64_BLRaw is new Raw_BLANK(Float_64,   F64_Arr, F64_Raw);
 --    package F32_BLRaw is new Raw_BLANK(Float_32,   F32_Arr, F32_Raw);
 --    package I16_BLRaw is new Raw_BLANK(Integer_16, I16_Arr, I16_Raw);
@@ -81,35 +82,44 @@ begin
     File.Set_File_Block_Index(InFile,HDUStart);
 
     declare
-        ImData : Scan_Header.Image_Data_Rec := Scan_Header.Data_Unit_Info(InFile, HDUStart);
+        HDUInfo : File.HDU_Info_Type := File.Read_Header(InFile);
     begin
-        Scan_Header.Put_Image_Data_Rec(ImData);
 
+        File.Set_File_Block_Index(InFile,HDUStart);
 
-        if(ImData.BLANK_Valid)
+        declare
+            Cards   : Optional.Card_Arr := Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
+            BLANK_Valid : Boolean := False;
+            BLANK : String(1..20);
+        begin
+
+        BLANK_Valid := Header.Has_Card(Cards,"BLANK   ",BLANK);
+
+        if(BLANK_Valid)
         then
-            case(ImData.BITPIX) is
-                when   8 => U8_UndefVal  := To_V3Type(ImData.BLANK);
-                when  16 => I16_UndefVal := To_V3Type(ImData.BLANK);
-                when  32 => I32_UndefVal := To_V3Type(ImData.BLANK);
-                when  64 => I64_UndefVal := To_V3Type(ImData.BLANK);
+            case(HDUInfo.BITPIX) is
+                when   8 => U8_UndefVal  := To_V3Type(BLANK);
+                when  16 => I16_UndefVal := To_V3Type(BLANK);
+                when  32 => I32_UndefVal := To_V3Type(BLANK);
+                when  64 => I64_UndefVal := To_V3Type(BLANK);
                 when others => null; -- FIXME error
             end case;
         end if;
 
 
-        case(ImData.BITPIX) is
-            when   8 => U8_Read_All (InFile,ImData.NAXISn);
-            when  16 => I16_Read_All(InFile,ImData.NAXISn);
-            when  32 => I32_Read_All(InFile,ImData.NAXISn);
-            when  64 => I64_Read_All(InFile,ImData.NAXISn);
-            when -32 => F32_Read_All(InFile,ImData.NAXISn);
-            when -64 => F64_Read_All(InFile,ImData.NAXISn);
+        case(HDUInfo.BITPIX) is
+            when   8 => U8_Read_All (InFile,HDUInfo.NAXISn);
+            when  16 => I16_Read_All(InFile,HDUInfo.NAXISn);
+            when  32 => I32_Read_All(InFile,HDUInfo.NAXISn);
+            when  64 => I64_Read_All(InFile,HDUInfo.NAXISn);
+            when -32 => F32_Read_All(InFile,HDUInfo.NAXISn);
+            when -64 => F64_Read_All(InFile,HDUInfo.NAXISn);
             when others => null; -- FIXME error
         end case;
 
-    TIO.Put_Line("Undef_Count : " & SIO.Count'Image(Undef_Count));
+        TIO.Put_Line("Undef_Count : " & SIO.Count'Image(Undef_Count));
 
+        end;
     end; -- Scan_Header
 
     SIO.Close(InFile);

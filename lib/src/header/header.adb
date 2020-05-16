@@ -133,6 +133,24 @@ package body Header is
 
 
 
+function Has_Card(Cards : Card_Arr; Key : String; Value : out String) return Boolean
+is
+    Found : Boolean := False;
+begin
+    for I in Cards'Range
+    loop
+        if(Cards(I)(1..8) = Key(1..8))
+        then
+            Value := Cards(I)(11..30);
+            Found := True;
+        end if;
+    end loop;
+    return Found;
+end Has_Card;
+
+
+
+
 
    -- from earlier image/image.adb
 -- NOTE free-format integer must be right justified ? $

@@ -28,8 +28,7 @@ package Header is
 -- FIXME consider returning also position at which the card was in the Header
 -- and hen consider returning also separately key and value/comment??
 
-
-
+    function Has_Card(Cards : Card_Arr; Key : String; Value : out String) return Boolean;
 
 
     -- from earlier image/image.ads
