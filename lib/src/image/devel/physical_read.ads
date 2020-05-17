@@ -33,13 +33,15 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
+with Optional; -- Card_Arr needed
 
 
 generic
   type Tm is private;   -- type in memory
   type Tm_Arr is array (Positive_Count range <>) of Tm;
-  type Tc is digits <>; -- type in which scaling is calculated
+--  type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
+with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean; BLANK : out Tf) is <>; 
 with function Linear(Vin : in Tf; A,B:Tm; BV : Boolean; BLANK : Tf) return Tm is <>;
 package Physical_Read is
 
@@ -50,17 +52,16 @@ package Physical_Read is
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
-         A,B:Tm; BV : Boolean; BLANK : Tf);
+         Cards : Optional.Card_Arr);
 
 
 
-     subtype Tm_Data_Block is Tm_Arr(1 .. 2880/(Tm'Size/8));
      generic
-     with procedure Data(Block : in Tm_Data_Block);
-     procedure Read_All_Data_Unit
+     with procedure Data_Elem(Elem : in Tm);
+     procedure Read_All
          (File : SIO.File_Type;
          NAXISn : in NAXIS_Arr;
-         A,B:Tm; BV : Boolean; BLANK : Tf);
+         Cards : Optional.Card_Arr);
 
 
 
@@ -71,8 +72,7 @@ package Physical_Read is
          First   : in NAXIS_Arr;
          Last    : in NAXIS_Arr;
          Volume  : out Tm_Arr;
-         A,B:Tm; BV : Boolean; BLANK : Tf);
-
+         Cards : Optional.Card_Arr);
 
 
 end Physical_Read;

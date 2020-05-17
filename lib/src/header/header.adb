@@ -142,6 +142,7 @@ begin
         if(Cards(I)(1..8) = Key(Key'First .. (Key'First+7)))
         then
             Value := Cards(I)(11..30);
+            TIO.Put_Line(Value);
             Found := True;
         end if;
     end loop;

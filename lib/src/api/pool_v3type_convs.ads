@@ -4,6 +4,10 @@ with V3_Types; use V3_Types;
 package Pool_V3Type_Convs is
 
 function "+"(R : Float_64) return Float_64;
+function "+"(R : Float_32) return Float_64;
+
+
+
 function "+"(R : Float_32) return Float_32;
 
 function "+"(R : Float_64) return Integer_16;

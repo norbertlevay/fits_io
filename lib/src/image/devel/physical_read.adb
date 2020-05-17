@@ -37,12 +37,17 @@ package body Physical_Read is
   procedure Read_Array
     (F : SIO.File_Type;
     Data  : out Tm_Arr;
-    A,B:Tm; BV : Boolean; BLANK : Tf)
+    Cards : in Optional.Card_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-  begin
+     -- info from Header:
+    A,B   : Tm;
+    BV    : Boolean;
+    BLANK : Tf;
+ begin
+    Header_Info(Cards, A,B, BV, BLANK);
     Tf_Raw.Read_Array(F, RawData);
     for I in RawData'Range
     loop
@@ -54,29 +59,31 @@ package body Physical_Read is
 
 
 
- procedure Read_All_Data_Unit
+ procedure Read_All
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
-  A,B:Tm; BV : Boolean; BLANK : Tf)
+  Cards : in Optional.Card_Arr)
  is
+     -- info from Header:
+    A,B   : Tm;
+    BV    : Boolean;
+    BLANK : Tf;
+
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
-    procedure RawData(Block : in Tf_Raw.T_Data_Block)
+    procedure RawData(E : in Tf)
     is
-        ConvBlock : Tm_Data_Block;
     begin
-        for I in Block'Range
-        loop
-            ConvBlock(I) := Linear(Block(I), A,B, BV, BLANK);
-        end loop;
-        Data(ConvBlock);
+            Data_Elem(Linear(E, A,B, BV, BLANK));
     end RawData;
 
-    procedure Read_DU is new Tf_Raw.Read_All_Data_Unit(RawData);
+    procedure Read_DU is new Tf_Raw.Read_All(RawData);
+
  begin
-     Read_DU(File, NAXISn);
- end Read_All_Data_Unit;
+    Header_Info(Cards, A,B, BV, BLANK);
+    Read_DU(File, NAXISn);
+ end Read_All;
 
 
 
@@ -91,7 +98,7 @@ package body Physical_Read is
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     Volume  : out Tm_Arr;
-    A,B:Tm; BV : Boolean; BLANK : Tf)
+    Cards : in Optional.Card_Arr)
   is
     VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
 
@@ -100,7 +107,12 @@ package body Physical_Read is
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
+    -- info from Header:
+    A,B   : Tm;
+    BV    : Boolean;
+    BLANK : Tf;
   begin
+    Header_Info(Cards, A,B, BV, BLANK);
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
