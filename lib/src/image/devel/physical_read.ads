@@ -28,12 +28,11 @@
 
 -- FIXME in Read_Volume: Volume'Length must match with (Last - First)
 
--- NOTE in with-funcs below: for Write swap Tf<->Tm
+-- NOTE in Linear below: for Write swap Tf<->Tm
 
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
-with Optional; -- Card_Arr needed
 
 
 generic
@@ -41,7 +40,6 @@ generic
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
-with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean; UndefIn : out Tf) is <>;
 with function Linear(Vin : in Tf; A,B:Tm; BV : Boolean; BLANK : Tf) return Tm is <>;
 package Physical_Read is
 
