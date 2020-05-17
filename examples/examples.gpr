@@ -4,7 +4,8 @@ project examples is
 -- FIXME dont build the library in lib/src   
    --for Source_Dirs use (".");
    for Source_Dirs use (".", "../lib/src", "../lib/src/parser", "../lib/src/file",
-       "../lib/src/header","../lib/src/image","../lib/src/api"
+       "../lib/src/header","../lib/src/image","../lib/src/image/devel"
+       ,"../lib/src/api"
        ,"../lib/src/api/alt_1","../lib/src/api/alt_2","../lib/src/api/alt_3");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
