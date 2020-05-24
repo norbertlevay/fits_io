@@ -1,7 +1,9 @@
 
-
+with Ada.Text_IO;
 
 package body Physical is
+
+    package TIO renames Ada.Text_IO;
 
     AA, BB : Tm;
 
@@ -23,6 +25,7 @@ is
     Vin  : Tf;
     Vout : Tm;
 begin
+    TIO.Put_Line("Physical::Read_Arra");
     Vout := Linear(Vin,AA,BB);
 end Read_Array;
 

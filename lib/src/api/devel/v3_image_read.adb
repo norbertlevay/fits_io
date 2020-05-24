@@ -8,7 +8,7 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
-with HInfo;
+--with HInfo;
 --with Tm_Pool;
 
 --with Image_Data;
