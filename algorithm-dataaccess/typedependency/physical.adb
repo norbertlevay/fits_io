@@ -14,7 +14,8 @@ procedure Conv_Header
     UndefIn : out Tf)
 is
 begin
-    Header_Info(HData, A,B, BV, UndefIn);
+    AB_Header_Info(HData, A,B);
+    BLANK_Header_Info(HData, BV, UndefIn);
 end Conv_Header;
 
 

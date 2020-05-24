@@ -14,20 +14,27 @@ package body Linear_Impl is
 --generic
 --type Tin  is private;
 --type Tout is private;
-procedure From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout;
-     BV : out Boolean; Undef : out Tin)
+procedure AB_From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout)
 is
 begin
-    TIO.Put_Line("Linear_Impl::From_Header");
+    TIO.Put_Line("Linear_Impl::From_Header(out A B)");
     A := To_V3Type(HData.A);
     B := To_V3Type(HData.B);
+end AB_From_Header;
+
+
+procedure BLANK_From_Header(HData : in Header.Linear_Conv_Rec; BV : out Boolean; Undef : out Tin)
+is
+begin
+    TIO.Put_Line("Linear_Impl::From_Header(out BLANK)");
     BV := HData.BV;
     if(HData.BV)
     then
         Undef := To_V3Type(HData.BLANK);
     end if;
 
-end From_Header;
+end BLANK_From_Header;
+
 
 
 

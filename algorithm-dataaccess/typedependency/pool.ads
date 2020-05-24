@@ -6,10 +6,14 @@ with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
 package Pool is
 
-procedure Header_Info is new From_Header(Float_64, Float_64);
-procedure Header_Info is new From_Header(Float_32, Float_32);
-procedure Header_Info is new From_Header(Integer_16, Float_32);
-procedure Header_Info is new From_Header(Integer_16, Float_64);
+procedure AB_Header_Info is new AB_From_Header(Float_64);
+procedure BLANK_Header_Info is new BLANK_From_Header(Float_64);
+procedure AB_Header_Info is new AB_From_Header(Float_32);
+procedure BLANK_Header_Info is new BLANK_From_Header(Float_32);
+--procedure AB_Header_Info is new From_Header(Float_32);
+procedure BLANK_Header_Info is new BLANK_From_Header(Integer_16);
+--procedure AB_Header_Info is new From_Header(Float_64);
+--procedure BLANK_Header_Info is new BLANK_From_Header(Integer_16);
 
 
 

@@ -5,12 +5,15 @@ with Header;
 package Linear_Impl is
 
 generic
-type Tin  is private;
 type Tout is private;
 with function To_V3Type(Arg : String) return Tout is <>;
+procedure AB_From_Header(HData : in Header.Linear_Conv_Rec; A : out Tout; B : out Tout);
+
+
+generic
+type Tin  is private;
 with function To_V3Type(Arg : String) return Tin is <>;
-procedure From_Header(HData : in Header.Linear_Conv_Rec; A : out Tout; B : out Tout;
-    BV : out Boolean; Undef : out Tin);
+procedure BLANK_From_Header(HData : in Header.Linear_Conv_Rec; BV : out Boolean; Undef : out Tin);
 
 
 
