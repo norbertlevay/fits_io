@@ -4,6 +4,7 @@ with Ada.Text_IO;
 with V3_Types;  use V3_Types;
 with Physical;
 with V3_Physical;
+with V3f_Physical;
 
 with Pool; use Pool;
 
@@ -24,6 +25,10 @@ package F64I16 is new Physical(Float_64, Integer_16);
 
 package F32 is new V3_Physical(Float_32, F32F32,F32I16);
 
+function "+"(R:Integer_16) return Float_32 is begin return Float_32(R); end "+";
+
+package F32f is new V3f_Physical(Float_32);
+
 
 BV  : Boolean;
 HInf : Header.Linear_Conv_Rec := 
@@ -35,8 +40,8 @@ HInf : Header.Linear_Conv_Rec :=
 F64A, F64B : Float_64;
 F32A, F32B : Float_32;
 
-F64UndefIn, F64UndefOut : Float_64;
-F32UndefIn, F32UndefOut : Float_32;
+F64UndefIn  : Float_64;
+F32UndefIn  : Float_32;
 I16UndefIn : Integer_16;
 
 begin
@@ -60,5 +65,6 @@ F64I16.Read_Array(1);
 F32I16.Read_Array(1);
 TIO.Put_Line("================");
 F32.Read_Array(1);
+F32f.Read_Array(1);
 
 end main;
