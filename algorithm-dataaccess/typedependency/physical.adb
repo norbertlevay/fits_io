@@ -27,9 +27,12 @@ procedure Read_Array(dummy : Integer)
 is
     Vin  : Tf;
     Vout : Tm;
+    BV : Boolean := False;
+    UIn : Tf;
+    UOut : Tm;
 begin
     TIO.Put_Line("Physical::Read_Array");
-    Vout := Linear(Vin,AA,BB);
+    Vout := Linear(Vin,AA,BB,BV,UIn,Uout);
 end Read_Array;
 
 

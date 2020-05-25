@@ -33,7 +33,7 @@ end BLANK_From_Header;
 
 
 -- used for FF II UU IU UI and IFnoBLANK
-function Linear_Pure(Vin : Tin; A,B:Tout) return Tout
+function Linear_Pure(Vin : Tin; A,B:Tout; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
 is
 begin
     TIO.Put_Line("Linear_Impl::Linear_Pure");
@@ -43,7 +43,7 @@ end Linear_Pure;
 
 
 -- used for IFwBLANK
-function Linear_Check_UndefIn(Vin : Tin; A,B:Tout) return Tout
+function Linear_Check_UndefIn(Vin : Tin; A,B:Tout;  BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
 is
     Vout : Tout;
 begin
@@ -54,10 +54,9 @@ begin
 end Linear_Check_UndefIn;
 
 -- used for FIwBLANKout (BLANKout must exist)
-function Linear_Check_UndefOut(Vin : Tin; A,B:Tout) return Tout
+function Linear_Check_UndefOut(Vin : Tin; A,B:Tout;  BV:Boolean; UndefIn : Tin; UndefOut : Tout) return Tout
 is
     Vout : Tout;
-    UndefOut : Tout;
 begin
     TIO.Put_Line("Linear_Impl::Linear_CheckUndefOut");
     if(Is_Undef(Vin)) then return Do_Undef(UndefOut);

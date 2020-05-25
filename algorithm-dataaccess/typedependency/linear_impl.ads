@@ -23,7 +23,7 @@ type Tout is private;
 with function "+"(R : Tin) return Tout is <>;
 with function "*"(L,R : Tout) return Tout is <>;
 with function "+"(L,R : Tout) return Tout is <>;
-function Linear_Pure(Vin : Tin; A,B:Tout) return Tout;
+function Linear_Pure(Vin : Tin; A,B:Tout; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout;
 -- use for: FF II UU UI IU and IFnoBLANK
 
 generic
@@ -34,7 +34,7 @@ with function Do_Undef(Vout : in Tout) return Tout is <>;
 with function "+"(R : Tin) return Tout is <>;
 with function "*"(L,R : Tout) return Tout is <>;
 with function "+"(L,R : Tout) return Tout is <>;
-function Linear_Check_UndefIn(Vin : Tin; A,B:Tout) return Tout;
+function Linear_Check_UndefIn(Vin : Tin; A,B:Tout; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout;
 -- use for: IFwBLANK
 
 generic
@@ -45,7 +45,7 @@ with function Do_Undef(Vout : in Tout) return Tout is <>;
 with function "+"(R : Tin) return Tout is <>;
 with function "*"(L,R : Tout) return Tout is <>;
 with function "+"(L,R : Tout) return Tout is <>;
-function Linear_Check_UndefOut(Vin : Tin; A,B:Tout) return Tout;
+function Linear_Check_UndefOut(Vin : Tin; A,B:Tout; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout;
 -- use for: FIwBLANKout (BLANKout must exist)
 -- if BLANKout exist, check that no valid Vin results in BLANKout
 
