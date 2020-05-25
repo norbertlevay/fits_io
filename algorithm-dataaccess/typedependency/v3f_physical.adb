@@ -14,7 +14,7 @@ package TIO renames Ada.Text_IO;
 procedure Read_Array(Dummy:Integer)
 is
 
-
+function Do_Undef is new Do_Undef_BLANK(Tm);
 function Linear is new Linear_Pure(Float_32, Tm);
 function Linear is new Linear_Check_UndefIn(Integer_16, Tm);
 package F32_Physical is new Physical(Tm, Float_32);

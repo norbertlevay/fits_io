@@ -28,7 +28,7 @@ is
     Vin  : Tf;
     Vout : Tm;
 begin
-    TIO.Put_Line("Physical::Read_Arra");
+    TIO.Put_Line("Physical::Read_Array");
     Vout := Linear(Vin,AA,BB);
 end Read_Array;
 

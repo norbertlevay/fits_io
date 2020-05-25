@@ -9,11 +9,6 @@ package body Linear_Impl is
     package TIO renames Ada.Text_IO;
 
 
-
-
---generic
---type Tin  is private;
---type Tout is private;
 procedure AB_From_Header(HData : in Header.Linear_Conv_Rec; A,B : out Tout)
 is
 begin
@@ -37,31 +32,44 @@ end BLANK_From_Header;
 
 
 
-
-
-
---generic
---type Tin  is private;
---type Tout is private;
+-- used for FF II UU IU UI and IFnoBLANK
 function Linear_Pure(Vin : Tin; A,B:Tout) return Tout
 is
---    Vout : Tout;
 begin
     TIO.Put_Line("Linear_Impl::Linear_Pure");
     return (A + B * (+Vin));
 end Linear_Pure;
 
 
---generic
---type Tin  is private;
---type Tout is private;
+
+-- used for IFwBLANK and FIwBLANKout (BLANKout must exist)
 function Linear_Check_UndefIn(Vin : Tin; A,B:Tout) return Tout
 is
     Vout : Tout;
 begin
     TIO.Put_Line("Linear_Impl::Linear_CheckUndefIn");
-    return Vout;
+    if(Is_Undef(Vin)) then return Do_Undef(Vout);
+    else return (A + B * (+Vin));
+    end if;
 end Linear_Check_UndefIn;
+
+
+
+function Is_Undef_BLANK(Vin : Tin) return Boolean
+is
+begin
+    TIO.Put_Line("Linear_Impl::Is_Undef_BLANK");
+    return False;
+end Is_Undef_BLANK;
+
+function Do_Undef_BLANK(Vout : Tout) return Tout
+is
+begin
+    TIO.Put_Line("Linear_Impl::Do_Undef_BLANK");
+    return Vout;
+end Do_Undef_BLANK;
+
+
 
 
 end Linear_Impl;
