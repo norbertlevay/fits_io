@@ -35,8 +35,20 @@ with function "+"(R : Tin) return Tout is <>;
 with function "*"(L,R : Tout) return Tout is <>;
 with function "+"(L,R : Tout) return Tout is <>;
 function Linear_Check_UndefIn(Vin : Tin; A,B:Tout) return Tout;
--- use for: IFwBLANK and FIwBLANKout (BLANKout must exist)
+-- use for: IFwBLANK
+
+generic
+type Tin  is private;
+type Tout is private;
+with function Is_Undef(Vin : in Tin) return Boolean is <>;
+with function Do_Undef(Vout : in Tout) return Tout is <>;
+with function "+"(R : Tin) return Tout is <>;
+with function "*"(L,R : Tout) return Tout is <>;
+with function "+"(L,R : Tout) return Tout is <>;
+function Linear_Check_UndefOut(Vin : Tin; A,B:Tout) return Tout;
+-- use for: FIwBLANKout (BLANKout must exist)
 -- if BLANKout exist, check that no valid Vin results in BLANKout
+
 
 
 generic

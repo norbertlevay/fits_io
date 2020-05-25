@@ -42,7 +42,7 @@ end Linear_Pure;
 
 
 
--- used for IFwBLANK and FIwBLANKout (BLANKout must exist)
+-- used for IFwBLANK
 function Linear_Check_UndefIn(Vin : Tin; A,B:Tout) return Tout
 is
     Vout : Tout;
@@ -52,6 +52,22 @@ begin
     else return (A + B * (+Vin));
     end if;
 end Linear_Check_UndefIn;
+
+-- used for FIwBLANKout (BLANKout must exist)
+function Linear_Check_UndefOut(Vin : Tin; A,B:Tout) return Tout
+is
+    Vout : Tout;
+    UndefOut : Tout;
+begin
+    TIO.Put_Line("Linear_Impl::Linear_CheckUndefOut");
+    if(Is_Undef(Vin)) then return Do_Undef(UndefOut);
+    else 
+        Vout := (A + B * (+Vin));
+        if(Vout = UndefOut) then null; end if; -- raise exception UndefOut returned by valid input
+        return Vout;
+    end if;
+end Linear_Check_UndefOut;
+
 
 
 

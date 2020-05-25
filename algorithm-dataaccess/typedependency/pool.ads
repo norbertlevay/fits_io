@@ -23,12 +23,12 @@ function Do_Undef is new Do_Undef_BLANK(Integer_16);
 function Do_Undef is new Do_Undef_BLANK(Float_32);
 function Do_Undef is new Do_Undef_BLANK(Float_64);
 
-function Linear is new Linear_Pure(Float_64,   Float_64);
-function Linear is new Linear_Pure(Float_32,   Float_32);
+function Linear is new Linear_Pure(Float_64, Float_64);
+function Linear is new Linear_Pure(Float_32, Float_32);
 function Linear is new Linear_Check_UndefIn(Integer_16, Float_32);
 function Linear is new Linear_Check_UndefIn(Integer_16, Float_64);
 
-function Linear is new Linear_Check_UndefIn(Float_32, Integer_16);
+function Linear is new Linear_Check_UndefOut(Float_32, Integer_16);
 
 end Pool;
 
