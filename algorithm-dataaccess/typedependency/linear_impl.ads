@@ -44,6 +44,11 @@ type Tin  is private;
 function Is_Undef_BLANK(Vin : Tin) return Boolean;
 
 generic
+type Tin  is private;
+function Is_Undef_NaN(Vin : Tin) return Boolean;
+
+
+generic
 type Tout  is private;
 function Do_Undef_BLANK(Vout : Tout) return Tout;
 

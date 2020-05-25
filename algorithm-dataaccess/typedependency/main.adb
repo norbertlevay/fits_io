@@ -22,7 +22,8 @@ package F64F64 is new Physical(Float_64, Float_64);
 package F32F32 is new Physical(Float_32, Float_32);
 package F32I16 is new Physical(Float_32, Integer_16);
 package F64I16 is new Physical(Float_64, Integer_16);
-
+-- I16 -> F32
+package I16F32 is new Physical(Integer_16, Float_32);
 
 package F32 is new V3_Physical(Float_32, F32F32,F32I16);
 
@@ -63,6 +64,7 @@ F64F64.Read_Array(1);
 F32F32.Read_Array(1);
 F64I16.Read_Array(1);
 F32I16.Read_Array(1);
+I16F32.Read_Array(1);
 TIO.Put_Line("================");
 F32.Read_Array(1);
 F32f.Read_Array(1);

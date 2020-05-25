@@ -62,6 +62,15 @@ begin
     return False;
 end Is_Undef_BLANK;
 
+function Is_Undef_NaN(Vin : Tin) return Boolean
+is
+begin
+    TIO.Put_Line("Linear_Impl::Is_Undef_NaN");
+    return False;
+end Is_Undef_NaN;
+
+
+
 function Do_Undef_BLANK(Vout : Tout) return Tout
 is
 begin
