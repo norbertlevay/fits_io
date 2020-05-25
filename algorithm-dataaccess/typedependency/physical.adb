@@ -15,6 +15,8 @@ procedure Conv_Header
 is
 begin
     AB_Header_Info(HData, A,B);
+    AA := A;
+    BB := B;
     BLANK_Header_Info(HData, BV, UndefIn);
 end Conv_Header;
 

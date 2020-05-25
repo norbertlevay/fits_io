@@ -1,7 +1,5 @@
 
-with Physical;
 with V3_Types; use V3_Types;
-with Pool; use Pool;
 with Header;
 
 generic
@@ -16,8 +14,6 @@ package V3f_Physical is
 
 
 procedure Read_Array(Dummy:Integer);
-
-
 
 
 end V3f_Physical;

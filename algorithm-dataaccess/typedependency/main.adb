@@ -6,7 +6,8 @@ with Physical;
 with V3_Physical;
 with V3f_Physical;
 
-with Pool; use Pool;
+with Pool; use Pool;-- pulls in x_Header_Info
+with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
 with Header;
 
@@ -25,7 +26,6 @@ package F64I16 is new Physical(Float_64, Integer_16);
 
 package F32 is new V3_Physical(Float_32, F32F32,F32I16);
 
-function "+"(R:Integer_16) return Float_32 is begin return Float_32(R); end "+";
 
 package F32f is new V3f_Physical(Float_32);
 
