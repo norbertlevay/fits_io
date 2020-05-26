@@ -10,7 +10,7 @@ package body Conv_Impl is
 
 
 -- used for FF II UU IU UI and IFnoBLANK
-function Conv_Pure(Vin : Tin; A,B:Tout; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
+function Conv_Pure(Vin : Tin; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
 is
 begin
     TIO.Put_Line("Conv_Impl::Conv_Pure");
@@ -24,7 +24,7 @@ end Conv_Pure;
 
 
 -- used for IFwBLANK
-function Conv_Check_UndefIn(Vin : Tin; A,B:Tout;  BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
+function Conv_Check_UndefIn(Vin : Tin; BV:Boolean; UndefIn : Tin; UndefOut : Tout ) return Tout
 is
     Vout : Tout;
 begin
@@ -41,7 +41,7 @@ end Conv_Check_UndefIn;
 
 
 -- used for FIwBLANKout (BLANKout must exist)
-function Conv_Check_UndefOut(Vin : Tin; A,B:Tout;  BV:Boolean; UndefIn : Tin; UndefOut : Tout) return Tout
+function Conv_Check_UndefOut(Vin : Tin; BV:Boolean; UndefIn : Tin; UndefOut : Tout) return Tout
 is
     Vout : Tout;
 begin
