@@ -29,7 +29,7 @@ is
     Vout : Tout;
 begin
     TIO.Put_Line("Conv_Impl::Conv_CheckUndefIn");
-    if(BV & Is_Undef(Vin)) then return Do_Undef(Vout);
+    if(BV AND Is_Undef(Vin)) then return Do_Undef(Vout);
     else return (+Vin);
     end if;
 end Conv_Check_UndefIn;
@@ -46,7 +46,7 @@ is
     Vout : Tout;
 begin
     TIO.Put_Line("Conv_Impl::Conv_CheckUndefOut");
-    if(BV & Is_Undef(Vin)) then return Do_Undef(UndefOut);
+    if(BV AND Is_Undef(Vin)) then return Do_Undef(UndefOut);
     else 
         Vout := (+Vin);
         if(Vout = UndefOut) then null; end if;--raise exception:'UndefOut returned by valid input'

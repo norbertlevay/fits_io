@@ -30,21 +30,23 @@ is
     Vcin  : Tc;
     Vcout : Tc;
     UV   : Boolean := False;
-    UIn  : Tf;
-    UOut : Tm;
+    iUIn  : Tf;
+    iUOut : Tc;
+    oUIn  : Tc;
+    oUOut : Tm;
 begin
     TIO.Put_Line("Tc_Physical::Read_Array");
 
     -- Conv() funcs must correctly convert also BLANK <-> NaN
 
-    Vcin  := Conv(Vin,   UV, UIn, UOut);
+    Vcin  := ConvIn(Vin,   UV, iUIn, iUOut);
     -- if Vin is Undef -> Vout := UndefOut
     -- if Vin is not Undef -> check: Vout is not UndefOut 
     --     -> if yes, raise Except: "valid value results in UndefOut"
 
     Vcout := AA + BB * Vcin;
 
-    Vout  := Conv(Vcout, UV, UIn, UOut);
+    Vout  := ConvOut(Vcout, UV, oUIn, oUOut);
 
 
 end Read_Array;

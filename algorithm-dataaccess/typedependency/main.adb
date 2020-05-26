@@ -2,7 +2,11 @@
 with Ada.Text_IO;
 
 with V3_Types;  use V3_Types;
+
 with Physical;
+with Tc_Physical;
+with Tc_Pool; use Tc_Pool;-- pulls in x_Header_Info
+
 with V3_Physical;
 with V3f_Physical;
 
@@ -29,6 +33,10 @@ package F32 is new V3_Physical(Float_32, F32F32,F32I16);
 
 
 package F32f is new V3f_Physical(Float_32);
+
+
+package F32Tc is new Tc_Physical(Float_32, Float_32,Float_32);
+
 
 
 BV  : Boolean := False;
@@ -68,5 +76,8 @@ I16F32.Read_Array(1);
 TIO.Put_Line("================");
 F32.Read_Array(1);
 F32f.Read_Array(1);
+
+TIO.Put_Line("================");
+F32Tc.Read_Array(0.0,1.0);
 
 end main;

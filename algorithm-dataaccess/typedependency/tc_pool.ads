@@ -18,12 +18,14 @@ function Do_Undef is new Do_Undef_BLANK(Integer_16);
 function Do_Undef is new Do_Undef_BLANK(Float_32);
 function Do_Undef is new Do_Undef_BLANK(Float_64);
 
-function Conv is new Conv_Pure(Float_64, Float_64);
-function Conv is new Conv_Pure(Float_32, Float_32);
-function Conv is new Conv_Check_UndefIn(Integer_16, Float_32);
-function Conv is new Conv_Check_UndefIn(Integer_16, Float_64);
+function ConvIn is new Conv_Pure(Float_64, Float_64);
+function ConvOut is new Conv_Pure(Float_64, Float_64);
+function ConvIn is new Conv_Pure(Float_32, Float_32);
+function ConvOut is new Conv_Pure(Float_32, Float_32);
+function ConvOut is new Conv_Check_UndefIn(Integer_16, Float_32);
+function ConvIn is new Conv_Check_UndefIn(Integer_16, Float_64);
 
-function Conv is new Conv_Check_UndefOut(Float_32, Integer_16);
+function ConvIn is new Conv_Check_UndefOut(Float_32, Integer_16);
 
 end Tc_Pool;
 
