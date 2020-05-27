@@ -1,5 +1,5 @@
 
-with "../lib/fitslib.gpr";
+--with "../lib/fitslib.gpr";
 
 
 project examples is
@@ -7,18 +7,18 @@ project examples is
 
    for Languages use ("Ada");
    for Source_Dirs use ("."
-       --, "../lib/src", "../lib/src/parser", "../lib/src/file",
-       --"../lib/src/header","../lib/src/image","../lib/src/image/devel"
-       --,"../lib/src/api"
-       --,"../lib/src/api/alt_1","../lib/src/api/alt_2","../lib/src/api/alt_3",
-       --"../lib/src/api/alt_4"
+       , "../lib/src", "../lib/src/parser", "../lib/src/file",
+       "../lib/src/header","../lib/src/image","../lib/src/image/alt_4"
+       ,"../lib/src/api"
+       ,"../lib/src/api/alt_1","../lib/src/api/alt_2","../lib/src/api/alt_3",
+       "../lib/src/api/alt_4"
        );
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("create.adb","convert.adb",
        "minmax.adb","minmaxraw.adb","minmaxfloats.adb","minmaxdevel.adb",
        "list.adb","reserved_keys.adb",
-       "cutout.adb","cutoutdevel.adb","undefvals.adb");
+       "cutout.adb","cutoutalt_4.adb","undefvals.adb");
 
    package Compiler is
       for Default_Switches ("ada") use ("-gnat12");

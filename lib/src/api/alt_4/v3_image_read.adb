@@ -9,19 +9,37 @@ with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
 --with HInfo;
---with Tm_Pool;
 
 --with Image_Data;
 --with Physical;
 with Physical_Read;
 --with Physical_Private;
 --with Linear_Private;
+with Linear_Impl; use Linear_Impl;-- needed From_Header() for Header_Info instance
+with Pool_String_To_V3Types; use Pool_String_To_V3Types; -- needed by Header_Info instance
 --with Scan_Header;
 
+--with Pool; use Pool; -- Header_Info
 
 package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
+
+procedure Header_Info is new From_Header(Float_64,Tm);
+procedure Header_Info is new From_Header(Float_32,Tm);
+procedure Header_Info is new From_Header(Integer_64,Tm);
+procedure Header_Info is new From_Header(Integer_32,Tm);
+procedure Header_Info is new From_Header(Integer_16,Tm);
+procedure Header_Info is new From_Header(Unsigned_8,Tm);
+
+function Linear is new Linear_Pure(Float_64, Tm);
+function Linear is new Linear_Pure(Float_32, Tm);
+function Linear is new Linear_Pure(Integer_64, Tm);
+function Linear is new Linear_Pure(Integer_32, Tm);
+function Linear is new Linear_Pure(Integer_16, Tm);
+function Linear is new Linear_Pure(Unsigned_8, Tm);
+
+
 
 procedure Read_Volume
   (F : in SIO.File_Type;

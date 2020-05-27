@@ -9,19 +9,17 @@ generic
 type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tcalc is digits <>;
-with package TmPool is new Tm_Pool(Tm);
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Float_64) is <>; 
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Float_32) is <>; 
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Integer_64) is <>; 
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Integer_32) is <>; 
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Integer_16) is <>; 
---with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean;BLANK : out Unsigned_8) is <>; 
---with function Linear(Vin : in Float_64; A,B:Tm; BV : Boolean; BLANK : Float_64) return Tm is <>;
---with function Linear(Vin : in Float_32; A,B:Tm; BV : Boolean; BLANK : Float_32) return Tm is <>;
---with function Linear(Vin : in Integer_64; A,B:Tm; BV : Boolean; BLANK : Integer_64) return Tm is <>;
---with function Linear(Vin : in Integer_32; A,B:Tm; BV : Boolean; BLANK : Integer_32) return Tm is <>;
---with function Linear(Vin : in Integer_16; A,B:Tm; BV : Boolean; BLANK : Integer_16) return Tm is <>;
---with function Linear(Vin : in Unsigned_8; A,B:Tm; BV : Boolean; BLANK : Unsigned_8) return Tm is <>;
+
+with function "+"(R : Float_64) return Tm is <>; 
+with function "+"(R : Float_32) return Tm is <>; 
+with function "+"(R : Integer_64) return Tm is <>; 
+with function "+"(R : Integer_32) return Tm is <>; 
+with function "+"(R : Integer_16) return Tm is <>; 
+with function "+"(R : Unsigned_8) return Tm is <>; 
+with function "*"(L,R : Tm) return Tm is <>; 
+with function "+"(L,R : Tm) return Tm is <>; 
+
+with function To_V3Type(S : String) return Tm is <>;
 package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;

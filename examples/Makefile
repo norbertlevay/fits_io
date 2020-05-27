@@ -33,5 +33,5 @@ run:
 
 
 runcutout:
-	./bin/cutout ../data/NANTEN2/FOCx38i0101t_c0f.fits 400 400 600 600 3.5
-	./bin/cutout ../data/NANTEN2/WFPC2ASSNu5780205bx.fits 50 1 100 35 0.055555
+	./bin/cutoutalt_4 ../data/NANTEN2/FOCx38i0101t_c0f.fits 400 400 600 600 3.5
+	./bin/cutoutalt_4 ../data/NANTEN2/WFPC2ASSNu5780205bx.fits 50 1 100 35 0.055555
