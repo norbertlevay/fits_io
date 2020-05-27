@@ -8,18 +8,11 @@ with Optional.Reserved;
 with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
---with HInfo;
 
---with Image_Data;
---with Physical;
 with Physical_Read;
---with Physical_Private;
---with Linear_Private;
 with Linear_Impl; use Linear_Impl;-- needed From_Header() for Header_Info instance
 with Pool_String_To_V3Types; use Pool_String_To_V3Types; -- needed by Header_Info instance
---with Scan_Header;
 
---with Pool; use Pool; -- Header_Info
 
 package body V3_Image_Read is
 
