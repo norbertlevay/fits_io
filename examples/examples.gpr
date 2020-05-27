@@ -7,7 +7,7 @@ project examples is
        "../lib/src/header","../lib/src/image","../lib/src/image/devel"
        ,"../lib/src/api"
        ,"../lib/src/api/alt_1","../lib/src/api/alt_2","../lib/src/api/alt_3",
-       "../lib/src/api/devel");
+       "../lib/src/api/alt_4");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("create.adb","convert.adb",
