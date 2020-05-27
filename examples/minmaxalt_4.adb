@@ -14,9 +14,9 @@ with Header;
 
 
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
-with Pool; use Pool;
+with V3_Pool_HInfo_Linear; use V3_Pool_HInfo_Linear;
 
-procedure minmaxdevel is
+procedure minmaxalt_4 is
 
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
@@ -102,4 +102,4 @@ begin
 
     SIO.Close(InFile);
 
-end minmaxdevel;
+end minmaxalt_4;
