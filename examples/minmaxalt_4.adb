@@ -22,13 +22,13 @@ procedure minmaxalt_4 is
     package SIO renames Ada.Streams.Stream_IO;
 
 
-    package F64_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64);
-    package F32_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_32);
+    package F64_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Float_64);
+    package F32_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Float_32);
 
-    package I64_Physical_Read is new Physical_Read(Float_64, F64_Arr, Integer_64);
-    package I32_Physical_Read is new Physical_Read(Float_64, F64_Arr, Integer_32);
-    package I16_Physical_Read is new Physical_Read(Float_64, F64_Arr, Integer_16);
-    package U8_Physical_Read  is new Physical_Read(Float_64, F64_Arr ,Unsigned_8);
+    package I64_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Integer_64);
+    package I32_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Integer_32);
+    package I16_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Integer_16);
+    package U8_Physical_Read  is new Physical_Read(Float_64, F64_Arr, Float_64, Unsigned_8);
 
 
     -- BEGIN application : count undefined values
