@@ -29,6 +29,18 @@
 
 \section{Algorithms}
 
+Supported data structures: image, random groups, ascii table, bin table.
+
+Functionality:
+
+- endianness
+
+- scaling
+
+- implicit type conversion (Tm Tc Tf)
+
+- compression
+
 
 
 \subsection{File}
@@ -59,12 +71,18 @@ and always must be closed with a special END-key: MMMMMoooooorrrooorroooooE.
 
 \subsection{Data access}
 
-Functionality of DU unit: 
+Functionality of DU unit:
+
 - Endianness
+
 - data conversion and scaling from in-file type into type in computer memory (physical value)
+
 -- marking undefined pixels
+
 - Read Write calls
+
 -- data access to sub-dimesional plane (sequentional access) and sub-cube (random access)
+
 
 
 \subsubsection{Endianness}
@@ -85,20 +103,20 @@ Also in case of Floating point types, downconversion comes with loss of precisio
 
 Notes from adb files:
 
-package body Linear_Conv is
+package body Linear\_Conv is
 
 -- NOTE Vin = Vin is check for NaN: for NaN result is False
 
 -- FIXME
     -- cases which involve Float have to deal with NaN as mark for undefined values
-    -- FF -> simple: if(NaN) -> Tout(NaN) and Vn_Types will procide NaN defienitions
+    -- FF -> simple: if(NaN) -> Tout(NaN) and Vn\_Types will procide NaN defienitions
 
-    -- FI FU & no   BLANK from Header -> simply scale, no check
-    -- FI FU & with BLANK from Header -> if(BLANK) -> Tout(NaN)
+    -- FI FU \& no   BLANK from Header -> simply scale, no check
+    -- FI FU \& with BLANK from Header -> if(BLANK) -> Tout(NaN)
 
     -- IF UF -> what BLANK to use if NaN encoutered in Vin ? -> Ask user to provide BLANK (he must know the data-range, should be able to provide BLANK
     -- IF UF -> no   BLANK -> user did not give BLANK, but NaN found -> raise exception "Data contains undefined values (NaN) but no BLANK given"
-    -- IF UF -> with BLANK -> if(NaN) -> return BLANK & check that no value after conversion results in BLANK: if(Vout=BLANK) raise exception "BLANK among valid values"
+    -- IF UF -> with BLANK -> if(NaN) -> return BLANK \& check that no value after conversion results in BLANK: if(Vout=BLANK) raise exception "BLANK among valid values"
 
 
 
@@ -118,38 +136,22 @@ package body Linear_Conv is
 
 
 
-\section{Source insert example}
+\section{Source inserts}
 
-\subsection{Specification FITS}
-\inputminted{ada}{../lib/src/fits.ads}
+\subsection{Specification fits.ads}
+\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/fits.ads}
 
-\subsection{Specification File}
-\inputminted{ada}{../lib/src/file.ads}
+\subsection{Specification file/file.ads}
+\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/file/file.ads}
 
-\subsection{Specification Header parser}
-\inputminted{ada}{../lib/src/parser/strict.ads}
+\subsection{Specification parser/mandatory.ads}
+\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/parser/mandatory.ads}
 
-\subsection{Specification Data access}
-\inputminted{ada}{../lib/src/data/generic_data_value.ads}
-\inputminted{ada}{../lib/src/data/generic_data_unit.ads}
+\subsection{Specification image/alt\_4/physical\_read.ads}
+\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/image/alt_4/physical_read.ads}
 
-\subsection{Specification NCube}
-\inputminted{ada}{../lib/src/ncube/ncube_funcs.ads}
-\inputminted{ada}{../lib/src/ncube/ncube.ads}
-
-
-%\subsection{commands}
-
-%Specification commands.ads
-%\inputminted{ada}{../commands.ads}
-
-%Body commands.adb
-%\inputminted{ada}{../commands.adb}
-
-%\subsection{main}
-
-%Body main.adb
-%\inputminted{ada}{../main.adb}
+\subsection{Specialization for data types as of FITS ver 3 (api/alt\_4/v3\_image\_read.ads)}
+\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/api/alt_4/v3_image_read.ads}
 
 \end{document}
 
