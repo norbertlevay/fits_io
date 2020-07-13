@@ -37,7 +37,7 @@ with Image_Data;
 with Linear_Conv;
 
 
-procedure minmax
+procedure minmaxalt_1
 is
 
   package TIO renames Ada.Text_IO;
@@ -239,5 +239,5 @@ is
         -- Do the same manually, use:
         -- addr2line -e ./fits addr1 addr2 ...
       end;
-  end minmax;
+  end minmaxalt_1;
 
