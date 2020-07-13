@@ -12,25 +12,25 @@ with V3_Types; use V3_Types;-- types needed
 with Physical_Read;
 with Linear_Impl; use Linear_Impl;-- needed From_Header() for Header_Info instance
 with Pool_String_To_V3Types; use Pool_String_To_V3Types; -- needed by Header_Info instance
-
+with Pool_V3Type_Convs; use  Pool_V3Type_Convs;
 
 package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
-procedure Header_Info is new From_Header(Float_64,Tm);
-procedure Header_Info is new From_Header(Float_32,Tm);
-procedure Header_Info is new From_Header(Integer_64,Tm);
-procedure Header_Info is new From_Header(Integer_32,Tm);
-procedure Header_Info is new From_Header(Integer_16,Tm);
-procedure Header_Info is new From_Header(Unsigned_8,Tm);
+procedure Header_Info is new From_Header(Float_64,Tcalc,Tm);
+procedure Header_Info is new From_Header(Float_32,Tcalc,Tm);
+procedure Header_Info is new From_Header(Integer_64,Tcalc,Tm);
+procedure Header_Info is new From_Header(Integer_32,Tcalc,Tm);
+procedure Header_Info is new From_Header(Integer_16,Tcalc,Tm);
+procedure Header_Info is new From_Header(Unsigned_8,Tcalc,Tm);
 
-function Linear is new Linear_Pure(Float_64, Tm);
-function Linear is new Linear_Pure(Float_32, Tm);
-function Linear is new Linear_Pure(Integer_64, Tm);
-function Linear is new Linear_Pure(Integer_32, Tm);
-function Linear is new Linear_Pure(Integer_16, Tm);
-function Linear is new Linear_Pure(Unsigned_8, Tm);
+function Linear is new Linear_Pure(Float_64, Tcalc, Tm);
+function Linear is new Linear_Pure(Float_32, Tcalc, Tm);
+function Linear is new Linear_Pure(Integer_64, Tcalc, Tm);
+function Linear is new Linear_Pure(Integer_32, Tcalc, Tm);
+function Linear is new Linear_Pure(Integer_16, Tcalc, Tm);
+function Linear is new Linear_Pure(Unsigned_8, Tcalc, Tm);
 
 
 
@@ -44,12 +44,12 @@ procedure Read_Volume
   Cards : in Optional.Card_Arr)
 is
 
-    package F64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Float_64);
-    package F32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Float_32);
-    package I64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Integer_64);
-    package I32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Integer_32);
-    package I16_Physical_Read is new Physical_Read(Tm, Tm_Arr, Integer_16);
-    package U8_Physical_Read  is new Physical_Read(Tm, Tm_Arr ,Unsigned_8);
+    package F64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Float_64);
+    package F32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Float_32);
+    package I64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_64);
+    package I32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_32);
+    package I16_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_16);
+    package U8_Physical_Read  is new Physical_Read(Tm, Tm_Arr ,Tcalc, Unsigned_8);
 
 begin
   TIO.Put_Line("DBG: V3_Image_Read::Read_Volume");

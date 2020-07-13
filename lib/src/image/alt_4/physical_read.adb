@@ -43,7 +43,7 @@ package body Physical_Read is
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
      -- info from Header:
-    A,B   : Tm;
+    A,B   : Tc;
     BV    : Boolean;
     BLANK : Tf;
  begin
@@ -65,7 +65,7 @@ package body Physical_Read is
   Cards : in Optional.Card_Arr)
  is
      -- info from Header:
-    A,B   : Tm;
+    A,B   : Tc;
     BV    : Boolean;
     BLANK : Tf;
 
@@ -108,7 +108,7 @@ package body Physical_Read is
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
     -- info from Header:
-    A,B   : Tm;
+    A,B   : Tc;
     BV    : Boolean;
     BLANK : Tf;
   begin

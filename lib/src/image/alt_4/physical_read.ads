@@ -39,10 +39,10 @@ with Optional; -- Card_Arr needed
 generic
   type Tm is private;   -- type in memory
   type Tm_Arr is array (Positive_Count range <>) of Tm;
---  type Tc is digits <>; -- type in which scaling is calculated
+  type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
-with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tm; B: out Tm; BV : out Boolean; BLANK : out Tf) is <>; 
-with function Linear(Vin : in Tf; A,B:Tm; BV : Boolean; BLANK : Tf) return Tm is <>;
+with procedure Header_Info(Cards : in Optional.Card_Arr; A : out Tc; B: out Tc; BV : out Boolean; BLANK : out Tf) is <>; 
+with function Linear(Vin : in Tf; A,B:Tc; BV : Boolean; BLANK : Tf) return Tm is <>;
 package Physical_Read is
 
  package SIO renames Ada.Streams.Stream_IO;

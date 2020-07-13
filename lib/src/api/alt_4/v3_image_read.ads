@@ -10,16 +10,17 @@ type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tcalc is digits <>;
 
-with function "+"(R : Float_64) return Tm is <>; 
-with function "+"(R : Float_32) return Tm is <>; 
-with function "+"(R : Integer_64) return Tm is <>; 
-with function "+"(R : Integer_32) return Tm is <>; 
-with function "+"(R : Integer_16) return Tm is <>; 
-with function "+"(R : Unsigned_8) return Tm is <>; 
-with function "*"(L,R : Tm) return Tm is <>; 
-with function "+"(L,R : Tm) return Tm is <>; 
+with function "+"(R : Float_64) return Tcalc is <>;
+with function "+"(R : Float_32) return Tcalc is <>;
+with function "+"(R : Integer_64) return Tcalc is <>;
+with function "+"(R : Integer_32) return Tcalc is <>;
+with function "+"(R : Integer_16) return Tcalc is <>;
+with function "+"(R : Unsigned_8) return Tcalc is <>;
+
+with function "+"(R : Tcalc) return Tm is <>;
 
 with function To_V3Type(S : String) return Tm is <>;
+with function To_V3Type(S : String) return Tcalc is <>;
 package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;

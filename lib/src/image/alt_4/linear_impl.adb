@@ -19,7 +19,7 @@ package body Linear_Impl is
 --type Tin  is private;
 --type Tc   is digits <>;
 --type Tout is private;
-procedure From_Header(Cards : in Optional.Card_Arr; A,B : out Tout;
+procedure From_Header(Cards : in Optional.Card_Arr; A,B : out Tcalc;
      BV : out Boolean; BLANK : out Tin)
 is
     AStr : String(1..20);-- BZERO
@@ -57,19 +57,19 @@ end From_Header;
 --generic
 --type Tin  is private;
 --type Tout is private;
-function Linear_Pure(Vin : Tin; A,B:Tout; BV: Boolean; BLANK : Tin) return Tout
+function Linear_Pure(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) return Tout
 is
 --    Vout : Tout;
 begin
     TIO.Put_Line("Linear_Impl::Linear_Pure");
-    return (A + B * (+Vin));
+    return +(A + B * (+Vin));
 end Linear_Pure;
 
 
 --generic
 --type Tin  is private;
 --type Tout is private;
-function Linear_Check_UndefIn(Vin : Tin; A,B:Tout; BV: Boolean; BLANK : Tin) return Tout
+function Linear_Check_UndefIn(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) return Tout
 is
     Vout : Tout;
 begin
