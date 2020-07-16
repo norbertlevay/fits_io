@@ -23,7 +23,7 @@ with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 with Raw_Funcs; use Raw_Funcs;
 with Raw;
-
+with Header;
 
 package body Physical_Read is
 
@@ -31,6 +31,36 @@ package body Physical_Read is
 
   package TIO renames Ada.Text_IO;
 
+procedure Header_Info(Cards : in Optional.Card_Arr; A,B : out Tc;
+     BV : out Boolean; BLANK : out Tf)
+is
+    AStr : String(1..20);-- BZERO
+    BStr : String(1..20);-- BSCALE
+    UStr : String(1..20);-- BLANK = Undefined value
+begin
+    TIO.Put_Line("Linear_Impl::From_Header");
+
+    if(Header.Has_Card(Cards, "BZERO   ",AStr))
+    then A := To_V3Type(AStr);
+    else A := To_V3Type("0.0");
+    --else A := Tc(0.0);
+    end if;
+
+    if(Header.Has_Card(Cards, "BSCALE  ",BStr))
+    then B := To_V3Type(BStr);
+    else B := To_V3Type("1.0");
+    --else B := Tc(1.0);
+    end if;
+
+    if(Header.Has_Card(Cards, "BLANK   ",UStr))
+    then 
+        BLANK := To_V3Type(AStr);
+        BV    := True;
+    else
+        BV    := False;
+    end if;
+
+end Header_Info;
 
 
 

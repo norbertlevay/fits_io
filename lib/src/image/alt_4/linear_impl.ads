@@ -4,16 +4,6 @@ with Optional;
 
 package Linear_Impl is
 
-generic
-type Tin  is private;
-type Tcalc is digits <>;
-type Tout is private;
-with function To_V3Type(Arg : String) return Tout is <>;
-with function To_V3Type(Arg : String) return Tcalc is <>;
-with function To_V3Type(Arg : String) return Tin is <>;
-procedure From_Header(Cards : in Optional.Card_Arr; A,B : out Tcalc;
-    BV : out Boolean; BLANK : out Tin);
-
 
 
 generic

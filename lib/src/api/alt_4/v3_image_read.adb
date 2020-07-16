@@ -18,13 +18,6 @@ package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
-procedure Header_Info is new From_Header(Float_64,Tcalc,Tm);
-procedure Header_Info is new From_Header(Float_32,Tcalc,Tm);
-procedure Header_Info is new From_Header(Integer_64,Tcalc,Tm);
-procedure Header_Info is new From_Header(Integer_32,Tcalc,Tm);
-procedure Header_Info is new From_Header(Integer_16,Tcalc,Tm);
-procedure Header_Info is new From_Header(Unsigned_8,Tcalc,Tm);
-
 function Linear is new Linear_Pure(Float_64, Tcalc, Tm);
 function Linear is new Linear_Pure(Float_32, Tcalc, Tm);
 function Linear is new Linear_Pure(Integer_64, Tcalc, Tm);

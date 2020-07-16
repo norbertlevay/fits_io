@@ -15,41 +15,6 @@ package body Linear_Impl is
 
 
 
---generic
---type Tin  is private;
---type Tc   is digits <>;
---type Tout is private;
-procedure From_Header(Cards : in Optional.Card_Arr; A,B : out Tcalc;
-     BV : out Boolean; BLANK : out Tin)
-is
-    AStr : String(1..20);-- BZERO
-    BStr : String(1..20);-- BSCALE
-    UStr : String(1..20);-- BLANK = Undefined value
-begin
-    TIO.Put_Line("Linear_Impl::From_Header");
-
-    if(Header.Has_Card(Cards, "BZERO   ",AStr))
-    then A := To_V3Type(AStr);
-    else A := To_V3Type("0.0");
-    --else A := Tc(0.0);
-    end if;
-
-    if(Header.Has_Card(Cards, "BSCALE  ",BStr))
-    then B := To_V3Type(BStr);
-    else B := To_V3Type("1.0");
-    --else B := Tc(1.0);
-    end if;
-
-    if(Header.Has_Card(Cards, "BLANK   ",UStr))
-    then 
-        BLANK := To_V3Type(AStr);
-        BV    := True;
-    else
-        BV    := False;
-    end if;
-
-end From_Header;
-
 
 
 
