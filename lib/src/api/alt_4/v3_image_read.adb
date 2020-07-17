@@ -90,7 +90,8 @@ end Write_Volume;
 -- FIXME how to give "none" no BLANK provided (for raw Integers data)
 procedure Read_Data_Unit_By_Planes
   (F : in SIO.File_Type;
-  NAXISi : in NAXIS_Arr) -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
+  NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
+  Cards : in Optional.Card_Arr)
 is
   BITPIX : Integer;
   NAXISn : NAXIS_Arr(1..1);-- FIXME
