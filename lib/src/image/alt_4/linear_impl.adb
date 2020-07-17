@@ -26,7 +26,7 @@ function Linear_Pure(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) return Tout
 is
 --    Vout : Tout;
 begin
-    TIO.Put_Line("Linear_Impl::Linear_Pure");
+--    TIO.Put_Line("Linear_Impl::Linear_Pure");
     return +(A + B * (+Vin));
 end Linear_Pure;
 
@@ -38,7 +38,7 @@ function Linear_Check_UndefIn(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) re
 is
     Vout : Tout;
 begin
-    TIO.Put_Line("Linear_Impl::Linear_CheckUndefIn");
+--    TIO.Put_Line("Linear_Impl::Linear_CheckUndefIn");
     return Vout;
 end Linear_Check_UndefIn;
 

@@ -21,7 +21,7 @@ procedure minmaxalt_4 is
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
 
-
+                                                         -- Tm          Tc          Tf    
     package F64_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Float_64);
     package F32_Physical_Read is new Physical_Read(Float_64, F64_Arr, Float_64, Float_32);
 
@@ -31,24 +31,22 @@ procedure minmaxalt_4 is
     package U8_Physical_Read  is new Physical_Read(Float_64, F64_Arr, Float_64, Unsigned_8);
 
 
-    -- BEGIN application : count undefined values
     use type SIO.Count;
     Undef_Count : SIO.Count := 0;
+    Max : Float_64 := Float_64'First;
+    Min : Float_64 := Float_64'Last;
 
-    procedure F64_Data_Elem(E : Float_64) is begin if(not E'Valid) then Undef_Count := Undef_Count + 1; end if; end F64_Data_Elem;
---    procedure F32_Data_Elem(E : Float_32) is begin if(not E'Valid) then Undef_Count := Undef_Count + 1; end if; end F32_Data_Elem;
-    -- FIXME 'Valid will filter also Inf besides NaN
-
---    I64_UndefVal : Integer_64;
---    I32_UndefVal : Integer_32;
---    I16_UndefVal : Integer_16;
---    U8_UndefVal  : Unsigned_8;
-
---    procedure I64_Data_Elem(E : Integer_64) is begin if(E = I64_UndefVal) then Undef_Count := Undef_Count + 1; end if; end I64_Data_Elem;
---    procedure I32_Data_Elem(E : Integer_32) is begin if(E = I32_UndefVal) then Undef_Count := Undef_Count + 1; end if; end I32_Data_Elem;
---    procedure I16_Data_Elem(E : Integer_16) is begin if(E = I16_UndefVal) then Undef_Count := Undef_Count + 1; end if; end I16_Data_Elem;
---    procedure U8_Data_Elem (E : Unsigned_8) is begin if(E = U8_UndefVal)  then Undef_Count := Undef_Count + 1; end if; end U8_Data_Elem;
-
+    procedure F64_Data_Elem(E : Float_64)
+    is
+    begin
+        if(not E'Valid)
+        then
+            Undef_Count := Undef_Count + 1;
+        else
+            if(E > Max) then Max := E; end if;
+            if(E < Min) then Min := E; end if;
+        end if;
+    end F64_Data_Elem;
 
     procedure F64_Read_All is new F64_Physical_Read.Read_All(F64_Data_Elem);
     procedure F32_Read_All is new F32_Physical_Read.Read_All(F64_Data_Elem);
@@ -56,9 +54,6 @@ procedure minmaxalt_4 is
     procedure I32_Read_All is new I32_Physical_Read.Read_All(F64_Data_Elem);
     procedure I16_Read_All is new I16_Physical_Read.Read_All(F64_Data_Elem);
     procedure U8_Read_All  is new U8_Physical_Read.Read_All (F64_Data_Elem);
-    -- FIXME use pool for this and generic for implement
-
-    -- END application
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only$
@@ -96,6 +91,8 @@ begin
         end case;
 
         TIO.Put_Line("Undef_Count : " & SIO.Count'Image(Undef_Count));
+        TIO.Put_Line("Min         : " & Float_64'Image(Min));
+        TIO.Put_Line("Max         : " & Float_64'Image(Max));
 
         end;
     end; -- Scan_Header
