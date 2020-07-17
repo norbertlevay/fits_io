@@ -14,7 +14,7 @@ with Header;
 
 
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
-with V3_Pool_HInfo_Linear; use V3_Pool_HInfo_Linear;
+with V3_Pool_Linear; use V3_Pool_Linear;
 
 procedure minmaxalt_4 is
 

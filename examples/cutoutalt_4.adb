@@ -32,7 +32,7 @@ with Optional;
 with Optional.Reserved; use Optional.Reserved;
 with Header;
 
-with V3_Pool_HInfo_Linear; use V3_Pool_HInfo_Linear;
+with V3_Pool_Linear; use V3_Pool_Linear;
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
