@@ -36,6 +36,9 @@ procedure minmax_V3_alt_4 is
     with function T_Valid(V: T) return Boolean is <>;
     with function ">"(L,R : T)  return Boolean is <>;
     with function "<"(L,R : T)  return Boolean is <>;
+    with function "+"(R : T) return Float_64 is <>;
+    with function "+"(R : Float_64) return T is <>;
+    with function To_V3Type(S : String) return T is <>;
     package T_App is
 
         use type SIO.Count;
@@ -43,11 +46,15 @@ procedure minmax_V3_alt_4 is
         Undef_Count   : SIO.Count := 0; -- NaN
  
         procedure Plane_Data(A : T_Arr; C : SIO.Positive_Count);
-        function To_String(V : T) return String;
 
+        package   T_V3Image_Read is new V3_Image_Read(T,T_Arr,Float_64);
+        procedure Read_Data_Unit is new T_V3Image_Read.Read_Data_Unit_By_Planes(Plane_Data);
+
+        function To_String(V : T) return String;
         procedure Put_Results;
 
     end T_App;
+
     package body T_App is
 
         Min : T := T_Last;
@@ -98,24 +105,8 @@ procedure minmax_V3_alt_4 is
     package I16 is new T_App(Integer_16, I16_Arr);
     package U8  is new T_App(Unsigned_8, U8_Arr);
 
-
-                                                         -- Tm          Tc      
-    package F64_V3Image_Read is new V3_Image_Read(Float_64, F64_Arr, Float_64);
-    package F32_V3Image_Read is new V3_Image_Read(Float_32, F32_Arr, Float_32);
-    package I64_V3Image_Read is new V3_Image_Read(Integer_64, I64_Arr, Float_64);
-    package I32_V3Image_Read is new V3_Image_Read(Integer_32, I32_Arr, Float_64);
-    package I16_V3Image_Read is new V3_Image_Read(Integer_16, I16_Arr, Float_32);
-    package U8_V3Image_Read  is new V3_Image_Read(Unsigned_8, U8_Arr,  Float_32);
-
-    procedure F64_Read_Data_Unit is new F64_V3Image_Read.Read_Data_Unit_By_Planes(F64.Plane_Data);
-    procedure F32_Read_Data_Unit is new F32_V3Image_Read.Read_Data_Unit_By_Planes(F32.Plane_Data);
-    procedure I64_Read_Data_Unit is new I64_V3Image_Read.Read_Data_Unit_By_Planes(I64.Plane_Data);
-    procedure I32_Read_Data_Unit is new I32_V3Image_Read.Read_Data_Unit_By_Planes(I32.Plane_Data);
-    procedure I16_Read_Data_Unit is new I16_V3Image_Read.Read_Data_Unit_By_Planes(I16.Plane_Data);
-    procedure U8_Read_Data_Unit  is new U8_V3Image_Read.Read_Data_Unit_By_Planes (U8.Plane_Data);
-
     InFile   : SIO.File_Type;
-    HDUStart : SIO.Positive_Count := 1; -- Primary HDU only$
+    HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
 
 begin
 
@@ -142,22 +133,22 @@ begin
 
             case(HDUInfo.BITPIX) is
                 when -64 =>
-                    F64_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    F64.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     F64.Put_Results;
                 when -32 =>
-                    F32_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    F32.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     F32.Put_Results;
                  when  64 =>
-                    I64_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    I64.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     I64.Put_Results;
                  when  32 =>
-                    I32_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    I32.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     I32.Put_Results;
                  when  16 =>
-                    I16_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    I16.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     I16.Put_Results;
                  when   8 =>
-                    U8_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+                    U8.Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
                     U8.Put_Results;
                 when others => null; -- FIXME Error
             end case;
