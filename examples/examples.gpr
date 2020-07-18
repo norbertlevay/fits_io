@@ -14,10 +14,11 @@ project examples is
        );
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
-   for Main use ("create.adb","convert.adb",
-       "minmaxraw.adb","minmaxalt_1.adb","minmaxalt_4.adb",
-       "list.adb","reserved_keys.adb",
-       "cutoutalt_4.adb","undefvals.adb");
+   for Main use ("create.adb", "convert.adb",
+       "minmaxraw.adb", "minmaxalt_1.adb", 
+       "minmaxalt_4.adb", "minmax_v3_alt_4.adb",
+       "list.adb", "reserved_keys.adb",
+       "cutoutalt_4.adb", "undefvals.adb");
 
    package Compiler is
       for Default_Switches ("ada") use ("-gnat12");
