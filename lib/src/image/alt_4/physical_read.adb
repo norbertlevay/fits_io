@@ -41,15 +41,18 @@ begin
     TIO.Put_Line("Linear_Impl::From_Header");
 
     if(Header.Has_Card(Cards, "BZERO   ",AStr))
-    then A := To_V3Type(AStr);
-    else A := To_V3Type("0.0");
-    --else A := Tc(0.0);
+    --then A := To_V3Type(AStr);
+    then A := Tc'Value(AStr);
+    --else A := To_V3Type("0.0");
+    else A := Tc(0.0);
     end if;
 
     if(Header.Has_Card(Cards, "BSCALE  ",BStr))
-    then B := To_V3Type(BStr);
-    else B := To_V3Type("1.0");
-    --else B := Tc(1.0);
+    --then B := To_V3Type(BStr);
+    then B := Tc'Value(BStr);
+    -- FIXME later implement proper FITS-Float parsing: Tc'Value not always in line with FITS Float syntax
+--    else B := To_V3Type("1.0");
+    else B := Tc(1.0);
     end if;
 
     if(Header.Has_Card(Cards, "BLANK   ",UStr))

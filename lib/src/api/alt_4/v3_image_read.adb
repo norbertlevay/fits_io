@@ -103,8 +103,8 @@ is
 
   Plane : Tm_Arr(1 .. PlLength);
 
-  function To_V3Type(S : String) return Tc is
-  begin return Tc'Value(S); end To_V3Type;
+--  function To_V3Type(S : String) return Tc is
+--  begin return Tc'Value(S); end To_V3Type;
   -- FIXME hm....! why this...
 
   Package F64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);

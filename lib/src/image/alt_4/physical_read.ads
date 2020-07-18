@@ -41,7 +41,7 @@ generic
   type Tm_Arr is array (Positive_Count range <>) of Tm;
   type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
-with function To_V3Type(Arg : String) return Tc is <>;
+--with function To_V3Type(Arg : String) return Tc is <>;
 with function To_V3Type(Arg : String) return Tf is <>;
 with function Linear(Vin : in Tf; A,B:Tc; BV : Boolean; BLANK : Tf) return Tm is <>;
 package Physical_Read is

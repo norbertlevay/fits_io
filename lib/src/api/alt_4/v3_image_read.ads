@@ -19,7 +19,7 @@ with function "+"(R : Unsigned_8) return Tc is <>;
 with function "+"(R : Tc) return Tm is <>;
 
 with function To_V3Type(S : String) return Tm is <>;
-with function To_V3Type(S : String) return Tc is <>;
+--with function To_V3Type(S : String) return Tc is <>;
 package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;
