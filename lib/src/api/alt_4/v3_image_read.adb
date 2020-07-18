@@ -18,13 +18,12 @@ package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
-function Linear is new Linear_Pure(Float_64, Tcalc, Tm);
-function Linear is new Linear_Pure(Float_32, Tcalc, Tm);
-function Linear is new Linear_Pure(Integer_64, Tcalc, Tm);
-function Linear is new Linear_Pure(Integer_32, Tcalc, Tm);
-function Linear is new Linear_Pure(Integer_16, Tcalc, Tm);
-function Linear is new Linear_Pure(Unsigned_8, Tcalc, Tm);
-
+function Linear is new Linear_Pure(Float_64, Tc, Tm);
+function Linear is new Linear_Pure(Float_32, Tc, Tm);
+function Linear is new Linear_Pure(Integer_64, Tc, Tm);
+function Linear is new Linear_Pure(Integer_32, Tc, Tm);
+function Linear is new Linear_Pure(Integer_16, Tc, Tm);
+function Linear is new Linear_Pure(Unsigned_8, Tc, Tm);
 
 
 procedure Read_Volume
@@ -37,12 +36,12 @@ procedure Read_Volume
   Cards : in Optional.Card_Arr)
 is
 
-    package F64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Float_64);
-    package F32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Float_32);
-    package I64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_64);
-    package I32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_32);
-    package I16_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tcalc, Integer_16);
-    package U8_Physical_Read  is new Physical_Read(Tm, Tm_Arr ,Tcalc, Unsigned_8);
+    package F64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
+    package F32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
+    package I64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
+    package I32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
+    package I16_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
+    package U8_Physical_Read  is new Physical_Read(Tm, Tm_Arr ,Tc, Unsigned_8);
 
 begin
   TIO.Put_Line("DBG: V3_Image_Read::Read_Volume");
@@ -80,40 +79,65 @@ end Write_Volume;
 
 
 
-
-
-
-
-
-
-
--- FIXME how to give "none" no BLANK provided (for raw Integers data)
+-- read DU by planes implements sequential read in chunks
 procedure Read_Data_Unit_By_Planes
-  (F : in SIO.File_Type;
-  NAXISi : in NAXIS_Arr; -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
-  Cards : in Optional.Card_Arr)
+  (F     : in SIO.File_Type;
+  BITPIX : in Integer;
+  I      : in Positive;
+  NAXISn : in NAXIS_Arr;
+  Cards  : in Optional.Card_Arr)
 is
-  BITPIX : Integer;
-  NAXISn : NAXIS_Arr(1..1);-- FIXME
-  Length : Positive_Count := 1; -- calc from NAXISn
-  Plane : Tm_Arr(1 .. Length);
-  F64BZERO, F64BSCALE : Tcalc;
-begin
-  -- read Header keys
-  -- FIXME read BZERO BSCALE (BLANK)
+    function PlaneLength(NAXISi : NAXIS_Arr) return Positive_Count
+    is
+        Acc : Positive_Count := 1;
+    begin
+        for I in NAXISi'Range
+        loop
+         Acc := Acc * NAXISi(I);
+        end loop;
+        return Acc;
+    end PlaneLength;
 
-  -- FIXME revert: put loop inside case() to avoid check BITPIX at each turn
-  for I in 1 .. (1 + NAXISn'Length - Length)
+  PlLength : Positive_Count := PlaneLength(NAXISn(1..I));
+  PlCount  : Positive_Count := PlaneLength(NAXISn(I+1..NAXISn'Last));
+
+  Plane : Tm_Arr(1 .. PlLength);
+
+  function To_V3Type(S : String) return Tc is
+  begin return Tc'Value(S); end To_V3Type;
+  -- FIXME hm....! why this...
+
+  Package F64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
+  Package F32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
+
+  Package I64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
+  Package I32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
+  Package I16_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
+  Package U8_Physical  is new Physical_Read(Tm, Tm_Arr, Tc, Unsigned_8);
+
+begin
+    TIO.Put_Line("BITPIX : " & Integer'Image(BITPIX));
+    TIO.Put_Line("PlLength : " & Positive_Count'Image(PlLength));
+    TIO.Put_Line("PlCount  : " & Positive_Count'Image(PlCount));
+
+
+  for I in 1 .. PlCount
   loop
-    case(BITPIX) is
---      when   8 =>  U8_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
---      when  16 => I16_Physical.Read_Array(F, F64BZERO, F64BSCALE, Plane);
---      when -32 => F32_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
---      when -64 => F64_Physical.Read_Array(F, F64BZERO, F64BSCALE, Undef_Value, Plane);
+
+      case(BITPIX) is
+      when -64 => F64_Physical.Read_Array(F, Plane, Cards);
+      when -32 => F32_Physical.Read_Array(F, Plane, Cards);
+      when  64 => I64_Physical.Read_Array(F, Plane, Cards);
+      when  32 => I32_Physical.Read_Array(F, Plane, Cards);
+      when  16 => I16_Physical.Read_Array(F, Plane, Cards);
+      when   8 => U8_Physical.Read_Array(F, Plane, Cards);
       when others => null; -- FIXME Error
     end case;
+
     Plane_Data(Plane, I);
+
   end loop;
+  -- FIXME revert: put loop inside case() to avoid check BITPIX at each turn
 
 end Read_Data_Unit_By_Planes;
 

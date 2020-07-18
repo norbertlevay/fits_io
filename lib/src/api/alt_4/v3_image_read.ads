@@ -7,19 +7,19 @@ with V3_Types; use V3_Types;
 generic
 type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
-type Tcalc is digits <>;
+type Tc is digits <>;
 
-with function "+"(R : Float_64) return Tcalc is <>;
-with function "+"(R : Float_32) return Tcalc is <>;
-with function "+"(R : Integer_64) return Tcalc is <>;
-with function "+"(R : Integer_32) return Tcalc is <>;
-with function "+"(R : Integer_16) return Tcalc is <>;
-with function "+"(R : Unsigned_8) return Tcalc is <>;
+with function "+"(R : Float_64) return Tc is <>;
+with function "+"(R : Float_32) return Tc is <>;
+with function "+"(R : Integer_64) return Tc is <>;
+with function "+"(R : Integer_32) return Tc is <>;
+with function "+"(R : Integer_16) return Tc is <>;
+with function "+"(R : Unsigned_8) return Tc is <>;
 
-with function "+"(R : Tcalc) return Tm is <>;
+with function "+"(R : Tc) return Tm is <>;
 
 with function To_V3Type(S : String) return Tm is <>;
-with function To_V3Type(S : String) return Tcalc is <>;
+with function To_V3Type(S : String) return Tc is <>;
 package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;
@@ -49,7 +49,9 @@ generic
 with procedure Plane_Data(Plane : in Tm_Arr; PlaneCount : in Positive_Count);
 procedure Read_Data_Unit_By_Planes
     (F : in SIO.File_Type;
-    NAXISi : in NAXIS_Arr;
+    BITPIX : in Integer;
+    I      : in Positive; -- Plane max dimension I <= NAXIS
+    NAXISn : in NAXIS_Arr;
     Cards  : in Optional.Card_Arr);
 -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
 

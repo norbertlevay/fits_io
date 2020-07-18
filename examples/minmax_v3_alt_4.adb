@@ -6,6 +6,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with V3_Types;  use V3_Types;
 with V3_Arrays; use V3_Arrays;
 with Pool_V3Type_Convs; use Pool_V3Type_Convs;
+with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 
 with File;
 with V3_Image_Read;
@@ -24,7 +25,7 @@ procedure minmax_V3_alt_4 is
     package SIO renames Ada.Streams.Stream_IO;
 
                                                          -- Tm          Tc      
-    package F64_Physical_Read is new V3_Image_Read(Float_64, F64_Arr, Float_64);
+    package F64_V3Image_Read is new V3_Image_Read(Float_64, F64_Arr, Float_64);
 
     use type SIO.Count;
     Special_Count : SIO.Count := 0; -- Inf...
@@ -53,7 +54,7 @@ procedure minmax_V3_alt_4 is
         end loop;
     end F64_Plane;
 
-    procedure F64_Read_Data_Unit is new F64_Physical_Read.Read_Data_Unit_By_Planes(F64_Plane);
+    procedure F64_Read_Data_Unit is new F64_V3Image_Read.Read_Data_Unit_By_Planes(F64_Plane);
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only$
@@ -80,7 +81,7 @@ begin
             Cards   : Optional.Card_Arr := Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
         begin
 
-        F64_Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+        F64_Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
 
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
