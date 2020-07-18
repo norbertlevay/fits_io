@@ -30,6 +30,14 @@ procedure minmax_V3_alt_4 is
     generic
     type T is private;
     type T_Arr is array (SIO.Positive_Count range <>) of T;
+    type Tc is digits <>;
+    with function "+"(R : Float_64) return Tc is <>;
+    with function "+"(R : Float_32) return Tc is <>; 
+    with function "+"(R : Integer_64) return Tc is <>; 
+    with function "+"(R : Integer_32) return Tc is <>; 
+    with function "+"(R : Integer_16) return Tc is <>; 
+    with function "+"(R : Unsigned_8) return Tc is <>; 
+    with function "+"(R : Tc) return T is <>;
     with function T_First return T is <>;
     with function T_Last  return T is <>;
     with function T_Image(V: T) return String is <>;
@@ -47,10 +55,9 @@ procedure minmax_V3_alt_4 is
  
         procedure Plane_Data(A : T_Arr; C : SIO.Positive_Count);
 
-        package   T_V3Image_Read is new V3_Image_Read(T,T_Arr,Float_64);
+        package   T_V3Image_Read is new V3_Image_Read(T,T_Arr,Tc);
         procedure Read_Data_Unit is new T_V3Image_Read.Read_Data_Unit_By_Planes(Plane_Data);
 
-        function To_String(V : T) return String;
         procedure Put_Results;
 
     end T_App;
@@ -81,29 +88,23 @@ procedure minmax_V3_alt_4 is
             end loop;
         end Plane_Data;
 
-        function To_String(V : T) return String
-        is
-        begin
-            return T_Image(V);
-        end To_String;
-
         procedure Put_Results
         is
         begin
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
-        TIO.Put_Line("Min                    : " & To_String(Min));
-        TIO.Put_Line("Max                    : " & To_String(Max));
+        TIO.Put_Line("Min                    : " & T_Image(Min));
+        TIO.Put_Line("Max                    : " & T_Image(Max));
         end Put_Results;
 
     end T_App;
 
-    package F64 is new T_App(Float_64,   F64_Arr);
-    package F32 is new T_App(Float_32,   F32_Arr);
-    package I64 is new T_App(Integer_64, I64_Arr);
-    package I32 is new T_App(Integer_32, I32_Arr);
-    package I16 is new T_App(Integer_16, I16_Arr);
-    package U8  is new T_App(Unsigned_8, U8_Arr);
+    package F64 is new T_App(Float_64,   F64_Arr, Float_64);
+    package F32 is new T_App(Float_32,   F32_Arr, Float_32);
+    package I64 is new T_App(Integer_64, I64_Arr, Float_64);
+    package I32 is new T_App(Integer_32, I32_Arr, Float_64);
+    package I16 is new T_App(Integer_16, I16_Arr, Float_32);
+    package U8  is new T_App(Unsigned_8, U8_Arr,  Float_32);
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
