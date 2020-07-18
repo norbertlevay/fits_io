@@ -44,8 +44,6 @@ procedure minmax_V3_alt_4 is
     with function T_Valid(V: T) return Boolean is <>;
     with function ">"(L,R : T)  return Boolean is <>;
     with function "<"(L,R : T)  return Boolean is <>;
-    with function "+"(R : T) return Float_64 is <>;
-    with function "+"(R : Float_64) return T is <>;
     with function To_V3Type(S : String) return T is <>;
     package T_App is
 
