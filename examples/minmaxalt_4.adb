@@ -3,7 +3,7 @@ with Ada.Text_IO;
 with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
-with V3_Types; use V3_Types;
+with V3_Types;  use V3_Types;
 with V3_Arrays; use V3_Arrays;
 with File;
 with Physical_Read;
@@ -12,9 +12,9 @@ with Optional;
 with Optional.Reserved;
 with Header;
 
-
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
-with V3_Pool_Linear; use V3_Pool_Linear;
+with V3_Pool_Linear;         use V3_Pool_Linear;
+
 
 procedure minmaxalt_4 is
 
@@ -32,7 +32,8 @@ procedure minmaxalt_4 is
 
 
     use type SIO.Count;
-    Undef_Count : SIO.Count := 0;
+    Special_Count : SIO.Count := 0; -- Inf...
+    Undef_Count   : SIO.Count := 0; -- NaN
     Max : Float_64 := Float_64'First;
     Min : Float_64 := Float_64'Last;
 
@@ -41,7 +42,10 @@ procedure minmaxalt_4 is
     begin
         if(not E'Valid)
         then
-            Undef_Count := Undef_Count + 1;
+            if(E = E)
+            then Special_Count := Special_Count + 1; -- Invalid but not NaN
+            else Undef_Count   := Undef_Count   + 1; -- NaN
+            end if;
         else
             if(E > Max) then Max := E; end if;
             if(E < Min) then Min := E; end if;
@@ -90,13 +94,16 @@ begin
             when others => null; -- FIXME error
         end case;
 
-        TIO.Put_Line("Undef_Count : " & SIO.Count'Image(Undef_Count));
-        TIO.Put_Line("Min         : " & Float_64'Image(Min));
-        TIO.Put_Line("Max         : " & Float_64'Image(Max));
+        TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
+        TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
+        TIO.Put_Line("Min                    : " & Float_64'Image(Min));
+        TIO.Put_Line("Max                    : " & Float_64'Image(Max));
 
         end;
-    end; -- Scan_Header
+
+    end;
 
     SIO.Close(InFile);
 
 end minmaxalt_4;
+
