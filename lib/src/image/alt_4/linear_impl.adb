@@ -1,45 +1,30 @@
 
-with Ada.Text_IO;
-
---with Pool_From_String; use Pool_From_String;
-with Pool_String_To_V3types; use Pool_String_To_V3types;
-with Pool_V3Type_Convs; use Pool_V3Type_Convs;
-
-with Optional; -- Card_Arr needed
-with Header;-- Has_Card() needed
+--with Ada.Text_IO;
 
 package body Linear_Impl is
 
-    package TIO renames Ada.Text_IO;
+--    package TIO renames Ada.Text_IO;
 
 
-
-
-
-
-
-
---generic
---type Tin  is private;
---type Tout is private;
 function Linear_Pure(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) return Tout
 is
---    Vout : Tout;
 begin
---    TIO.Put_Line("Linear_Impl::Linear_Pure");
     return +(A + B * (+Vin));
 end Linear_Pure;
 
 
---generic
---type Tin  is private;
---type Tout is private;
+
+-- FIXME separate implementation needed depending on presence/absence of BLANK in header
 function Linear_Check_UndefIn(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) return Tout
 is
     Vout : Tout;
 begin
---    TIO.Put_Line("Linear_Impl::Linear_CheckUndefIn");
-    return Vout;
+    if(BV and (Vin = BLANK))
+    then
+        return UndefOut;
+    else
+        return +(A + B * (+Vin));
+    end if;
 end Linear_Check_UndefIn;
 
 
