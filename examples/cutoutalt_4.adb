@@ -32,13 +32,13 @@ with Optional;
 with Optional.Reserved; use Optional.Reserved;
 with Header;
 
-with V3_Pool_Linear; use V3_Pool_Linear;
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
+with V3_Pool_Linear; use V3_Pool_Linear;
 with V3_Image_Read;
 
-procedure cutoutdevel
+procedure cutoutalt_4
 is
  package SIO renames Ada.Streams.Stream_IO;
  package TIO renames Ada.Text_IO;
@@ -47,9 +47,9 @@ is
  use Value_Functions;
 
 
- -- instantiate Read Volume func for Float_32
+ -- instantiate Read Volume func for Float_32 Tm   Tm_Arr    Tc     
  package F64_Image is new V3_Image_Read(Float_64, F64_Arr,Float_64);
- package F32_Image is new V3_Image_Read(Float_32, F32_Arr,Float_32);
+-- package F32_Image is new V3_Image_Read(Float_32, F32_Arr,Float_32);
 
  
  InFile : SIO.File_Type;
@@ -109,8 +109,8 @@ begin
  begin
 
  DUStart := File_Block_Index(InFile);
--- F64_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, VolF64, Cards);
-F32_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, Vol, Cards);
+ F64_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, VolF64, Cards);
+--F32_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, Vol, Cards);
  -- FIXME above proc should raise exception if File::HDU is not BITPIX=-32
 
  SIO.Close(InFile);
@@ -155,7 +155,7 @@ end; -- F32_Arr declare
  TIO.Put_Line("Max Pos : " & SIO.Positive_Count'Image(PosMaxI) & ", " & SIO.Positive_Count'Image(PosMaxJ));
 
 
-end cutoutdevel;
+end cutoutalt_4;
 
 
 -- NOTES:
