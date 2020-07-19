@@ -16,7 +16,7 @@ project examples is
    for Exec_Dir use "bin";
    for Main use ("create.adb", "convert.adb",
        "minmaxraw.adb", "minmaxalt_1.adb", 
-       "minmaxalt_4.adb", "minmax_v3_alt_4.adb", "minmax_alt_4.adb",
+       "minmaxalt_4.adb", "minmax_v3_alt_4.adb",
        "list.adb", "reserved_keys.adb",
        "cutoutalt_4.adb", "undefvals.adb");
 
