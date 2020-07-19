@@ -29,13 +29,17 @@ procedure minmax_V3_alt_4 is
     use type SIO.Count;
     Special_Count : SIO.Count := 0; -- Inf...
     Undef_Count   : SIO.Count := 0; -- NaN
- 
-    Min : Float_64 := Float_64'Last;
-    Max : Float_64 := Float_64'First;
 
-    procedure Plane_Data(A : F64_Arr; C : SIO.Positive_Count)
+    subtype Tcc is Float_64;-- do scaling in this type (Float only)
+    subtype Tmm is Float_64;-- work with data in this type
+    type Tmm_Arr is array (SIO.Positive_Count range <>) of Tmm;
+
+    Min : Tmm := Tmm'Last;
+    Max : Tmm := Tmm'First;
+
+    procedure Plane_Data(A : Tmm_Arr; C : SIO.Positive_Count)
     is
-        E : Float_64;
+        E : Tmm;
     begin
         for I in A'Range
         loop
@@ -53,7 +57,7 @@ procedure minmax_V3_alt_4 is
         end loop;
     end Plane_Data;
 
-    package   F64_V3Image_Read is new V3_Image_Read(Float_64,F64_Arr,Float_64);
+    package   F64_V3Image_Read is new V3_Image_Read(Tmm,Tmm_Arr,Tcc);
     procedure Read_Data_Unit   is new F64_V3Image_Read.Read_Data_Unit_By_Planes(Plane_Data);
 
     InFile   : SIO.File_Type;
@@ -82,8 +86,8 @@ begin
             Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
             TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
             TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
-            TIO.Put_Line("Min                    : " & Float_64'Image(Min));
-            TIO.Put_Line("Max                    : " & Float_64'Image(Max));
+            TIO.Put_Line("Min                    : " & Tmm'Image(Min));
+            TIO.Put_Line("Max                    : " & Tmm'Image(Max));
         end;
     end;
 
