@@ -24,6 +24,8 @@ function Linear is new Linear_Pure (Integer_32, Float_64, Integer_32);
 function Linear is new Linear_Pure (Integer_16, Float_32, Integer_16);
 function Linear is new Linear_Pure (Unsigned_8, Float_32, Unsigned_8);
 
+-- only for test F->UI : we need BLANK for output if NaN encoutered
+function Linear is new Linear_Check_UndefOut (Float_64, Float_64, Integer_64, Integer_64'Last);
 
 end V3_Pool_Linear;
 
