@@ -9,6 +9,15 @@ type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tc is digits <>;
 
+
+
+with function Linear(Vin : in Float_64; A,B:Tc; BV : Boolean; BLANK : Float_64) return Tm is <>;
+with function Linear(Vin : in Float_32; A,B:Tc; BV : Boolean; BLANK : Float_32) return Tm is <>;
+with function Linear(Vin : in Integer_64; A,B:Tc; BV:Boolean; BLANK : Integer_64) return Tm is <>;
+with function Linear(Vin : in Integer_32; A,B:Tc; BV:Boolean; BLANK : Integer_32) return Tm is <>;
+with function Linear(Vin : in Integer_16; A,B:Tc; BV:Boolean; BLANK : Integer_16) return Tm is <>;
+with function Linear(Vin : in Unsigned_8; A,B:Tc; BV:Boolean; BLANK : Unsigned_8) return Tm is <>;
+
 with function "+"(R : Float_64) return Tc is <>;
 with function "+"(R : Float_32) return Tc is <>;
 with function "+"(R : Integer_64) return Tc is <>;

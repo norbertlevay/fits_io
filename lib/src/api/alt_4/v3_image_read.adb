@@ -18,13 +18,6 @@ package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
-function Linear is new Linear_Pure(Float_64, Tc, Tm);
-function Linear is new Linear_Pure(Float_32, Tc, Tm);
-function Linear is new Linear_Pure(Integer_64, Tc, Tm);
-function Linear is new Linear_Pure(Integer_32, Tc, Tm);
-function Linear is new Linear_Pure(Integer_16, Tc, Tm);
-function Linear is new Linear_Pure(Unsigned_8, Tc, Tm);
-
 
 procedure Read_Volume
   (F : in SIO.File_Type;
