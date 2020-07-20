@@ -67,6 +67,64 @@ end Header_Info;
 
 
 
+-- Scaling
+
+ function  Check_InValue(Vin,UIn: in Tf; UOut: in Tm; OutValSet : in out Boolean) return Tm
+ is begin return UOut; end Check_InValue;
+
+ procedure Check_OutValue(Vin,UIn: in Tf; Vout,UOut: in Tm)
+ is begin null; end Check_OutValue;
+
+ Uin :Tf;
+ Uout:Tm;
+ A,B : Tc;
+
+ -- variant no BLANK
+function Scaling (Vin : in Tf; A,B : Tc) return Tm
+ is
+     Vout : Tm;
+ begin
+
+     Vout := +(A + B * (+Vin));
+
+     Check_OutValue(Vin,UIn,Vout,UOut);-- FIXME needs Dummy val for UIn !?
+
+     return Vout;
+ end Scaling;
+
+
+
+
+
+ -- variant with BLANK
+ function Scaling (Vin : in Tf; A,B : Tc; BLANK : Tf) return Tm
+ is
+     Vout : Tm;
+     VoutSet : Boolean := False;
+ begin
+
+     Vout := Check_InValue(Vin,UIn,UOut,VoutSet);
+
+     if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
+     -- FIXME relies on optimization for NullFunc case ValSet=False: 
+     -- func is "return False" the if(no ValSet) is constant expression if(not False)
+     -- would optimization remove it (evaluate during compile time after instantiation ??
+
+     Check_OutValue(Vin,UIn,Vout,UOut);
+
+     return Vout;
+ end Scaling;
+
+
+
+
+
+
+
+
+
+ -- Read Write procedures
+
   procedure Read_Array
     (F : SIO.File_Type;
     Data  : out Tm_Arr;
