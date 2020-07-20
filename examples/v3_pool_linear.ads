@@ -42,5 +42,58 @@ function Linear is new Linear_Pure(Integer_16, Float_64, Integer_64);
 function Linear is new Linear_Pure(Unsigned_8, Float_64, Integer_64);
 
 
+
+-- Scaling variant
+
+-- same type
+
+                                                  --    Tf        Tm     
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Float_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Unsigned_8);
+
+
+-- cross
+
+ -- Tf all -> I64
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Integer_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Integer_64);
+
+-- procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_64);
+-- procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Integer_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Integer_64);
+
+
+
+
+
+
+
 end V3_Pool_Linear;
 

@@ -69,16 +69,9 @@ end Header_Info;
 
 -- Scaling
 
- procedure Check_InValue(Vin,UIn: in Tf; UOut: in Tm; 
-     Vout : in out Tm; OutValSet : in out Boolean)
- is begin null; end Check_InValue;
-
- procedure Check_OutValue(Vin,UIn: in Tf; Vout,UOut: in Tm)
- is begin null; end Check_OutValue;
-
- Uin :Tf;
- Uout:Tm;
- A,B : Tc;
+ Uin  : Tf;
+ Uout : Tm;
+ A,B  : Tc;
 
  -- variant no BLANK
 function Scaling (Vin : in Tf; A,B : Tc) return Tm

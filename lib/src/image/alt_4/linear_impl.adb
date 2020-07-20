@@ -54,5 +54,16 @@ end Linear_Check_UndefOut;
 
 
 
+-- Scaling variant
+
+
+ procedure Check_InValue_Null(Vin,UIn: in Tf; UOut: in Tm; 
+     Vout : in out Tm; OutValSet : in out Boolean)
+ is begin null; end Check_InValue_Null;
+
+ procedure Check_OutValue_Null(Vin,UIn: in Tf; Vout,UOut: in Tm) 
+ is begin null; end Check_OutValue_Null;
+
+
 end Linear_Impl;
 

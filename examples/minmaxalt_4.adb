@@ -35,6 +35,12 @@ procedure minmaxalt_4 is
     with function To_V3Type(Arg : String) return Tf is <>;
     with function Linear(Vin : in Tf; A,B:Tc; BV : Boolean; BLANK : Tf) return Tm is <>;
 
+    with procedure Check_InValue(Vin,UIn: in Tf; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean) is <>;
+    with procedure Check_OutValue(Vin,UIn: in Tf; Vout,UOut: in Tm) is <>;
+
+    with function "+"(R : Tf) return Tc is <>;
+    with function "+"(R : Tc) return Tm is <>;
+
     with function T_First return Tm is <>;
     with function T_Last  return Tm is <>;
     with function T_Image(V: Tm) return String is <>;
