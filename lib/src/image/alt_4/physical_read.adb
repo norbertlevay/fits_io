@@ -69,8 +69,9 @@ end Header_Info;
 
 -- Scaling
 
- function  Check_InValue(Vin,UIn: in Tf; UOut: in Tm; OutValSet : in out Boolean) return Tm
- is begin return UOut; end Check_InValue;
+ procedure Check_InValue(Vin,UIn: in Tf; UOut: in Tm; 
+     Vout : in out Tm; OutValSet : in out Boolean)
+ is begin null; end Check_InValue;
 
  procedure Check_OutValue(Vin,UIn: in Tf; Vout,UOut: in Tm)
  is begin null; end Check_OutValue;
@@ -103,7 +104,7 @@ function Scaling (Vin : in Tf; A,B : Tc) return Tm
      VoutSet : Boolean := False;
  begin
 
-     Vout := Check_InValue(Vin,UIn,UOut,VoutSet);
+     Check_InValue(Vin,UIn,UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
      -- FIXME relies on optimization for NullFunc case ValSet=False: 
