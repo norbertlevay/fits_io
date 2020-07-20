@@ -107,10 +107,9 @@ function Scaling (Vin : in Tf; A,B : Tc) return Tm
      Check_InValue(Vin,UIn,UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
-     -- FIXME relies on optimization for NullFunc case ValSet=False: 
-     -- func is "return False" the if(no ValSet) is constant expression if(not False)
-     -- would optimization remove it (evaluate during compile time after instantiation ??
-
+     -- FIXME relies on optimization for NullFunc case:
+     -- ValSet remains False and so if(no ValSet).. = if(not False)..
+     -- would optimization remove the if-check (evaluate during compile time after instantiation ??
      Check_OutValue(Vin,UIn,Vout,UOut);
 
      return Vout;
