@@ -18,6 +18,15 @@ package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
+  Package F64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
+  Package F32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
+
+  Package I64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
+  Package I32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
+  Package I16_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
+  Package U8_Physical  is new Physical_Read(Tm, Tm_Arr, Tc, Unsigned_8);
+
+
 
 procedure Read_Volume
   (F : in SIO.File_Type;
@@ -100,13 +109,6 @@ is
 --  begin return Tc'Value(S); end To_V3Type;
   -- FIXME hm....! why this...
 
-  Package F64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
-  Package F32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
-
-  Package I64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
-  Package I32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
-  Package I16_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
-  Package U8_Physical  is new Physical_Read(Tm, Tm_Arr, Tc, Unsigned_8);
 
 begin
     TIO.Put_Line("BITPIX : " & Integer'Image(BITPIX));

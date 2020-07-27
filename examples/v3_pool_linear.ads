@@ -37,6 +37,10 @@ function Linear is new Linear_Check_UndefOut (Float_32, Float_32, Integer_16, In
 function Linear is new Linear_Check_UndefOut (Float_32, Float_32, Unsigned_8, Unsigned_8'Last);
 
 function Linear is new Linear_Check_UndefOut(Float_32,   Float_64, Integer_64, Integer_64'Last);
+function Linear is new Linear_Check_UndefOut(Float_32,   Float_64, Integer_16, Integer_16'Last);
+function Linear is new Linear_Check_UndefOut(Float_32,   Float_64, Unsigned_8, Unsigned_8'Last);
+
+
 function Linear is new Linear_Pure(Integer_32, Float_64, Integer_64);
 function Linear is new Linear_Pure(Integer_16, Float_64, Integer_64);
 function Linear is new Linear_Pure(Unsigned_8, Float_64, Integer_64);
@@ -45,29 +49,48 @@ function Linear is new Linear_Pure(Unsigned_8, Float_64, Integer_64);
 
 -- Scaling variant
 
--- same type
+-- cross
 
-                                                  --    Tf        Tm     
+ -- Tf all -> F64
+
  procedure Check_InValue  is new Check_InValue_Null (Float_64, Float_64);
  procedure Check_OutValue is new Check_OutValue_Null(Float_64, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Float_64);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Float_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Float_64);
+
+ -- Tf all -> F32
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Float_32);
 
  procedure Check_InValue  is new Check_InValue_Null (Float_32, Float_32);
  procedure Check_OutValue is new Check_OutValue_Null(Float_32, Float_32);
 
- procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_64);
- procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_64);
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Float_32);
 
- procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_32);
- procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_32);
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Float_32);
 
- procedure Check_InValue  is new Check_InValue_Null (Integer_16, Integer_16);
- procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Integer_16);
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Float_32);
 
- procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Unsigned_8);
- procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Unsigned_8);
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Float_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Float_32);
 
-
--- cross
 
  -- Tf all -> I64
 
@@ -77,8 +100,8 @@ function Linear is new Linear_Pure(Unsigned_8, Float_64, Integer_64);
  procedure Check_InValue  is new Check_InValue_Null (Float_32, Integer_64);
  procedure Check_OutValue is new Check_OutValue_Null(Float_32, Integer_64);
 
--- procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_64);
--- procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_64);
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_64);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_64);
 
  procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_64);
  procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_64);
@@ -90,9 +113,67 @@ function Linear is new Linear_Pure(Unsigned_8, Float_64, Integer_64);
  procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Integer_64);
 
 
+ -- Tf all -> I32
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Integer_32);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Integer_32);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Integer_32);
 
 
+ -- Tf all -> I16
 
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Integer_16);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Integer_16);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Integer_16);
+
+
+ -- Tf all -> U8
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_64, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_64, Unsigned_8);
+
+ procedure Check_InValue  is new Check_InValue_Null (Float_32, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Float_32, Unsigned_8);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_64, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_64, Unsigned_8);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_32, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_32, Unsigned_8);
+
+ procedure Check_InValue  is new Check_InValue_Null (Integer_16, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Integer_16, Unsigned_8);
+
+ procedure Check_InValue  is new Check_InValue_Null (Unsigned_8, Unsigned_8);
+ procedure Check_OutValue is new Check_OutValue_Null(Unsigned_8, Unsigned_8);
 
 
 end V3_Pool_Linear;
