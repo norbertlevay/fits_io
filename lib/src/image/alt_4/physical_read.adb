@@ -38,7 +38,7 @@ is
     BStr : String(1..20);-- BSCALE
     UStr : String(1..20);-- BLANK = Undefined value
 begin
-    TIO.Put_Line("Linear_Impl::From_Header");
+    TIO.Put_Line("Physical_Read::Header_Info");
 
     if(Header.Has_Card(Cards, "BZERO   ",AStr))
     --then A := To_V3Type(AStr);
@@ -63,22 +63,25 @@ begin
         BV    := False;
     end if;
 
+    TIO.Put_Line("A B : [" & Tc'Image(A) &", " & Tc'Image(B) & "]");
+    if(BV) then TIO.Put_Line("BLANK : " & Astr); else TIO.Put_Line("BLANK not in Header"); end if;
+
 end Header_Info;
 
 
 
--- Scaling
+-- Scaling, module-Globals
 
- Uin  : Tf;
- Uout : Tm;
+ BLANK_Valid : Boolean;
+ Uin  : Tf;-- = BLANK
+ Uout : Tm;-- FIXME should come from API/user in F->UI cases
  A,B  : Tc;
 
  -- variant no BLANK
-function Scaling (Vin : in Tf; A,B : Tc) return Tm
+function Scaling (Vin : in Tf) return Tm
  is
      Vout : Tm;
  begin
-
      Vout := +(A + B * (+Vin));
 
      Check_OutValue(Vin,UIn,Vout,UOut);-- FIXME needs Dummy val for UIn !?
@@ -91,12 +94,11 @@ function Scaling (Vin : in Tf; A,B : Tc) return Tm
 
 
  -- variant with BLANK
- function Scaling (Vin : in Tf; A,B : Tc; BLANK : Tf) return Tm
+ function Scaling_With_BLANK (Vin : in Tf) return Tm
  is
      Vout : Tm;
      VoutSet : Boolean := False;
  begin
-
      Check_InValue(Vin,UIn,UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
@@ -106,11 +108,7 @@ function Scaling (Vin : in Tf; A,B : Tc) return Tm
      Check_OutValue(Vin,UIn,Vout,UOut);
 
      return Vout;
- end Scaling;
-
-
-
-
+ end Scaling_With_BLANK;
 
 
 
@@ -126,18 +124,37 @@ function Scaling (Vin : in Tf; A,B : Tc) return Tm
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-     -- info from Header:
-    A,B   : Tc;
-    BV    : Boolean;
-    BLANK : Tf;
- begin
-    Header_Info(Cards, A,B, BV, BLANK);
+begin
+    Header_Info(Cards, A,B, BLANK_Valid, UIn);
+
     Tf_Raw.Read_Array(F, RawData);
-    for I in RawData'Range
-    loop
-      Data(I) := Linear(RawData(I), A,B, BV, BLANK);
-    end loop;
-  end Read_Array;
+
+    -- scale undef value
+
+    if(BLANK_Valid)
+    then
+            UOut := Scaling_With_BLANK(UIn);
+    else
+            UOut := Scaling(UIn);
+    end if;
+
+    -- scale array values
+
+    if(BLANK_Valid)
+    then
+        for I in RawData'Range
+        loop
+--            Data(I) := Linear(RawData(I), A,B, BV, BLANK);
+            Data(I) := Scaling_With_BLANK(RawData(I));
+        end loop;
+    else
+         for I in RawData'Range
+        loop
+            Data(I) := Scaling(RawData(I));
+        end loop;
+    end if;
+
+ end Read_Array;
 
 
 

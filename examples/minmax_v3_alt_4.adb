@@ -31,7 +31,7 @@ procedure minmax_V3_alt_4 is
     Undef_Count   : SIO.Count := 0; -- NaN
 
     subtype Tcc is Float_64;-- do scaling in this type (Float only)
-    subtype Tmm is Integer_64;-- work with data in this type
+    subtype Tmm is Float_64;-- work with data in this type
     type Tmm_Arr is array (SIO.Positive_Count range <>) of Tmm;
 
     Min : Tmm := Tmm'Last;
