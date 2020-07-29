@@ -1,9 +1,9 @@
 
---with Ada.Text_IO;
+with Ada.Text_IO;
 
 package body Linear_Impl is
 
---    package TIO renames Ada.Text_IO;
+    package TIO renames Ada.Text_IO;
 
 
  procedure Check_InValue_Null(Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm;
@@ -32,17 +32,18 @@ package body Linear_Impl is
  is
  begin
 --TIO.Put("FD");
-     if(Vin = Vin) then OutValSet := True; Vout := UOutUser; end if;
+     if(Not (Vin = Vin)) then OutValSet := True; Vout := UOut; end if;
  end Check_InValue_F2UI;
 
  procedure Check_OutValue_F2UI(Vin,UIn: in Tf; Vout,UOut: in Tm)
  is
  begin
 --TIO.Put("O");
-     -- UOutUser must not be one of valid output values
-     if( (Vout = UOutUser) AND (Vin = Vin))
+     -- UOut must not be one of valid output values
+     if( (Vout = UOut) AND (Vin = Vin))
      then
-         null; -- raise exception "Vout set invalid however Vin valid value: incorrect UOutUser"
+         TIO.Put_Line("ERROR: Vout=Undef but Vin not Undef");
+         -- raise exception "Vout set invalid however Vin valid value: incorrect UOutUser"
      end if; 
  end Check_OutValue_F2UI;
 

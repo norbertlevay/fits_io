@@ -34,14 +34,12 @@ package Linear_Impl is
  generic
  type Tf is private;
  type Tm is private;
- UOutUser : in Tm;
  procedure Check_InValue_F2UI(Vin,UIn: in Tf; UInValid: Boolean;  UOut: in Tm;
      Vout : in out Tm; OutValSet : in out Boolean);
 
  generic
  type Tf is private;
  type Tm is private;
- UOutUser : in Tm;
  procedure Check_OutValue_F2UI(Vin,UIn: in Tf; Vout,UOut: in Tm);
 
 

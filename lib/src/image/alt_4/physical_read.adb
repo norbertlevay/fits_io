@@ -133,7 +133,6 @@ begin
 
     for I in RawData'Range
     loop
---            Data(I) := Linear(RawData(I), A,B, BV, BLANK);
        Data(I) := Scaling(RawData(I));
     end loop;
 
@@ -159,7 +158,6 @@ begin
     procedure RawData(E : in Tf)
     is
     begin
---            Data_Elem(Linear(E, A,B, BV, BLANK));
             Data_Elem(Scaling(E));
     end RawData;
 
@@ -203,7 +201,6 @@ begin
 
     for I in RawVol'Range
     loop
---      Volume(I) := Linear(RawVol(I), A,B, BV, BLANK);
       Volume(I) := Scaling(RawVol(I));
     end loop;
 
