@@ -82,12 +82,12 @@ end Linear_Check_UndefOut;
      Vout : in out Tm; OutValSet : in out Boolean)
  is
  begin
-TIO.Put("FD");
+--TIO.Put("FD");
      if(Vin = Vin) then OutValSet := True; Vout := UOutUser; end if;
  end Check_InValue_F2UI;
 
  procedure Check_OutValue_F2UI(Vin,UIn: in Tf; Vout,UOut: in Tm)
-: is
+ is
  begin
 --TIO.Put("O");
      -- UOutUser must not be one of valid output values
