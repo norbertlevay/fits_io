@@ -26,6 +26,22 @@ package TIO renames Ada.Text_IO;
   Package I16_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
   Package U8_Physical  is new Physical_Read(Tm, Tm_Arr, Tc, Unsigned_8);
 
+procedure User_Undef_Value(BITPIX : Integer; UOutStr : in String)
+is
+begin
+    -- FIXME User_Undef depends on Tm not Tf
+    case(BITPIX) is
+      when   8 => U8_Physical.User_Undef_Value (UOutStr);
+      when  16 => I16_Physical.User_Undef_Value(UOutStr);
+      when  32 => I32_Physical.User_Undef_Value(UOutStr);
+      when  64 => I64_Physical.User_Undef_Value(UOutStr);
+      when -32 => F32_Physical.User_Undef_Value(UOutStr);
+      when -64 => F64_Physical.User_Undef_Value(UOutStr);
+      when others => null; -- FIXME Error
+    end case;
+end User_Undef_Value;
+
+
 
 
 procedure Read_Volume

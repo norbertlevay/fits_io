@@ -50,13 +50,15 @@ with function "+"(R : Tf) return Tc is <>;
 with function "+"(R : Tc) return Tm is <>;
 --with function To_V3Type(Arg : String) return Tc is <>;
 with function To_V3Type(Arg : String) return Tf is <>;
+with function To_V3Type(Arg : String) return Tm is <>;
 
 
 package Physical_Read is
 
  package SIO renames Ada.Streams.Stream_IO;
 
-
+    -- undef UI value for F->UI cases
+    procedure User_Undef_Value(UOutStr : in String);
 
      procedure Read_Array
          (F : SIO.File_Type;

@@ -83,7 +83,12 @@ begin
             Cards   : Optional.Card_Arr := 
                 Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
         begin
-            Read_Data_Unit(InFile,HDUInfo.BITPIX,HDUInfo.NAXISn'Last,HDUInfo.NAXISn, Cards);
+            F64_V3Image_Read.User_Undef_Value(HDUInfo.BITPIX,"0");
+            -- FIXME "0" should come from API -> handle as info from Header (Cards)
+            -- FIXME Cards param in Read* replace with BZERO BSCALE BLANK UserUndefOut : String
+
+            Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, Cards);
+
             TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
             TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
             TIO.Put_Line("Min                    : " & Tmm'Image(Min));

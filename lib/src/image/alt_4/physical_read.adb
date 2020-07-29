@@ -70,6 +70,7 @@ end Header_Info;
 
 
 
+
 -- Scaling, module-Globals
 
  BLANK_Valid : Boolean;
@@ -77,11 +78,21 @@ end Header_Info;
  Uout : Tm;-- FIXME should come from API/user in F->UI cases
  A,B  : Tc;
 
+
+
+procedure User_Undef_Value(UOutStr : in String)
+is
+begin
+    UOut := To_V3Type(UOutStr);
+end User_Undef_Value;
+
+
  -- variant no BLANK
 function Scaling (Vin : in Tf) return Tm
  is
      Vout : Tm;
  begin
+
      Vout := +(A + B * (+Vin));
 
      Check_OutValue(Vin,UIn,Vout,UOut);-- FIXME needs Dummy val for UIn !?
