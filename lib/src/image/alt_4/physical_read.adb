@@ -87,39 +87,24 @@ begin
 end User_Undef_Value;
 
 
- -- variant no BLANK
-function Scaling (Vin : in Tf) return Tm
- is
-     Vout : Tm;
- begin
-
-     Vout := +(A + B * (+Vin));
-
-     Check_OutValue(Vin,UIn,Vout,UOut);-- FIXME needs Dummy val for UIn !?
-
-     return Vout;
- end Scaling;
 
 
 
 
-
- -- variant with BLANK
- function Scaling_With_BLANK (Vin : in Tf) return Tm
+ function Scaling(Vin : in Tf) return Tm
  is
      Vout : Tm;
      VoutSet : Boolean := False;
  begin
+
      Check_InValue(Vin,UIn,BLANK_Valid, UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
-     -- FIXME relies on optimization for NullFunc case:
-     -- ValSet remains False and so if(no ValSet).. = if(not False)..
-     -- would optimization remove the if-check (evaluate during compile time after instantiation ??
+
      Check_OutValue(Vin,UIn,Vout,UOut);
 
      return Vout;
- end Scaling_With_BLANK;
+ end Scaling;
 
 
 
@@ -142,28 +127,15 @@ begin
 
     -- scale undef value
 
-    if(BLANK_Valid)
-    then
-            UOut := Scaling_With_BLANK(UIn);
-    else
-            UOut := Scaling(UIn);
-    end if;
+    UOut := Scaling(UIn);
 
     -- scale array values
 
-    if(BLANK_Valid)
-    then
-        for I in RawData'Range
-        loop
+    for I in RawData'Range
+    loop
 --            Data(I) := Linear(RawData(I), A,B, BV, BLANK);
-            Data(I) := Scaling_With_BLANK(RawData(I));
-        end loop;
-    else
-         for I in RawData'Range
-        loop
-            Data(I) := Scaling_With_BLANK(RawData(I));
-        end loop;
-    end if;
+       Data(I) := Scaling(RawData(I));
+    end loop;
 
  end Read_Array;
 
@@ -187,7 +159,8 @@ begin
     procedure RawData(E : in Tf)
     is
     begin
-            Data_Elem(Linear(E, A,B, BV, BLANK));
+--            Data_Elem(Linear(E, A,B, BV, BLANK));
+            Data_Elem(Scaling(E));
     end RawData;
 
     procedure Read_DU is new Tf_Raw.Read_All(RawData);
@@ -230,7 +203,8 @@ begin
 
     for I in RawVol'Range
     loop
-      Volume(I) := Linear(RawVol(I), A,B, BV, BLANK);
+--      Volume(I) := Linear(RawVol(I), A,B, BV, BLANK);
+      Volume(I) := Scaling(RawVol(I));
     end loop;
 
   end Read_Volume;

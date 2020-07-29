@@ -9,15 +9,6 @@ type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tc is digits <>;
 
-
-with function Linear(Vin : in Float_64;   A,B:Tc; BV : Boolean; BLANK : Float_64) return Tm is <>;
-with function Linear(Vin : in Float_32;   A,B:Tc; BV : Boolean; BLANK : Float_32) return Tm is <>;
-with function Linear(Vin : in Integer_64; A,B:Tc; BV : Boolean; BLANK : Integer_64) return Tm is <>;
-with function Linear(Vin : in Integer_32; A,B:Tc; BV : Boolean; BLANK : Integer_32) return Tm is <>;
-with function Linear(Vin : in Integer_16; A,B:Tc; BV : Boolean; BLANK : Integer_16) return Tm is <>;
-with function Linear(Vin : in Unsigned_8; A,B:Tc; BV : Boolean; BLANK : Unsigned_8) return Tm is <>;
-
-
 with procedure Check_InValue (Vin,UIn: in Float_64;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
 with procedure Check_InValue (Vin,UIn: in Float_32;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
 with procedure Check_InValue (Vin,UIn: in Integer_64; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
@@ -44,6 +35,7 @@ with function "+"(R : Tc) return Tm is <>;
 
 with function To_V3Type(S : String) return Tm is <>;
 --with function To_V3Type(S : String) return Tc is <>;
+
 package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;
