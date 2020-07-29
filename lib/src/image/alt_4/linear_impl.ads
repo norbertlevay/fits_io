@@ -41,7 +41,7 @@ function Linear_Check_UndefOut(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) r
  generic
  type Tf is private;
  type Tm is private;
- procedure Check_InValue_Null(Vin,UIn: in Tf; UOut: in Tm;
+ procedure Check_InValue_Null(Vin,UIn: in Tf;  UInValid: Boolean; UOut: in Tm;
      Vout : in out Tm; OutValSet : in out Boolean);
 
  generic
@@ -57,7 +57,7 @@ function Linear_Check_UndefOut(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) r
  type Tf is private;
  type Tm is private;
  UOutNaN : in Tm;
- procedure Check_InValue_BLANK(Vin,UIn: in Tf; UOut: in Tm;
+ procedure Check_InValue_BLANK(Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm;
      Vout : in out Tm; OutValSet : in out Boolean);
 
 
@@ -68,7 +68,7 @@ function Linear_Check_UndefOut(Vin : Tin; A,B:Tcalc; BV: Boolean; BLANK : Tin) r
  type Tf is private;
  type Tm is private;
  UOutUser : in Tm;
- procedure Check_InValue_F2UI(Vin,UIn: in Tf; UOut: in Tm;
+ procedure Check_InValue_F2UI(Vin,UIn: in Tf; UInValid: Boolean;  UOut: in Tm;
      Vout : in out Tm; OutValSet : in out Boolean);
 
  generic

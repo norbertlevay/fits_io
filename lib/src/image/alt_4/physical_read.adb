@@ -110,7 +110,7 @@ function Scaling (Vin : in Tf) return Tm
      Vout : Tm;
      VoutSet : Boolean := False;
  begin
-     Check_InValue(Vin,UIn,UOut, Vout,VoutSet);
+     Check_InValue(Vin,UIn,BLANK_Valid, UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
      -- FIXME relies on optimization for NullFunc case:
@@ -161,7 +161,7 @@ begin
     else
          for I in RawData'Range
         loop
-            Data(I) := Scaling(RawData(I));
+            Data(I) := Scaling_With_BLANK(RawData(I));
         end loop;
     end if;
 

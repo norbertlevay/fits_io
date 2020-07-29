@@ -18,12 +18,12 @@ with function Linear(Vin : in Integer_16; A,B:Tc; BV : Boolean; BLANK : Integer_
 with function Linear(Vin : in Unsigned_8; A,B:Tc; BV : Boolean; BLANK : Unsigned_8) return Tm is <>;
 
 
-with procedure Check_InValue (Vin,UIn: in Float_64;   UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Float_32;   UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_64; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_32; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_16; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Unsigned_8; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Float_64;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Float_32;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Integer_64; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Integer_32; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Integer_16; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
+with procedure Check_InValue (Vin,UIn: in Unsigned_8; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
 
 with procedure Check_OutValue(Vin,UIn: in Float_64;   Vout,UOut: in Tm) is <>;
 with procedure Check_OutValue(Vin,UIn: in Float_32;   Vout,UOut: in Tm) is <>;
