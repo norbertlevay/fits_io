@@ -14,7 +14,7 @@ package Linear_Impl is
  generic
  type Tf is private;
  type Tm is private;
- procedure Check_OutValue_Null(Vin,UIn: in Tf; Vout,UOut: in Tm);
+ procedure Check_OutValue_Null(Vin: in Tf; Vout,UOut: in Tm);
 
 
 -- Impl2: used only UI-> F, with BLANK
@@ -40,7 +40,7 @@ package Linear_Impl is
  generic
  type Tf is private;
  type Tm is private;
- procedure Check_OutValue_F2UI(Vin,UIn: in Tf; Vout,UOut: in Tm);
+ procedure Check_OutValue_F2UI(Vin: in Tf; Vout,UOut: in Tm);
 
 
 

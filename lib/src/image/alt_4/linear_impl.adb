@@ -12,7 +12,7 @@ package body Linear_Impl is
 --TIO.Put("N");
      null; end Check_InValue_Null;
 
- procedure Check_OutValue_Null(Vin,UIn: in Tf; Vout,UOut: in Tm)
+ procedure Check_OutValue_Null(Vin: in Tf; Vout,UOut: in Tm)
  is begin null; end Check_OutValue_Null;
 
 
@@ -35,7 +35,7 @@ package body Linear_Impl is
      if(Not (Vin = Vin)) then OutValSet := True; Vout := UOut; end if;
  end Check_InValue_F2UI;
 
- procedure Check_OutValue_F2UI(Vin,UIn: in Tf; Vout,UOut: in Tm)
+ procedure Check_OutValue_F2UI(Vin: in Tf; Vout,UOut: in Tm)
  is
  begin
 --TIO.Put("O");

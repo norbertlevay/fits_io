@@ -16,12 +16,12 @@ with procedure Check_InValue (Vin,UIn: in Integer_32; UInValid: Boolean; UOut: i
 with procedure Check_InValue (Vin,UIn: in Integer_16; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
 with procedure Check_InValue (Vin,UIn: in Unsigned_8; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
 
-with procedure Check_OutValue(Vin,UIn: in Float_64;   Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin,UIn: in Float_32;   Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin,UIn: in Integer_64; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin,UIn: in Integer_32; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin,UIn: in Integer_16; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin,UIn: in Unsigned_8; Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Float_64;   Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Float_32;   Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Integer_64; Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Integer_32; Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Integer_16; Vout,UOut: in Tm) is <>;
+with procedure Check_OutValue(Vin: in Unsigned_8; Vout,UOut: in Tm) is <>;
 
 
 with function "+"(R : Float_64) return Tc is <>;

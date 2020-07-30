@@ -35,7 +35,7 @@ procedure minmaxalt_4 is
     with function To_V3Type(Arg : String) return Tf is <>;
 
     with procedure Check_InValue(Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean) is <>;
-    with procedure Check_OutValue(Vin,UIn: in Tf; Vout,UOut: in Tm) is <>;
+    with procedure Check_OutValue(Vin: in Tf; Vout,UOut: in Tm) is <>;
 
     with function "+"(R : Tf) return Tc is <>;
     with function "+"(R : Tc) return Tm is <>;

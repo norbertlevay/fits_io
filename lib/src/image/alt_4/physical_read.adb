@@ -101,7 +101,7 @@ end User_Undef_Value;
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
 
-     Check_OutValue(Vin,UIn,Vout,UOut);
+     Check_OutValue(Vin,Vout,UOut);
 
      return Vout;
  end Scaling;
@@ -123,13 +123,13 @@ end User_Undef_Value;
 begin
     Header_Info(Cards, A,B, BLANK_Valid, UIn);
 
-    Tf_Raw.Read_Array(F, RawData);
-
-    -- scale undef value
+    -- scale undef-value
 
     UOut := Scaling(UIn);
 
-    -- scale array values
+    -- scale array-values
+
+    Tf_Raw.Read_Array(F, RawData);
 
     for I in RawData'Range
     loop
