@@ -109,6 +109,17 @@ end User_Undef_Value;
 
 
 
+ function Init_UOut(Uin : in Tf) return Tm
+ is
+ begin
+     -- FIXME missing case BLANK invalid -> UOut = f(Tf,Tm)
+     -- FIXME missing F->UI and UI->F handling
+     return +(A + B * (+Uin));
+ end Init_UOut;
+
+
+
+
 
  -- Read Write procedures
 
@@ -125,7 +136,7 @@ begin
 
     -- scale undef-value
 
-    UOut := Scaling(UIn);
+    UOut := Init_UOut(UIn);
 
     -- scale array-values
 
