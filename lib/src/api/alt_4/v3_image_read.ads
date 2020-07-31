@@ -23,6 +23,13 @@ with procedure Check_OutValue(Vin: in Integer_32; Vout,UOut: in Tm) is <>;
 with procedure Check_OutValue(Vin: in Integer_16; Vout,UOut: in Tm) is <>;
 with procedure Check_OutValue(Vin: in Unsigned_8; Vout,UOut: in Tm) is <>;
 
+with function Init_UOut(UInValid : in Boolean; UIn : in Float_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Float_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Integer_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Integer_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Integer_16; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Unsigned_8; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+
 
 with function "+"(R : Float_64) return Tc is <>;
 with function "+"(R : Float_32) return Tc is <>;
@@ -40,7 +47,6 @@ package V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;
 
-procedure User_Undef_Value(BITPIX : Integer; UOutStr : in String);
 
 procedure Read_Volume
     (F : in SIO.File_Type;

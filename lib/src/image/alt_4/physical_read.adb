@@ -73,18 +73,12 @@ end Header_Info;
 
 -- Scaling, module-Globals
 
- BLANK_Valid : Boolean;
- Uin  : Tf;-- = BLANK
- Uout : Tm;-- FIXME should come from API/user in F->UI cases
+ UIn  : Tf;-- = BLANK
+ UInValid  : Boolean := False;
+ UOut : Tm;-- FIXME should come from API/user in F->UI cases
+ UOutValid : Boolean := False;
  A,B  : Tc;
 
-
-
-procedure User_Undef_Value(UOutStr : in String)
-is
-begin
-    UOut := To_V3Type(UOutStr);
-end User_Undef_Value;
 
 
 
@@ -97,7 +91,7 @@ end User_Undef_Value;
      VoutSet : Boolean := False;
  begin
 
-     Check_InValue(Vin,UIn,BLANK_Valid, UOut, Vout,VoutSet);
+     Check_InValue(Vin,UIn,UInValid, UOut, Vout,VoutSet);
 
      if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
 
@@ -109,14 +103,6 @@ end User_Undef_Value;
 
 
 
- function Init_UOut(Uin : in Tf) return Tm
- is
- begin
-     -- FIXME missing case BLANK invalid -> UOut = f(Tf,Tm)
-     -- FIXME missing F->UI and UI->F handling
-     return +(A + B * (+Uin));
- end Init_UOut;
-
 
 
 
@@ -127,16 +113,24 @@ end User_Undef_Value;
     (F : SIO.File_Type;
     Data  : out Tm_Arr;
     Cards : in Optional.Card_Arr)
+-- FIXME add params: UOut in out, UOutValid in out
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-begin
-    Header_Info(Cards, A,B, BLANK_Valid, UIn);
+    Do_Scaling : Boolean := False;
+  begin
 
-    -- scale undef-value
+      Header_Info(Cards, A,B, UInValid, UIn);
 
-    UOut := Init_UOut(UIn);
+    -- init undef-value
+
+    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
+    if(Do_Scaling)
+    then
+        Uout      := +(A + B * (+UIn));
+        UOutValid := True;
+    end if;
 
     -- scale array-values
 

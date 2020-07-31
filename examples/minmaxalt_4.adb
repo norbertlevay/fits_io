@@ -36,6 +36,8 @@ procedure minmaxalt_4 is
 
     with procedure Check_InValue(Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean) is <>;
     with procedure Check_OutValue(Vin: in Tf; Vout,UOut: in Tm) is <>;
+    
+    with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 
     with function "+"(R : Tf) return Tc is <>;
     with function "+"(R : Tc) return Tm is <>;

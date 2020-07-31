@@ -82,12 +82,7 @@ begin
         declare
             Cards   : Optional.Card_Arr := 
                 Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
-
-            UserUOutStr : constant String := Tmm'Image(Tmm'Last);-- FIXME simulates User/API
         begin
-            F64_V3Image_Read.User_Undef_Value(HDUInfo.BITPIX,USerUOutStr);
-            -- FIXME "0" should come from API -> handle as info from Header (Cards)
-            -- FIXME Cards param in Read* replace with BZERO BSCALE BLANK UserUndefOut : String
 
             Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, Cards);
 

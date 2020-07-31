@@ -11,6 +11,65 @@ with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
 package V3_Pool_Linear is
 
+
+-- Tf -> F
+
+ function Init_UOut is new Init_UOut_Tf2F(Float_64, Float_64, F64NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Float_32, Float_64, F64NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_64, Float_64, F64NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_32, Float_64, F64NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_16, Float_64, F64NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Unsigned_8, Float_64, F64NaN);
+
+ function Init_UOut is new Init_UOut_Tf2F(Float_64, Float_32, F32NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Float_32, Float_32, F32NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_64, Float_32, F32NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_32, Float_32, F32NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Integer_16, Float_32, F32NaN);
+ function Init_UOut is new Init_UOut_Tf2F(Unsigned_8, Float_32, F32NaN);
+
+-- F -> UI
+
+ function Init_UOut is new Init_UOut_F2UI(Float_64, Integer_64);
+ function Init_UOut is new Init_UOut_F2UI(Float_64, Integer_32);
+ function Init_UOut is new Init_UOut_F2UI(Float_64, Integer_16);
+ function Init_UOut is new Init_UOut_F2UI(Float_64, Unsigned_8);
+
+ function Init_UOut is new Init_UOut_F2UI(Float_32, Integer_64);
+ function Init_UOut is new Init_UOut_F2UI(Float_32, Integer_32);
+ function Init_UOut is new Init_UOut_F2UI(Float_32, Integer_16);
+ function Init_UOut is new Init_UOut_F2UI(Float_32, Unsigned_8);
+
+-- UI -> UI
+
+ function Init_UOut is new Init_UOut_UI2UI(Integer_64, Integer_64);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_64, Integer_32);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_64, Integer_16);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_64, Unsigned_8);
+
+ function Init_UOut is new Init_UOut_UI2UI(Integer_32, Integer_64);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_32, Integer_32);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_32, Integer_16);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_32, Unsigned_8);
+
+ function Init_UOut is new Init_UOut_UI2UI(Integer_16, Integer_64);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_16, Integer_32);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_16, Integer_16);
+ function Init_UOut is new Init_UOut_UI2UI(Integer_16, Unsigned_8);
+
+ function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Integer_64);
+ function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Integer_32);
+ function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Integer_16);
+ function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Unsigned_8);
+
+
+
+
+
+
+
+ -- Orig...
+
  -- Tf -> F64
 
  procedure Check_InValue  is new Check_InValue_Null (Float_64, Float_64);

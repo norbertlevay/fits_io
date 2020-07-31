@@ -45,6 +45,8 @@ generic
 with procedure Check_InValue (Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean) is <>;
 with procedure Check_OutValue(Vin: in Tf; Vout,UOut: in Tm) is <>;
 
+with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+
 with function "+"(R : Tf) return Tc is <>;
 with function "+"(R : Tc) return Tm is <>;
 --with function To_V3Type(Arg : String) return Tc is <>;
@@ -56,8 +58,6 @@ package Physical_Read is
 
  package SIO renames Ada.Streams.Stream_IO;
 
-    -- undef UI value for F->UI cases
-    procedure User_Undef_Value(UOutStr : in String);
 
      procedure Read_Array
          (F : SIO.File_Type;
