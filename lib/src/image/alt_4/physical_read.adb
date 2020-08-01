@@ -164,24 +164,39 @@ end Scaling;
   NAXISn : in NAXIS_Arr;
   Cards : in Optional.Card_Arr)
  is
-     -- info from Header:
-    A,B   : Tc;
-    BV    : Boolean;
-    BLANK : Tf;
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
     procedure RawData(E : in Tf)
     is
+        Eout : Tm := Scaling(E);
     begin
-            Data_Elem(Scaling(E));
+        if(Is_Undef(Eout, UOut, UOutValid))
+        then
+            Undef_Elem(Eout);
+        else
+            Data_Elem(Eout);
+        end if;
     end RawData;
 
     procedure Read_DU is new Tf_Raw.Read_All(RawData);
 
+    Do_Scaling : Boolean;
  begin
-    Header_Info(Cards, A,B, BV, BLANK);
+    Header_Info(Cards, A,B, UInValid, UIn);
+
+    -- init undef-value
+
+    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
+    if(Do_Scaling)
+    then
+        Uout      := +(A + B * (+UIn));
+        UOutValid := True;
+    end if;
+
+    -- scale array-values
+
     Read_DU(File, NAXISn);
  end Read_All;
 

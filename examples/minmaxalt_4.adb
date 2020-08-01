@@ -55,11 +55,13 @@ procedure minmaxalt_4 is
         use type SIO.Count;
         Special_Count : SIO.Count := 0; -- Inf...
         Undef_Count   : SIO.Count := 0; -- NaN
+        Undef_CallBack_Count : SIO.Count := 0;
 
         procedure Plane_Data(E : Tm);
+        procedure Undef_Data(E : Tm);
 
         package  T_Physical_Read is new Physical_Read(Tm,Tm_Arr,Tc, Tf);
-        procedure Read_Data_Unit  is new T_Physical_Read.Read_All(Plane_Data);
+        procedure Read_Data_Unit  is new T_Physical_Read.Read_All(Plane_Data,Undef_Data);
 
         procedure Put_Results;
 
@@ -86,11 +88,19 @@ procedure minmaxalt_4 is
                 end if;
         end Plane_Data;
 
+        procedure Undef_Data(E : Tm)
+        is
+        begin
+            Undef_CallBack_Count   := Undef_CallBack_Count   + 1;
+        end Undef_Data;
+
+
         procedure Put_Results
         is
         begin
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
+        TIO.Put_Line("Undef_CallBack_Count   : " & SIO.Count'Image(Undef_CallBack_Count));
         TIO.Put_Line("Min                    : " & T_Image(Min));
         TIO.Put_Line("Max                    : " & T_Image(Max));
         end Put_Results;

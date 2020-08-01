@@ -67,7 +67,8 @@ package Physical_Read is
 
 
      generic
-     with procedure Data_Elem(Elem : in Tm);
+     with procedure Data_Elem (Elem : in Tm);
+     with procedure Undef_Elem(Elem : in Tm);
      procedure Read_All
          (File : SIO.File_Type;
          NAXISn : in NAXIS_Arr;

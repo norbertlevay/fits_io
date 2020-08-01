@@ -43,3 +43,17 @@ testminmax:
 	./bin/minmax_v3_alt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0004.fits
 	./bin/minmax_v3_alt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0005.fits
 	./bin/minmax_v3_alt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0006.fits
+
+
+
+testminmaxalt_4:
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0001.fits
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0002.fits
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0003.fits
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0004.fits
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0005.fits
+	./bin/minmaxalt_4 ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0006.fits
+
+
+
+
