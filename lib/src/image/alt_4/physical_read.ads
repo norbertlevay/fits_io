@@ -74,6 +74,8 @@ package Physical_Read is
      procedure Read_All
          (File : SIO.File_Type;
          NAXISn : in NAXIS_Arr;
+         Undef_Value : in out Tm;
+         Undef_Valid : in out Boolean;
          Cards : Optional.Card_Arr);
 
 
@@ -85,6 +87,8 @@ package Physical_Read is
          First   : in NAXIS_Arr;
          Last    : in NAXIS_Arr;
          Volume  : out Tm_Arr;
+         Undef_Value : in out Tm;
+         Undef_Valid : in out Boolean;
          Cards : Optional.Card_Arr);
 
 

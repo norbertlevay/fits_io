@@ -157,6 +157,10 @@ end Scaling;
        Data(I) := Scaling(RawData(I));
     end loop;
 
+    Undef_Valid := UOutValid;
+    Undef_Value := UOut;
+
+
  end Read_Array;
 
 
@@ -166,6 +170,8 @@ end Scaling;
  procedure Read_All
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
+  Undef_Value : in out Tm;
+  Undef_Valid : in out Boolean;
   Cards : in Optional.Card_Arr)
  is
 
@@ -192,6 +198,9 @@ end Scaling;
 
     -- init undef-value
 
+    UOutValid := Undef_Valid;
+    UOut      := Undef_Value;
+
     Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
     if(Do_Scaling)
     then
@@ -202,6 +211,13 @@ end Scaling;
     -- scale array-values
 
     Read_DU(File, NAXISn);
+
+    Undef_Valid := UOutValid;
+    Undef_Value := UOut;
+
+
+
+
  end Read_All;
 
 
@@ -217,6 +233,8 @@ end Scaling;
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     Volume  : out Tm_Arr;
+    Undef_Value : in out Tm;
+    Undef_Valid : in out Boolean;
     Cards : in Optional.Card_Arr)
   is
     VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
@@ -230,8 +248,23 @@ end Scaling;
     A,B   : Tc;
     BV    : Boolean;
     BLANK : Tf;
+    Do_Scaling : Boolean;
   begin
     Header_Info(Cards, A,B, BV, BLANK);
+
+    -- init undef-value
+
+    UOutValid := Undef_Valid;
+    UOut      := Undef_Value;
+
+    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
+    if(Do_Scaling)
+    then
+        Uout      := +(A + B * (+UIn));
+        UOutValid := True;
+    end if;
+
+    -- scale array-values
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
@@ -239,6 +272,10 @@ end Scaling;
     loop
       Volume(I) := Scaling(RawVol(I));
     end loop;
+
+    Undef_Valid := UOutValid;
+    Undef_Value := UOut;
+
 
   end Read_Volume;
 

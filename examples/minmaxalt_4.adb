@@ -118,6 +118,13 @@ procedure minmaxalt_4 is
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
 
+    UValid : Boolean := False;
+    F64UValue : Float_64;
+    F32UValue : Float_32;
+    I64UValue : Integer_64;
+    I32UValue : Integer_32;
+    I16UValue : Integer_16;
+    U8UValue : Unsigned_8;
 begin
 
     if(Argument_Count /= 1 ) 
@@ -143,23 +150,29 @@ begin
 
             case(HDUInfo.BITPIX) is
                 when -64 =>
-                    F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid, Cards);
                     F64.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Float_64'Image(F64UValue)); end if;
                 when -32 =>
-                    F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid, Cards);
                     F32.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Float_32'Image(F32UValue)); end if;
                  when  64 =>
-                    I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid, Cards);
                     I64.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_64'Image(I64UValue)); end if;
                  when  32 =>
-                    I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, I32UValue, UValid, Cards);
                     I32.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_32'Image(I32UValue)); end if;
                  when  16 =>
-                    I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, I16UValue, UValid, Cards);
                     I16.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_16'Image(I16UValue)); end if;
                  when   8 =>
-                    U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, Cards);
+                    U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, U8UValue, UValid, Cards);
                     U8.Put_Results;
+                    if(UValid) then TIO.Put_Line("UndefValue: " & Unsigned_8'Image(U8UValue)); end if;
                 when others => null; -- FIXME Error
             end case;
 
