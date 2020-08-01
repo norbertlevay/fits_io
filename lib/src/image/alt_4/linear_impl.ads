@@ -43,6 +43,16 @@ package Linear_Impl is
  -- indicate UOut:=Scaling(UIn) needed, if UIn valid and UOut invalid
 
 
+ generic
+ type T is private;
+ function Is_Undef_Floats(V,U: T; UValid : Boolean) return Boolean;
+
+ generic
+ type T is private;
+ function Is_Undef_Ints(V,U: T; UValid : Boolean) return Boolean;
+
+
+
 
 
     -- Scaling

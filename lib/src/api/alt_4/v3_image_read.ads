@@ -31,6 +31,16 @@ with function Init_UOut(UInValid : in Boolean; UIn : in Integer_16; UOutValid : 
 with function Init_UOut(UInValid : in Boolean; UIn : in Unsigned_8; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 
 
+with function Is_Undef(V,U : Float_64; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Float_32; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Integer_64; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Integer_32; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Integer_16; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Unsigned_8; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
+
+
+
 with function "+"(R : Float_64) return Tc is <>;
 with function "+"(R : Float_32) return Tc is <>;
 with function "+"(R : Integer_64) return Tc is <>;

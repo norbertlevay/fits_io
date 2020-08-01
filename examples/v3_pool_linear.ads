@@ -62,9 +62,14 @@ package V3_Pool_Linear is
  function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Integer_16);
  function Init_UOut is new Init_UOut_UI2UI(Unsigned_8, Unsigned_8);
 
+-- while Scaling check for Undef
 
-
-
+ function Is_Undef is new Is_Undef_Floats(Float_64);
+ function Is_Undef is new Is_Undef_Floats(Float_32);
+ function Is_Undef is new Is_Undef_Ints(Integer_64);
+ function Is_Undef is new Is_Undef_Ints(Integer_32);
+ function Is_Undef is new Is_Undef_Ints(Integer_16);
+ function Is_Undef is new Is_Undef_Ints(Unsigned_8);
 
 
 

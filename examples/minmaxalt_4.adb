@@ -39,6 +39,10 @@ procedure minmaxalt_4 is
     
     with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 
+    with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
+    with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
+
+
     with function "+"(R : Tf) return Tc is <>;
     with function "+"(R : Tc) return Tm is <>;
 

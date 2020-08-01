@@ -80,11 +80,6 @@ end Header_Info;
  A,B  : Tc;
 
 
-
-
-
-
-
  function Scaling(Vin : in Tf) return Tm
  is
      Vout : Tm;
@@ -99,6 +94,41 @@ end Header_Info;
 
      return Vout;
  end Scaling;
+
+
+
+function Scaling2(Vin : Tf) return Tm
+is
+    Vout : Tm;
+begin
+
+    if(Is_Undef(Vin, UIn, UInValid))
+    then
+
+        if(UOutValid)
+        then
+            Vout := UOut;
+        else
+            null; -- raise exception: "UOut needed but was not given"
+        end if;
+
+    else
+
+        Vout := +(A + B * (+Vin));
+
+        if(Is_Undef(Vout, UOut, UOutValid))
+        then
+            null;-- FIXME raise excpetion:
+            -- "Incorrect UOut: Vout is Undef but Vin was not or vica-versa"
+        end if;
+
+    end if;
+
+    return Vout;
+end Scaling2;
+
+
+
 
 
 
@@ -138,7 +168,7 @@ end Header_Info;
 
     for I in RawData'Range
     loop
-       Data(I) := Scaling(RawData(I));
+       Data(I) := Scaling2(RawData(I));
     end loop;
 
  end Read_Array;
@@ -163,7 +193,7 @@ end Header_Info;
     procedure RawData(E : in Tf)
     is
     begin
-            Data_Elem(Scaling(E));
+            Data_Elem(Scaling2(E));
     end RawData;
 
     procedure Read_DU is new Tf_Raw.Read_All(RawData);
@@ -206,7 +236,7 @@ end Header_Info;
 
     for I in RawVol'Range
     loop
-      Volume(I) := Scaling(RawVol(I));
+      Volume(I) := Scaling2(RawVol(I));
     end loop;
 
   end Read_Volume;

@@ -58,7 +58,23 @@ package body Linear_Impl is
 
 
 
-    -- Scaling
+ function Is_Undef_Floats(V,U: T; UValid : Boolean) return Boolean
+ is
+ begin
+     return Not (V = V);
+ end Is_Undef_Floats;
+
+ function Is_Undef_Ints(V,U: T; UValid : Boolean) return Boolean
+ is
+ begin
+     if(UValid)
+     then
+         return (V = U);
+     else
+         return False;
+     end if;
+ end Is_Undef_Ints;
+
 
 
 
