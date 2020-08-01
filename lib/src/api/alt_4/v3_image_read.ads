@@ -9,20 +9,6 @@ type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tc is digits <>;
 
-with procedure Check_InValue (Vin,UIn: in Float_64;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Float_32;   UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_64; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_32; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Integer_16; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-with procedure Check_InValue (Vin,UIn: in Unsigned_8; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean ) is <>;
-
-with procedure Check_OutValue(Vin: in Float_64;   Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin: in Float_32;   Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin: in Integer_64; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin: in Integer_32; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin: in Integer_16; Vout,UOut: in Tm) is <>;
-with procedure Check_OutValue(Vin: in Unsigned_8; Vout,UOut: in Tm) is <>;
-
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Integer_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;

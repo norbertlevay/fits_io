@@ -42,9 +42,6 @@ generic
   type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
 
-with procedure Check_InValue (Vin,UIn: in Tf; UInValid: Boolean; UOut: in Tm; Vout : in out Tm; VoutSet : in out Boolean) is <>;
-with procedure Check_OutValue(Vin: in Tf; Vout,UOut: in Tm) is <>;
-
 with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 
 with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;

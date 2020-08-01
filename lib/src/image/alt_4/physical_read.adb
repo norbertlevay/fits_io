@@ -79,25 +79,7 @@ end Header_Info;
  UOutValid : Boolean := False;
  A,B  : Tc;
 
-
- function Scaling(Vin : in Tf) return Tm
- is
-     Vout : Tm;
-     VoutSet : Boolean := False;
- begin
-
-     Check_InValue(Vin,UIn,UInValid, UOut, Vout,VoutSet);
-
-     if(not VoutSet) then Vout := +(A + B * (+Vin)); end if;
-
-     Check_OutValue(Vin,Vout,UOut);
-
-     return Vout;
- end Scaling;
-
-
-
-function Scaling2(Vin : Tf) return Tm
+function Scaling(Vin : Tf) return Tm
 is
     Vout : Tm;
 begin
@@ -125,7 +107,7 @@ begin
     end if;
 
     return Vout;
-end Scaling2;
+end Scaling;
 
 
 
@@ -168,7 +150,7 @@ end Scaling2;
 
     for I in RawData'Range
     loop
-       Data(I) := Scaling2(RawData(I));
+       Data(I) := Scaling(RawData(I));
     end loop;
 
  end Read_Array;
@@ -193,7 +175,7 @@ end Scaling2;
     procedure RawData(E : in Tf)
     is
     begin
-            Data_Elem(Scaling2(E));
+            Data_Elem(Scaling(E));
     end RawData;
 
     procedure Read_DU is new Tf_Raw.Read_All(RawData);
@@ -236,7 +218,7 @@ end Scaling2;
 
     for I in RawVol'Range
     loop
-      Volume(I) := Scaling2(RawVol(I));
+      Volume(I) := Scaling(RawVol(I));
     end loop;
 
   end Read_Volume;
