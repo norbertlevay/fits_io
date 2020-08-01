@@ -62,6 +62,8 @@ package Physical_Read is
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
+         Undef_Value : in out Tm;
+         Undef_Valid : in out Boolean;
          Cards : Optional.Card_Arr);
 
 

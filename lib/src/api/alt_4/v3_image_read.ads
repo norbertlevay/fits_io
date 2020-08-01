@@ -70,6 +70,8 @@ procedure Read_Data_Unit_By_Planes
     BITPIX : in Integer;
     I      : in Positive; -- Plane max dimension I <= NAXIS
     NAXISn : in NAXIS_Arr;
+    Undef_Value : in out Tm;
+    Undef_Valid : in out Boolean;
     Cards  : in Optional.Card_Arr);
 -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
 

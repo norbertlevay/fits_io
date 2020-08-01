@@ -88,7 +88,9 @@ procedure Read_Data_Unit_By_Planes
   BITPIX : in Integer;
   I      : in Positive;
   NAXISn : in NAXIS_Arr;
-  Cards  : in Optional.Card_Arr)
+  Undef_Value : in out Tm;
+  Undef_Valid : in out Boolean;
+ Cards  : in Optional.Card_Arr)
 is
     function PlaneLength(NAXISi : NAXIS_Arr) return Positive_Count
     is
@@ -110,7 +112,6 @@ is
 --  begin return Tc'Value(S); end To_V3Type;
   -- FIXME hm....! why this...
 
-
 begin
     TIO.Put_Line("BITPIX : " & Integer'Image(BITPIX));
     TIO.Put_Line("PlLength : " & Positive_Count'Image(PlLength));
@@ -121,12 +122,12 @@ begin
   loop
 
       case(BITPIX) is
-      when -64 => F64_Physical.Read_Array(F, Plane, Cards);
-      when -32 => F32_Physical.Read_Array(F, Plane, Cards);
-      when  64 => I64_Physical.Read_Array(F, Plane, Cards);
-      when  32 => I32_Physical.Read_Array(F, Plane, Cards);
-      when  16 => I16_Physical.Read_Array(F, Plane, Cards);
-      when   8 => U8_Physical.Read_Array(F, Plane, Cards);
+      when -64 => F64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
+      when -32 => F32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
+      when  64 => I64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
+      when  32 => I32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
+      when  16 => I16_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
+      when   8 => U8_Physical.Read_Array(F, Plane,  Undef_Value, Undef_Valid, Cards);
       when others => null; -- FIXME Error
     end case;
 

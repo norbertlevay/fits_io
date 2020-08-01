@@ -62,7 +62,9 @@ procedure minmax_V3_alt_4 is
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
-
+            UValue : Tmm;
+            UValid : Boolean := False;
+ 
 begin
 
     if(Argument_Count /= 1 ) 
@@ -82,10 +84,15 @@ begin
         declare
             Cards   : Optional.Card_Arr := 
                 Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
-        begin
+       begin
 
-            Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, Cards);
+            Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, UValue, UValid, Cards);
 
+            TIO.Put_Line("Undef_Valid            : " & Boolean'Image(UValid));
+            if(UValid)
+            then
+                TIO.Put_Line("Undef_Value            : " & Tmm'Image(UValue));
+            end if;
             TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
             TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
             TIO.Put_Line("Min                    : " & Tmm'Image(Min));

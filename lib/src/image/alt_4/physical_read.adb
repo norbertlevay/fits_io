@@ -124,8 +124,9 @@ end Scaling;
   procedure Read_Array
     (F : SIO.File_Type;
     Data  : out Tm_Arr;
+    Undef_Value : in out Tm;
+    Undef_Valid : in out Boolean;
     Cards : in Optional.Card_Arr)
--- FIXME add params: UOut in out, UOutValid in out
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
@@ -136,6 +137,9 @@ end Scaling;
       Header_Info(Cards, A,B, UInValid, UIn);
 
     -- init undef-value
+
+    UOutValid := Undef_Valid;
+    UOut      := Undef_Value;
 
     Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
     if(Do_Scaling)
