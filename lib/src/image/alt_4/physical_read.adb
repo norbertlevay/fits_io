@@ -25,6 +25,9 @@ with Raw_Funcs; use Raw_Funcs;
 with Raw;
 with Header;
 
+with Linear_Impl;
+with Value;
+
 package body Physical_Read is
 
   use SIO;
@@ -71,45 +74,6 @@ end Header_Info;
 
 
 
--- Scaling, module-Globals
-
- UIn  : Tf;-- = BLANK
- UInValid  : Boolean := False;
- UOut : Tm;-- FIXME should come from API/user in F->UI cases
- UOutValid : Boolean := False;
- A,B  : Tc;
-
-function Scaling(Vin : Tf) return Tm
-is
-    Vout : Tm;
-begin
-
-    if(Is_Undef(Vin, UIn, UInValid))
-    then
-
-        if(UOutValid)
-        then
-            Vout := UOut;
-        else
-            null; -- raise exception: "UOut needed but was not given"
-        end if;
-
-    else
-
-        Vout := +(A + B * (+Vin));
-
-        if(Is_Undef(Vout, UOut, UOutValid))
-        then
-            null;-- FIXME raise excpetion:
-            -- "Incorrect UOut: Vout is Undef but Vin was not or vica-versa"
-        end if;
-
-    end if;
-
-    return Vout;
-end Scaling;
-
-
 
 
 
@@ -131,22 +95,14 @@ end Scaling;
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    Do_Scaling : Boolean := False;
+    package T_Value is new Value(Tm,Tc,Tf);
   begin
 
-      Header_Info(Cards, A,B, UInValid, UIn);
+    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
 
     -- init undef-value
 
-    UOutValid := Undef_Valid;
-    UOut      := Undef_Value;
-
-    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
-    if(Do_Scaling)
-    then
-        Uout      := +(A + B * (+UIn));
-        UOutValid := True;
-    end if;
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -154,12 +110,8 @@ end Scaling;
 
     for I in RawData'Range
     loop
-       Data(I) := Scaling(RawData(I));
+       Data(I) := T_Value.Scaling(RawData(I));
     end loop;
-
-    Undef_Valid := UOutValid;
-    Undef_Value := UOut;
-
 
  end Read_Array;
 
@@ -178,11 +130,13 @@ end Scaling;
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
+    package T_Value is new Value(Tm,Tc,Tf);
+
     procedure RawData(E : in Tf)
     is
-        Eout : Tm := Scaling(E);
+        Eout : Tm := T_Value.Scaling(E);
     begin
-        if(Is_Undef(Eout, UOut, UOutValid))
+        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
         then
             Undef_Elem(Eout);
         else
@@ -192,31 +146,17 @@ end Scaling;
 
     procedure Read_DU is new Tf_Raw.Read_All(RawData);
 
-    Do_Scaling : Boolean;
  begin
-    Header_Info(Cards, A,B, UInValid, UIn);
+
+     Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
 
     -- init undef-value
 
-    UOutValid := Undef_Valid;
-    UOut      := Undef_Value;
-
-    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
-    if(Do_Scaling)
-    then
-        Uout      := +(A + B * (+UIn));
-        UOutValid := True;
-    end if;
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
     Read_DU(File, NAXISn);
-
-    Undef_Valid := UOutValid;
-    Undef_Value := UOut;
-
-
-
 
  end Read_All;
 
@@ -243,26 +183,14 @@ end Scaling;
     RawVol: Tf_Arr(1 .. VolLength);
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package T_Value is new Value(Tm,Tc,Tf);
 
-    -- info from Header:
-    A,B   : Tc;
-    BV    : Boolean;
-    BLANK : Tf;
-    Do_Scaling : Boolean;
   begin
-    Header_Info(Cards, A,B, BV, BLANK);
+    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
 
     -- init undef-value
 
-    UOutValid := Undef_Valid;
-    UOut      := Undef_Value;
-
-    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
-    if(Do_Scaling)
-    then
-        Uout      := +(A + B * (+UIn));
-        UOutValid := True;
-    end if;
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -270,12 +198,8 @@ end Scaling;
 
     for I in RawVol'Range
     loop
-      Volume(I) := Scaling(RawVol(I));
+      Volume(I) := T_Value.Scaling(RawVol(I));
     end loop;
-
-    Undef_Valid := UOutValid;
-    Undef_Value := UOut;
-
 
   end Read_Volume;
 

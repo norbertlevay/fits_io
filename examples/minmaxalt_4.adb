@@ -10,6 +10,7 @@ with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 
 with File;
 with Physical_Read;
+with Value;
 
 with Optional;
 with Optional.Reserved;
@@ -61,7 +62,7 @@ procedure minmaxalt_4 is
         procedure Undef_Data(E : Tm);
 
         package  T_Physical_Read is new Physical_Read(Tm,Tm_Arr,Tc, Tf);
-        procedure Read_Data_Unit  is new T_Physical_Read.Read_All(Plane_Data,Undef_Data);
+        procedure Read_Data_Unit is new T_Physical_Read.Read_All(Plane_Data,Undef_Data);
 
         procedure Put_Results;
 
