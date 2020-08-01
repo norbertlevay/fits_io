@@ -1,7 +1,7 @@
 
 with Ada.Text_IO;
 
-package body Linear_Impl is
+package body Value_Impl is
 
     package TIO renames Ada.Text_IO;
 
@@ -75,5 +75,5 @@ package body Linear_Impl is
      end if;
  end Is_Undef_Ints;
 
-end Linear_Impl;
+end Value_Impl;
 

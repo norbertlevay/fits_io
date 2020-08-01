@@ -25,7 +25,7 @@ with Raw_Funcs; use Raw_Funcs;
 with Raw;
 with Header;
 
-with Linear_Impl;
+with Value_Impl;
 with Value;
 
 package body Physical_Read is

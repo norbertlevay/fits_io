@@ -1,6 +1,6 @@
 
 
-package Linear_Impl is
+package Value_Impl is
 
 
     -- Undef values init
@@ -61,5 +61,5 @@ package Linear_Impl is
  type T is private;
  function Is_Undef_Ints(V,U: T; UValid : Boolean) return Boolean;
 
-end Linear_Impl;
+end Value_Impl;
 
