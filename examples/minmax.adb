@@ -56,7 +56,6 @@ procedure minmax is
         use type SIO.Count;
         Special_Count : SIO.Count := 0; -- Inf...
         Undef_Count   : SIO.Count := 0; -- NaN
-        Undef_CallBack_Count : SIO.Count := 0;
 
         procedure Plane_Data(E : Tm);
         procedure Undef_Data(E : Tm);
@@ -79,10 +78,7 @@ procedure minmax is
         begin
                 if(not T_Valid(E))
                 then
-                    if(E = E)
-                    then Special_Count := Special_Count + 1; -- Invalid but not NaN
-                    else Undef_Count   := Undef_Count   + 1; -- NaN
-                    end if;
+                    Special_Count := Special_Count + 1; -- Invalid but not NaN
                 else
                     if(E > Max) then Max := E; end if;
                     if(E < Min) then Min := E; end if;
@@ -92,7 +88,7 @@ procedure minmax is
         procedure Undef_Data(E : Tm)
         is
         begin
-            Undef_CallBack_Count   := Undef_CallBack_Count   + 1;
+            Undef_Count   := Undef_Count   + 1;
         end Undef_Data;
 
 
@@ -103,7 +99,6 @@ procedure minmax is
         if(UndefValid) then TIO.Put_Line("UndefValue             : " & UndefValue); end if;
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
-        TIO.Put_Line("Undef_CallBack_Count   : " & SIO.Count'Image(Undef_CallBack_Count));
         TIO.Put_Line("Min                    : " & T_Image(Min));
         TIO.Put_Line("Max                    : " & T_Image(Max));
         end Put_Results;

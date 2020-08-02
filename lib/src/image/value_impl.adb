@@ -15,6 +15,7 @@ package body Value_Impl is
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean
  is
  begin
+    TIO.Put_Line("Value_Impl::Init_UOut_Tf2F");
      UOut       := UOutNaN;
      UOutValid  := True;
      return False;
@@ -29,6 +30,7 @@ package body Value_Impl is
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean
  is
  begin
+    TIO.Put_Line("Value_Impl::Init_UOut_F2UI");
      return False;
  end Init_UOut_F2UI;
  -- User _must_ supply
@@ -44,6 +46,7 @@ package body Value_Impl is
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean
  is
  begin
+    TIO.Put_Line("Value_Impl::Init_UOut_UI2UI");
 
     if(UInValid AND NOT UOutValid)
     then

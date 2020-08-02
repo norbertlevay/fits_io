@@ -19,8 +19,13 @@ package V3_Types is
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
 
-   F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
-   F32NaN : constant Float_32 := Float_32(16#7F800001#);
+   F64Zero :Float_64 := 0.0;
+   F32Zero :Float_32 := 0.0;
+   F64NaN : Float_64 := 0.0/F64Zero;
+   F32NaN : Float_32 := 0.0/F32Zero;
+--   F64NaN : constant Float_64 := Float_64(16#7FF0000000000100#);
+--   F32NaN : constant Float_32 := Float_32(16#7F800001#);
+-- FIXME why the hexa constants were not ok ??
 
    -- complementary types (after conversion array-value -> physical-value)
 
