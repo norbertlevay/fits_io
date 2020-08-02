@@ -9,7 +9,7 @@ with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
 
 
-package V3_Pool_Linear is
+package V3_Pool_Scaling is
 
 
 -- Tf -> F
@@ -75,5 +75,5 @@ package V3_Pool_Linear is
  function Is_Undef is new Is_Undef_Ints(Unsigned_8);
 
 
-end V3_Pool_Linear;
+end V3_Pool_Scaling;
 

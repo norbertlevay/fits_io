@@ -16,7 +16,7 @@ with Optional.Reserved;
 with Header;
 
 with Pool_String_To_V3Types; use Pool_String_To_V3Types;
-with V3_Pool_Linear;         use V3_Pool_Linear;
+with V3_Pool_Scaling;         use V3_Pool_Scaling;
 
 
 with T_Ops; use T_Ops;
