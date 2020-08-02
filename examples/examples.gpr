@@ -8,7 +8,7 @@ project examples is
    for Languages use ("Ada");
    for Source_Dirs use ("."
        , "../lib/src", "../lib/src/parser", "../lib/src/file",
-       "../lib/src/header","../lib/src/image","../lib/src/api");
+       "../lib/src/header","../lib/src/image","../lib/src/v3");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("create.adb", "convert.adb",
