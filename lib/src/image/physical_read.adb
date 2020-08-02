@@ -60,14 +60,14 @@ begin
 
     if(Header.Has_Card(Cards, "BLANK   ",UStr))
     then 
-        BLANK := To_V3Type(AStr);
+        BLANK := To_V3Type(UStr);
         BV    := True;
     else
         BV    := False;
     end if;
 
     TIO.Put_Line("A B : [" & Tc'Image(A) &", " & Tc'Image(B) & "]");
-    if(BV) then TIO.Put_Line("BLANK : " & Astr); else TIO.Put_Line("BLANK not in Header"); end if;
+    if(BV) then TIO.Put_Line("BLANK : " & Ustr); else TIO.Put_Line("BLANK not in Header"); end if;
 
 end Header_Info;
 
