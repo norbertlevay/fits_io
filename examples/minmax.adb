@@ -1,5 +1,6 @@
 
 with Ada.Text_IO;
+with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
@@ -126,6 +127,18 @@ procedure minmax is
     I32UValue : Integer_32 := Integer_32'Last;
     I16UValue : Integer_16 := Integer_16'Last;
     U8UValue : Unsigned_8 := Unsigned_8'Last;
+
+
+    -- output NaN as hexadecimal
+    function F64_To_U64 is
+      new Ada.Unchecked_Conversion (Source => Float_64,
+                                    Target => Unsigned_64);
+    function F32_To_U32 is
+      new Ada.Unchecked_Conversion (Source => Float_32,
+                                    Target => Unsigned_32);
+
+    package Hexa_F64 is new Ada.Text_IO.Modular_IO(Unsigned_64);
+    package Hexa_F32 is new Ada.Text_IO.Modular_IO(Unsigned_32);
 begin
 
     if(Argument_Count /= 1 ) 
@@ -153,9 +166,13 @@ begin
                 when -64 =>
                     F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid, Cards);
                     F64.Put_Results(UValid, Float_64'Image(F64UValue));
+                    TIO.Put("Hexa Undef : "); Hexa_F64.Put(F64_To_U64(F64UValue),  9,16);
+                    TIO.New_Line;
                 when -32 =>
                     F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid, Cards);
                     F32.Put_Results(UValid, Float_32'Image(F32UValue));
+                    TIO.Put("Hexa Undef : "); Hexa_F32.Put(F32_To_U32(F32UValue),  9,16);
+                    TIO.New_Line;
                  when  64 =>
                     I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid, Cards);
                     I64.Put_Results(UValid, Integer_64'Image(I64UValue));
