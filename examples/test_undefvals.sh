@@ -1,5 +1,5 @@
 
-EXE=./bin/minmaxdevel
+EXE=./bin/minmax
 #EXE=./bin/undefvals
 
 # these are intN and have Undef vals
