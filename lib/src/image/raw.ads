@@ -41,8 +41,11 @@ package Raw is
    (F : SIO.File_Type;
    Data : in T_Arr);
 
-
-subtype T_Data_Block is T_Arr(1 .. 2880/(T'Size/8));
+ Dummy_Arr : T_Arr(1..1);
+ -- FIXME this is to avoid Warning about Division by zero at instatioation with Floats
+ -- because T'Size yields zero for Floats --> why ???!!!
+ -- Fix: 'Size on type is minimum bits needed, 'Size on variable is actual number of bits used
+subtype T_Data_Block is T_Arr(1 .. 2880/(Dummy_Arr(1)'Size/8));
 
 generic
   with procedure Data(Block : in T_Data_Block);
