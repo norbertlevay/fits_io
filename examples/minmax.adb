@@ -99,12 +99,13 @@ procedure minmax is
         procedure Put_Results(UndefValid : in Boolean; UndefValue : in String)
         is
         begin
+        TIO.Put_Line("UndefValid             : " & Boolean'Image(UndefValid));
+        if(UndefValid) then TIO.Put_Line("UndefValue             : " & UndefValue); end if;
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
         TIO.Put_Line("Undef_CallBack_Count   : " & SIO.Count'Image(Undef_CallBack_Count));
         TIO.Put_Line("Min                    : " & T_Image(Min));
         TIO.Put_Line("Max                    : " & T_Image(Max));
-        if(UndefValid) then TIO.Put_Line("UndefValue             : " & UndefValue); end if;
         end Put_Results;
 
     end T_App;
