@@ -21,7 +21,7 @@ with V3_Pool_Linear;         use V3_Pool_Linear;
 
 with T_Ops; use T_Ops;
 
-procedure minmaxalt_4 is
+procedure minmax is
 
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
@@ -183,5 +183,5 @@ begin
 
     SIO.Close(InFile);
 
-end minmaxalt_4;
+end minmax;
 

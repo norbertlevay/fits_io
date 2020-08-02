@@ -8,15 +8,11 @@ project examples is
    for Languages use ("Ada");
    for Source_Dirs use ("."
        , "../lib/src", "../lib/src/parser", "../lib/src/file",
-       "../lib/src/header","../lib/src/image","../lib/src/image/alt_1","../lib/src/image/alt_4"
-       ,"../lib/src/api"
-       ,"../lib/src/api/alt_1", "../lib/src/api/alt_4"
-       );
+       "../lib/src/header","../lib/src/image","../lib/src/api");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
    for Main use ("create.adb", "convert.adb",
-       "minmaxraw.adb", "minmaxalt_1.adb", 
-       "minmaxalt_4.adb", "minmax_v3_alt_4.adb",
+       "minmax.adb", "minmax_v3.adb",
        "list.adb", "reserved_keys.adb",
        "cutoutalt_4.adb", "undefvals.adb");
 
