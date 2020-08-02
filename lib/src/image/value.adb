@@ -2,15 +2,15 @@
 
 package body Value is
 
--- UIn  : Tf;-- = BLANK
--- UInValid  : Boolean := False;
- UOut : Tm;-- FIXME should come from API/user in F->UI cases
- UOutValid : Boolean := False;
--- A,B  : Tc;
+ LocUOut      : Tm;
+ LocUOutValid : Boolean := False;
+ -- holds the values for Scaling()
+
+
 
 
 procedure Init_Undef
-    (UInValid : in Boolean; UIn : in Tf;
+    (UInValid : in Boolean;     UIn : in Tf;
     UOutValid : in out Boolean; UOut : in out Tm)
 is
     Do_Scaling : Boolean;
@@ -18,13 +18,14 @@ begin
     Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
     if(Do_Scaling)
     then
-        Uout      := +(A + B * (+UIn));
+        UOut      := +(A + B * (+UIn));
         UOutValid := True;
     end if;
+
+    LocUOut := UOut;
+    LocUOutValid := UOutValid;
+
 end Init_Undef;
-
-
-
 
 
 
@@ -39,9 +40,9 @@ begin
     if(Is_Undef(Vin, UIn, UInValid))
     then
 
-        if(UOutValid)
+        if(LocUOutValid)
         then
-            Vout := UOut;
+            Vout := LocUOut;
         else
             null; -- raise exception: "UOut needed but was not given"
         end if;
@@ -50,7 +51,7 @@ begin
 
         Vout := +(A + B * (+Vin));
 
-        if(Is_Undef(Vout, UOut, UOutValid))
+        if(Is_Undef(Vout, LocUOut, LocUOutValid))
         then
             null;-- FIXME raise excpetion:
             -- "Incorrect UOut: Vout is Undef but Vin was not or vica-versa"
