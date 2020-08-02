@@ -89,7 +89,6 @@ procedure minmax is
         procedure Undef_Data(E : Tm)
         is
         begin
-            TIO.Put(" " & T_Image(E));
             Undef_Count   := Undef_Count   + 1;
         end Undef_Data;
 
