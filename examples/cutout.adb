@@ -38,7 +38,7 @@ with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 with V3_Pool_Scaling; use V3_Pool_Scaling;
 with V3_Image_Read;
 
-procedure cutoutalt_4
+procedure cutout
 is
  package SIO renames Ada.Streams.Stream_IO;
  package TIO renames Ada.Text_IO;
@@ -155,7 +155,7 @@ end; -- F32_Arr declare
  TIO.Put_Line("Max Pos : " & SIO.Positive_Count'Image(PosMaxI) & ", " & SIO.Positive_Count'Image(PosMaxJ));
 
 
-end cutoutalt_4;
+end cutout;
 
 
 -- NOTES:
