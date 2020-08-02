@@ -31,7 +31,7 @@ procedure minmax_V3 is
     Undef_Count   : SIO.Count := 0; -- NaN
 
     subtype Tcc is Float_64;-- do scaling in this type (Float only)
-    subtype Tmm is Float_64;-- work with data in this type
+    subtype Tmm is Float_32;-- work with data in this type
     type Tmm_Arr is array (SIO.Positive_Count range <>) of Tmm;
 
     Min : Tmm := Tmm'Last;
@@ -48,7 +48,8 @@ procedure minmax_V3 is
         for I in A'Range
         loop
             E := A(I);
-            if(not E'Valid)
+            --TIO.Put(" " & Float_32'Image(E));
+            if(not E'Valid) -- FIXME only for Tmm = Floats !
             then
                 if(E = E)
                 then Special_Count := Special_Count + 1; -- Invalid but not NaN
