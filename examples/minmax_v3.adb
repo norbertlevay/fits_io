@@ -37,6 +37,10 @@ procedure minmax_V3 is
     Min : Tmm := Tmm'Last;
     Max : Tmm := Tmm'First;
 
+    -- user does not provide Undef value
+    UValue : Tmm     := Tmm'Last;
+    UValid : Boolean := False;
+ 
     procedure Plane_Data(A : Tmm_Arr; C : SIO.Positive_Count)
     is
         E : Tmm;
@@ -62,9 +66,7 @@ procedure minmax_V3 is
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
-            UValue : Tmm;
-            UValid : Boolean := False;
- 
+
 begin
 
     if(Argument_Count /= 1 ) 

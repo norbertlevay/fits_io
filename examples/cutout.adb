@@ -48,8 +48,8 @@ is
 
 
  -- instantiate Read Volume func for Float_32 Tm   Tm_Arr    Tc     
- package F64_Image is new V3_Image_Read(Float_64, F64_Arr,Float_64);
--- package F32_Image is new V3_Image_Read(Float_32, F32_Arr,Float_32);
+-- package F64_Image is new V3_Image_Read(Float_64, F64_Arr,Float_64);
+ package F32_Image is new V3_Image_Read(Float_32, F32_Arr,Float_32);
 
  
  InFile : SIO.File_Type;
@@ -96,7 +96,7 @@ begin
  Ny := 1 + Last(2) - First(2);
 
 declare 
- VolF64 : F64_Arr( 1 .. Raw_Funcs.Volume_Length(First,Last));
+-- VolF64 : F64_Arr( 1 .. Raw_Funcs.Volume_Length(First,Last));
  Vol : F32_Arr( 1 .. Raw_Funcs.Volume_Length(First,Last));
  HDUInfo : File.HDU_Info_Type := File.Read_Header(InFile);
 begin
@@ -109,8 +109,8 @@ begin
  begin
 
  DUStart := File_Block_Index(InFile);
- F64_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, VolF64, Cards);
---F32_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, Vol, Cards);
+-- F64_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, VolF64, Cards);
+F32_Image.Read_Volume(InFile, DUStart, HDUInfo.BITPIX, HDUInfo.NAXISn, First, Last, Vol, Cards);
  -- FIXME above proc should raise exception if File::HDU is not BITPIX=-32
 
  SIO.Close(InFile);

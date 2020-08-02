@@ -64,7 +64,7 @@ procedure minmax is
         package  T_Physical_Read is new Physical_Read(Tm,Tm_Arr,Tc, Tf);
         procedure Read_Data_Unit is new T_Physical_Read.Read_All(Plane_Data,Undef_Data);
 
-        procedure Put_Results;
+        procedure Put_Results(UndefValid : in Boolean; UndefValue : in String);
 
     end T_App;
 
@@ -96,7 +96,7 @@ procedure minmax is
         end Undef_Data;
 
 
-        procedure Put_Results
+        procedure Put_Results(UndefValid : in Boolean; UndefValue : in String)
         is
         begin
         TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
@@ -104,6 +104,7 @@ procedure minmax is
         TIO.Put_Line("Undef_CallBack_Count   : " & SIO.Count'Image(Undef_CallBack_Count));
         TIO.Put_Line("Min                    : " & T_Image(Min));
         TIO.Put_Line("Max                    : " & T_Image(Max));
+        if(UndefValid) then TIO.Put_Line("UndefValue             : " & UndefValue); end if;
         end Put_Results;
 
     end T_App;
@@ -120,12 +121,15 @@ procedure minmax is
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
 
     UValid : Boolean := False;
-    F64UValue : Float_64;
-    F32UValue : Float_32;
-    I64UValue : Integer_64;
-    I32UValue : Integer_32;
-    I16UValue : Integer_16;
-    U8UValue : Unsigned_8;
+    -- user does not wish to provide these vals (if he would,
+    -- then those should be generic params and supplied separately at instantiation for each type)
+    -- here we initialize only to avoid warning
+    F64UValue : Float_64 := F64NaN;
+    F32UValue : Float_32 := F32NaN;
+    I64UValue : Integer_64 := Integer_64'Last;
+    I32UValue : Integer_32 := Integer_32'Last;
+    I16UValue : Integer_16 := Integer_16'Last;
+    U8UValue : Unsigned_8 := Unsigned_8'Last;
 begin
 
     if(Argument_Count /= 1 ) 
@@ -152,28 +156,22 @@ begin
             case(HDUInfo.BITPIX) is
                 when -64 =>
                     F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid, Cards);
-                    F64.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Float_64'Image(F64UValue)); end if;
+                    F64.Put_Results(UValid, Float_64'Image(F64UValue));
                 when -32 =>
                     F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid, Cards);
-                    F32.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Float_32'Image(F32UValue)); end if;
+                    F32.Put_Results(UValid, Float_32'Image(F32UValue));
                  when  64 =>
                     I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid, Cards);
-                    I64.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_64'Image(I64UValue)); end if;
+                    I64.Put_Results(UValid, Integer_64'Image(I64UValue));
                  when  32 =>
                     I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, I32UValue, UValid, Cards);
-                    I32.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_32'Image(I32UValue)); end if;
+                    I32.Put_Results(UValid, Integer_32'Image(I32UValue));
                  when  16 =>
                     I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, I16UValue, UValid, Cards);
-                    I16.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Integer_16'Image(I16UValue)); end if;
+                    I16.Put_Results(UValid, Integer_16'Image(I16UValue));
                  when   8 =>
                     U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, U8UValue, UValid, Cards);
-                    U8.Put_Results;
-                    if(UValid) then TIO.Put_Line("UndefValue: " & Unsigned_8'Image(U8UValue)); end if;
+                    U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
                 when others => null; -- FIXME Error
             end case;
 
