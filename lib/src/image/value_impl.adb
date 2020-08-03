@@ -10,6 +10,7 @@ package body Value_Impl is
 
 
  -- F->F  UI->F
+    -- substitute: use F.NaN (Ignore UOut/BLANK)
  function Init_UOut_Tf2F
      (UinValid : in Boolean; UIn: in Tf;
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean
@@ -25,6 +26,7 @@ package body Value_Impl is
 
 
 -- F->UI
+ -- substitute: use User supplied value
  function Init_UOut_F2UI
      (UinValid : in Boolean; UIn: in Tf; 
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean
@@ -35,12 +37,15 @@ package body Value_Impl is
  end Init_UOut_F2UI;
  -- User _must_ supply
  -- do nothing / or check if supplied by user and do Warning if not
+ -- do not raise ERROR because: 
+ -- if not supplied by user and the FITS-file data contains no Undef values, data read will be ok
  -- if UOut not valid, Read_* will raise except -> Error"UOut must be supplied ba User" otherwise return UOut if encountered Invalid input
 
 
 
 
 -- UI->UI
+ -- use User supplied value; if not given, calc by Scaling(UIn)
  function Init_UOut_UI2UI
      (UinValid : in Boolean; UIn: in Tf; 
      UOutValid: in out Boolean; UOut: in out Tm) return Boolean

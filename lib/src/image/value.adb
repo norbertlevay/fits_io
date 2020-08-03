@@ -40,6 +40,8 @@ begin
     if(Is_Undef(Vin, UIn, UInValid))
     then
 
+        -- convert Undefined value
+
         if(LocUOutValid)
         then
             Vout := LocUOut;
@@ -49,7 +51,12 @@ begin
 
     else
 
+        -- convert normal value
+
         Vout := +(A + B * (+Vin));
+
+        -- Vout may be undefined-value only-and-only-if input is undefined-value
+        -- verify output is not Undefined value (User may specify UndefOut incorrectly)
 
         if(Is_Undef(Vout, LocUOut, LocUOutValid))
         then
