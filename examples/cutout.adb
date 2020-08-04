@@ -22,7 +22,6 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Numerics.Generic_Elementary_Functions; 
 
 with V3_Types; use V3_Types;
-with V3_Arrays; use V3_Arrays;
 with Raw_Funcs;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 with File; use File;
@@ -32,8 +31,6 @@ with Optional;
 with Optional.Reserved; use Optional.Reserved;
 with Header;
 
-with Pool_String_To_V3Types; use Pool_String_To_V3Types;
-with Pool_V3Type_Convs; use Pool_V3Type_Convs;
 
 with V3_Pool_Scaling; use V3_Pool_Scaling;
 with V3_Image_Read;

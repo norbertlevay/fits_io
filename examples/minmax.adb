@@ -5,9 +5,6 @@ with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
 with V3_Types;  use V3_Types;
-with V3_Arrays; use V3_Arrays;
-with Pool_V3Type_Convs; use Pool_V3Type_Convs;
-with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 
 with File;
 with Physical_Read;
@@ -17,7 +14,6 @@ with Optional;
 with Optional.Reserved;
 with Header;
 
-with Pool_String_To_V3Types; use Pool_String_To_V3Types;
 with V3_Pool_Scaling;         use V3_Pool_Scaling;
 
 with T_Ops; use T_Ops;

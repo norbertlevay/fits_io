@@ -6,6 +6,7 @@
 
 with Interfaces;
 
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
 
 package V3_Types is
 
@@ -34,5 +35,86 @@ package V3_Types is
    type Unsigned_32 is new Interfaces.Unsigned_32;
    type Unsigned_64 is new Interfaces.Unsigned_64;
 
+--end V3_Types;
+
+-- v3_arrays.ads
+--with V3_Types; use V3_Types;
+
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+
+
+--package V3_Arrays is
+
+    -- NOTE dependent on Positive-Count -> make generic by Index_Type ??
+    type F64_Arr is array (Positive_Count range <>) of Float_64;
+    type F32_Arr is array (Positive_Count range <>) of Float_32;
+    type I64_Arr is array (Positive_Count range <>) of Integer_64;
+    type I32_Arr is array (Positive_Count range <>) of Integer_32;
+    type I16_Arr is array (Positive_Count range <>) of Integer_16;
+    type U8_Arr  is array (Positive_Count range <>) of Unsigned_8;
+
+--end V3_Arrays;
+
+   -- pool_v3type_convs.ads.adb
+
+--with V3_Types; use V3_Types;
+--package Pool_V3Type_Convs is
+
+-- cases for Tin -> Tout (no Tcalc)
+
+function "+"(R : Float_64) return Float_64;
+function "+"(R : Float_32) return Float_64;
+function "+"(R : Integer_64) return Float_64;
+function "+"(R : Integer_32) return Float_64;
+function "+"(R : Integer_16) return Float_64;
+function "+"(R : Unsigned_8) return Float_64;
+
+
+function "+"(R : Float_64) return Float_32;
+function "+"(R : Float_32) return Float_32;
+function "+"(R : Integer_64) return Float_32;
+function "+"(R : Integer_32) return Float_32;
+function "+"(R : Integer_16) return Float_32;
+function "+"(R : Unsigned_8) return Float_32;
+
+
+--function "+"(R : Float_64) return Integer_16;
+--function "+"(R : Float_32) return Integer_16;
+
+
+-- cases for Tcalc: Tin -> Tcalc -> Tout
+
+function "+"(R : Float_64) return Integer_64;
+function "+"(R : Float_64) return Integer_32;
+function "+"(R : Float_64) return Integer_16;
+function "+"(R : Float_64) return Unsigned_8;
+
+function "+"(R : Float_32) return Integer_64;
+function "+"(R : Float_32) return Integer_32;
+function "+"(R : Float_32) return Integer_16;
+function "+"(R : Float_32) return Unsigned_8;
+
+
+
+--end Pool_V3Type_Convs;
+
+
+
+
+-- pool_string_to_v3types.ads
+--with V3_Types; use V3_Types;
+--package Pool_String_To_V3Types is
+
+function To_V3Type(S : String) return Float_64;
+function To_V3Type(S : String) return Float_32;
+
+function To_V3Type(S : String) return Integer_64;
+function To_V3Type(S : String) return Integer_32;
+function To_V3Type(S : String) return Integer_16;
+function To_V3Type(S : String) return Integer_8;
+
+function To_V3Type(S : String) return Unsigned_8;
+
+--end Pool_String_To_V3Types;
 end V3_Types;
 

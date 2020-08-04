@@ -10,8 +10,6 @@ with File;
 with V3_Types; use V3_Types;-- types needed
 
 with Physical_Read;
-with Pool_String_To_V3Types; use Pool_String_To_V3Types; -- needed by Header_Info instance
-with Pool_V3Type_Convs; use  Pool_V3Type_Convs;
 
 package body V3_Image_Read is
 
