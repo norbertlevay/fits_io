@@ -14,7 +14,7 @@ project examples is
    for Main use ("create.adb", "convert.adb",
        "minmax.adb", "minmax_v3.adb",
        "list.adb", "reserved_keys.adb",
-       "cutout.adb", "undefvals.adb");
+       "cutout.adb", "undefvals.adb", "scopium");
 
    package Compiler is
       for Default_Switches ("ada") use ("-gnat12");
