@@ -200,7 +200,7 @@ procedure Write_All_Data_Unit
 is
   DULength : Positive_Count := DU_Data_Count(NAXISn);
   DULength_blks : Positive_Count := DU_Length_blks(T'Size, NAXISn);
-  PaddingFirst, PaddingLast : Positive_Count;
+  DataLast, PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME T'Size instead of BITPIX ok?
   First : NAXIS_Arr := NAXISn; -- FIXME we don't need values only size
   Block : T_Data_Block;
@@ -217,15 +217,20 @@ begin
   end loop;
 
   -- last block handle separately because needs padding
-  Data(Block);
-  PaddingFirst := DULength rem (2880/(T'Size/8));
-  PaddingLast  := 2880/(T'Size/8);-- Block end
+  DataLast := 1 + ((DULength - 1) rem (2880/(T'Size/8)));
+  Data(Block(1..DataLast));
 
-  TIO.Put_Line("PaddingFirst  : " & Positive_Count'Image(PaddingFirst));
-  TIO.Put_Line("PaddingLast   : " & Positive_Count'Image(PaddingLast));
+  if( DataLast < (2880/(T'Size/8)) )
+  then
+    PaddingFirst := DataLast + 1;
+    PaddingLast  := 2880/(T'Size/8);-- Block end
 
-  Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
-  Write_Array(File, Block);
+    TIO.Put_Line("PaddingFirst  : " & Positive_Count'Image(PaddingFirst));
+    TIO.Put_Line("PaddingLast   : " & Positive_Count'Image(PaddingLast));
+
+    Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
+    Write_Array(File, Block);
+end if;
 
 end Write_All_Data_Unit;
 
