@@ -15,8 +15,8 @@ with File.Misc; -- needs Write_Padding for Header
 --N : Positive := 1; -- number of buffer-blocks for Card-Array and Data-Array writing
 package body Image is
 
--- FIXME pull-in correct type-dependent implementation
-    function To_BITPIX return Integer is begin return T'Size; end To_BITPIX;
+-- FIXME pull-in correct type-dependent implementation - HOW has no params!! T only in body
+    function T_To_BITPIX return Integer is begin return T'Size; end T_To_BITPIX;
 
 
 -- NOTE who writes the first card ? (SIMPLE / XTENSION / <other>)
@@ -26,7 +26,7 @@ package body Image is
 -- adds padding and END card
 procedure Write_Header(F : in SIO.File_Type)
 is
-    BITPIX : Integer := To_BITPIX;
+    BITPIX : Integer := T_To_BITPIX;
     Mand   : Header.Image_Rec := (NAXISn'Length, BITPIX, NAXISn);
     MandCards : Optional.Card_Arr := Header.To_Primary_Cards(Mand);
     use Optional;-- needed operator &

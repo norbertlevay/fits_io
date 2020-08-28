@@ -37,20 +37,16 @@ is
 
  ColsCnt : constant SIO.Positive_Count := 640;
  RowsCnt : constant SIO.Positive_Count := 512;
+ NAXISn : NAXIS_Arr := (ColsCnt, RowsCnt);
 
- Im    : Image_Rec := (NAXIS => 2, BITPIX => 8, NAXISn => (ColsCnt, RowsCnt));
- MandCards : Card_Arr  := To_Primary_Cards(Im);
+ -- FIXME these vals below should be calculated from InFile or inside Image
  OptCards  : Card_Arr :=
             (
                 Create_Card("DATAMIN",  "0"),
                 Create_Card("DATAMAX","255")
             );
 
- Cards : Card_Arr := (MandCards & OptCards & ENDCard);
-
- -- FIXME below 2 packs not used, only testing instantiation
- package ScImage     is new Image(Unsigned_8, (ColsCnt, RowsCnt));
- package ScImageWopt is new Image(Unsigned_8, (ColsCnt, RowsCnt), OptCards, 4);
+ package ScImage is new Image(Unsigned_8, NAXISn, OptCards, 4);
 
 
  -- callback to generate data values
@@ -82,13 +78,11 @@ begin
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
  -- write Header
--- Card_Arr'Write(SIO.Stream(File),Cards);
--- Write_Padding(File,SIO.Index(File),HeaderPadValue);
- ScImageWopt.Write_Header(File);
+ ScImage.Write_Header(File);
 
 
  -- write Data Unit sequentially
- U8_Write_Data_Unit(File, Im.NAXISn);
+ U8_Write_Data_Unit(File, NAXISn);
 
  SIO.Close(File);
  SIO.Close(InFile);
