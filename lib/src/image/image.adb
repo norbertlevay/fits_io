@@ -34,6 +34,8 @@ is
 begin
     Optional.Card_Arr'Write(SIO.Stream(F), AllCards);
     File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
+    -- FIXME get rid of this, 
+    -- rather calc reminder to 36 and write that many (=EmptyCards*CardLength) HeaderPad-values
 end Write_Header;
 
 
