@@ -23,7 +23,7 @@
 -- B, use private and pull-in mechanism (like in read) for those parts of code 
 -- which differ by meta-type (modular, integer, float)
 
-
+with Ada.Streams.Stream_IO;
 with Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
 
@@ -38,21 +38,23 @@ with Optional;  -- Card_Arr needed
 
 
 generic
-N : Positive := 1; -- number of buffer-blocks for Card-Array and Data-Array writing
 type T is private;
 NAXISn : Mandatory.NAXIS_Arr;
-Cards  : Optional.Card_Arr; -- FIXME what if the needed Card-array is too long for memory ? Cannot be available at one shot; but like in Write_Data, in pieces (for instance by buffer on n-blocks/36-cards)
+Cards  : Optional.Card_Arr := Optional.Null_Card_Arr; -- FIXME what if the needed Card-array is too long for memory ? Cannot be available at one shot; but like in Write_Data, in pieces (for instance by buffer on n-blocks/36-cards)
+N : Positive := 1; -- number of buffer-blocks for Card-Array and Data-Array writing
 package Image is
 
+    package SIO renames Ada.Streams.Stream_IO;
+
 -- NOTE who writes the first card ? (SIMPLE / XTENSION / <other>)
-procedure Write_Header(F : in File_Type) is null;
+procedure Write_Header(F : in SIO.File_Type) is null;
 -- converts T and NAXISn to Card array
 -- writes mandatory card-array
 -- starts writing optional Cards (by buffer of n-blocks) FIXME how is the card-array provided? 
 -- adds padding and END card
 
 
-procedure Write_Data(F : in File_Type) is null;
+procedure Write_Data(F : in SIO.File_Type) is null;
 -- starts write into block after header
 -- ends with padding
 -- FIXME how is the Data-array provided ?

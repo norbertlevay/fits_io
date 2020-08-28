@@ -17,6 +17,8 @@ with Raw;                                 -- writes data unit
 
 with File.Misc;       use File.Misc; -- needs Write_Padding for Header
 
+with Image;
+
 procedure scopium
 is
 
@@ -45,6 +47,10 @@ is
             );
 
  Cards : Card_Arr := (MandCards & OptCards & ENDCard);
+
+ -- FIXME below 2 packs not used, only testing instantiation
+ package ScImage     is new Image(Unsigned_8, (ColsCnt, RowsCnt));
+ package ScImageWopt is new Image(Unsigned_8, (ColsCnt, RowsCnt), OptCards, 4);
 
 
  -- callback to generate data values
