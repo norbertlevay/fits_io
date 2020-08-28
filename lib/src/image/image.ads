@@ -47,7 +47,7 @@ package Image is
     package SIO renames Ada.Streams.Stream_IO;
 
 -- NOTE who writes the first card ? (SIMPLE / XTENSION / <other>)
-procedure Write_Header(F : in SIO.File_Type) is null;
+procedure Write_Header(F : in SIO.File_Type);
 -- converts T and NAXISn to Card array
 -- writes mandatory card-array
 -- starts writing optional Cards (by buffer of n-blocks) FIXME how is the card-array provided? 

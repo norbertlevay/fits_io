@@ -82,8 +82,10 @@ begin
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
  -- write Header
- Card_Arr'Write(SIO.Stream(File),Cards);
- Write_Padding(File,SIO.Index(File),HeaderPadValue);
+-- Card_Arr'Write(SIO.Stream(File),Cards);
+-- Write_Padding(File,SIO.Index(File),HeaderPadValue);
+ ScImageWopt.Write_Header(File);
+
 
  -- write Data Unit sequentially
  U8_Write_Data_Unit(File, Im.NAXISn);
