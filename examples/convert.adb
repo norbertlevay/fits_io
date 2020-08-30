@@ -25,7 +25,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 -- new Data interface
 with V3_Types; use V3_Types;
 with Header; -- Create_Card needed
-with Raw;
+with Raw.Data_Unit;
 
 procedure convert
 is
@@ -107,6 +107,7 @@ begin
   type I16_Arr is array (SIO.Positive_Count range <>) of Integer_16;
   package F32_Raw is new Raw(Float_32,   F32_Arr);
   package I16_Raw is new Raw(Integer_16, I16_Arr);
+  package I16_Raw_DU is new I16_Raw.Data_Unit;
 
   K : SIO.Positive_Count := 1 + 2880/4;
   InBlock  : F32_Arr(1 .. 2880/4);
@@ -142,7 +143,7 @@ begin
     end loop;
   end ConvertData;
 
-  procedure I16_Write_DU is new I16_Raw.Write_Data_Unit(0,ConvertData);
+  procedure I16_Write_DU is new I16_Raw_DU.Write_Data_Unit(0,ConvertData);
 
 
  begin

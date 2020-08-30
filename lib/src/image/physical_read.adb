@@ -22,7 +22,7 @@ with Interfaces;
 with Mandatory;     use Mandatory; -- NAXIS_Arr needed
 with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
 with Raw_Funcs; use Raw_Funcs;
-with Raw;
+with Raw.Data_Unit;
 with Header;
 
 with Value_Impl;
@@ -162,6 +162,7 @@ end Header_Info;
 
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
 
     package T_Value is new Value(Tm,Tc,Tf);
 
@@ -177,7 +178,7 @@ end Header_Info;
         end if;
     end RawData;
 
-    procedure Read_DU is new Tf_Raw.Read_Data_Unit_By_Element(RawData);
+    procedure Read_DU is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData);
 
  begin
 

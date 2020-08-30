@@ -13,7 +13,7 @@ with Keyword_Record;  use Keyword_Record; -- FPositive needed
 with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
 with Optional;        use Optional;       -- Card_Arr & ENDCard needed 
 with Header;          use Header;         -- needed to setup Header-record
-with Raw;                                 -- writes data unit
+with Raw.Data_Unit;                       -- writes data unit
 
 with File.Misc;       use File.Misc; -- needs Write_Padding for Header
 
@@ -60,7 +60,8 @@ is
  end DUFloatData;
 
  package F32_Raw is new Raw(Float_32, F32_Arr);
- procedure F32_Write_Data_Unit is new F32_Raw.Write_Data_Unit(0.0, DUFloatData);
+ package F32_Raw_DU is new F32_Raw.Data_Unit;
+ procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);
 
 
 begin

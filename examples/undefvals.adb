@@ -5,7 +5,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 
 with V3_Types; use V3_Types;
 with File;
-with Raw;
+with Raw.Data_Unit;
 
 with Optional;
 with Optional.Reserved;
@@ -28,6 +28,15 @@ procedure undefvals is
     package I16_Raw is new Raw(Integer_16, I16_Arr);
     package U8_Raw  is new Raw(Unsigned_8, U8_Arr);
 
+    package F64_Raw_DU is new F64_Raw.Data_Unit;
+    package F32_Raw_DU is new F32_Raw.Data_Unit;
+
+    package I64_Raw_DU is new I64_Raw.Data_Unit;
+    package I32_Raw_DU is new I32_Raw.Data_Unit;
+    package I16_Raw_DU is new I16_Raw.Data_Unit;
+    package U8_Raw_DU  is new U8_Raw.Data_Unit;
+
+
 
     -- BEGIN application : count undefined values
     use type SIO.Count;
@@ -48,12 +57,12 @@ procedure undefvals is
     procedure U8_Data_Elem (E : Unsigned_8) is begin if(E = U8_UndefVal)  then Undef_Count := Undef_Count + 1; end if; end U8_Data_Elem;
 
 
-    procedure F64_Read_DU is new F64_Raw.Read_Data_Unit_By_Element(F64_Data_Elem);
-    procedure F32_Read_DU is new F32_Raw.Read_Data_Unit_By_Element(F32_Data_Elem);
-    procedure I64_Read_DU is new I64_Raw.Read_Data_Unit_By_Element(I64_Data_Elem);
-    procedure I32_Read_DU is new I32_Raw.Read_Data_Unit_By_Element(I32_Data_Elem);
-    procedure I16_Read_DU is new I16_Raw.Read_Data_Unit_By_Element(I16_Data_Elem);
-    procedure U8_Read_DU  is new U8_Raw.Read_Data_Unit_By_Element (U8_Data_Elem);
+    procedure F64_Read_DU is new F64_Raw_DU.Read_Data_Unit_By_Element(F64_Data_Elem);
+    procedure F32_Read_DU is new F32_Raw_DU.Read_Data_Unit_By_Element(F32_Data_Elem);
+    procedure I64_Read_DU is new I64_Raw_DU.Read_Data_Unit_By_Element(I64_Data_Elem);
+    procedure I32_Read_DU is new I32_Raw_DU.Read_Data_Unit_By_Element(I32_Data_Elem);
+    procedure I16_Read_DU is new I16_Raw_DU.Read_Data_Unit_By_Element(I16_Data_Elem);
+    procedure U8_Read_DU  is new U8_Raw_DU.Read_Data_Unit_By_Element (U8_Data_Elem);
     -- FIXME use pool for this and generic for implement
 
     -- END application
