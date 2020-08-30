@@ -111,7 +111,7 @@ begin
   K : SIO.Positive_Count := 1 + 2880/4;
   InBlock  : F32_Arr(1 .. 2880/4);
   --OutBlock : I16_Arr(1 .. 2880/2);
-  --FIXME consider: buffer/block size define inside Raw.Write_All_Data_Unit !?
+  --FIXME consider: buffer/block size define inside Raw.Write_Data_Unit !?
 
   BSCALE : constant V3_Types.Float_32 :=   0.003891051;
   BZERO  : constant V3_Types.Float_32 := 127.501945525;
@@ -142,7 +142,7 @@ begin
     end loop;
   end ConvertData;
 
-  procedure I16_Write_DU is new I16_Raw.Write_All_Data_Unit(0,ConvertData);
+  procedure I16_Write_DU is new I16_Raw.Write_Data_Unit(0,ConvertData);
 
 
  begin

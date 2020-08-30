@@ -73,17 +73,9 @@ end Header_Info;
 
 
 
-
-
-
-
-
-
-
-
-
-
  -- Read Write procedures
+
+
 
   procedure Read_Array
     (F : SIO.File_Type;
@@ -114,53 +106,6 @@ end Header_Info;
     end loop;
 
  end Read_Array;
-
-
-
-
-
- procedure Read_All
-  (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr;
-  Undef_Value : in out Tm;
-  Undef_Valid : in out Boolean;
-  Cards : in Optional.Card_Arr)
- is
-
-    type Tf_Arr is array (Positive_Count range <>) of Tf;
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
-
-    package T_Value is new Value(Tm,Tc,Tf);
-
-    procedure RawData(E : in Tf)
-    is
-        Eout : Tm := T_Value.Scaling(E);
-    begin
-        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
-        then
-            Undef_Elem(Eout);
-        else
-            Data_Elem(Eout);
-        end if;
-    end RawData;
-
-    procedure Read_DU is new Tf_Raw.Read_All(RawData);
-
- begin
-
-     Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
-
-    -- init undef-value
-
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
-
-    -- scale array-values
-
-    Read_DU(File, NAXISn);
-
- end Read_All;
-
-
 
 
 
@@ -202,6 +147,51 @@ end Header_Info;
     end loop;
 
   end Read_Volume;
+
+
+
+
+
+ procedure Read_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  Undef_Value : in out Tm;
+  Undef_Valid : in out Boolean;
+  Cards : in Optional.Card_Arr)
+ is
+
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+
+    package T_Value is new Value(Tm,Tc,Tf);
+
+    procedure RawData(E : in Tf)
+    is
+        Eout : Tm := T_Value.Scaling(E);
+    begin
+        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
+        then
+            Undef_Elem(Eout);
+        else
+            Data_Elem(Eout);
+        end if;
+    end RawData;
+
+    procedure Read_DU is new Tf_Raw.Read_Data_Unit_By_Element(RawData);
+
+ begin
+
+     Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+
+    -- init undef-value
+
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
+
+    -- scale array-values
+
+    Read_DU(File, NAXISn);
+
+ end Read_Data_Unit;
 
 
 end Physical_Read;

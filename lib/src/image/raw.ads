@@ -41,34 +41,6 @@ package Raw is
    (F : SIO.File_Type;
    Data : in T_Arr);
 
- Dummy_Arr : T_Arr(1..1);
- -- FIXME this is to avoid Warning about Division by zero at instatioation with Floats
- -- because T'Size yields zero for Floats --> why ???!!!
- -- Fix: 'Size on type is minimum bits needed, 'Size on variable is actual number of bits used
-subtype T_Data_Block is T_Arr(1 .. 2880/(Dummy_Arr(1)'Size/8));
-
-generic
-  with procedure Data(Block : in T_Data_Block);
-procedure Read_All_Data_Unit
-  (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
-
-generic
-  with procedure Data_Elem(E : in T);
-procedure Read_All
-  (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
-
-
-
-generic
-  T_DataPadding : T;
-  with procedure Data(Block : out T_Data_Block);
-procedure Write_All_Data_Unit
-  (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
-
-
 
 
 -- random access
@@ -90,6 +62,38 @@ procedure Write_All_Data_Unit
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
     Volume     : in T_Arr);
+
+
+
+-- access all Data Unit
+
+
+ Dummy_Arr : T_Arr(1..1);
+ -- FIXME this is to avoid Warning about Division by zero at instantiation with Floats
+ -- because T'Size yields zero for Floats
+ -- Fix: 'Size on type is minimum bits needed, 'Size on variable is actual number of bits used
+subtype T_Data_Block is T_Arr(1 .. 2880/(Dummy_Arr(1)'Size/8));
+
+generic
+  with procedure Data(Block : in T_Data_Block);
+procedure Read_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+generic
+  T_DataPadding : T;
+  with procedure Data(Block : out T_Data_Block);
+procedure Write_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+generic
+  with procedure Data_Elem(E : in T);
+procedure Read_Data_Unit_By_Element
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
 
 
 end Raw;

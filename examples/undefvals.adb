@@ -48,12 +48,12 @@ procedure undefvals is
     procedure U8_Data_Elem (E : Unsigned_8) is begin if(E = U8_UndefVal)  then Undef_Count := Undef_Count + 1; end if; end U8_Data_Elem;
 
 
-    procedure F64_Read_All is new F64_Raw.Read_All(F64_Data_Elem);
-    procedure F32_Read_All is new F32_Raw.Read_All(F32_Data_Elem);
-    procedure I64_Read_All is new I64_Raw.Read_All(I64_Data_Elem);
-    procedure I32_Read_All is new I32_Raw.Read_All(I32_Data_Elem);
-    procedure I16_Read_All is new I16_Raw.Read_All(I16_Data_Elem);
-    procedure U8_Read_All  is new U8_Raw.Read_All (U8_Data_Elem);
+    procedure F64_Read_DU is new F64_Raw.Read_Data_Unit_By_Element(F64_Data_Elem);
+    procedure F32_Read_DU is new F32_Raw.Read_Data_Unit_By_Element(F32_Data_Elem);
+    procedure I64_Read_DU is new I64_Raw.Read_Data_Unit_By_Element(I64_Data_Elem);
+    procedure I32_Read_DU is new I32_Raw.Read_Data_Unit_By_Element(I32_Data_Elem);
+    procedure I16_Read_DU is new I16_Raw.Read_Data_Unit_By_Element(I16_Data_Elem);
+    procedure U8_Read_DU  is new U8_Raw.Read_Data_Unit_By_Element (U8_Data_Elem);
     -- FIXME use pool for this and generic for implement
 
     -- END application
@@ -104,12 +104,12 @@ begin
         end if;
 
         case(HDUInfo.BITPIX) is
-            when   8 => U8_Read_All (InFile,HDUInfo.NAXISn);
-            when  16 => I16_Read_All(InFile,HDUInfo.NAXISn);
-            when  32 => I32_Read_All(InFile,HDUInfo.NAXISn);
-            when  64 => I64_Read_All(InFile,HDUInfo.NAXISn);
-            when -32 => F32_Read_All(InFile,HDUInfo.NAXISn);
-            when -64 => F64_Read_All(InFile,HDUInfo.NAXISn);
+            when   8 => U8_Read_DU (InFile,HDUInfo.NAXISn);
+            when  16 => I16_Read_DU(InFile,HDUInfo.NAXISn);
+            when  32 => I32_Read_DU(InFile,HDUInfo.NAXISn);
+            when  64 => I64_Read_DU(InFile,HDUInfo.NAXISn);
+            when -32 => F32_Read_DU(InFile,HDUInfo.NAXISn);
+            when -64 => F64_Read_DU(InFile,HDUInfo.NAXISn);
             when others => null; -- FIXME error
         end case;
 

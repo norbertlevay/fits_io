@@ -59,6 +59,9 @@ package Physical_Read is
  package SIO renames Ada.Streams.Stream_IO;
 
 
+
+    -- sequential access
+
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
@@ -68,28 +71,7 @@ package Physical_Read is
 
 
 
-     generic
-     with procedure Data_Elem (Elem : in Tm);
-     with procedure Undef_Elem(Elem : in Tm);
-
-with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
-
-with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>; 
-with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>; 
-
-with function "+"(R : Tf) return Tc is <>; 
-with function "+"(R : Tc) return Tm is <>; 
-
-
-
-     procedure Read_All
-         (File : SIO.File_Type;
-         NAXISn : in NAXIS_Arr;
-         Undef_Value : in out Tm;
-         Undef_Valid : in out Boolean;
-         Cards : Optional.Card_Arr);
-
-
+    -- random access
 
      procedure Read_Volume
          (File : SIO.File_Type;
@@ -101,6 +83,30 @@ with function "+"(R : Tc) return Tm is <>;
          Undef_Value : in out Tm;
          Undef_Valid : in out Boolean;
          Cards : Optional.Card_Arr);
+
+
+
+
+    -- access all Data Unit
+
+
+     generic
+     with procedure Data_Elem (Elem : in Tm);
+     with procedure Undef_Elem(Elem : in Tm);
+     with function Init_UOut(UInValid : in Boolean;
+        UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+     with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
+     with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
+     with function "+"(R : Tf) return Tc is <>;
+     with function "+"(R : Tc) return Tm is <>; 
+     procedure Read_Data_Unit
+         (File : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         Undef_Value : in out Tm;
+         Undef_Valid : in out Boolean;
+         Cards : Optional.Card_Arr);
+
+
 
 
 end Physical_Read;

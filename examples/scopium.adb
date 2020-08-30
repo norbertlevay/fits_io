@@ -63,7 +63,7 @@ is
  end DUData;
 
  package U8_Raw is new Raw(Unsigned_8, U8_Arr);
- procedure U8_Write_Data_Unit is new U8_Raw.Write_All_Data_Unit(0, DUData);
+ procedure U8_Write_Data_Unit is new U8_Raw.Write_Data_Unit(0, DUData);
 
 
 begin
