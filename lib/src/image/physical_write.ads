@@ -47,7 +47,7 @@ package Physical_Write is
          Data : in Tm_Arr;
          Undef_Value : in out Tm;
          Undef_Valid : in out Boolean;
-         Cards : out Optional.Card_Arr);
+         Cards : in Optional.Card_Arr);
 
 
 

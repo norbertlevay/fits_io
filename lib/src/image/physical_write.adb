@@ -68,7 +68,7 @@ end Header_Info;
     Data  : in Tm_Arr;
     Undef_Value : in out Tm;
     Undef_Valid : in out Boolean;
-    Cards : out Optional.Card_Arr)
+    Cards : in Optional.Card_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
