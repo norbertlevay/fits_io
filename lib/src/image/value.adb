@@ -61,7 +61,7 @@ begin
         if(Is_Undef(Vout, LocUOut, LocUOutValid))
         then
             null;-- FIXME raise excpetion:
-            -- "Incorrect UOut: Vout is Undef but Vin was not or vica-versa"
+            -- "Incorrect UOut: Vout is Undef but Vin was not"
         end if;
 
     end if;
