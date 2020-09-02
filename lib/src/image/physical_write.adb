@@ -72,25 +72,35 @@ end Header_Info;
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package T_Value is new Value(Tm,Tc,Tf);
-  begin
+    package Tf_Raw  is new Raw(Tf,Tf_Arr);
+    package T_Value is new Value(Tout => Tf, Tc => Tc, Tin => Tm);
+    -- FIXME these should go as BLANK into Header
+    Uout_Valid : Boolean := False;
+    Uout_Value : Tf;
+ begin
+    -- FIXME needs init from somewhere
+    T_Value.A := +0.0;
+    T_Value.B := +1.0;
+    T_Value.UInValid := Undef_Valid;
+    T_Value.UIn      := Undef_Value;
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
     for I in RawData'Range
     loop
-        null;
-        -- FIXME RawData(I) := T_Value.Inverse_Scaling(Data(I));
+        RawData(I) := T_Value.Scaling(Data(I));
     end loop;
 
     Tf_Raw.Write_Array(F, RawData);
 
---    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+-- FIXME  Write Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+    -- A -> BZERO
+    -- B -> BSCALE
+    -- UOut_Value -> BLANK
 
  end Write_Array;
 
