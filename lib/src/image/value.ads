@@ -1,23 +1,25 @@
 
 
+-- implements  Vout = A + B * Vin
+
 
 generic
-type Tm is private;   -- type in memory
+type Tout is private;   -- type in memory
 type Tc is digits <>; -- type in which scaling is calculated
-type Tf is private;   -- type in fits-file
+type Tin is private;   -- type in fits-file
 
-with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tin; UOutValid : in out Boolean; UOut : in out Tout) return Boolean is <>;
 
-with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>; 
-with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>; 
+with function Is_Undef(V,U : Tin; UValid : Boolean) return Boolean is <>;
+with function Is_Undef(V,U : Tout; UValid : Boolean) return Boolean is <>;
 
-with function "+"(R : Tf) return Tc is <>; 
-with function "+"(R : Tc) return Tm is <>; 
+with function "+"(R : Tin) return Tc is <>;
+with function "+"(R : Tc) return Tout is <>;
 
 
 package Value is
 
- UIn  : Tf;-- = BLANK$
+ UIn  : Tin;-- = BLANK$
  UInValid  : Boolean := False;
 
     A,B : Tc;
@@ -26,12 +28,12 @@ package Value is
 
 
 procedure Init_Undef
-    (UInValid : in Boolean; UIn : in Tf; 
-    UOutValid : in out Boolean; UOut : in out Tm);
+    (UInValid : in Boolean; UIn : in Tin;
+    UOutValid : in out Boolean; UOut : in out Tout);
 
 
 
-function Scaling(Vin : Tf) return Tm;
+function Scaling(Vin : Tin) return Tout;
 
 
 end Value;

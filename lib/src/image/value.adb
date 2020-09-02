@@ -2,7 +2,7 @@
 
 package body Value is
 
- LocUOut      : Tm;
+ LocUOut      : Tout;
  LocUOutValid : Boolean := False;
  -- holds the values for Scaling()
 
@@ -10,8 +10,8 @@ package body Value is
 
 
 procedure Init_Undef
-    (UInValid : in Boolean;     UIn : in Tf;
-    UOutValid : in out Boolean; UOut : in out Tm)
+    (UInValid : in Boolean;     UIn : in Tin;
+    UOutValid : in out Boolean; UOut : in out Tout)
 is
     Do_Scaling : Boolean;
 begin
@@ -32,9 +32,9 @@ end Init_Undef;
 
 
 
-function Scaling(Vin : Tf) return Tm
+function Scaling(Vin : Tin) return Tout
 is
-    Vout : Tm;
+    Vout : Tout;
 begin
 
     if(Is_Undef(Vin, UIn, UInValid))
