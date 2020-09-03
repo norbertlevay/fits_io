@@ -105,7 +105,7 @@ end Header_Info;
        Data(I) := T_Value.Scaling(RawData(I));
     end loop;
 
- end Read_Array;
+  end Read_Array;
 
 
 

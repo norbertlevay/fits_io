@@ -43,11 +43,13 @@ package Physical_Write is
 
 
      procedure Write_Array
-         (F : SIO.File_Type;
-         Data : in Tm_Arr;
-         Undef_Value : in out Tm;
-         Undef_Valid : in out Boolean;
-         Cards : in Optional.Card_Arr);
+        (F : SIO.File_Type;
+        Data        : in Tm_Arr;      -- Data and its
+        Undef_Value : in Tm;          -- undef value
+        Undef_Valid : in Boolean;     -- exist or not
+        A,B        : in Tc;           -- BZERO BSCALE
+        Uout_Value : in out Tf;       -- BLANK
+        Uout_Valid : in out Boolean); -- BLANK to Header or not
 
 
 

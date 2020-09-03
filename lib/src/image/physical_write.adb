@@ -65,22 +65,21 @@ end Header_Info;
 
   procedure Write_Array
     (F : SIO.File_Type;
-    Data  : in Tm_Arr;
-    Undef_Value : in out Tm;
-    Undef_Valid : in out Boolean;
-    Cards : in Optional.Card_Arr)
-  is
+    Data        : in Tm_Arr;     -- Data and its
+    Undef_Value : in Tm;         -- undef value
+    Undef_Valid : in Boolean;    -- exist or not
+    A,B        : in Tc;          -- BZERO BSCALE
+    Uout_Value : in out Tf;      -- BLANK
+    Uout_Valid : in out Boolean) -- BLANK to Header or not
+ is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw  is new Raw(Tf,Tf_Arr);
     package T_Value is new Value(Tout => Tf, Tc => Tc, Tin => Tm);
-    -- FIXME these should go as BLANK into Header
-    Uout_Valid : Boolean := False;
-    Uout_Value : Tf;
- begin
-    -- FIXME needs init from somewhere
-    T_Value.A := +0.0;
-    T_Value.B := +1.0;
+begin
+
+    T_Value.A := A;
+    T_Value.B := B;
     T_Value.UInValid := Undef_Valid;
     T_Value.UIn      := Undef_Value;
 
@@ -96,11 +95,6 @@ end Header_Info;
     end loop;
 
     Tf_Raw.Write_Array(F, RawData);
-
--- FIXME  Write Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
-    -- A -> BZERO
-    -- B -> BSCALE
-    -- UOut_Value -> BLANK
 
  end Write_Array;
 
