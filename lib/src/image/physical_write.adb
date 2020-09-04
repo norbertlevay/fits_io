@@ -100,5 +100,52 @@ begin
 
 
 
+
+
+
+  procedure Write_Volume
+    (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    VolumeSize : in NAXIS_Arr;
+    Volume  : in Tm_Arr;
+    Undef_Value : in Tm; 
+    Undef_Valid : in Boolean;
+    A,B        : in Tc;          -- BZERO BSCALE
+    Uout_Value : in out Tf;      -- BLANK
+    Uout_Valid : in out Boolean) -- BLANK to Header or not
+  is
+    -- FIXME no good func-name Plane_Length
+    VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
+
+    type Tf_Arr is array (Positive_Count range <>) of Tf; 
+    RawVol: Tf_Arr(1 .. VolLength);
+
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package T_Value is new Value(Tf,Tc,Tm);
+  begin
+
+    T_Value.A := A;
+    T_Value.B := B;
+    T_Value.UInValid := Undef_Valid;
+    T_Value.UIn      := Undef_Value;
+
+    -- init undef-value
+
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
+
+    -- scale array-values
+
+    for I in RawVol'Range
+    loop
+      RawVol(I) := T_Value.Scaling(Volume(I));
+    end loop;
+
+    Tf_Raw.Write_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);
+
+  end Write_Volume;
+
+
 end Physical_Write;
 

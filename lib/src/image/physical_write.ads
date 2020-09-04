@@ -52,6 +52,19 @@ package Physical_Write is
         Uout_Valid : in out Boolean); -- BLANK to Header or not
 
 
+  procedure Write_Volume
+    (File : SIO.File_Type;
+    DUStart : in Positive_Count;
+    NAXISn  : in NAXIS_Arr;
+    First   : in NAXIS_Arr;
+    VolumeSize : in NAXIS_Arr;
+    Volume  : in Tm_Arr;
+    Undef_Value : in Tm; 
+    Undef_Valid : in Boolean;
+    A,B        : in Tc;           -- BZERO BSCALE
+    Uout_Value : in out Tf;       -- BLANK
+    Uout_Valid : in out Boolean); -- BLANK to Header or not
+
 
 end Physical_Write;
 
