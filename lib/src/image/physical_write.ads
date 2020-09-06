@@ -66,5 +66,32 @@ package Physical_Write is
     Uout_Valid : in out Boolean); -- BLANK to Header or not
 
 
+
+
+    -- access all Data Unit
+
+
+    generic
+     with procedure Data_Elem (Elem : out Tm);
+--     with procedure Undef_Elem(Elem : out Tm);
+     with function Init_UOut(UInValid : in Boolean; UIn : in Tm;
+          UOutValid : in out Boolean; UOut : in out Tf) return Boolean is <>; 
+     with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>; 
+     with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>; 
+     with function "+"(R : Tm) return Tc is <>; 
+     with function "+"(R : Tc) return Tf is <>; 
+     procedure Write_Data_Unit
+         (File : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         Undef_Value : in out Tm; 
+         Undef_Valid : in out Boolean;
+         A,B        : in Tc;           -- BZERO BSCALE
+         Uout_Value : in out Tf;       -- BLANK
+         Uout_Valid : in out Boolean); -- BLANK to Header or not
+--         Cards : out Optional.Card_Arr);
+
+
+
+
 end Physical_Write;
 

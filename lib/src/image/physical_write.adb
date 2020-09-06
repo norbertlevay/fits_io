@@ -146,6 +146,54 @@ begin
 
   end Write_Volume;
 
+    -- access all Data Unit
+
+
+ procedure Write_Data_Unit
+         (File : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         Undef_Value : in out Tm; 
+         Undef_Valid : in out Boolean;
+         A,B        : in Tc;          -- BZERO BSCALE
+         Uout_Value : in out Tf;      -- BLANK
+         Uout_Valid : in out Boolean) -- BLANK to Header or not
+ is
+
+    type Tf_Arr is array (Positive_Count range <>) of Tf; 
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
+
+    package T_Value is new Value(Tf,Tc,Tm);
+
+    procedure RawData(E : out Tf)
+    is  
+        Em : Tm;
+    begin
+        Data_Elem(Em);
+        E := T_Value.Scaling(Em);
+    end RawData;
+
+    procedure Write_DU is new Tf_Raw_DU.Write_Data_Unit_By_Element(RawData);
+
+ begin
+
+    T_Value.A := A;
+    T_Value.B := B;
+    T_Value.UInValid := Undef_Valid;
+    T_Value.UIn      := Undef_Value;
+
+    -- init undef-value
+
+    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
+
+    -- scale array-values
+
+    Write_DU(File, NAXISn);
+
+ end Write_Data_Unit;
+
+
+
 
 end Physical_Write;
 
