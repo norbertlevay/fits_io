@@ -12,7 +12,7 @@ with Optional;
 with Optional.Reserved;
 with Header;
 
-with V3_Pool_Scaling;         use V3_Pool_Scaling;
+with V3_Pool_Scaling;  use V3_Pool_Scaling;
 
 
 with T_Ops; use T_Ops;

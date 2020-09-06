@@ -9,19 +9,20 @@ with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
 
-with Physical_Read;
+with Physical;
+--with Physical_Read;
 
 package body V3_Image_Read is
 
 package TIO renames Ada.Text_IO;
 
-  Package F64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
-  Package F32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
+  Package F64_Physical is new Physical(Tm, Tm_Arr, Tc, Float_64);
+  Package F32_Physical is new Physical(Tm, Tm_Arr, Tc, Float_32);
 
-  Package I64_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
-  Package I32_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
-  Package I16_Physical is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
-  Package U8_Physical  is new Physical_Read(Tm, Tm_Arr, Tc, Unsigned_8);
+  Package I64_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_64);
+  Package I32_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_32);
+  Package I16_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_16);
+  Package U8_Physical  is new Physical(Tm, Tm_Arr, Tc, Unsigned_8);
 
 
 
@@ -35,31 +36,22 @@ procedure Read_Volume
   Volume : out Tm_Arr;
   Cards : in Optional.Card_Arr)
 is
-
-    package F64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Float_64);
-    package F32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Float_32);
-    package I64_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_64);
-    package I32_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_32);
-    package I16_Physical_Read is new Physical_Read(Tm, Tm_Arr, Tc, Integer_16);
-    package U8_Physical_Read  is new Physical_Read(Tm, Tm_Arr ,Tc, Unsigned_8);
-
     UValid : Boolean := False;
     UValue : Tm;
-
 begin
   TIO.Put_Line("DBG: V3_Image_Read::Read_Volume");
 
   -- ? File.Set_File_Block_Index(F, DUStart);
 
-    case(BITPIX) is
-      when   8 => U8_Physical_Read.Read_Volume (F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when  16 => I16_Physical_Read.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when  32 => I32_Physical_Read.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when  64 => I64_Physical_Read.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when -32 => F32_Physical_Read.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when -64 => F64_Physical_Read.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
-      when others => null; -- FIXME Error
-    end case;
+  case(BITPIX) is
+  when  8 =>U8_Physical.Read_Volume (F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when 16 =>I16_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when 32 =>I32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when 64 =>I64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when -32=>F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when -64=>F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, UValue, UValid, Cards);
+  when others => null; -- FIXME Error
+  end case;
 
 end Read_Volume;
 

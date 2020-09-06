@@ -8,13 +8,21 @@ generic
 type Tm is private;
 type Tm_Arr is array (Positive_Count range <>) of Tm;
 type Tc is digits <>;
-
+-- for Read direction
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Integer_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Integer_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Integer_16; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Unsigned_8; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+-- for Write direction
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Float_64) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Float_32) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Integer_64) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Integer_32) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Integer_16) return Boolean is <>;
+with function Init_UOut(UInValid : in Boolean; UIn : in Tm; UOutValid : in out Boolean; UOut : in out Unsigned_8) return Boolean is <>;
+
 
 
 with function Is_Undef(V,U : Float_64; UValid : Boolean) return Boolean is <>;
@@ -26,7 +34,7 @@ with function Is_Undef(V,U : Unsigned_8; UValid : Boolean) return Boolean is <>;
 with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
 
 
-
+-- for Read direction
 with function "+"(R : Float_64) return Tc is <>;
 with function "+"(R : Float_32) return Tc is <>;
 with function "+"(R : Integer_64) return Tc is <>;
@@ -35,6 +43,15 @@ with function "+"(R : Integer_16) return Tc is <>;
 with function "+"(R : Unsigned_8) return Tc is <>;
 
 with function "+"(R : Tc) return Tm is <>;
+
+-- for Write direction
+with function "+"(R : Tm) return Tc is <>;
+with function "+"(R : Tc) return Float_64 is <>;
+with function "+"(R : Tc) return Float_32 is <>;
+with function "+"(R : Tc) return Integer_64 is <>;
+with function "+"(R : Tc) return Integer_32 is <>;
+with function "+"(R : Tc) return Integer_16 is <>;
+with function "+"(R : Tc) return Unsigned_8 is <>;
 
 with function To_V3Type(S : String) return Tm is <>;
 --with function To_V3Type(S : String) return Tc is <>;

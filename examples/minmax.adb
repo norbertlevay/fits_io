@@ -7,7 +7,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with V3_Types;  use V3_Types;
 
 with File;
-with Physical_Read;
+with Physical.Data_Unit;
 with Value;
 
 with Optional;
@@ -32,7 +32,11 @@ procedure minmax is
 
     with function To_V3Type(Arg : String) return Tf is <>;
 
-    with function Init_UOut(UInValid : in Boolean; UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+    with function Init_UOut(UInValid : in Boolean; UIn : in Tf;
+            UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+    with function Init_UOut(UInValid : in Boolean; UIn : in Tm;
+            UOutValid : in out Boolean; UOut : in out Tf) return Boolean is <>;
+
 
     with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
     with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
@@ -40,6 +44,9 @@ procedure minmax is
 
     with function "+"(R : Tf) return Tc is <>;
     with function "+"(R : Tc) return Tm is <>;
+    with function "+"(R : Tm) return Tc is <>;
+    with function "+"(R : Tc) return Tf is <>;
+
 
     with function T_First return Tm is <>;
     with function T_Last  return Tm is <>;
@@ -57,8 +64,9 @@ procedure minmax is
         procedure Plane_Data(E : Tm);
         procedure Undef_Data(E : Tm);
 
-        package  T_Physical_Read is new Physical_Read(Tm,Tm_Arr,Tc, Tf);
-        procedure Read_Data_Unit is new T_Physical_Read.Read_Data_Unit(Plane_Data,Undef_Data);
+        package  T_Physical is new Physical(Tm,Tm_Arr,Tc, Tf);
+        package  T_Physical_DU is new T_Physical.Data_Unit;
+        procedure Read_Data_Unit is new T_Physical_DU.Read_Data_Unit(Plane_Data,Undef_Data);
 
         procedure Put_Results(UndefValid : in Boolean; UndefValue : in String);
 
