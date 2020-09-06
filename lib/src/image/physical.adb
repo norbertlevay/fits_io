@@ -82,7 +82,10 @@ end Header_Info;
     Data  : out Tm_Arr;
     Undef_Value : in out Tm;
     Undef_Valid : in out Boolean;
-    Cards : in Optional.Card_Arr)
+    A,B : in Tc;
+    UIn_Value : in Tf;
+    UIn_Valid : in Boolean)
+--    Cards : in Optional.Card_Arr)
   is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
@@ -90,7 +93,12 @@ end Header_Info;
     package T_Value is new Value(Tm,Tc,Tf);
   begin
 
-    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+--    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+    T_Value.A := A;
+    T_Value.B := B;
+    T_Value.UInValid := UIn_Valid; 
+    T_Value.UIn      := UIn_Value;
+
 
     -- init undef-value
 

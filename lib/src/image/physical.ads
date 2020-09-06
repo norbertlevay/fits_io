@@ -63,6 +63,9 @@ package Physical is
  package SIO renames Ada.Streams.Stream_IO;
 
 
+ procedure Header_Info
+     (Cards : in Optional.Card_Arr;
+     A,B : out Tc; BV : out Boolean; BLANK : out Tf);
 
     -- sequential access
 
@@ -71,7 +74,10 @@ package Physical is
          Data : out Tm_Arr;
          Undef_Value : in out Tm;
          Undef_Valid : in out Boolean;
-         Cards : Optional.Card_Arr);
+         A,B : in Tc; 
+         UIn_Value : in Tf; 
+         UIn_Valid : in Boolean);
+--         Cards : Optional.Card_Arr);
 
 
      procedure Write_Array

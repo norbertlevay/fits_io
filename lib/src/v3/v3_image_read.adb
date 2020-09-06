@@ -82,7 +82,7 @@ procedure Read_Data_Unit_By_Planes
   NAXISn : in NAXIS_Arr;
   Undef_Value : in out Tm;
   Undef_Valid : in out Boolean;
- Cards  : in Optional.Card_Arr)
+  Cards  : in Optional.Card_Arr)
 is
     function PlaneLength(NAXISi : NAXIS_Arr) return Positive_Count
     is
@@ -103,7 +103,9 @@ is
 --  function To_V3Type(S : String) return Tc is
 --  begin return Tc'Value(S); end To_V3Type;
   -- FIXME hm....! why this...
-
+  A : Tc := 0.0;
+  B : Tc := 1.0;
+  UIn_Valid : Boolean := False;
 begin
     TIO.Put_Line("BITPIX : " & Integer'Image(BITPIX));
     TIO.Put_Line("PlLength : " & Positive_Count'Image(PlLength));
@@ -114,12 +116,52 @@ begin
   loop
 
       case(BITPIX) is
-      when -64 => F64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
-      when -32 => F32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
-      when  64 => I64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
-      when  32 => I32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
-      when  16 => I16_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, Cards);
-      when   8 => U8_Physical.Read_Array(F, Plane,  Undef_Value, Undef_Valid, Cards);
+      when -64 =>
+          declare
+              UIn_Value : Float_64;
+          begin
+            F64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            F64_Physical.Read_Array(F, Plane, Undef_Value,Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
+
+      when -32 =>
+          declare
+              UIn_Value : Float_32;
+          begin
+            F32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            F32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
+
+      when  64 =>
+          declare
+              UIn_Value : Integer_64;
+          begin
+            I64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
+
+      when  32 =>
+          declare
+              UIn_Value : Integer_32;
+          begin
+            I32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
+
+      when  16 =>
+          declare
+              UIn_Value : Integer_16;
+          begin
+            I16_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I16_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
+      when   8 =>
+          declare
+              UIn_Value : Unsigned_8;
+          begin
+            U8_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            U8_Physical.Read_Array(F, Plane,  Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+          end;
       when others => null; -- FIXME Error
     end case;
 
