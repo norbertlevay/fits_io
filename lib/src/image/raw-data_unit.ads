@@ -60,5 +60,13 @@ procedure Read_Data_Unit_By_Element
   NAXISn : in NAXIS_Arr);
 
 
+generic
+  with procedure Data_Elem(E : out T);
+procedure Write_Data_Unit_By_Element
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr);
+
+
+
 end Raw.Data_Unit;
 

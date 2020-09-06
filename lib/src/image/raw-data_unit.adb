@@ -146,5 +146,29 @@ end Read_Data_Unit_By_Element;
 
 
 
+procedure Write_Data_Unit_By_Element
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr)
+is
+  DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
+  -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
+  First : NAXIS_Arr := NAXISn;
+  Block : T_Data_Block;
+begin
+
+  for I in 1 .. DULength_blks
+  loop
+    for I in Block'Range
+    loop
+        Data_Elem(Block(I));
+    end loop;
+    Write_Array(File, Block);
+  end loop;
+
+end Write_Data_Unit_By_Element;
+
+
+
+
 end Raw.Data_Unit;
 
