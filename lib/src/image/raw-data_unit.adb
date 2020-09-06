@@ -131,8 +131,8 @@ is
   First : NAXIS_Arr := NAXISn;
   Block : T_Data_Block;
 begin
-
-  for I in 1 .. DULength_blks
+-- FIXME the same cycles raised Exception in Write: running over in length by 1
+  for K in 1 .. DULength_blks
   loop
     Read_Array(File, Block);
     for I in Block'Range
@@ -151,19 +151,27 @@ procedure Write_Data_Unit_By_Element
   NAXISn : in NAXIS_Arr)
 is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
+  DULength : Positive_Count := DU_Data_Count(NAXISn);
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
   First : NAXIS_Arr := NAXISn;
   Block : T_Data_Block;
+    Elem : T_Arr(1..1);
 begin
+-- FIMXE padding ??
+--  for K in 1 .. DULength_blks
+--  loop
+--    for I in Block'Range
+--    loop
+--        Data_Elem(Block(I));
+--    end loop;
+--    Write_Array(File, Block);
+--  end loop;
 
-  for I in 1 .. DULength_blks
-  loop
-    for I in Block'Range
+    for I in 1 .. DULength
     loop
-        Data_Elem(Block(I));
+        Data_Elem(Elem(1));
+        Write_Array(File,Elem);
     end loop;
-    Write_Array(File, Block);
-  end loop;
 
 end Write_Data_Unit_By_Element;
 
