@@ -34,6 +34,7 @@ package Physical.Data_Unit is
 
 
     generic
+     Tf_DataPadding : Tf;
      with procedure Data_Elem (Elem : out Tm);
      with function Init_UOut(UInValid : in Boolean; UIn : in Tm; 
           UOutValid : in out Boolean; UOut : in out Tf) return Boolean is <>; 

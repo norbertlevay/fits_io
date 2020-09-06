@@ -61,6 +61,7 @@ procedure Read_Data_Unit_By_Element
 
 
 generic
+  T_DataPadding : T;
   with procedure Data_Elem(E : out T);
 procedure Write_Data_Unit_By_Element
   (File : SIO.File_Type;

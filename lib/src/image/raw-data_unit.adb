@@ -152,26 +152,57 @@ procedure Write_Data_Unit_By_Element
 is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
   DULength : Positive_Count := DU_Data_Count(NAXISn);
+  DataLast, PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
   First : NAXIS_Arr := NAXISn;
   Block : T_Data_Block;
-    Elem : T_Arr(1..1);
+--    Elem : T_Arr(1..1);
 begin
--- FIMXE padding ??
---  for K in 1 .. DULength_blks
---  loop
---    for I in Block'Range
---    loop
---        Data_Elem(Block(I));
---    end loop;
---    Write_Array(File, Block);
---  end loop;
 
-    for I in 1 .. DULength
+  TIO.Put_Line("T'Size        : " & Positive_Count'Image(T'Size));
+  TIO.Put_Line("DULength      : " & Positive_Count'Image(DULength));
+  TIO.Put_Line("DULength_blks : " & Positive_Count'Image(DULength_blks));
+
+
+  for K in 1 .. (DULength_blks-1)
+  loop
+    for I in Block'Range
     loop
-        Data_Elem(Elem(1));
-        Write_Array(File,Elem);
+        Data_Elem(Block(I));
     end loop;
+    Write_Array(File, Block);
+  end loop;
+
+  -- last block handle separately because needs padding:
+  -- write only reminder of data-length and then write padding
+
+  DataLast := 1 + ((DULength - 1) rem (2880/(T'Size/8)));
+  for I in 1 .. DataLast
+  loop
+     Data_Elem(Block(I));
+  end loop;
+
+  if( DataLast < (2880/(T'Size/8)) )
+  then
+    PaddingFirst := DataLast + 1;
+    PaddingLast  := 2880/(T'Size/8);-- Block end
+
+    TIO.Put_Line("PaddingFirst  : " & Positive_Count'Image(PaddingFirst));
+    TIO.Put_Line("PaddingLast   : " & Positive_Count'Image(PaddingLast));
+
+    Block(PaddingFirst .. PaddingLast) := (others => T_DataPadding);
+    Write_Array(File, Block);
+end if;
+
+
+
+
+-- below works; but better internally write by Blocks as above
+--    for I in 1 .. DULength
+--    loop
+--        Data_Elem(Elem(1));
+--        Write_Array(File,Elem);
+--    end loop;
 
 end Write_Data_Unit_By_Element;
 

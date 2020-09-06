@@ -131,14 +131,14 @@ end Header_Info;
     package T_Value is new Value(Tf,Tc,Tm);
 
     procedure RawData(E : out Tf) 
-    is  
+    is
         Em : Tm; 
     begin
         Data_Elem(Em);
         E := T_Value.Scaling(Em);
     end RawData;
 
-    procedure Write_DU is new Tf_Raw_DU.Write_Data_Unit_By_Element(RawData);
+    procedure Write_DU is new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding,RawData);
 
  begin
 
