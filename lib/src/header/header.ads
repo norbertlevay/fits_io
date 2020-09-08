@@ -41,6 +41,10 @@ function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr;
 
 -- constructing Header
 
+-- FIXME naming "Open" not correct: it should be Open(F, HDUNum,...) and
+-- so it should include positionning into begining of the HDU.
+-- These Open below only write the 1st card to whatever position the
+-- File_Index points to -> better name would be: Write_First_Card(F)
 procedure Open_Primary   (F : in SIO.File_Type);
 procedure Open_Extension (F : in SIO.File_Type; Ext_Name : in String);
 -- writes first card
