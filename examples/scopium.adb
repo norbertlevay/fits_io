@@ -48,7 +48,7 @@ is
                 Create_Card("DATAMAX","255")
             );
 
- package ScImage is new Image(Unsigned_8, NAXISn, OptCards, 4);
+ package ScImage is new Image(Unsigned_8, NAXISn, OptCards);
 
 
  -- callback to generate data values
@@ -78,7 +78,6 @@ is
  begin
      Unsigned_8'Read(SIO.Stream(InFile),Data);
      ElemCnt := ElemCnt + 1;
---     TIO.Put(" " & SIO.Positive_Count'Image(ElemCnt));
  end DUElem;
 
 
@@ -95,18 +94,16 @@ begin
  Put_Line("Usage  " & Command_Name );
  Put_Line("Writing " & FileName & " ... ");
 
- SIO.Open(InFile, SIO.In_File, InFileName);
+ SIO.Open (InFile, SIO.In_File, InFileName);
  SIO.Create (File, SIO.Out_File, FileName);
  -- FIXME check behaviour AdaRM: overwrites if file already exists ?
  -- FIXME if AdaRM says SIO.Create guarantees File Index
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- -- write Header
- ScImage.Write_Header(File);
+ Header.Open_Primary(File);
+ Header.Write_Cards(File, ScImage.To_Cards);
+ Header.Close(File);
 
-
- -- write Data Unit sequentially
--- U8_Write_Data_Unit(File, NAXISn);
  U8_Write_Data_Unit_Phys(File, NAXISn,U8Dummy1,U8Dummy1_Valid,0.0,1.0,U8Dummy2,U8Dummy2_Valid);
 
  SIO.Close(File);

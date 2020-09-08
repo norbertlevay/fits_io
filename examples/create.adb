@@ -3,6 +3,12 @@
 --
 -- "small" meaning data (and header) fit into memory (heap).
 
+
+-- FIXME SIO.Create(): check behaviour AdaRM: overwrites if file already exists ?
+-- FIXME if AdaRM says SIO.Create guarantees File Index
+-- to be 1 after Create ? Otherwise call Set_Index(File,1)
+
+
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
@@ -16,6 +22,8 @@ with Header;          use Header;         -- needed to setup Header-record
 with Raw.Data_Unit;                       -- writes data unit
 
 with File.Misc;       use File.Misc; -- needs Write_Padding for Header
+
+with Image;
 
 procedure create
 is
@@ -31,16 +39,15 @@ is
 
  RowsCnt : constant SIO.Positive_Count := 500;
  ColsCnt : constant SIO.Positive_Count := 500;
+ NAXISn  : NAXIS_Arr := (ColsCnt, RowsCnt);
 
- Im    : Image_Rec := (NAXIS => 2, BITPIX => -32, NAXISn => (RowsCnt, ColsCnt));
- MandCards : Card_Arr  := To_Primary_Cards(Im);
  OptCards  : Card_Arr :=
             (
                 Create_Card("DATAMIN",  "0"),
                 Create_Card("DATAMAX","255")
             );
 
- Cards : Card_Arr := (MandCards & OptCards & ENDCard);
+ package Im is new Image(Float_32, NAXISn, OptCards);
 
 
  -- callback to generate data values
@@ -63,36 +70,27 @@ is
  package F32_Raw_DU is new F32_Raw.Data_Unit;
  procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);
 
-
 begin
 
  Put_Line("Usage  " & Command_Name );
  Put_Line("Writing " & FileName & " ... ");
 
  SIO.Create (File, SIO.Out_File, FileName);
- -- FIXME check behaviour AdaRM: overwrites if file already exists ?
- -- FIXME if AdaRM says SIO.Create guarantees File Index
- -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- -- write Header
- Card_Arr'Write(SIO.Stream(File),Cards);
- Write_Padding(File,SIO.Index(File),HeaderPadValue);
+ Header.Open_Primary(File);
+ Header.Write_Cards(File, Im.To_Cards);
+ Header.Close(File);
 
- -- write Data Unit sequentially
- F32_Write_Data_Unit(File, Im.NAXISn);
+ F32_Write_Data_Unit(File, NAXISn); -- FIXME should be Im.NAXISn; how to do it ?
 
  SIO.Close(File);
 
  exception
-
   when Except_ID : others =>
      declare
       Error : Ada.Text_IO.File_Type := Standard_Error;
      begin
-      New_Line(Error);
-      Put_Line(Error, "Exception_Information: ");
       Put_Line(Error, Exception_Information( Except_ID ) );
-      New_Line(Error);
      end;
 end create;
 

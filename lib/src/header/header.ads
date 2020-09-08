@@ -31,20 +31,25 @@ package Header is
     function Has_Card(Cards : Card_Arr; Key : String; Value : out String) return Boolean;
 
 
-    -- from earlier image/image.ads
-
-type Image_Rec(NAXIS : Natural) is
-    record
-        BITPIX : Integer;
-        NAXISn : NAXIS_Arr(1 .. NAXIS);
-    end record;
-
-function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr;
-
-function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr;
+function To_Value_String( V : in Integer) return String;
 
 
 function Create_Card(Key : in String; Value : in String) return String_80;
+function Create_Mandatory_Card(Key : in String; Value : in String) return String_80;
+function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr;
+
+
+-- constructing Header
+
+procedure Open_Primary   (F : in SIO.File_Type);
+procedure Open_Extension (F : in SIO.File_Type; Ext_Name : in String);
+-- writes first card
+
+procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr);
+-- adds cards after last written; call several times until header completed
+
+procedure Close(F : in SIO.File_Type);
+-- writes last END-card and padding
 
 
 end Header;

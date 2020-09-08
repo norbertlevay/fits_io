@@ -12,6 +12,7 @@ with Ada.Unchecked_Deallocation;
 with V3_Types;   use V3_Types; -- Float_32 needed
 with Mandatory;
 with File; use File;
+with File.Misc; -- needs Write_Padding for Header
 with File_Funcs;
 with Keyword_Record;  use Keyword_Record;
 
@@ -236,46 +237,47 @@ begin
 end Create_NAXIS_Card_Arr;
 
 
-function To_Cards( Im : in Image_Rec ) return Card_Arr
+
+
+-- new: HDU def:
+
+
+
+-- writes first card
+procedure Open_Primary   (F : in SIO.File_Type)
 is
-    Cards : Card_Arr(1 .. (2 + Im.NAXISn'Length));
+    Card : String_80 := Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
 begin
-    Cards(1) := Create_Mandatory_Card("BITPIX",  To_Value_String(Im.BITPIX));
-    Cards(2) := Create_Mandatory_Card("NAXIS",   To_Value_String(Im.NAXIS));
-    Cards(3 .. (3 + Im.NAXISn'Length) - 1) := Create_NAXIS_Card_Arr(Im.NAXISn);
-    return Cards;
-end To_Cards;
+    String_80'Write(SIO.Stream(F), Card);
+end Open_Primary;
 
 
--- FIXME consider: Create_First_Card be in separate array and written separately,
--- similar to writing END-card at 'closing' _independently_ of what (IMAGE TABLE etc)
--- is being written into it: Primary is tied 
--- to File_Block_Index=1 and Extension File_Block_Index/=1
--- FIXME later consider make this Write-attrib : Image_Rec'Write
 
-function To_Primary_Cards( Im : in Image_Rec ) return Card_Arr
+-- writes first card
+-- ExtName := "'IMAGE   '"
+procedure Open_Extension (F : in SIO.File_Type; Ext_Name : in String)
 is
-    ImCardsCnt : Positive := 2 + Im.NAXISn'Length;
-    Cards : Card_Arr(1 .. (1 + ImCardsCnt));
+    Card : String_80 := Create_Mandatory_Card("XTENSION",  Ext_Name);
 begin
-    Cards(1) := Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
-    Cards(2 .. (1 + ImCardsCnt)) := To_Cards(Im);
-    return Cards;
-end To_Primary_Cards;
+    String_80'Write(SIO.Stream(F), Card);
+end Open_Extension;
 
-
-function To_Extension_Cards( Im : in Image_Rec ) return Card_Arr
+-- adds cards after last written; call several times until header completed$
+procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr)
 is
-    ImCardsCnt : Positive := 2 + Im.NAXISn'Length;
-    Cards  : Card_Arr(1 .. (1 + ImCardsCnt + 2 + 1));
-    ImLast : Positive := ImCardsCnt;
 begin
-    Cards(1) := Create_Mandatory_Card("XTENSION",  "'IMAGE   '");
-    Cards(2 .. ImLast) := To_Cards(Im);
-    Cards(ImLast+1) := Create_Mandatory_Card("PCOUNT", To_Value_String(SIO.Count(0)));
-    Cards(ImLast+2) := Create_Mandatory_Card("GCOUNT", To_Value_String(SIO.Count(1)));
-    return Cards;
-end To_Extension_Cards;
+   Optional.Card_Arr'Write(SIO.Stream(F), Cards);
+end Write_Cards;
+
+
+
+-- writes last END-card and padding
+procedure Close(F : in SIO.File_Type)
+is
+begin
+    String_80'Write(SIO.Stream(F), Keyword_Record.ENDCard);
+    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
+end Close;
 
 
 
