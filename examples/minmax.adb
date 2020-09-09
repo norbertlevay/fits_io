@@ -14,7 +14,6 @@ with Header;            -- Header.Read_Optional needed
 -- we instantiate here TT_App which need
 -- these type-dependent implementations:
 with V3_Pool_Scaling;   use V3_Pool_Scaling;
-with T_Ops;             use T_Ops;
 
 with TT_App;
 with TT_App.Minmax;
