@@ -100,7 +100,7 @@ begin
  -- FIXME if AdaRM says SIO.Create guarantees File Index
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- Header.Open_Primary(File);
+ Header.Write_Card_SIMPLE(File, True);
  Header.Write_Cards(File, ScImage.To_Cards);
  Header.Close(File);
 

@@ -77,7 +77,7 @@ begin
 
  SIO.Create (File, SIO.Out_File, FileName);
 
- Header.Open_Primary(File);
+ Header.Write_Card_SIMPLE(File, True);
  Header.Write_Cards(File, Im.To_Cards);
  Header.Close(File);
 

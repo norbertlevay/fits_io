@@ -244,23 +244,21 @@ end Create_NAXIS_Card_Arr;
 
 
 -- writes first card
-procedure Open_Primary   (F : in SIO.File_Type)
+procedure Write_Card_SIMPLE(F : in SIO.File_Type; Value : in Boolean)
 is
-    Card : String_80 := Create_Mandatory_Card("SIMPLE",  To_Value_String(True));
+    Card : String_80 := Create_Mandatory_Card("SIMPLE",  To_Value_String(Value));
 begin
     String_80'Write(SIO.Stream(F), Card);
-end Open_Primary;
-
-
+end Write_Card_SIMPLE;
 
 -- writes first card
 -- ExtName := "'IMAGE   '"
-procedure Open_Extension (F : in SIO.File_Type; Ext_Name : in String)
+procedure Write_Card_XTENSION (F : in SIO.File_Type; Ext_Name : in String)
 is
     Card : String_80 := Create_Mandatory_Card("XTENSION",  Ext_Name);
 begin
     String_80'Write(SIO.Stream(F), Card);
-end Open_Extension;
+end Write_Card_XTENSION;
 
 -- adds cards after last written; call several times until header completed$
 procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr)
