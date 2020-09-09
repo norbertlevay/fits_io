@@ -19,7 +19,7 @@ with function "+"(R : Tin) return Tc   is <>;
 with function "+"(R : Tc ) return Tout is <>;
 
 
-package Value is
+package Scaling is
 
  UIn      : Tin;
  UInValid : Boolean := False;
@@ -33,7 +33,7 @@ procedure Init_Undef
     UOutValid : in out Boolean; UOut : in out Tout);
 
 
-function Scaling(Vin : Tin) return Tout;
+function Linear(Vin : Tin) return Tout;
 
 
-end Value;
+end Scaling;

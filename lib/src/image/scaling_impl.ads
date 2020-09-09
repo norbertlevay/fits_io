@@ -1,6 +1,6 @@
 
 
-package Value_Impl is
+package Scaling_Impl is
 
 
     -- Undef values init
@@ -61,5 +61,5 @@ package Value_Impl is
  type T is private;
  function Is_Undef_Ints(V,U: T; UValid : Boolean) return Boolean;
 
-end Value_Impl;
+end Scaling_Impl;
 

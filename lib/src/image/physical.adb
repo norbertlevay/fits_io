@@ -25,8 +25,7 @@ with Raw_Funcs; use Raw_Funcs;
 with Raw.Data_Unit;
 with Header;
 
-with Value_Impl;
-with Value;
+with Scaling;
 
 package body Physical is
 
@@ -90,19 +89,19 @@ end Header_Info;
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package T_Value is new Value(Tm,Tc,Tf);
+    package TT_Scaling is new Scaling(Tm,Tc,Tf);
   begin
 
---    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
-    T_Value.A := A;
-    T_Value.B := B;
-    T_Value.UInValid := UIn_Valid; 
-    T_Value.UIn      := UIn_Value;
+--    Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
+    TT_Scaling.A := A;
+    TT_Scaling.B := B;
+    TT_Scaling.UInValid := UIn_Valid; 
+    TT_Scaling.UIn      := UIn_Value;
 
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -110,7 +109,7 @@ end Header_Info;
 
     for I in RawData'Range
     loop
-       Data(I) := T_Value.Scaling(RawData(I));
+       Data(I) := TT_Scaling.Linear(RawData(I));
     end loop;
 
   end Read_Array;
@@ -129,23 +128,23 @@ end Header_Info;
     type Tf_Arr is array (Positive_Count range <>) of Tf; 
     RawData : Tf_Arr(Data'First .. Data'Last);
     package Tf_Raw  is new Raw(Tf,Tf_Arr);
-    package T_Value is new Value(Tout => Tf, Tc => Tc, Tin => Tm);
+    package TT_Scaling is new Scaling(Tout => Tf, Tc => Tc, Tin => Tm);
 begin
 
-    T_Value.A := A;
-    T_Value.B := B;
-    T_Value.UInValid := Undef_Valid;
-    T_Value.UIn      := Undef_Value;
+    TT_Scaling.A := A;
+    TT_Scaling.B := B;
+    TT_Scaling.UInValid := Undef_Valid;
+    TT_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
     for I in RawData'Range
     loop
-        RawData(I) := T_Value.Scaling(Data(I));
+        RawData(I) := TT_Scaling.Linear(Data(I));
     end loop;
 
     Tf_Raw.Write_Array(F, RawData);
@@ -172,14 +171,14 @@ begin
     RawVol: Tf_Arr(1 .. VolLength);
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package T_Value is new Value(Tm,Tc,Tf);
+    package TT_Scaling is new Scaling(Tm,Tc,Tf);
 
   begin
-    Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+    Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -187,7 +186,7 @@ begin
 
     for I in RawVol'Range
     loop
-      Volume(I) := T_Value.Scaling(RawVol(I));
+      Volume(I) := TT_Scaling.Linear(RawVol(I));
     end loop;
 
   end Read_Volume;
@@ -214,23 +213,23 @@ begin
     RawVol: Tf_Arr(1 .. VolLength);
 
     package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package T_Value is new Value(Tf,Tc,Tm);
+    package TT_Scaling is new Scaling(Tf,Tc,Tm);
   begin
 
-    T_Value.A := A;
-    T_Value.B := B;
-    T_Value.UInValid := Undef_Valid;
-    T_Value.UIn      := Undef_Value;
+    TT_Scaling.A := A;
+    TT_Scaling.B := B;
+    TT_Scaling.UInValid := Undef_Valid;
+    TT_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
     for I in RawVol'Range
     loop
-      RawVol(I) := T_Value.Scaling(Volume(I));
+      RawVol(I) := TT_Scaling.Linear(Volume(I));
     end loop;
 
     Tf_Raw.Write_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);

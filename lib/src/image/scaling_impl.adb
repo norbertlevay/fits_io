@@ -1,7 +1,7 @@
 
 with Ada.Text_IO;
 
-package body Value_Impl is
+package body Scaling_Impl is
 
     package TIO renames Ada.Text_IO;
 
@@ -83,5 +83,5 @@ package body Value_Impl is
      end if;
  end Is_Undef_Ints;
 
-end Value_Impl;
+end Scaling_Impl;
 

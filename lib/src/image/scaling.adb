@@ -1,6 +1,6 @@
 
 
-package body Value is
+package body Scaling is
 
  LocUOut      : Tout;
  LocUOutValid : Boolean := False;
@@ -13,12 +13,12 @@ procedure Init_Undef
     (UInValid : in Boolean;     UIn : in Tin;
     UOutValid : in out Boolean; UOut : in out Tout)
 is
-    Do_Scaling : Boolean;
+    Do_Linear : Boolean;
 begin
-    Do_Scaling := Init_UOut(UInValid, UIn, UOutValid, UOut);
-    if(Do_Scaling)
+    Do_Linear := Init_UOut(UInValid, UIn, UOutValid, UOut);
+    if(Do_Linear)
     then
-        UOut      := +(A + B * (+UIn));
+        UOut      := Linear(UIn);
         UOutValid := True;
     end if;
 
@@ -32,7 +32,7 @@ end Init_Undef;
 
 
 
-function Scaling(Vin : Tin) return Tout
+function Linear(Vin : Tin) return Tout
 is
     Vout : Tout;
 begin
@@ -67,6 +67,6 @@ begin
     end if;
 
     return Vout;
-end Scaling;
+end Linear;
 
-end Value;
+end Scaling;

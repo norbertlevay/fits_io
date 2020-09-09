@@ -11,8 +11,7 @@ with Raw_Funcs; use Raw_Funcs;
 with Raw.Data_Unit;
 with Header;
 
-with Value_Impl;
-with Value;
+with Scaling;
 
 package body Physical.Data_Unit is
 
@@ -77,11 +76,11 @@ end Header_Info;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
     package Tf_Raw_DU is new Tf_Raw.Data_Unit;
 
-    package T_Value is new Value(Tm,Tc,Tf);
+    package TT_Scaling is new Scaling(Tm,Tc,Tf);
 
     procedure RawData(E : in Tf)
     is
-        Eout : Tm := T_Value.Scaling(E);
+        Eout : Tm := TT_Scaling.Linear(E);
     begin
         if(Is_Undef(Eout, Undef_Value, Undef_Valid))
         then
@@ -95,11 +94,11 @@ end Header_Info;
 
  begin
 
-     Header_Info(Cards, T_Value.A,T_Value.B, T_Value.UInValid, T_Value.UIn);
+     Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, Undef_Valid, Undef_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -128,28 +127,28 @@ end Header_Info;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
     package Tf_Raw_DU is new Tf_Raw.Data_Unit;
 
-    package T_Value is new Value(Tf,Tc,Tm);
+    package TT_Scaling is new Scaling(Tf,Tc,Tm);
 
     procedure RawData(E : out Tf) 
     is
         Em : Tm; 
     begin
         Data_Elem(Em);
-        E := T_Value.Scaling(Em);
+        E := TT_Scaling.Linear(Em);
     end RawData;
 
     procedure Write_DU is new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding,RawData);
 
  begin
 
-    T_Value.A := A;
-    T_Value.B := B;
-    T_Value.UInValid := Undef_Valid;
-    T_Value.UIn      := Undef_Value;
+    TT_Scaling.A := A;
+    TT_Scaling.B := B;
+    TT_Scaling.UInValid := Undef_Valid;
+    TT_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    T_Value.Init_Undef(T_Value.UInValid, T_Value.UIn, UOut_Valid, UOut_Value);
+    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, UOut_Valid, UOut_Value);
 
     -- scale array-values
 

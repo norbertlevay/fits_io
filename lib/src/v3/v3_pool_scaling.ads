@@ -4,7 +4,7 @@
 
 
 with V3_Types; use V3_Types;
-with Value_Impl; use Value_Impl;
+with Scaling_Impl; use Scaling_Impl;
 
 
 
