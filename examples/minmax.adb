@@ -1,122 +1,45 @@
 
 with Ada.Text_IO;
-with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;
+with Ada.Unchecked_Conversion;
 
-with V3_Types;  use V3_Types;
+with V3_Types;          use V3_Types;
 
-with File;
-with Physical.Data_Unit;
-with Value;
+with File;              -- HDU_Info_Type needed
+with Optional;          -- Card_Arr needed
+with Optional.Reserved; -- Reserved cards needed
+with Header;            -- Header.Read_Optional needed
 
-with Optional;
-with Optional.Reserved;
-with Header;
+-- we instantiate here TT_App which need
+-- these type-dependent implementations:
+with V3_Pool_Scaling;   use V3_Pool_Scaling;
+with T_Ops;             use T_Ops;
 
-with V3_Pool_Scaling;         use V3_Pool_Scaling;
-
-with T_Ops; use T_Ops;
+with TT_App;
+with TT_App.Minmax;
 
 procedure minmax is
 
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
+    package CLI renames Ada.Command_Line;
 
 
-    generic
-    type Tm is private;
-    type Tm_Arr is array (SIO.Positive_Count range <>) of Tm;
-    type Tc is digits <>;
-    type Tf is private;
+    package TF64 is new TT_App(Float_64,   F64_Arr, Float_64, Float_64);
+    package TF32 is new TT_App(Float_32,   F32_Arr, Float_32, Float_32);
+    package TI64 is new TT_App(Integer_64, I64_Arr, Float_64, Integer_64);
+    package TI32 is new TT_App(Integer_32, I32_Arr, Float_64, Integer_32);
+    package TI16 is new TT_App(Integer_16, I16_Arr, Float_32, Integer_16);
+    package TU8  is new TT_App(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
 
-    with function To_V3Type(Arg : String) return Tf is <>;
+    package F64 is new TF64.Minmax;
+    package F32 is new TF32.Minmax;
+    package I64 is new TI64.Minmax;
+    package I32 is new TI32.Minmax;
+    package I16 is new TI16.Minmax;
+    package U8  is new TU8.Minmax;
 
-    with function Init_UOut(UInValid : in Boolean; UIn : in Tf;
-            UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
-    with function Init_UOut(UInValid : in Boolean; UIn : in Tm;
-            UOutValid : in out Boolean; UOut : in out Tf) return Boolean is <>;
-
-
-    with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
-    with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
-
-
-    with function "+"(R : Tf) return Tc is <>;
-    with function "+"(R : Tc) return Tm is <>;
-    with function "+"(R : Tm) return Tc is <>;
-    with function "+"(R : Tc) return Tf is <>;
-
-
-    with function T_First return Tm is <>;
-    with function T_Last  return Tm is <>;
-    with function T_Image(V: Tm) return String is <>;
-    with function T_Valid(V: Tm) return Boolean is <>;
-    with function ">"(L,R : Tm)  return Boolean is <>;
-    with function "<"(L,R : Tm)  return Boolean is <>;
-    with function To_V3Type(S : String) return Tm is <>;
-    package T_App is
-
-        use type SIO.Count;
-        Special_Count : SIO.Count := 0; -- Inf...
-        Undef_Count   : SIO.Count := 0; -- NaN
-
-        procedure Plane_Data(E : Tm);
-        procedure Undef_Data(E : Tm);
-
-        package  T_Physical is new Physical(Tm,Tm_Arr,Tc, Tf);
-        package  T_Physical_DU is new T_Physical.Data_Unit;
-        procedure Read_Data_Unit is new T_Physical_DU.Read_Data_Unit(Plane_Data,Undef_Data);
-
-        procedure Put_Results(UndefValid : in Boolean; UndefValue : in String);
-
-    end T_App;
-
-    package body T_App is
-
-
-        Min : Tm := T_Last;
-        Max : Tm := T_First;
-
-        procedure Plane_Data(E : Tm)
-        is
-        begin
-                if(not T_Valid(E))
-                then
-                    Special_Count := Special_Count + 1; -- Invalid but not NaN
-                else
-                    if(E > Max) then Max := E; end if;
-                    if(E < Min) then Min := E; end if;
-                end if;
-        end Plane_Data;
-
-        procedure Undef_Data(E : Tm)
-        is
-        begin
-            Undef_Count   := Undef_Count   + 1;
-        end Undef_Data;
-
-
-        procedure Put_Results(UndefValid : in Boolean; UndefValue : in String)
-        is
-        begin
-        TIO.Put_Line("UndefValid             : " & Boolean'Image(UndefValid));
-        if(UndefValid) then TIO.Put_Line("UndefValue             : " & UndefValue); end if;
-        TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
-        TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
-        TIO.Put_Line("Min                    : " & T_Image(Min));
-        TIO.Put_Line("Max                    : " & T_Image(Max));
-        end Put_Results;
-
-    end T_App;
-
-
-    package F64 is new T_App(Float_64,   F64_Arr, Float_64, Float_64);
-    package F32 is new T_App(Float_32,   F32_Arr, Float_32, Float_32);
-    package I64 is new T_App(Integer_64, I64_Arr, Float_64, Integer_64);
-    package I32 is new T_App(Integer_32, I32_Arr, Float_64, Integer_32);
-    package I16 is new T_App(Integer_16, I16_Arr, Float_32, Integer_16);
-    package U8  is new T_App(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
 
     InFile   : SIO.File_Type;
     HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
@@ -145,12 +68,12 @@ procedure minmax is
     package Hexa_F32 is new Ada.Text_IO.Modular_IO(Unsigned_32);
 begin
 
-    if(Argument_Count /= 1 ) 
+    if(CLI.Argument_Count /= 1 ) 
     then 
-      TIO.Put_Line("Usage  " & Command_Name & " <file name>");
+      TIO.Put_Line("Usage  " & CLI.Command_Name & " <file name>");
       return;
     else
-      SIO.Open(InFile, SIO.In_File, (Argument(1)));
+      SIO.Open(InFile, SIO.In_File, (CLI.Argument(1)));
     end if;
 
     File.Set_File_Block_Index(InFile,HDUStart);
