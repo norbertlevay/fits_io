@@ -85,32 +85,79 @@ begin
 
         declare
             Cards   : Optional.Card_Arr := 
-                Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
+            Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
+            UInValid : Boolean := False;
         begin
 
             case(HDUInfo.BITPIX) is
                 when -64 =>
-                    F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid, Cards);
+                    declare
+                        UInValue : Float_64;
+                        A,B : Float_64;
+                    begin
+                        F64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     F64.Put_Results(UValid, Float_64'Image(F64UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F64.Put(F64_To_U64(F64UValue),  9,16);
                     TIO.New_Line;
+
                 when -32 =>
-                    F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid, Cards);
+                     declare
+                        UInValue : Float_32;
+                        A,B : Float_32;
+                    begin
+                        F32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     F32.Put_Results(UValid, Float_32'Image(F32UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F32.Put(F32_To_U32(F32UValue),  9,16);
                     TIO.New_Line;
+
                  when  64 =>
-                    I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid, Cards);
+                    declare
+                        UInValue : Integer_64;
+                        A,B : Float_64;
+                    begin
+                        I64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     I64.Put_Results(UValid, Integer_64'Image(I64UValue));
                  when  32 =>
-                    I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, I32UValue, UValid, Cards);
+                    declare
+                        UInValue : Integer_32;
+                        A,B : Float_64;
+                    begin
+                        I32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, I32UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     I32.Put_Results(UValid, Integer_32'Image(I32UValue));
+
                  when  16 =>
-                    I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, I16UValue, UValid, Cards);
+                    declare
+                        UInValue : Integer_16;
+                        A,B : Float_32;
+                    begin
+                        I16.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, I16UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     I16.Put_Results(UValid, Integer_16'Image(I16UValue));
                  when   8 =>
-                    U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, U8UValue, UValid, Cards);
+                     declare
+                        UInValue : Unsigned_8;
+                        A,B : Float_32;
+                    begin
+                        U8.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
+                        U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, U8UValue, UValid,
+                                                            A,B, UInValue, UInValid);
+                    end;
                     U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
+
                 when others => null; -- FIXME Error
             end case;
 
