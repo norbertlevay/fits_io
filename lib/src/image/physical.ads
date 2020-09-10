@@ -67,6 +67,16 @@ package Physical is
      (Cards : in Optional.Card_Arr;
      A,B : out Tc; BV : out Boolean; BLANK : out Tf);
 
+    -- undefined values
+
+    procedure Init_Undef_For_Read
+        (UInValid : in     Boolean; UIn  : in     Tf;
+        UOutValid : in out Boolean; UOut : in out Tm);
+
+    procedure Init_Undef_For_Write
+        (UInValid : in     Boolean; UIn  : in     Tm;
+        UOutValid : in out Boolean; UOut : in out Tf);
+
     -- sequential access
 
      procedure Read_Array
