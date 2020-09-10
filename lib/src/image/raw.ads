@@ -51,7 +51,8 @@ package Raw is
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
+    VolumeSize : in NAXIS_Arr;
+    --Last    : in NAXIS_Arr;
     Volume  : out T_Arr);
 
 

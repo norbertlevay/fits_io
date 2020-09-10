@@ -126,13 +126,18 @@ package body Raw is
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
+    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
+    --Last    : in NAXIS_Arr;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
   is
 --    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
 
-    LineLength : Positive_Count := 1 + (Last(1) - First(1));
-    Line: T_Arr(1 .. LineLength);
+      LineLength : Positive_Count := VolumeSize(1);
+      Line       : T_Arr(1 .. LineLength);
+    --LineLength : Positive_Count := 1 + (Last(1) - First(1));
+    --Line: T_Arr(1 .. LineLength);
+
+      Last : NAXIS_Arr := VolumeSize;
 
     -- generate coords vars
     Winit : FIndex := 2;
@@ -143,6 +148,12 @@ package body Raw is
     Unity : constant NAXIS_Arr(First'Range) := (others => 1);
     VolNAXISn : NAXIS_Arr(First'Range);
   begin
+
+      -- convert VoilumeSize -> Last
+
+    for I in First'Range loop
+        Last(I) := First(I) + VolumeSize(I) - 1;
+    end loop;
 
     for I in First'Range loop
       VolNAXISn(I) := Unity(I) + Last(I) - First(I);

@@ -157,11 +157,13 @@ begin
     DUStart : in Positive_Count;
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
-    Last    : in NAXIS_Arr;
+    VolumeSize : in NAXIS_Arr;
+--    Last    : in NAXIS_Arr;
     Volume  : out Tm_Arr;
     A,B : in Tc)
   is
-    VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
+    --VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
+    VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
     RawVol: Tf_Arr(1 .. VolLength);
   begin
 
@@ -170,7 +172,8 @@ begin
 
     -- scale array-values
 
-    Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
+    Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);
+    --Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
     for I in RawVol'Range
     loop

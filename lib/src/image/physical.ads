@@ -102,7 +102,8 @@ package Physical is
          DUStart : in Positive_Count;
          NAXISn  : in NAXIS_Arr;
          First   : in NAXIS_Arr;
-         Last    : in NAXIS_Arr;
+         VolumeSize : in NAXIS_Arr;
+         --Last    : in NAXIS_Arr;
          Volume  : out Tm_Arr;
          A,B : in Tc);
 
