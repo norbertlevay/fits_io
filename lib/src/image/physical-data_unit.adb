@@ -37,7 +37,6 @@ package body Physical.Data_Unit is
     A,B : in Tc;
     UIn_Value : in Tf;
     UIn_Valid : in Boolean)
-  --  Cards : in Optional.Card_Arr)
  is
 
     package TT_Scaling is new Scaling(Tm,Tc,Tf);
@@ -58,7 +57,6 @@ package body Physical.Data_Unit is
 
  begin
 
---     Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
     TT_Scaling.A := A;
     TT_Scaling.B := B;
     TT_Scaling.UInValid := UIn_Valid;
