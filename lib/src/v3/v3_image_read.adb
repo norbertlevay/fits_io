@@ -52,8 +52,7 @@ begin
           begin
             F64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             F64_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
       when -32 =>
@@ -62,8 +61,7 @@ begin
           begin
             F32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             F32_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
       when  64 =>
@@ -72,8 +70,7 @@ begin
           begin
             I64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             I64_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            I64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            I64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
       when  32 =>
@@ -82,8 +79,7 @@ begin
           begin
             I32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             I32_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            I32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            I32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
       when  16 =>
@@ -92,8 +88,7 @@ begin
           begin
             I16_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             I16_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            I16_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            I16_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
       when   8 =>
@@ -102,8 +97,7 @@ begin
           begin
             U8_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
             U8_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
-            U8_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
-                                    UValue, UValid, A,B, UIn_Value,UIn_Valid);
+            U8_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume, A,B);
           end;
 
   when others => null; -- FIXME Error
@@ -177,7 +171,8 @@ begin
               UIn_Value : Float_64;
           begin
             F64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            F64_Physical.Read_Array(F, Plane, Undef_Value,Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            F64_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            F64_Physical.Read_Array(F, Plane, A,B);
           end;
 
       when -32 =>
@@ -185,7 +180,8 @@ begin
               UIn_Value : Float_32;
           begin
             F32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            F32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            F32_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            F32_Physical.Read_Array(F, Plane, A,B);
           end;
 
       when  64 =>
@@ -193,7 +189,8 @@ begin
               UIn_Value : Integer_64;
           begin
             I64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            I64_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            I64_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            I64_Physical.Read_Array(F, Plane, A,B);
           end;
 
       when  32 =>
@@ -201,7 +198,8 @@ begin
               UIn_Value : Integer_32;
           begin
             I32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            I32_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            I32_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            I32_Physical.Read_Array(F, Plane, A,B);
           end;
 
       when  16 =>
@@ -209,14 +207,16 @@ begin
               UIn_Value : Integer_16;
           begin
             I16_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            I16_Physical.Read_Array(F, Plane, Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            I16_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            I16_Physical.Read_Array(F, Plane, A,B);
           end;
       when   8 =>
           declare
               UIn_Value : Unsigned_8;
           begin
             U8_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
-            U8_Physical.Read_Array(F, Plane,  Undef_Value, Undef_Valid, A,B, UIn_Value,UIn_Valid);
+            U8_Physical.Init_Undef_For_Read(UIn_Valid,UIn_Value, Undef_Valid,Undef_Value);
+            U8_Physical.Read_Array(F, Plane, A,B);
           end;
       when others => null; -- FIXME Error
     end case;

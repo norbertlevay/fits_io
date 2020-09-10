@@ -32,11 +32,7 @@ package body Physical.Data_Unit is
  procedure Read_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
-  Undef_Value : in Tm;
-  Undef_Valid : in Boolean;
-    A,B : in Tc;
-    UIn_Value : in Tf;
-    UIn_Valid : in Boolean)
+  A,B : in Tc)
  is
 
     package TT_Scaling is new Scaling(Tm,Tc,Tf);
@@ -45,12 +41,12 @@ package body Physical.Data_Unit is
     is
         Eout : Tm := TT_Scaling.Linear(E);
     begin
-        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
-        then
-            Undef_Elem(Eout);
-        else
+--        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
+--        then
+--            Undef_Elem(Eout);
+--        else
             Data_Elem(Eout);
-        end if;
+--        end if;
     end RawData;
 
     procedure Read_DU is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData);
@@ -59,10 +55,6 @@ package body Physical.Data_Unit is
 
     TT_Scaling.A := A;
     TT_Scaling.B := B;
-
-    -- init undef-value
-
-  --  TT_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -78,13 +70,9 @@ package body Physical.Data_Unit is
 
 
  procedure Write_Data_Unit
-         (File : SIO.File_Type;
+         (File  : SIO.File_Type;
          NAXISn : in NAXIS_Arr;
-         Undef_Value : in out Tm; 
-         Undef_Valid : in out Boolean;
-         A,B        : in Tc;          -- BZERO BSCALE
-         Uout_Value : in Tf;      -- BLANK
-         Uout_Valid : in Boolean) -- BLANK to Header or not
+         A,B    : in Tc)
  is
 
     package TT_Scaling is new Scaling(Tf,Tc,Tm);
@@ -103,10 +91,6 @@ package body Physical.Data_Unit is
 
     TT_Scaling.A := A;
     TT_Scaling.B := B;
-
-    -- init undef-value
-
---    TT_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 

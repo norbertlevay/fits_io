@@ -106,21 +106,13 @@ end Init_Undef_For_Write;
   procedure Read_Array
     (F : SIO.File_Type;
     Data  : out Tm_Arr;
-    Undef_Value : in Tm;
-    Undef_Valid : in Boolean;
-    A,B : in Tc;
-    UIn_Value : in Tf;
-    UIn_Valid : in Boolean)
+    A,B : in Tc)
   is
     RawData : Tf_Arr(Data'First .. Data'Last);
   begin
 
     TTR_Scaling.A := A;
     TTR_Scaling.B := B;
-
-    -- init undef-value
-
---    TTR_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -137,22 +129,14 @@ end Init_Undef_For_Write;
 
   procedure Write_Array
     (F : SIO.File_Type;
-    Data        : in Tm_Arr;     -- Data and its
-    Undef_Value : in Tm;         -- undef value
-    Undef_Valid : in Boolean;    -- exist or not
-    A,B        : in Tc;          -- BZERO BSCALE
-    Uout_Value : in Tf;      -- BLANK
-    Uout_Valid : in Boolean) -- BLANK to Header or not
+    Data : in Tm_Arr;
+    A,B  : in Tc)
  is
     RawData : Tf_Arr(Data'First .. Data'Last);
 begin
 
     TTW_Scaling.A := A;
     TTW_Scaling.B := B;
-
-    -- init undef-value
-
-   -- TTW_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
@@ -175,11 +159,7 @@ begin
     First   : in NAXIS_Arr;
     Last    : in NAXIS_Arr;
     Volume  : out Tm_Arr;
-    Undef_Value : in Tm;
-    Undef_Valid : in Boolean;
-    A,B : in Tc;
-    UIn_Value : in Tf;
-    UIn_Valid : in Boolean)
+    A,B : in Tc)
   is
     VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
     RawVol: Tf_Arr(1 .. VolLength);
@@ -187,10 +167,6 @@ begin
 
     TTR_Scaling.A := A;
     TTR_Scaling.B := B;
-
-    -- init undef-value
-
-    --TTR_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -212,11 +188,7 @@ begin
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
     Volume  : in Tm_Arr;
-    Undef_Value : in Tm; 
-    Undef_Valid : in Boolean;
-    A,B        : in Tc;          -- BZERO BSCALE
-    Uout_Value : in Tf;      -- BLANK
-    Uout_Valid : in Boolean) -- BLANK to Header or not
+    A,B     : in Tc)
   is
     -- FIXME no good func-name Plane_Length
     VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
@@ -225,10 +197,6 @@ begin
 
     TTW_Scaling.A := A;
     TTW_Scaling.B := B;
-
-    -- init undef-value
-
-    --TTW_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 

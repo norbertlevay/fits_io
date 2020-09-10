@@ -84,10 +84,10 @@ is
  package U8_Phys is new Physical(Unsigned_8, U8_Arr, Float_32, Unsigned_8);
  package U8_Phys_DU is new U8_Phys.Data_Unit;
  procedure U8_Write_Data_Unit_Phys is new U8_Phys_DU.Write_Data_Unit(0, DUElem);
- U8Dummy1_Valid : Boolean := False;
- U8Dummy1 : Unsigned_8;
- U8Dummy2_Valid : Boolean := False;
- U8Dummy2 : Unsigned_8;
+-- U8Dummy1_Valid : Boolean := False;
+-- U8Dummy1 : Unsigned_8;
+-- U8Dummy2_Valid : Boolean := False;
+-- U8Dummy2 : Unsigned_8;
 
 begin
 
@@ -104,8 +104,8 @@ begin
  Header.Write_Cards(File, ScImage.To_Cards);
  Header.Close(File);
  
- U8_Phys.Init_Undef_For_Write(U8Dummy1_Valid, U8Dummy1, U8Dummy2_Valid, U8Dummy2);
- U8_Write_Data_Unit_Phys(File, NAXISn,U8Dummy1,U8Dummy1_Valid,0.0,1.0,U8Dummy2,U8Dummy2_Valid);
+-- U8_Phys.Init_Undef_For_Write(U8Dummy1_Valid, U8Dummy1, U8Dummy2_Valid, U8Dummy2);
+ U8_Write_Data_Unit_Phys(File, NAXISn,0.0,1.0);
 
  SIO.Close(File);
  SIO.Close(InFile);

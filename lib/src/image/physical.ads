@@ -68,6 +68,9 @@ package Physical is
      A,B : out Tc; BV : out Boolean; BLANK : out Tf);
 
     -- undefined values
+ -- FIXME verify this:
+ -- if data has no undefined values, simply do not call these Init_Undef
+ -- (Scaling initializes to Undef_Valid=False)
 
     procedure Init_Undef_For_Read
         (UInValid : in     Boolean; UIn  : in     Tf;
@@ -82,22 +85,13 @@ package Physical is
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
-         Undef_Value : in Tm;
-         Undef_Valid : in Boolean;
-         A,B : in Tc; 
-         UIn_Value : in Tf; 
-         UIn_Valid : in Boolean);
+         A,B : in Tc);
 
 
      procedure Write_Array
         (F : SIO.File_Type;
-        Data        : in Tm_Arr;      -- Data and its
-        Undef_Value : in Tm;          -- undef value
-        Undef_Valid : in Boolean;     -- exist or not
-        A,B        : in Tc;           -- BZERO BSCALE
-        Uout_Value : in Tf;       -- BLANK
-        Uout_Valid : in Boolean); -- BLANK to Header or not
-
+        Data : in Tm_Arr;
+        A,B  : in Tc);
 
 
 
@@ -110,11 +104,7 @@ package Physical is
          First   : in NAXIS_Arr;
          Last    : in NAXIS_Arr;
          Volume  : out Tm_Arr;
-         Undef_Value : in Tm;
-         Undef_Valid : in Boolean;
-         A,B : in Tc; 
-         UIn_Value : in Tf; 
-         UIn_Valid : in Boolean);
+         A,B : in Tc);
 
 
   procedure Write_Volume
@@ -124,11 +114,7 @@ package Physical is
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
     Volume  : in Tm_Arr;
-    Undef_Value : in Tm; 
-    Undef_Valid : in Boolean;
-    A,B        : in Tc;           -- BZERO BSCALE
-    Uout_Value : in Tf;       -- BLANK
-    Uout_Valid : in Boolean); -- BLANK to Header or not
+    A,B        : in Tc);
 
 
 end Physical;

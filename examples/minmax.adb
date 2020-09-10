@@ -97,8 +97,7 @@ begin
                     begin
                         F64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         F64.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, F64UValue);
-                        F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, F64UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F64.Put_Results(UValid, Float_64'Image(F64UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F64.Put(F64_To_U64(F64UValue),  9,16);
@@ -111,8 +110,7 @@ begin
                     begin
                         F32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         F32.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, F32UValue);
-                        F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, F32UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F32.Put_Results(UValid, Float_32'Image(F32UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F32.Put(F32_To_U32(F32UValue),  9,16);
@@ -125,8 +123,7 @@ begin
                     begin
                         I64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         I64.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I64UValue);
-                        I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, I64UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I64.Put_Results(UValid, Integer_64'Image(I64UValue));
                  when  32 =>
@@ -136,8 +133,7 @@ begin
                     begin
                         I32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         I32.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I32UValue);
-                        I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, I32UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I32.Put_Results(UValid, Integer_32'Image(I32UValue));
 
@@ -148,8 +144,7 @@ begin
                     begin
                         I16.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         I16.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I16UValue);
-                        I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, I16UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I16.Put_Results(UValid, Integer_16'Image(I16UValue));
                  when   8 =>
@@ -159,8 +154,7 @@ begin
                     begin
                         U8.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
                         U8.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, U8UValue);
-                        U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, U8UValue, UValid,
-                                                            A,B, UInValue, UInValid);
+                        U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
 

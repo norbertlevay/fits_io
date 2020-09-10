@@ -15,7 +15,7 @@ package Physical.Data_Unit is
 
      generic
      with procedure Data_Elem (Elem : in Tm);
-     with procedure Undef_Elem(Elem : in Tm);
+--     with procedure Undef_Elem(Elem : in Tm);
      with function Init_UOut(UInValid : in Boolean;
         UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
      with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
@@ -23,14 +23,9 @@ package Physical.Data_Unit is
      with function "+"(R : Tf) return Tc is <>;
      with function "+"(R : Tc) return Tm is <>; 
      procedure Read_Data_Unit
-         (File : SIO.File_Type;
+         (File  : SIO.File_Type;
          NAXISn : in NAXIS_Arr;
-         Undef_Value : in Tm;
-         Undef_Valid : in Boolean;
-         A,B : in Tc;
-         UIn_Value : in Tf;
-         UIn_Valid : in Boolean);
-         --Cards : Optional.Card_Arr);
+         A,B    : in Tc);
 
 
 
@@ -46,13 +41,9 @@ package Physical.Data_Unit is
      with function "+"(R : Tm) return Tc is <>; 
      with function "+"(R : Tc) return Tf is <>; 
      procedure Write_Data_Unit
-         (File : SIO.File_Type;
+         (File  : SIO.File_Type;
          NAXISn : in NAXIS_Arr;
-         Undef_Value : in out Tm; 
-         Undef_Valid : in out Boolean;
-         A,B        : in Tc;           -- BZERO BSCALE
-         Uout_Value : in Tf;       -- BLANK
-         Uout_Valid : in Boolean); -- BLANK to Header or not
+         A,B    : in Tc);
 
 
 
