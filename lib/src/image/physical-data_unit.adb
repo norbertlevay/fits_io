@@ -62,7 +62,7 @@ package body Physical.Data_Unit is
 
     -- init undef-value
 
-    TT_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
+  --  TT_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -106,7 +106,7 @@ package body Physical.Data_Unit is
 
     -- init undef-value
 
-    TT_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
+--    TT_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 

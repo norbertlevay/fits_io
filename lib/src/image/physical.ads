@@ -116,7 +116,6 @@ package Physical is
          A,B : in Tc; 
          UIn_Value : in Tf; 
          UIn_Valid : in Boolean);
-        --Cards : Optional.Card_Arr);
 
 
   procedure Write_Volume

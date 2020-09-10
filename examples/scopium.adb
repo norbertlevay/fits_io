@@ -103,7 +103,8 @@ begin
  Header.Write_Card_SIMPLE(File, True);
  Header.Write_Cards(File, ScImage.To_Cards);
  Header.Close(File);
-
+ 
+ U8_Phys.Init_Undef_For_Write(U8Dummy1_Valid, U8Dummy1, U8Dummy2_Valid, U8Dummy2);
  U8_Write_Data_Unit_Phys(File, NAXISn,U8Dummy1,U8Dummy1_Valid,0.0,1.0,U8Dummy2,U8Dummy2_Valid);
 
  SIO.Close(File);

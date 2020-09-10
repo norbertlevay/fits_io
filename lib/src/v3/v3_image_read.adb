@@ -51,6 +51,7 @@ begin
               UIn_Value : Float_64;
           begin
             F64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            F64_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             F64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
@@ -60,6 +61,7 @@ begin
               UIn_Value : Float_32;
           begin
             F32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            F32_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             F32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
@@ -69,6 +71,7 @@ begin
               UIn_Value : Integer_64;
           begin
             I64_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I64_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             I64_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
@@ -78,6 +81,7 @@ begin
               UIn_Value : Integer_32;
           begin
             I32_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I32_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             I32_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
@@ -87,6 +91,7 @@ begin
               UIn_Value : Integer_16;
           begin
             I16_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            I16_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             I16_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
@@ -96,6 +101,7 @@ begin
               UIn_Value : Unsigned_8;
           begin
             U8_Physical.Header_Info(Cards, A, B, UIn_Valid, UIn_Value);
+            U8_Physical.Init_Undef_For_Read(UIn_Valid, UIn_Value, UValid, UValue);
             U8_Physical.Read_Volume(F,DUStart,NAXISn, First,Last, Volume,
                                     UValue, UValid, A,B, UIn_Value,UIn_Valid);
           end;
