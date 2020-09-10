@@ -83,7 +83,8 @@ begin
                 Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
        begin
 
-            Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, UValue, UValid, Cards);
+            Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last - 1, HDUInfo.NAXISn, UValue, UValid, Cards);
+            --Read_Data_Unit(InFile, HDUInfo.BITPIX, HDUInfo.NAXISn'Last, HDUInfo.NAXISn, UValue, UValid, Cards);
 
             TIO.Put_Line("Undef_Valid            : " & Boolean'Image(UValid));
             if(UValid)

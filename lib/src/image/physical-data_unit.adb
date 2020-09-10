@@ -19,43 +19,6 @@ package body Physical.Data_Unit is
 
   package TIO renames Ada.Text_IO;
 
-procedure Header_Info(Cards : in Optional.Card_Arr; A,B : out Tc;
-     BV : out Boolean; BLANK : out Tf)
-is
-    AStr : String(1..20);-- BZERO
-    BStr : String(1..20);-- BSCALE
-    UStr : String(1..20);-- BLANK = Undefined value
-begin
-    TIO.Put_Line("Physical_Read::Header_Info");
-
-    if(Header.Has_Card(Cards, "BZERO   ",AStr))
-    --then A := To_V3Type(AStr);
-    then A := Tc'Value(AStr);
-    --else A := To_V3Type("0.0");
-    else A := Tc(0.0);
-    end if;
-
-    if(Header.Has_Card(Cards, "BSCALE  ",BStr))
-    --then B := To_V3Type(BStr);
-    then B := Tc'Value(BStr);
-    -- FIXME later implement proper FITS-Float parsing: Tc'Value not always in line with FITS Float syntax
---    else B := To_V3Type("1.0");
-    else B := Tc(1.0);
-    end if;
-
-    if(Header.Has_Card(Cards, "BLANK   ",UStr))
-    then 
-        BLANK := To_V3Type(UStr);
-        BV    := True;
-    else
-        BV    := False;
-    end if;
-
-    TIO.Put_Line("A B : [" & Tc'Image(A) &", " & Tc'Image(B) & "]");
-    if(BV) then TIO.Put_Line("BLANK : " & Ustr); else TIO.Put_Line("BLANK not in Header"); end if;
-
-end Header_Info;
-
 
 
  -- Read Write procedures

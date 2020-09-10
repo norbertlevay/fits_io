@@ -103,7 +103,10 @@ package Physical is
          Volume  : out Tm_Arr;
          Undef_Value : in out Tm;
          Undef_Valid : in out Boolean;
-         Cards : Optional.Card_Arr);
+         A,B : in Tc; 
+         UIn_Value : in Tf; 
+         UIn_Valid : in Boolean);
+        --Cards : Optional.Card_Arr);
 
 
   procedure Write_Volume

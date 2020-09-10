@@ -40,7 +40,7 @@ is
     BStr : String(1..20);-- BSCALE
     UStr : String(1..20);-- BLANK = Undefined value
 begin
-    TIO.Put_Line("Physical_Read::Header_Info");
+--    TIO.Put_Line("Physical_Read::Header_Info");
 
     if(Header.Has_Card(Cards, "BZERO   ",AStr))
     --then A := To_V3Type(AStr);
@@ -65,8 +65,8 @@ begin
         BV    := False;
     end if;
 
-    TIO.Put_Line("A B : [" & Tc'Image(A) &", " & Tc'Image(B) & "]");
-    if(BV) then TIO.Put_Line("BLANK : " & Ustr); else TIO.Put_Line("BLANK not in Header"); end if;
+--    TIO.Put_Line("A B : [" & Tc'Image(A) &", " & Tc'Image(B) & "]");
+--    if(BV) then TIO.Put_Line("BLANK : " & Ustr); else TIO.Put_Line("BLANK not in Header"); end if;
 
 end Header_Info;
 
@@ -163,7 +163,10 @@ begin
     Volume  : out Tm_Arr;
     Undef_Value : in out Tm;
     Undef_Valid : in out Boolean;
-    Cards : in Optional.Card_Arr)
+    A,B : in Tc;
+    UIn_Value : in Tf;
+    UIn_Valid : in Boolean)
+--   Cards : in Optional.Card_Arr)
   is
     VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
 
@@ -174,7 +177,11 @@ begin
     package TT_Scaling is new Scaling(Tm,Tc,Tf);
 
   begin
-    Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
+    --Header_Info(Cards, TT_Scaling.A,TT_Scaling.B, TT_Scaling.UInValid, TT_Scaling.UIn);
+    TT_Scaling.A := A;
+    TT_Scaling.B := B;
+    TT_Scaling.UInValid := UIn_Valid;
+    TT_Scaling.UIn      := UIn_Value;
 
     -- init undef-value
 
