@@ -32,8 +32,8 @@ package body Physical.Data_Unit is
  procedure Read_Data_Unit
   (File : SIO.File_Type;
   NAXISn : in NAXIS_Arr;
-  Undef_Value : in out Tm;
-  Undef_Valid : in out Boolean;
+  Undef_Value : in Tm;
+  Undef_Valid : in Boolean;
     A,B : in Tc;
     UIn_Value : in Tf;
     UIn_Valid : in Boolean)
@@ -83,8 +83,8 @@ package body Physical.Data_Unit is
          Undef_Value : in out Tm; 
          Undef_Valid : in out Boolean;
          A,B        : in Tc;          -- BZERO BSCALE
-         Uout_Value : in out Tf;      -- BLANK
-         Uout_Valid : in out Boolean) -- BLANK to Header or not
+         Uout_Value : in Tf;      -- BLANK
+         Uout_Valid : in Boolean) -- BLANK to Header or not
  is
 
     package TT_Scaling is new Scaling(Tf,Tc,Tm);

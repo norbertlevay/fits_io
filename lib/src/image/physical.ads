@@ -82,12 +82,11 @@ package Physical is
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
-         Undef_Value : in out Tm;
-         Undef_Valid : in out Boolean;
+         Undef_Value : in Tm;
+         Undef_Valid : in Boolean;
          A,B : in Tc; 
          UIn_Value : in Tf; 
          UIn_Valid : in Boolean);
---         Cards : Optional.Card_Arr);
 
 
      procedure Write_Array
@@ -96,8 +95,8 @@ package Physical is
         Undef_Value : in Tm;          -- undef value
         Undef_Valid : in Boolean;     -- exist or not
         A,B        : in Tc;           -- BZERO BSCALE
-        Uout_Value : in out Tf;       -- BLANK
-        Uout_Valid : in out Boolean); -- BLANK to Header or not
+        Uout_Value : in Tf;       -- BLANK
+        Uout_Valid : in Boolean); -- BLANK to Header or not
 
 
 
@@ -111,8 +110,8 @@ package Physical is
          First   : in NAXIS_Arr;
          Last    : in NAXIS_Arr;
          Volume  : out Tm_Arr;
-         Undef_Value : in out Tm;
-         Undef_Valid : in out Boolean;
+         Undef_Value : in Tm;
+         Undef_Valid : in Boolean;
          A,B : in Tc; 
          UIn_Value : in Tf; 
          UIn_Valid : in Boolean);
@@ -128,8 +127,8 @@ package Physical is
     Undef_Value : in Tm; 
     Undef_Valid : in Boolean;
     A,B        : in Tc;           -- BZERO BSCALE
-    Uout_Value : in out Tf;       -- BLANK
-    Uout_Valid : in out Boolean); -- BLANK to Header or not
+    Uout_Value : in Tf;       -- BLANK
+    Uout_Valid : in Boolean); -- BLANK to Header or not
 
 
 end Physical;
