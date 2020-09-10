@@ -13,7 +13,7 @@ with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
 package body Image is
 
 -- FIXME pull-in correct type-dependent implementation - HOW has no params!! T only in body
-    function T_To_BITPIX return Integer is begin return T'Size; end T_To_BITPIX;
+    function T_To_BITPIX return Integer is begin return -T'Size; end T_To_BITPIX;
 
 
 
