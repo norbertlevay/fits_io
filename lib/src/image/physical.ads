@@ -80,12 +80,13 @@ package Physical is
         (UInValid : in     Boolean; UIn  : in     Tm;
         UOutValid : in out Boolean; UOut : in out Tf);
 
+
     -- sequential access
 
      procedure Read_Array
          (F : SIO.File_Type;
          Data : out Tm_Arr;
-         A,B : in Tc);
+         A,B  : in  Tc);
 
 
      procedure Write_Array
@@ -94,28 +95,26 @@ package Physical is
         A,B  : in Tc);
 
 
-
     -- random access
 
      procedure Read_Volume
-         (File : SIO.File_Type;
+         (File   : SIO.File_Type;
+         DUStart : in Positive_Count;
+         NAXISn  : in NAXIS_Arr;
+         First   : in NAXIS_Arr;
+         VolumeSize : in  NAXIS_Arr;
+         Volume     : out Tm_Arr;
+         A,B : in Tc);
+
+
+     procedure Write_Volume
+         (File   : SIO.File_Type;
          DUStart : in Positive_Count;
          NAXISn  : in NAXIS_Arr;
          First   : in NAXIS_Arr;
          VolumeSize : in NAXIS_Arr;
-         --Last    : in NAXIS_Arr;
-         Volume  : out Tm_Arr;
+         Volume     : in Tm_Arr;
          A,B : in Tc);
-
-
-  procedure Write_Volume
-    (File : SIO.File_Type;
-    DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr;
-    Volume  : in Tm_Arr;
-    A,B        : in Tc);
 
 
 end Physical;
