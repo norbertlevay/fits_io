@@ -11,12 +11,6 @@
 
 with Ada.Streams.Stream_IO;
 
---with Physical.Data_Unit;
---with Value;
-
---with V3_Types;            use V3_Types;
---with V3_Pool_Scaling;     use V3_Pool_Scaling;
---with T_Ops; use T_Ops;
 
   generic
     type Tm is private;

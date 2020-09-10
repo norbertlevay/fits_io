@@ -19,11 +19,13 @@ package body Physical.Data_Unit is
 
   package TIO renames Ada.Text_IO;
 
+    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
+
 
 
  -- Read Write procedures
-
-
 
 
 
@@ -37,10 +39,6 @@ package body Physical.Data_Unit is
     UIn_Valid : in Boolean)
   --  Cards : in Optional.Card_Arr)
  is
-
-    type Tf_Arr is array (Positive_Count range <>) of Tf;
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
 
     package TT_Scaling is new Scaling(Tm,Tc,Tf);
 
@@ -92,10 +90,6 @@ package body Physical.Data_Unit is
          Uout_Value : in out Tf;      -- BLANK
          Uout_Valid : in out Boolean) -- BLANK to Header or not
  is
-
-    type Tf_Arr is array (Positive_Count range <>) of Tf; 
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
-    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
 
     package TT_Scaling is new Scaling(Tf,Tc,Tm);
 

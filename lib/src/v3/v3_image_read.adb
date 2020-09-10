@@ -10,7 +10,6 @@ with File;
 with V3_Types; use V3_Types;-- types needed
 
 with Physical;
---with Physical_Read;
 
 package body V3_Image_Read is
 
