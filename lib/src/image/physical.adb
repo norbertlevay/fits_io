@@ -117,12 +117,13 @@ end Init_Undef_For_Write;
 
     TTR_Scaling.A := A;
     TTR_Scaling.B := B;
-    TTR_Scaling.UInValid := UIn_Valid;
-    TTR_Scaling.UIn      := UIn_Value;
+--    TTR_Scaling.UInValid := UIn_Valid;
+--    TTR_Scaling.UIn      := UIn_Value;
 
     -- init undef-value
 
-    TTR_Scaling.Init_Undef(TTR_Scaling.UInValid, TTR_Scaling.UIn, Undef_Valid, Undef_Value);
+    TTR_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
+    --TTR_Scaling.Init_Undef(TTR_Scaling.UInValid, TTR_Scaling.UIn, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -151,12 +152,13 @@ begin
 
     TTW_Scaling.A := A;
     TTW_Scaling.B := B;
-    TTW_Scaling.UInValid := Undef_Valid;
-    TTW_Scaling.UIn      := Undef_Value;
+--    TTW_Scaling.UInValid := Undef_Valid;
+--    TTW_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    TTW_Scaling.Init_Undef(TTW_Scaling.UInValid, TTW_Scaling.UIn, UOut_Valid, UOut_Value);
+    TTW_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
+    --TTW_Scaling.Init_Undef(TTW_Scaling.UInValid, TTW_Scaling.UIn, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
@@ -191,12 +193,10 @@ begin
 
     TTR_Scaling.A := A;
     TTR_Scaling.B := B;
-    TTR_Scaling.UInValid := UIn_Valid;
-    TTR_Scaling.UIn      := UIn_Value;
 
     -- init undef-value
 
-    TTR_Scaling.Init_Undef(TTR_Scaling.UInValid, TTR_Scaling.UIn, Undef_Valid, Undef_Value);
+    TTR_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -231,12 +231,10 @@ begin
 
     TTW_Scaling.A := A;
     TTW_Scaling.B := B;
-    TTW_Scaling.UInValid := Undef_Valid;
-    TTW_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    TTW_Scaling.Init_Undef(TTW_Scaling.UInValid, TTW_Scaling.UIn, UOut_Valid, UOut_Value);
+    TTW_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 

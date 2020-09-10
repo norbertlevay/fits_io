@@ -21,9 +21,6 @@ with function "+"(R : Tc ) return Tout is <>;
 
 package Scaling is
 
- UIn      : Tin;
- UInValid : Boolean := False;
-
  A,B : Tc;
 
 

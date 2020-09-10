@@ -6,6 +6,8 @@ package body Scaling is
  LocUOutValid : Boolean := False;
  -- holds the values for Scaling()
 
+ UIn      : Tin;
+ UInValid : Boolean := False;
 
 
 
@@ -15,7 +17,10 @@ procedure Init_Undef
 is
     Do_Linear : Boolean;
 begin
-    Do_Linear := Init_UOut(UInValid, UIn, UOutValid, UOut);
+    Scaling.UIn      := UIn;
+    Scaling.UInValid := UInValid;
+
+    Do_Linear := Init_UOut(Scaling.UInValid, Scaling.UIn, UOutValid, UOut);
     if(Do_Linear)
     then
         UOut      := Linear(UIn);

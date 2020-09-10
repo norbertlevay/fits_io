@@ -59,12 +59,10 @@ package body Physical.Data_Unit is
 
     TT_Scaling.A := A;
     TT_Scaling.B := B;
-    TT_Scaling.UInValid := UIn_Valid;
-    TT_Scaling.UIn      := UIn_Value;
 
     -- init undef-value
 
-    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, Undef_Valid, Undef_Value);
+    TT_Scaling.Init_Undef(UIn_Valid, UIn_Value, Undef_Valid, Undef_Value);
 
     -- scale array-values
 
@@ -105,12 +103,10 @@ package body Physical.Data_Unit is
 
     TT_Scaling.A := A;
     TT_Scaling.B := B;
-    TT_Scaling.UInValid := Undef_Valid;
-    TT_Scaling.UIn      := Undef_Value;
 
     -- init undef-value
 
-    TT_Scaling.Init_Undef(TT_Scaling.UInValid, TT_Scaling.UIn, UOut_Valid, UOut_Value);
+    TT_Scaling.Init_Undef(Undef_Valid, Undef_Value, UOut_Valid, UOut_Value);
 
     -- scale array-values
 
