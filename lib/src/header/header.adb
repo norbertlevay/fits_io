@@ -1,4 +1,36 @@
 
+
+-- NOTE on possible internal structures to represent a Header:
+-- Mandatory.Result_Rec
+-- Arrays               -- max Length Card_Arr for all categories of Reserved keys
+-- Observation
+-- Biblio
+-- <all Reserved categories as of V3 Standard>  NOTE Version3 dependency!?
+-- Buffer_COMMENTS      -- Buffer represents a fixed size record needed to maintain a buffer
+-- Buffer_HISTORY       -- to read COMMENTS/HISTORY/Optional cards from Header on demand
+-- Buffer_Optional_Proprietary
+
+-- Cards in Header are of 3 categories:
+-- No limit:
+-- cards whose count has no limit: COMMENTS HISTORY and Optional-proprietary
+-- have no limit in Card_Arr'Length so only a buffer
+-- to those cards in File can be build, ultimately they are always accesed from File
+-- Limit on Max-count:
+-- Cards category whose count has max-limit: Reserved
+-- Fixed size:
+-- Mandatory cards can be mapped to fixed size record
+
+-- As Internal model:
+-- These structures can be viewed as internal model of the Header - they become state variables
+-- and must be kept consistent with Header at any moment of execution
+-- (Read Writes even in parallel: locking the file)
+-- OR
+-- As Optimization:
+-- if restricted their use to Read-only Open (e.g. Header cannot change) they serve as buffers for
+-- access/speed optimization at Reads
+-- FIXME how about Writes ?
+
+
 with Ada.Text_IO;
 
 
