@@ -13,6 +13,29 @@
 -- for (U)Int:  new-BLANK = A + B * BLANK
 -- for Float:   A + B * NaN -> raises exception
 
+-- NOTE Undefined values must be also converted (as the valid vaues).
+-- For Read direction: Tf -> Tm for Write: Tm -> Tf
+-- The value in target has _2_ _sources_ :
+-- * user and the Header-BLANK, for Read
+-- * user and Tf_Undef = Scaling(Tm_Undef), for Write
+
+-- Rule is: user's value takes precedence if given.
+
+-- Accepting this rule means we need to check that user did not choose
+-- a value which falls to range of valid values in target-type.
+-- E.g. for each value add check:
+-- if (Vout = Uout & Vin /= UIn)
+--      error: "Output value is undefined however input was valid-value""
+-- end if;
+
+-- In special case of Float -> (U)Int converions user _must_ spedify
+-- the target undefined value; it would require read through all data twice:
+-- * first establish the range/histogram (values can have holes along the range)
+-- of converted valid values in target type
+-- (and choose undef val; also note: if target range covers fully the range
+-- of variable type, there is no space to choose an undef value -> raise error)
+-- * second do the actual conversion.
+
 with Ada.Text_IO;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
