@@ -141,10 +141,20 @@ end Init_Undef_For_Write;
 
     Tf_Raw.Read_Array(F, RawData);
 
-    for I in RawData'Range
-    loop
-       Data(I) := TTR_Scaling.Linear(RawData(I));
-    end loop;
+    if(TTR_Scaling.Is_Undef_Inited)
+    then
+        -- data may contain undefined values, undef values are converted by substitution
+        for I in RawData'Range
+        loop
+            Data(I) := TTR_Scaling.Linear(RawData(I));
+        end loop;
+    else
+        -- data contains no undefined vales, all values can be converted by Linear scaling
+        for I in RawData'Range
+        loop
+            Data(I) := TTR_Scaling.Pure_Linear(RawData(I));
+        end loop;
+    end if;
 
   end Read_Array;
 
@@ -163,10 +173,18 @@ begin
 
     -- scale array-values
 
-    for I in RawData'Range
-    loop
-        RawData(I) := TTW_Scaling.Linear(Data(I));
-    end loop;
+    if(TTW_Scaling.Is_Undef_Inited)
+    then
+        for I in RawData'Range
+        loop
+            RawData(I) := TTW_Scaling.Linear(Data(I));
+        end loop;
+    else
+        for I in RawData'Range
+        loop
+            RawData(I) := TTW_Scaling.Pure_Linear(Data(I));
+        end loop;
+    end if;
 
     Tf_Raw.Write_Array(F, RawData);
 
@@ -181,11 +199,9 @@ begin
     NAXISn  : in NAXIS_Arr;
     First   : in NAXIS_Arr;
     VolumeSize : in NAXIS_Arr;
---    Last    : in NAXIS_Arr;
     Volume  : out Tm_Arr;
     A,B : in Tc)
   is
-    --VolLength : Positive_Count := Raw_Funcs.Volume_Length(First, Last);
     VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
     RawVol: Tf_Arr(1 .. VolLength);
   begin
@@ -196,12 +212,19 @@ begin
     -- scale array-values
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);
-    --Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, Last, RawVol);
 
-    for I in RawVol'Range
-    loop
-      Volume(I) := TTR_Scaling.Linear(RawVol(I));
-    end loop;
+    if(TTR_Scaling.Is_Undef_Inited)
+    then
+        for I in RawVol'Range
+        loop
+            Volume(I) := TTR_Scaling.Linear(RawVol(I));
+        end loop;
+    else
+        for I in RawVol'Range
+        loop
+            Volume(I) := TTR_Scaling.Pure_Linear(RawVol(I));
+        end loop;
+    end if;
 
   end Read_Volume;
 
@@ -226,10 +249,18 @@ begin
 
     -- scale array-values
 
-    for I in RawVol'Range
-    loop
-      RawVol(I) := TTW_Scaling.Linear(Volume(I));
-    end loop;
+    if(TTW_Scaling.Is_Undef_Inited)
+    then
+        for I in RawVol'Range
+        loop
+            RawVol(I) := TTW_Scaling.Linear(Volume(I));
+        end loop;
+    else
+        for I in RawVol'Range
+        loop
+            RawVol(I) := TTW_Scaling.Pure_Linear(Volume(I));
+        end loop;
+    end if;
 
     Tf_Raw.Write_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);
 

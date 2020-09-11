@@ -29,8 +29,12 @@ procedure Init_Undef
     (UInValid : in     Boolean; UIn  : in     Tin;
     UOutValid : in out Boolean; UOut : in out Tout);
 
+function Is_Undef_Inited return Boolean;
+
+function Pure_Linear(Vin : Tin) return Tout;
+-- no checks for Undef value
 
 function Linear(Vin : Tin) return Tout;
-
+-- includes check and conversion of Undef values
 
 end Scaling;

@@ -33,7 +33,21 @@ begin
 end Init_Undef;
 
 
+function Is_Undef_Inited return Boolean
+is
+begin
+    return (UInValid OR LocUOutValid);
+end Is_Undef_Inited;
 
+
+
+
+
+function Pure_Linear(Vin : Tin) return Tout
+is
+begin
+    return +(A + B * (+Vin));
+end Pure_Linear;
 
 
 
@@ -58,6 +72,7 @@ begin
 
         -- convert normal value
 
+        -- FIXME call Pure_Linear() here
         Vout := +(A + B * (+Vin));
 
         -- Vout may be undefined-value only-and-only-if input is undefined-value

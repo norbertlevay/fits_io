@@ -41,15 +41,18 @@ package body Physical.Data_Unit is
     is
         Eout : Tm := TT_Scaling.Linear(E);
     begin
---        if(Is_Undef(Eout, Undef_Value, Undef_Valid))
---        then
---            Undef_Elem(Eout);
---        else
             Data_Elem(Eout);
---        end if;
     end RawData;
 
-    procedure Read_DU is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData);
+    procedure RawData_NoUndefs(E : in Tf)
+    is
+        Eout : Tm := TT_Scaling.Pure_Linear(E);
+    begin
+            Data_Elem(Eout);
+    end RawData_NoUndefs;
+
+    procedure Read_DU           is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData);
+    procedure Read_DU_NoUndefs  is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData_NoUndefs);
 
  begin
 
@@ -58,7 +61,12 @@ package body Physical.Data_Unit is
 
     -- scale array-values
 
-    Read_DU(File, NAXISn);
+    if(TT_Scaling.Is_Undef_Inited)
+    then
+        Read_DU(File, NAXISn);
+    else
+        Read_DU_NoUndefs(File, NAXISn);
+    end if;
 
  end Read_Data_Unit;
 
@@ -85,7 +93,18 @@ package body Physical.Data_Unit is
         E := TT_Scaling.Linear(Em);
     end RawData;
 
-    procedure Write_DU is new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding,RawData);
+    procedure RawData_NoUndefs(E : out Tf) 
+    is
+        Em : Tm; 
+    begin
+        Data_Elem(Em);
+        E := TT_Scaling.Pure_Linear(Em);
+    end RawData_NoUndefs;
+
+    procedure Write_DU is
+        new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding, RawData);
+    procedure Write_DU_NoUndefs is
+        new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding, RawData_NoUndefs);
 
  begin
 
@@ -94,7 +113,12 @@ package body Physical.Data_Unit is
 
     -- scale array-values
 
-    Write_DU(File, NAXISn);
+    if(TT_Scaling.Is_Undef_Inited)
+    then
+        Write_DU(File, NAXISn);
+    else
+        Write_DU_NoUndefs(File, NAXISn);
+    end if;
 
  end Write_Data_Unit;
 
