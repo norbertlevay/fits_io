@@ -50,7 +50,7 @@ with Header;
 
 with Scaling;
 
-package body Physical is
+package body DU_Type.Physical is
 
     use SIO;
     package TIO renames Ada.Text_IO;
@@ -267,5 +267,5 @@ begin
   end Write_Volume;
 
 
-end Physical;
+end DU_Type.Physical;
 

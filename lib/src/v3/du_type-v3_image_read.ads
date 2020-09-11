@@ -5,9 +5,9 @@ with Optional; -- Card_Arr needed
 with V3_Types; use V3_Types;
 
 generic
-type Tm is private;
-type Tm_Arr is array (Positive_Count range <>) of Tm;
-type Tc is digits <>;
+--type Tm is private;
+--type Tm_Arr is array (Positive_Count range <>) of Tm;
+--type Tc is digits <>;
 -- for Read direction
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_64; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
 with function Init_UOut(UInValid : in Boolean; UIn : in Float_32; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
@@ -56,7 +56,7 @@ with function "+"(R : Tc) return Unsigned_8 is <>;
 with function To_V3Type(S : String) return Tm is <>;
 --with function To_V3Type(S : String) return Tc is <>;
 
-package V3_Image_Read is
+package DU_Type.V3_Image_Read is
 
   package SIO renames Ada.Streams.Stream_IO;
 
@@ -100,5 +100,5 @@ procedure Write_Data_Unit_By_Planes
     NAXISi : in NAXIS_Arr); -- Tm_Arr has size NAXIS1 .. NAXISi, where i<=NAXISn'Length
 
 
-end V3_Image_Read;
+end DU_Type.V3_Image_Read;
 

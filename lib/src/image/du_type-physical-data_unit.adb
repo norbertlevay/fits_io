@@ -13,7 +13,7 @@ with Header;
 
 with Scaling;
 
-package body Physical.Data_Unit is
+package body DU_Type.Physical.Data_Unit is
 
   use SIO;
 
@@ -124,5 +124,5 @@ package body Physical.Data_Unit is
 
 
 
-end Physical.Data_Unit;
+end DU_Type.Physical.Data_Unit;
 

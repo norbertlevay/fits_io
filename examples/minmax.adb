@@ -15,8 +15,8 @@ with Header;            -- Header.Read_Optional needed
 -- these type-dependent implementations:
 with V3_Pool_Scaling;   use V3_Pool_Scaling;
 
-with TT_App;
-with TT_App.Minmax;
+with DU_Type.TT_App;
+with DU_Type.TT_App.Minmax;
 
 procedure minmax is
 
@@ -24,14 +24,23 @@ procedure minmax is
     package SIO renames Ada.Streams.Stream_IO;
     package CLI renames Ada.Command_Line;
 
+    package PF64 is new DU_Type(Float_64,   F64_Arr, Float_64);
+    package PF32 is new DU_Type(Float_32,   F32_Arr, Float_32);
+    package PI64 is new DU_Type(Integer_64, I64_Arr, Float_64);
+    package PI32 is new DU_Type(Integer_32, I32_Arr, Float_64);
+    package PI16 is new DU_Type(Integer_16, I16_Arr, Float_32);
+    package PU8  is new DU_Type(Unsigned_8, U8_Arr,  Float_32);
 
-    package TF64 is new TT_App(Float_64,   F64_Arr, Float_64, Float_64);
-    package TF32 is new TT_App(Float_32,   F32_Arr, Float_32, Float_32);
-    package TI64 is new TT_App(Integer_64, I64_Arr, Float_64, Integer_64);
-    package TI32 is new TT_App(Integer_32, I32_Arr, Float_64, Integer_32);
-    package TI16 is new TT_App(Integer_16, I16_Arr, Float_32, Integer_16);
-    package TU8  is new TT_App(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
 
+    -- Tf = Tm
+    package TF64 is new PF64.TT_App(Float_64);
+    package TF32 is new PF32.TT_App(Float_32);
+    package TI64 is new PI64.TT_App(Integer_64);
+    package TI32 is new PI32.TT_App(Integer_32);
+    package TI16 is new PI16.TT_App(Integer_16);
+    package TU8  is new PU8.TT_App (Unsigned_8);
+
+    -- app code for all T
     package F64 is new TF64.Minmax;
     package F32 is new TF32.Minmax;
     package I64 is new TI64.Minmax;

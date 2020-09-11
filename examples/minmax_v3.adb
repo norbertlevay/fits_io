@@ -6,7 +6,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with V3_Types;  use V3_Types;
 
 with File;
-with V3_Image_Read;
+with DU_Type.V3_Image_Read;
 
 with Optional;
 with Optional.Reserved;
@@ -56,7 +56,8 @@ procedure minmax_V3 is
         end loop;
     end Plane_Data;
 
-    package   F64_V3Image_Read is new V3_Image_Read(Tmm,Tmm_Arr,Tcc);
+    package   F64 is new DU_Type(Tmm,Tmm_Arr,Tcc);
+    package   F64_V3Image_Read is new F64.V3_Image_Read;
     procedure Read_Data_Unit   is new F64_V3Image_Read.Read_Data_Unit_By_Planes(Plane_Data);
 
     InFile   : SIO.File_Type;

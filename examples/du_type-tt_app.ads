@@ -13,9 +13,9 @@ with Ada.Streams.Stream_IO;
 
 
   generic
-    type Tm is private;
-    type Tm_Arr is array (Ada.Streams.Stream_IO.Positive_Count range <>) of Tm;
-    type Tc is digits <>;
+--    type Tm is private;
+--    type Tm_Arr is array (Ada.Streams.Stream_IO.Positive_Count range <>) of Tm;
+--    type Tc is digits <>;
     type Tf is private;
 
     with function To_V3Type(Arg : String) return Tf is <>;
@@ -40,7 +40,7 @@ with Ada.Streams.Stream_IO;
     with function ">"(L,R : Tm)  return Boolean is <>;
     with function "<"(L,R : Tm)  return Boolean is <>;
     with function To_V3Type(S : String) return Tm is <>;
-  package TT_App is
-  end TT_App;
+  package DU_Type.TT_App is
+  end DU_Type.TT_App;
 
 

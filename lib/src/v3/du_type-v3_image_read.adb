@@ -9,19 +9,19 @@ with Header; use Header;
 with File;
 with V3_Types; use V3_Types;-- types needed
 
-with Physical;
+with DU_Type.Physical;
 
-package body V3_Image_Read is
+package body DU_Type.V3_Image_Read is
 
-package TIO renames Ada.Text_IO;
+    package TIO renames Ada.Text_IO;
 
-  Package F64_Physical is new Physical(Tm, Tm_Arr, Tc, Float_64);
-  Package F32_Physical is new Physical(Tm, Tm_Arr, Tc, Float_32);
 
-  Package I64_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_64);
-  Package I32_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_32);
-  Package I16_Physical is new Physical(Tm, Tm_Arr, Tc, Integer_16);
-  Package U8_Physical  is new Physical(Tm, Tm_Arr, Tc, Unsigned_8);
+    package F64_Physical is new Physical(Float_64);
+    package F32_Physical is new Physical(Float_32);
+    package I64_Physical is new Physical(Integer_64);
+    package I32_Physical is new Physical(Integer_32);
+    package I16_Physical is new Physical(Integer_16);
+    package U8_Physical  is new Physical(Unsigned_8);
 
 
 
@@ -245,5 +245,5 @@ end Write_Data_Unit_By_Planes;
 
 
 
-end V3_Image_Read;
+end DU_Type.V3_Image_Read;
 

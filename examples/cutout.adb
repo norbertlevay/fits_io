@@ -33,7 +33,7 @@ with Header;
 
 
 with V3_Pool_Scaling; use V3_Pool_Scaling;
-with V3_Image_Read;
+with DU_Type.V3_Image_Read;
 
 procedure cutout
 is
@@ -46,7 +46,8 @@ is
 
  -- instantiate Read Volume func for Float_32 Tm   Tm_Arr    Tc     
 -- package F64_Image is new V3_Image_Read(Float_64, F64_Arr,Float_64);
- package F32_Image is new V3_Image_Read(Float_32, F32_Arr,Float_32);
+ package F32 is new DU_Type(Float_32, F32_Arr,Float_32);
+ package F32_Image is new F32.V3_Image_Read;
 
  
  InFile : SIO.File_Type;

@@ -2,7 +2,7 @@
 with Ada.Text_IO;
 
 
-package body TT_App.Minmax is
+package body DU_Type.TT_App.Minmax is
 
     package TIO renames Ada.Text_IO;
 
@@ -44,5 +44,5 @@ package body TT_App.Minmax is
         TIO.Put_Line("Max                    : " & T_Image(Max));
     end Put_Results;
 
-end TT_App.Minmax;
+end DU_Type.TT_App.Minmax;
 

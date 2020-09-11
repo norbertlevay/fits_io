@@ -14,7 +14,7 @@ with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
 with Optional;        use Optional;       -- Card_Arr & ENDCard needed 
 with Header;          use Header;         -- needed to setup Header-record
 with Raw.Data_Unit;                       -- writes data unit
-with Physical.Data_Unit;                  -- writes data unit
+with DU_Type.Physical.Data_Unit;          -- writes data unit
 with V3_Pool_Scaling; use V3_Pool_Scaling;
 
 with File.Misc;       use File.Misc; -- needs Write_Padding for Header
@@ -81,13 +81,10 @@ is
  end DUElem;
 
 
- package U8_Phys is new Physical(Unsigned_8, U8_Arr, Float_32, Unsigned_8);
+ package U8 is new DU_Type(Unsigned_8, U8_Arr, Float_32);
+ package U8_Phys is new U8.Physical(Unsigned_8);
  package U8_Phys_DU is new U8_Phys.Data_Unit;
  procedure U8_Write_Data_Unit_Phys is new U8_Phys_DU.Write_Data_Unit(0, DUElem);
--- U8Dummy1_Valid : Boolean := False;
--- U8Dummy1 : Unsigned_8;
--- U8Dummy2_Valid : Boolean := False;
--- U8Dummy2 : Unsigned_8;
 
 begin
 

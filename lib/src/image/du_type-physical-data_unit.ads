@@ -5,7 +5,7 @@ with Optional; -- Card_Arr needed
 
 
 generic
-package Physical.Data_Unit is
+package DU_Type.Physical.Data_Unit is
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -47,5 +47,5 @@ package Physical.Data_Unit is
 
 
 
-end Physical.Data_Unit;
+end DU_Type.Physical.Data_Unit;
 

@@ -37,9 +37,9 @@ with Optional; -- Card_Arr needed
 
 
 generic
-  type Tm is private;   -- type in memory
-  type Tm_Arr is array (Positive_Count range <>) of Tm;
-  type Tc is digits <>; -- type in which scaling is calculated
+--  type Tm is private;   -- type in memory
+--  type Tm_Arr is array (Positive_Count range <>) of Tm;
+--  type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file
 
 with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
@@ -58,7 +58,7 @@ with function To_V3Type(Arg : String) return Tf is <>;
 with function To_V3Type(Arg : String) return Tm is <>;
 
 
-package Physical is
+package DU_Type.Physical is
 
  package SIO renames Ada.Streams.Stream_IO;
 
@@ -117,5 +117,5 @@ package Physical is
          A,B : in Tc);
 
 
-end Physical;
+end DU_Type.Physical;
 
