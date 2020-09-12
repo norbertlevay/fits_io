@@ -1,7 +1,7 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
-with V3_Types; -- Unsigned_8 needed for Padding value
+--with V3_Types; -- Unsigned_8 needed for Padding value
 
 package File.Misc is
 
@@ -12,12 +12,12 @@ package File.Misc is
    -- Write Header/Data Padding --
    -------------------------------
 
-   HeaderPadValue : constant V3_Types.Unsigned_8 := 32; -- Space ASCII value
-   DataPadValue   : constant V3_Types.Unsigned_8 :=  0;
+--   HeaderPadValue : constant V3_Types.Unsigned_8 := 32; -- Space ASCII value
+--   DataPadValue   : constant V3_Types.Unsigned_8 :=  0;
 
-   procedure Write_Padding(FitsFile : in SIO.File_Type;
-                           From     : in SIO.Positive_Count;
-                           PadValue : in V3_Types.Unsigned_8);
+--   procedure Write_Padding(FitsFile : in SIO.File_Type;
+--                           From     : in SIO.Positive_Count;
+--                           PadValue : in V3_Types.Unsigned_8);
    -- [FITS ??]: FITS file consists of 2880-bytes long blocks.
    -- If last Header- or Data-block is not filled up,
    -- Write_Padding puts PadValue from FileOffset until end of the block.

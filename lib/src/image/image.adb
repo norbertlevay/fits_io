@@ -4,7 +4,7 @@ with Ada.Streams.Stream_IO;
 with Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
 with Header;    -- Image_Rec needed
-with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
+--with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
 
 --generic
 --type T is private;
