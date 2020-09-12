@@ -57,8 +57,9 @@ generic
 --with function To_V3Type(Arg : String) return Tc is <>;
 --with function To_V3Type(Arg : String) return Tf is <>;
 --with function To_V3Type(Arg : String) return Tm is <>;
- with package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
- with package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
+
+with package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
+with package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
 
 
 
@@ -119,6 +120,46 @@ package DU_Type.Physical is
          VolumeSize : in NAXIS_Arr;
          Volume     : in Tm_Arr;
          A,B : in Tc);
+
+
+
+    -- Data Unit acces
+
+
+     generic
+     with procedure Data_Elem (Elem : in Tm);
+----     with procedure Undef_Elem(Elem : in Tm);
+--     with function Init_UOut(UInValid : in Boolean;
+--        UIn : in Tf; UOutValid : in out Boolean; UOut : in out Tm) return Boolean is <>;
+--     with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>;
+--     with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>;
+--     with function "+"(R : Tf) return Tc is <>;
+--     with function "+"(R : Tc) return Tm is <>; 
+     procedure Read_Data_Unit
+         (File  : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         A,B    : in Tc);
+
+
+
+
+
+    generic
+     Tf_DataPadding : Tf; 
+     with procedure Data_Elem (Elem : out Tm);
+--     with function Init_UOut(UInValid : in Boolean; UIn : in Tm; 
+--          UOutValid : in out Boolean; UOut : in out Tf) return Boolean is <>; 
+--     with function Is_Undef(V,U : Tm; UValid : Boolean) return Boolean is <>; 
+--     with function Is_Undef(V,U : Tf; UValid : Boolean) return Boolean is <>; 
+--     with function "+"(R : Tm) return Tc is <>; 
+--     with function "+"(R : Tc) return Tf is <>; 
+     procedure Write_Data_Unit
+         (File  : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         A,B    : in Tc);
+
+
+
 
 
 end DU_Type.Physical;

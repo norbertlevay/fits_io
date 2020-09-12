@@ -271,5 +271,113 @@ begin
   end Write_Volume;
 
 
+    -- Data Unit access
+
+--  type Tf_Arr is array (Positive_Count range <>) of Tf;
+--    package Tf_Raw is new Raw(Tf,Tf_Arr);
+    package Tf_Raw_DU is new Tf_Raw.Data_Unit;
+
+
+
+procedure Read_Data_Unit
+  (File : SIO.File_Type;
+  NAXISn : in NAXIS_Arr;
+  A,B : in Tc)
+ is
+
+    --package TT_Scaling is new Scaling(Tm,Tc,Tf);
+
+    procedure RawData(E : in Tf)
+    is
+        Eout : Tm;-- := TTR_Scaling.Linear(E);
+    begin
+            Data_Elem(Eout);
+    end RawData;
+
+    procedure RawData_NoUndefs(E : in Tf)
+    is
+        Eout : Tm;-- := TTR_Scaling.Pure_Linear(E);
+    begin
+            Data_Elem(Eout);
+    end RawData_NoUndefs;
+
+    procedure Read_DU           is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData);
+    procedure Read_DU_NoUndefs  is new Tf_Raw_DU.Read_Data_Unit_By_Element(RawData_NoUndefs);
+
+ begin
+
+--    TTR_Scaling.A := A;
+--    TTR_Scaling.B := B;
+
+    -- scale array-values
+
+    if(DU_Type.Is_Undef_Inited)
+    --if(TT_Scaling.Is_Undef_Inited)
+    then
+        Read_DU(File, NAXISn);
+    else
+        Read_DU_NoUndefs(File, NAXISn);
+    end if;
+
+ end Read_Data_Unit;
+
+
+
+
+
+procedure Write_Data_Unit
+         (File  : SIO.File_Type;
+         NAXISn : in NAXIS_Arr;
+         A,B    : in Tc) 
+ is
+
+    --package TT_Scaling is new Scaling(Tf,Tc,Tm);
+
+    procedure RawData(E : out Tf) 
+    is  
+        Em : Tm; 
+    begin
+        Data_Elem(Em);
+--        E := TTW_Scaling.Linear(Em);
+    end RawData;
+
+    procedure RawData_NoUndefs(E : out Tf) 
+    is  
+        Em : Tm; 
+    begin
+        Data_Elem(Em);
+--        E := TTW_Scaling.Pure_Linear(Em);
+    end RawData_NoUndefs;
+
+    procedure Write_DU is
+        new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding, RawData);
+    procedure Write_DU_NoUndefs is
+        new Tf_Raw_DU.Write_Data_Unit_By_Element(Tf_DataPadding, RawData_NoUndefs);
+
+ begin
+
+--    TTW_Scaling.A := A;
+--    TTW_Scaling.B := B;
+
+    -- scale array-values
+
+    if(DU_Type.Is_Undef_Inited)
+    --if(TT_Scaling.Is_Undef_Inited)
+    then
+        Write_DU(File, NAXISn);
+    else
+        Write_DU_NoUndefs(File, NAXISn);
+    end if;
+
+ end Write_Data_Unit;
+
+
+
+
+
+
+
+
+
 end DU_Type.Physical;
 
