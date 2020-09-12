@@ -2,44 +2,12 @@
 
 package body Scaling is
 
+    -- FIXME these are dummy - remove them
+    -- DU_Type::Is_Undef will check against values stored in DU_Type, not here
  LocUOut      : Tout;
  LocUOutValid : Boolean := False;
- -- holds the values for Scaling()
-
  UIn      : Tin;
  UInValid : Boolean := False;
-
-
-
-procedure Init_Undef
-    (UInValid : in Boolean;     UIn : in Tin;
-    UOutValid : in out Boolean; UOut : in out Tout)
-is
-    Do_Linear : Boolean;
-begin
-    Scaling.UIn      := UIn;
-    Scaling.UInValid := UInValid;
-
-    Do_Linear := Init_UOut(Scaling.UInValid, Scaling.UIn, UOutValid, UOut);
-    if(Do_Linear)
-    then
-        UOut      := Linear(UIn);
-        UOutValid := True;
-    end if;
-
-    LocUOut := UOut;
-    LocUOutValid := UOutValid;
-
-end Init_Undef;
-
-
-function Is_Undef_Inited return Boolean
-is
-begin
-    return (UInValid OR LocUOutValid);
-end Is_Undef_Inited;
-
-
 
 
 
@@ -72,8 +40,8 @@ begin
 
         -- convert normal value
 
-        -- FIXME call Pure_Linear() here
-        Vout := +(A + B * (+Vin));
+--        Vout := +(A + B * (+Vin));
+        Vout := Pure_Linear(Vin);
 
         -- Vout may be undefined-value only-and-only-if input is undefined-value
         -- verify output is not Undefined value (User may specify UndefOut incorrectly)

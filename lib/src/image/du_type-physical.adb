@@ -58,8 +58,8 @@ package body DU_Type.Physical is
     type Tf_Arr is array (Positive_Count range <>) of Tf;
     package Tf_Raw is new Raw(Tf,Tf_Arr);
 
-    package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
-    package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
+--    package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
+--    package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
 
 
 
@@ -105,22 +105,22 @@ end Header_Info;
 
  -- Read Write procedures
 
-procedure Init_Undef_For_Read
-    (UInValid : in     Boolean; UIn  : in     Tf;
-    UOutValid : in out Boolean; UOut : in out Tm)
-is
-begin
-    TTR_Scaling.Init_Undef(UInValid, UIn, UOutValid, UOut);
-end Init_Undef_For_Read;
+--procedure Init_Undef_For_Read
+--    (UInValid : in     Boolean; UIn  : in     Tf;
+--    UOutValid : in out Boolean; UOut : in out Tm)
+--is
+--begin
+--    TTR_Scaling.Init_Undef(UInValid, UIn, UOutValid, UOut);
+--end Init_Undef_For_Read;
 
 
-procedure Init_Undef_For_Write
-    (UInValid : in     Boolean; UIn  : in     Tm;
-    UOutValid : in out Boolean; UOut : in out Tf)
-is
-begin
-    TTW_Scaling.Init_Undef(UInValid, UIn, UOutValid, UOut);
-end Init_Undef_For_Write;
+--procedure Init_Undef_For_Write
+--    (UInValid : in     Boolean; UIn  : in     Tm;
+--    UOutValid : in out Boolean; UOut : in out Tf)
+--is
+--begin
+--    TTW_Scaling.Init_Undef(UInValid, UIn, UOutValid, UOut);
+--end Init_Undef_For_Write;
 
 
 
@@ -141,7 +141,8 @@ end Init_Undef_For_Write;
 
     Tf_Raw.Read_Array(F, RawData);
 
-    if(TTR_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TTR_Scaling.Is_Undef_Inited)
     then
         -- data may contain undefined values, undef values are converted by substitution
         for I in RawData'Range
@@ -173,7 +174,8 @@ begin
 
     -- scale array-values
 
-    if(TTW_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TTW_Scaling.Is_Undef_Inited)
     then
         for I in RawData'Range
         loop
@@ -213,7 +215,8 @@ begin
 
     Tf_Raw.Read_Volume(File, DUStart, NAXISn, First, VolumeSize, RawVol);
 
-    if(TTR_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TTR_Scaling.Is_Undef_Inited)
     then
         for I in RawVol'Range
         loop
@@ -249,7 +252,8 @@ begin
 
     -- scale array-values
 
-    if(TTW_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TTW_Scaling.Is_Undef_Inited)
     then
         for I in RawVol'Range
         loop

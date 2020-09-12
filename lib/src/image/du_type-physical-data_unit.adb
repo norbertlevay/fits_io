@@ -35,18 +35,18 @@ package body DU_Type.Physical.Data_Unit is
   A,B : in Tc)
  is
 
-    package TT_Scaling is new Scaling(Tm,Tc,Tf);
+    --package TT_Scaling is new Scaling(Tm,Tc,Tf);
 
     procedure RawData(E : in Tf)
     is
-        Eout : Tm := TT_Scaling.Linear(E);
+        Eout : Tm := TTR_Scaling.Linear(E);
     begin
             Data_Elem(Eout);
     end RawData;
 
     procedure RawData_NoUndefs(E : in Tf)
     is
-        Eout : Tm := TT_Scaling.Pure_Linear(E);
+        Eout : Tm := TTR_Scaling.Pure_Linear(E);
     begin
             Data_Elem(Eout);
     end RawData_NoUndefs;
@@ -56,12 +56,13 @@ package body DU_Type.Physical.Data_Unit is
 
  begin
 
-    TT_Scaling.A := A;
-    TT_Scaling.B := B;
+    TTR_Scaling.A := A;
+    TTR_Scaling.B := B;
 
     -- scale array-values
 
-    if(TT_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TT_Scaling.Is_Undef_Inited)
     then
         Read_DU(File, NAXISn);
     else
@@ -83,14 +84,14 @@ package body DU_Type.Physical.Data_Unit is
          A,B    : in Tc)
  is
 
-    package TT_Scaling is new Scaling(Tf,Tc,Tm);
+    --package TT_Scaling is new Scaling(Tf,Tc,Tm);
 
     procedure RawData(E : out Tf) 
     is
         Em : Tm; 
     begin
         Data_Elem(Em);
-        E := TT_Scaling.Linear(Em);
+        E := TTW_Scaling.Linear(Em);
     end RawData;
 
     procedure RawData_NoUndefs(E : out Tf) 
@@ -98,7 +99,7 @@ package body DU_Type.Physical.Data_Unit is
         Em : Tm; 
     begin
         Data_Elem(Em);
-        E := TT_Scaling.Pure_Linear(Em);
+        E := TTW_Scaling.Pure_Linear(Em);
     end RawData_NoUndefs;
 
     procedure Write_DU is
@@ -108,12 +109,13 @@ package body DU_Type.Physical.Data_Unit is
 
  begin
 
-    TT_Scaling.A := A;
-    TT_Scaling.B := B;
+    TTW_Scaling.A := A;
+    TTW_Scaling.B := B;
 
     -- scale array-values
 
-    if(TT_Scaling.Is_Undef_Inited)
+    if(DU_Type.Is_Undef_Inited)
+    --if(TT_Scaling.Is_Undef_Inited)
     then
         Write_DU(File, NAXISn);
     else

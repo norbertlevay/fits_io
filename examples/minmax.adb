@@ -11,12 +11,13 @@ with Optional;          -- Card_Arr needed
 with Optional.Reserved; -- Reserved cards needed
 with Header;            -- Header.Read_Optional needed
 
--- we instantiate here TT_App which need
--- these type-dependent implementations:
+with Scaling;
 with V3_Pool_Scaling;   use V3_Pool_Scaling;
 
-with DU_Type.TT_App;
-with DU_Type.TT_App.Minmax;
+with DU_Type;
+with DU_Type.Physical;
+with DU_Type.Physical.Data_Unit;
+with DU_Type.Minmax;
 
 procedure minmax is
 
@@ -24,29 +25,47 @@ procedure minmax is
     package SIO renames Ada.Streams.Stream_IO;
     package CLI renames Ada.Command_Line;
 
-    package PF64 is new DU_Type(Float_64,   F64_Arr, Float_64);
-    package PF32 is new DU_Type(Float_32,   F32_Arr, Float_32);
-    package PI64 is new DU_Type(Integer_64, I64_Arr, Float_64);
-    package PI32 is new DU_Type(Integer_32, I32_Arr, Float_64);
-    package PI16 is new DU_Type(Integer_16, I16_Arr, Float_32);
-    package PU8  is new DU_Type(Unsigned_8, U8_Arr,  Float_32);
-
-
-    -- Tf = Tm
-    package TF64 is new PF64.TT_App(Float_64);
-    package TF32 is new PF32.TT_App(Float_32);
-    package TI64 is new PI64.TT_App(Integer_64);
-    package TI32 is new PI32.TT_App(Integer_32);
-    package TI16 is new PI16.TT_App(Integer_16);
-    package TU8  is new PU8.TT_App (Unsigned_8);
+    package PF64 is new DU_Type(Float_64,   F64_Arr, Float_64, Float_64);
+    package PF32 is new DU_Type(Float_32,   F32_Arr, Float_32, Float_32);
+    package PI64 is new DU_Type(Integer_64, I64_Arr, Float_64, Integer_64);
+    package PI32 is new DU_Type(Integer_32, I32_Arr, Float_64, Integer_32);
+    package PI16 is new DU_Type(Integer_16, I16_Arr, Float_32, Integer_16);
+    package PU8  is new DU_Type(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
 
     -- app code for all T
-    package F64 is new TF64.Minmax;
-    package F32 is new TF32.Minmax;
-    package I64 is new TI64.Minmax;
-    package I32 is new TI32.Minmax;
-    package I16 is new TI16.Minmax;
-    package U8  is new TU8.Minmax;
+
+    package F64R_Scaling is new Scaling(Float_64,   Float_64, Float_64);
+    package F32R_Scaling is new Scaling(Float_32,   Float_32, Float_32);
+    package I64R_Scaling is new Scaling(Integer_64, Float_64, Integer_64);
+    package I32R_Scaling is new Scaling(Integer_32, Float_64, Integer_32);
+    package I16R_Scaling is new Scaling(Integer_16, Float_32, Integer_16);
+    package  U8R_Scaling is new Scaling(Unsigned_8, Float_32, Unsigned_8);
+
+
+
+
+    package F64_Phys   is new PF64.Physical(F64R_Scaling,F64R_Scaling);
+    package F32_Phys   is new PF32.Physical(F32R_Scaling,F32R_Scaling);
+    package I64_Phys   is new PI64.Physical(I64R_Scaling,I64R_Scaling);
+    package I32_Phys   is new PI32.Physical(I32R_Scaling,I32R_Scaling);
+    package I16_Phys   is new PI16.Physical(I16R_Scaling,I16R_Scaling);
+    package U8_Phys   is new PU8.Physical(U8R_Scaling,U8R_Scaling);
+
+    package F64_PhysDU is new F64_Phys.Data_Unit;
+    package F32_PhysDU is new F32_Phys.Data_Unit;
+    package I64_PhysDU is new I64_Phys.Data_Unit;
+    package I32_PhysDU is new I32_Phys.Data_Unit;
+    package I16_PhysDU is new I16_Phys.Data_Unit;
+    package U8_PhysDU is new U8_Phys.Data_Unit;
+
+
+
+    package F64 is new PF64.Minmax(F64_Phys,F64_PhysDU);
+    package F32 is new PF32.Minmax(F32_Phys,F32_PhysDU);
+    package I64 is new PI64.Minmax(I64_Phys,I64_PhysDU);
+    package I32 is new PI32.Minmax(I32_Phys,I32_PhysDU);
+    package I16 is new PI16.Minmax(I16_Phys,I16_PhysDU);
+    package U8  is new PU8.Minmax(U8_Phys,U8_PhysDU);
 
 
     InFile   : SIO.File_Type;
@@ -104,8 +123,8 @@ begin
                         UInValue : Float_64;
                         A,B : Float_64;
                     begin
-                        F64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        F64.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, F64UValue);
+                        F64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PF64.Init_Undef_For_Read(UInValid, UInValue, UValid, F64UValue);
                         F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F64.Put_Results(UValid, Float_64'Image(F64UValue));
@@ -117,8 +136,8 @@ begin
                         UInValue : Float_32;
                         A,B : Float_32;
                     begin
-                        F32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        F32.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, F32UValue);
+                        F32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PF32.Init_Undef_For_Read(UInValid, UInValue, UValid, F32UValue);
                         F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F32.Put_Results(UValid, Float_32'Image(F32UValue));
@@ -130,8 +149,8 @@ begin
                         UInValue : Integer_64;
                         A,B : Float_64;
                     begin
-                        I64.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        I64.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I64UValue);
+                        I64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PI64.Init_Undef_For_Read(UInValid, UInValue, UValid, I64UValue);
                         I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I64.Put_Results(UValid, Integer_64'Image(I64UValue));
@@ -140,8 +159,8 @@ begin
                         UInValue : Integer_32;
                         A,B : Float_64;
                     begin
-                        I32.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        I32.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I32UValue);
+                        I32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PI32.Init_Undef_For_Read(UInValid, UInValue, UValid, I32UValue);
                         I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I32.Put_Results(UValid, Integer_32'Image(I32UValue));
@@ -151,8 +170,8 @@ begin
                         UInValue : Integer_16;
                         A,B : Float_32;
                     begin
-                        I16.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        I16.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, I16UValue);
+                        I16_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PI16.Init_Undef_For_Read(UInValid, UInValue, UValid, I16UValue);
                         I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I16.Put_Results(UValid, Integer_16'Image(I16UValue));
@@ -161,8 +180,8 @@ begin
                         UInValue : Unsigned_8;
                         A,B : Float_32;
                     begin
-                        U8.T_Physical.Header_Info(Cards, A,B, UInValid, UInValue);
-                        U8.T_Physical.Init_Undef_For_Read(UInValid, UInValue, UValid, U8UValue);
+                        U8_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
+                        PU8.Init_Undef_For_Read(UInValid, UInValue, UValid, U8UValue);
                         U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
