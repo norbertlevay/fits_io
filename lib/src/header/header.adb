@@ -41,7 +41,7 @@ with Ada.Strings; use Ada.Strings;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with Ada.Unchecked_Deallocation;
 
-with V3_Types;   use V3_Types; -- Float_32 needed
+--with V3_Types;   use V3_Types; -- Float_32 needed
 with Mandatory;
 with File; use File;
 with File.Misc; -- needs Write_Padding for Header
@@ -235,13 +235,13 @@ begin
     return Vstr;
 end To_Value_String;
 
-function To_Value_String( V : in Float_32) return String
-is
-    Vstr: String(1 .. 20);
-begin
-    Move(Float_32'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
+--function To_Value_String( V : in Float_32) return String
+--is
+--    Vstr: String(1 .. 20);
+--begin
+--    Move(Float_32'Image(V), Vstr, Error, Right);
+--    return Vstr;
+--end To_Value_String;
 
 function To_Value_String( V : in Boolean) return String
 is
@@ -305,7 +305,7 @@ procedure Close(F : in SIO.File_Type)
 is
 begin
     String_80'Write(SIO.Stream(F), Keyword_Record.ENDCard);
-    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
+--    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
 end Close;
 
 
