@@ -53,22 +53,25 @@ is
  -- callback to generate data values
 
  ColCnt : SIO.Positive_Count := 1;
- type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
+ --type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
 
- procedure DUFLoatData(Data : out F32_Arr)
+ procedure DUFLoatData(Data : out Float_32)
+-- procedure DUFLoatData(Data : out F32_Arr)
  is
    use SIO; -- NOTE 'mod' "+" : 'operator not visible'
  begin
-  for I in Data'Range
-  loop
-    Data(I) := Float_32(ColCnt mod ColsCnt);
+--  for I in Data'Range
+--  loop
+    Data := Float_32(ColCnt mod ColsCnt);
+    --Data(I) := Float_32(ColCnt mod ColsCnt);
     ColCnt := ColCnt + 1;
-  end loop;
+ -- end loop;
  end DUFloatData;
 
  package F32_Raw is new Raw(Float_32, F32_Arr);
  package F32_Raw_DU is new F32_Raw.Data_Unit;
- procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);
+ procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit_By_Element(0.0, DUFloatData);
+ --procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);
 
 begin
 
