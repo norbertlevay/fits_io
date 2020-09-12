@@ -16,7 +16,7 @@ with V3_Pool_Scaling;   use V3_Pool_Scaling;
 
 with DU_Type;
 with DU_Type.Physical;
-with DU_Type.Physical.Data_Unit;
+--with DU_Type.Physical.Data_Unit;
 with DU_Type.Minmax;
 
 procedure minmax is
@@ -32,7 +32,6 @@ procedure minmax is
     package PI16 is new DU_Type(Integer_16, I16_Arr, Float_32, Integer_16);
     package PU8  is new DU_Type(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
 
-    -- app code for all T
 
     package F64R_Scaling is new Scaling(Float_64,   Float_64, Float_64);
     package F32R_Scaling is new Scaling(Float_32,   Float_32, Float_32);
@@ -41,31 +40,29 @@ procedure minmax is
     package I16R_Scaling is new Scaling(Integer_16, Float_32, Integer_16);
     package  U8R_Scaling is new Scaling(Unsigned_8, Float_32, Unsigned_8);
 
+    package F64_Phys   is new PF64.Physical;--(F64R_Scaling,F64R_Scaling);
+    package F32_Phys   is new PF32.Physical;--(F32R_Scaling,F32R_Scaling);
+    package I64_Phys   is new PI64.Physical;--(I64R_Scaling,I64R_Scaling);
+    package I32_Phys   is new PI32.Physical;--(I32R_Scaling,I32R_Scaling);
+    package I16_Phys   is new PI16.Physical;--(I16R_Scaling,I16R_Scaling);
+    package U8_Phys    is new PU8.Physical;--(U8R_Scaling,U8R_Scaling);
+
+--    package F64_PhysDU is new F64_Phys.Data_Unit;
+--    package F32_PhysDU is new F32_Phys.Data_Unit;
+--    package I64_PhysDU is new I64_Phys.Data_Unit;
+--    package I32_PhysDU is new I32_Phys.Data_Unit;
+--    package I16_PhysDU is new I16_Phys.Data_Unit;
+--    package U8_PhysDU  is new U8_Phys.Data_Unit;
 
 
 
-    package F64_Phys   is new PF64.Physical(F64R_Scaling,F64R_Scaling);
-    package F32_Phys   is new PF32.Physical(F32R_Scaling,F32R_Scaling);
-    package I64_Phys   is new PI64.Physical(I64R_Scaling,I64R_Scaling);
-    package I32_Phys   is new PI32.Physical(I32R_Scaling,I32R_Scaling);
-    package I16_Phys   is new PI16.Physical(I16R_Scaling,I16R_Scaling);
-    package U8_Phys   is new PU8.Physical(U8R_Scaling,U8R_Scaling);
-
-    package F64_PhysDU is new F64_Phys.Data_Unit;
-    package F32_PhysDU is new F32_Phys.Data_Unit;
-    package I64_PhysDU is new I64_Phys.Data_Unit;
-    package I32_PhysDU is new I32_Phys.Data_Unit;
-    package I16_PhysDU is new I16_Phys.Data_Unit;
-    package U8_PhysDU is new U8_Phys.Data_Unit;
-
-
-
-    package F64 is new PF64.Minmax(F64_Phys,F64_PhysDU);
-    package F32 is new PF32.Minmax(F32_Phys,F32_PhysDU);
-    package I64 is new PI64.Minmax(I64_Phys,I64_PhysDU);
-    package I32 is new PI32.Minmax(I32_Phys,I32_PhysDU);
-    package I16 is new PI16.Minmax(I16_Phys,I16_PhysDU);
-    package U8  is new PU8.Minmax(U8_Phys,U8_PhysDU);
+    -- app code for all T
+    package F64 is new PF64.Minmax(F64_Phys);--,F64_PhysDU);
+    package F32 is new PF32.Minmax(F32_Phys);--,F32_PhysDU);
+    package I64 is new PI64.Minmax(I64_Phys);--,I64_PhysDU);
+    package I32 is new PI32.Minmax(I32_Phys);--,I32_PhysDU);
+    package I16 is new PI16.Minmax(I16_Phys);--,I16_PhysDU);
+    package U8  is new PU8.Minmax(U8_Phys);--,U8_PhysDU);
 
 
     InFile   : SIO.File_Type;

@@ -1,8 +1,8 @@
 
 with Ada.Streams.Stream_IO;
 
-with DU_Type.Physical.Data_Unit;
 with DU_Type.Physical;
+with DU_Type.Physical.Data_Unit;
 with V3_Pool_Scaling; use V3_Pool_Scaling;
 
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
@@ -10,7 +10,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
   generic
 with    package T_Physical    is new DU_Type.Physical(<>);--(Tf);
-with    package T_Physical_DU is new T_Physical.Data_Unit;
+--with    package T_Physical_DU is new T_Physical.Data_Unit;
 
 
 
@@ -37,7 +37,8 @@ with    package T_Physical_DU is new T_Physical.Data_Unit;
     Undef_Count   : SIO.Count := 0; -- NaN
 
     procedure Plane_Data(E : in Tm);-- finds min max values
-    procedure Read_Data_Unit is new T_Physical_DU.Read_Data_Unit(Plane_Data);
+    procedure Read_Data_Unit is new T_Physical.Read_Data_Unit(Plane_Data);
+    --procedure Read_Data_Unit is new T_Physical_DU.Read_Data_Unit(Plane_Data);
 
     procedure Put_Results(UndefValid : in Boolean; UndefValue : in String);
 
