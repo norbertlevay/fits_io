@@ -306,8 +306,8 @@ procedure Read_Data_Unit
 
  begin
 
---    TTR_Scaling.A := A;
---    TTR_Scaling.B := B;
+    TTR_Scaling.A := A;
+    TTR_Scaling.B := B;
 
     -- scale array-values
 
@@ -356,8 +356,8 @@ procedure Write_Data_Unit
 
  begin
 
---    TTW_Scaling.A := A;
---    TTW_Scaling.B := B;
+    TTW_Scaling.A := A;
+    TTW_Scaling.B := B;
 
     -- scale array-values
 
