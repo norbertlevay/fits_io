@@ -5,7 +5,6 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed$
 
 generic
   type Tm is private;   -- type in memory
-  type Tm_Arr is array (Positive_Count range <>) of Tm; 
   type Tc is digits <>; -- type in which scaling is calculated
   type Tf is private;   -- type in fits-file$
 --  Tm_Null       : in out Tm;
@@ -36,6 +35,8 @@ with function To_V3Type(Arg : String) return Tm is <>;
 
 
 package DU_Type is
+
+  type Tm_Arr is array (Positive_Count range <>) of Tm;
 
     procedure Init_Undef_For_Read
         (UInValid : in     Boolean; UIn  : in     Tf; 

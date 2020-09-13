@@ -25,12 +25,12 @@ procedure minmax is
     package SIO renames Ada.Streams.Stream_IO;
     package CLI renames Ada.Command_Line;
 
-    package PF64 is new DU_Type(Float_64,   F64_Arr, Float_64, Float_64);
-    package PF32 is new DU_Type(Float_32,   F32_Arr, Float_32, Float_32);
-    package PI64 is new DU_Type(Integer_64, I64_Arr, Float_64, Integer_64);
-    package PI32 is new DU_Type(Integer_32, I32_Arr, Float_64, Integer_32);
-    package PI16 is new DU_Type(Integer_16, I16_Arr, Float_32, Integer_16);
-    package PU8  is new DU_Type(Unsigned_8, U8_Arr,  Float_32, Unsigned_8);
+    package PF64 is new DU_Type(Float_64,    Float_64, Float_64);
+    package PF32 is new DU_Type(Float_32,    Float_32, Float_32);
+    package PI64 is new DU_Type(Integer_64,  Float_64, Integer_64);
+    package PI32 is new DU_Type(Integer_32,  Float_64, Integer_32);
+    package PI16 is new DU_Type(Integer_16,  Float_32, Integer_16);
+    package PU8  is new DU_Type(Unsigned_8,   Float_32, Unsigned_8);
 
 
     package F64R_Scaling is new Scaling(Float_64,   Float_64, Float_64);
