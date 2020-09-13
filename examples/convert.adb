@@ -18,7 +18,7 @@ with Ada.Streams.Stream_IO;
 
 with File;   use File;
 with File_Funcs;   use File_Funcs;--Data_Unit_Size_elems() needed
-with File.Misc;   use File.Misc;
+with File.Misc;   use File.Misc; -- Write_Pagging needed
 with Keyword_Record; use Keyword_Record;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
@@ -85,7 +85,7 @@ begin
  end loop;
 
  LastWrittenIdx := SIO.Index(OutFile);
--- Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
+ Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
  -- NOTE also make sure InFile Padding is skipped: now 
  -- Get() reads by Blocks
 
