@@ -103,14 +103,14 @@ begin
  -- Read Write sequentially by Blocks
 
  declare
-  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
-  type I16_Arr is array (SIO.Positive_Count range <>) of Integer_16;
-  package F32_Raw is new Raw(Float_32,   F32_Arr);
-  package I16_Raw is new Raw(Integer_16, I16_Arr);
+--  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
+--  type I16_Arr is array (SIO.Positive_Count range <>) of Integer_16;
+  package F32_Raw is new Raw(Float_32);--,   F32_Arr);
+  package I16_Raw is new Raw(Integer_16);--, I16_Arr);
   package I16_Raw_DU is new I16_Raw.Data_Unit;
 
   K : SIO.Positive_Count := 1 + 2880/4;
-  InBlock  : F32_Arr(1 .. 2880/4);
+  InBlock  : F32_Raw.T_Arr(1 .. 2880/4);
   --OutBlock : I16_Arr(1 .. 2880/2);
   --FIXME consider: buffer/block size define inside Raw.Write_Data_Unit !?
 
@@ -118,7 +118,7 @@ begin
   BZERO  : constant V3_Types.Float_32 := 127.501945525;
 
 
-  procedure ConvertData(Block : out I16_Arr)
+  procedure ConvertData(Block : out I16_Raw.T_Arr)
   is
     F32Value : Float_32;
     I16Value : Integer_16;

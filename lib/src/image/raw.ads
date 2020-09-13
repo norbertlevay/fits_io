@@ -23,13 +23,15 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 generic
   type T is private;
-  type T_Arr is array (Positive_Count range <>) of T;
+--  type T_Arr is array (Positive_Count range <>) of T;
 package Raw is
 
  package SIO renames Ada.Streams.Stream_IO;
 
 
--- sequential access
+ type T_Arr is array (Positive_Count range <>) of T;
+
+ -- sequential access
 
 
  procedure Read_Array

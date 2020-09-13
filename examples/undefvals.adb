@@ -20,13 +20,13 @@ procedure undefvals is
     package SIO renames Ada.Streams.Stream_IO;
 
 
-    package F64_Raw is new Raw(Float_64,   F64_Arr);
-    package F32_Raw is new Raw(Float_32,   F32_Arr);
+    package F64_Raw is new Raw(Float_64);--,   F64_Arr);
+    package F32_Raw is new Raw(Float_32);--,   F32_Arr);
 
-    package I64_Raw is new Raw(Integer_64, I64_Arr);
-    package I32_Raw is new Raw(Integer_32, I32_Arr);
-    package I16_Raw is new Raw(Integer_16, I16_Arr);
-    package U8_Raw  is new Raw(Unsigned_8, U8_Arr);
+    package I64_Raw is new Raw(Integer_64);--, I64_Arr);
+    package I32_Raw is new Raw(Integer_32);--, I32_Arr);
+    package I16_Raw is new Raw(Integer_16);--, I16_Arr);
+    package U8_Raw  is new Raw(Unsigned_8);--, U8_Arr);
 
     package F64_Raw_DU is new F64_Raw.Data_Unit;
     package F32_Raw_DU is new F32_Raw.Data_Unit;

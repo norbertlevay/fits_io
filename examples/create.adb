@@ -68,7 +68,7 @@ is
  -- end loop;
  end DUFloatData;
 
- package F32_Raw is new Raw(Float_32, F32_Arr);
+ package F32_Raw is new Raw(Float_32);--, F32_Arr);
  package F32_Raw_DU is new F32_Raw.Data_Unit;
  procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit_By_Element(0.0, DUFloatData);
  --procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);

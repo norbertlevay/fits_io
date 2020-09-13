@@ -55,11 +55,11 @@ package body DU_Type.Physical is
     use SIO;
     package TIO renames Ada.Text_IO;
 
-    type Tf_Arr is array (Positive_Count range <>) of Tf;
-    package Tf_Raw is new Raw(Tf,Tf_Arr);
+--    type Tf_Arr is array (Positive_Count range <>) of Tf;
+    package Tf_Raw is new Raw(Tf);--,Tf_Arr);
 
---    package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
---    package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
+    --    package TTR_Scaling is new Scaling(Tm,Tc,Tf);-- for Read  direction
+    --    package TTW_Scaling is new Scaling(Tf,Tc,Tm);-- for Write direction
 
 
 
@@ -131,7 +131,7 @@ end Header_Info;
     Data  : out Tm_Arr;
     A,B : in Tc)
   is
-    RawData : Tf_Arr(Data'First .. Data'Last);
+    RawData : Tf_Raw.T_Arr(Data'First .. Data'Last);
   begin
 
     TTR_Scaling.A := A;
@@ -166,7 +166,7 @@ end Header_Info;
     Data : in Tm_Arr;
     A,B  : in Tc)
  is
-    RawData : Tf_Arr(Data'First .. Data'Last);
+    RawData : Tf_Raw.T_Arr(Data'First .. Data'Last);
 begin
 
     TTW_Scaling.A := A;
@@ -205,7 +205,7 @@ begin
     A,B : in Tc)
   is
     VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
-    RawVol: Tf_Arr(1 .. VolLength);
+    RawVol: Tf_Raw.T_Arr(1 .. VolLength);
   begin
 
     TTR_Scaling.A := A;
@@ -244,7 +244,7 @@ begin
   is
     -- FIXME no good func-name Plane_Length
     VolLength : Positive_Count := Raw_Funcs.Plane_Length(VolumeSize);
-    RawVol: Tf_Arr(1 .. VolLength);
+    RawVol: Tf_Raw.T_Arr(1 .. VolLength);
   begin
 
     TTW_Scaling.A := A;

@@ -59,15 +59,16 @@ is
  BlkCnt : SIO.Positive_Count := 1;
 -- is in V3_Types type U8_Arr is array (SIO.Positive_Count range <>) of Unsigned_8;
 
- procedure DUData(Data : out U8_Arr)
+ package U8_Raw is new Raw(Unsigned_8);--, U8_Arr);
+
+ procedure DUData(Data : out U8_Raw.T_Arr)
  is
    use SIO; -- NOTE 'mod' "+" : 'operator not visible'
  begin
-     U8_Arr'Read(SIO.Stream(InFile),Data);
+     U8_Raw.T_Arr'Read(SIO.Stream(InFile),Data);
      BlkCnt := BlkCnt + 1;
  end DUData;
 
- package U8_Raw is new Raw(Unsigned_8, U8_Arr);
  package U8_Raw_DU is new U8_Raw.Data_Unit;
  procedure U8_Write_Data_Unit is new U8_Raw_DU.Write_Data_Unit(0, DUData);
 
