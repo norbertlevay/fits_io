@@ -36,9 +36,9 @@ end To_Cards;
 
 
 
-function To_Cards return Optional.Card_Arr
+function To_Cards(BITPIX : in Integer) return Optional.Card_Arr
 is
-    BITPIX : Integer := T_To_BITPIX;
+--    BITPIX : Integer := T_To_BITPIX;
     Mand   : Image_Rec := (NAXISn'Length, BITPIX, NAXISn);
     MandCards : Optional.Card_Arr := To_Cards(Mand);
     use Optional;-- needed operator &

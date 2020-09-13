@@ -81,7 +81,7 @@ begin
  SIO.Create (File, SIO.Out_File, FileName);
 
  Header.Write_Card_SIMPLE(File, True);
- Header.Write_Cards(File, Im.To_Cards);
+ Header.Write_Cards(File, Im.To_Cards(-(Float_32'Size)));
  Header.Close(File);
 
  F32_Write_Data_Unit(File, NAXISn); -- FIXME should be Im.NAXISn; how to do it ?

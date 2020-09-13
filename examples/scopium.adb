@@ -104,7 +104,7 @@ begin
  -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
  Header.Write_Card_SIMPLE(File, True);
- Header.Write_Cards(File, ScImage.To_Cards);
+ Header.Write_Cards(File, ScImage.To_Cards(Unsigned_8'Size));
  Header.Close(File);
  
 -- U8_Phys.Init_Undef_For_Write(U8Dummy1_Valid, U8Dummy1, U8Dummy2_Valid, U8Dummy2);
