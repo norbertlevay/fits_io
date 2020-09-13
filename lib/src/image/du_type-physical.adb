@@ -289,14 +289,14 @@ procedure Read_Data_Unit
 
     procedure RawData(E : in Tf)
     is
-        Eout : Tm;-- := TTR_Scaling.Linear(E);
+        Eout : Tm := TTR_Scaling.Linear(E);
     begin
             Data_Elem(Eout);
     end RawData;
 
     procedure RawData_NoUndefs(E : in Tf)
     is
-        Eout : Tm;-- := TTR_Scaling.Pure_Linear(E);
+        Eout : Tm := TTR_Scaling.Pure_Linear(E);
     begin
             Data_Elem(Eout);
     end RawData_NoUndefs;
@@ -338,7 +338,7 @@ procedure Write_Data_Unit
         Em : Tm; 
     begin
         Data_Elem(Em);
---        E := TTW_Scaling.Linear(Em);
+        E := TTW_Scaling.Linear(Em);
     end RawData;
 
     procedure RawData_NoUndefs(E : out Tf) 
@@ -346,7 +346,7 @@ procedure Write_Data_Unit
         Em : Tm; 
     begin
         Data_Elem(Em);
---        E := TTW_Scaling.Pure_Linear(Em);
+        E := TTW_Scaling.Pure_Linear(Em);
     end RawData_NoUndefs;
 
     procedure Write_DU is
