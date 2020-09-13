@@ -40,12 +40,12 @@ procedure minmax is
     package I16R_Scaling is new Scaling(Integer_16, Float_32, Integer_16);
     package  U8R_Scaling is new Scaling(Unsigned_8, Float_32, Unsigned_8);
 
-    package F64_Phys   is new PF64.Physical;--(F64R_Scaling,F64R_Scaling);
-    package F32_Phys   is new PF32.Physical;--(F32R_Scaling,F32R_Scaling);
-    package I64_Phys   is new PI64.Physical;--(I64R_Scaling,I64R_Scaling);
-    package I32_Phys   is new PI32.Physical;--(I32R_Scaling,I32R_Scaling);
-    package I16_Phys   is new PI16.Physical;--(I16R_Scaling,I16R_Scaling);
-    package U8_Phys    is new PU8.Physical;--(U8R_Scaling,U8R_Scaling);
+    package F64_Phys   is new PF64.Physical(F64R_Scaling,F64R_Scaling);
+    package F32_Phys   is new PF32.Physical(F32R_Scaling,F32R_Scaling);
+    package I64_Phys   is new PI64.Physical(I64R_Scaling,I64R_Scaling);
+    package I32_Phys   is new PI32.Physical(I32R_Scaling,I32R_Scaling);
+    package I16_Phys   is new PI16.Physical(I16R_Scaling,I16R_Scaling);
+    package U8_Phys    is new PU8.Physical(U8R_Scaling,U8R_Scaling);
 
 --    package F64_PhysDU is new F64_Phys.Data_Unit;
 --    package F32_PhysDU is new F32_Phys.Data_Unit;
@@ -54,15 +54,22 @@ procedure minmax is
 --    package I16_PhysDU is new I16_Phys.Data_Unit;
 --    package U8_PhysDU  is new U8_Phys.Data_Unit;
 
-
-
     -- app code for all T
-    package F64 is new PF64.Minmax(F64_Phys);--,F64_PhysDU);
-    package F32 is new PF32.Minmax(F32_Phys);--,F32_PhysDU);
-    package I64 is new PI64.Minmax(I64_Phys);--,I64_PhysDU);
-    package I32 is new PI32.Minmax(I32_Phys);--,I32_PhysDU);
-    package I16 is new PI16.Minmax(I16_Phys);--,I16_PhysDU);
-    package U8  is new PU8.Minmax(U8_Phys);--,U8_PhysDU);
+    package F64 is new PF64.Minmax;--(F64_Phys);--,F64_PhysDU);
+    package F32 is new PF32.Minmax;--(F32_Phys);--,F32_PhysDU);
+    package I64 is new PI64.Minmax;--(I64_Phys);--,I64_PhysDU);
+    package I32 is new PI32.Minmax;--(I32_Phys);--,I32_PhysDU);
+    package I16 is new PI16.Minmax;--(I16_Phys);--,I16_PhysDU);
+    package U8  is new PU8.Minmax;--(U8_Phys);--,U8_PhysDU);
+
+    procedure F64_Read_Data_Unit is new F64_Phys.Read_Data_Unit(F64.Plane_Data);
+    procedure F32_Read_Data_Unit is new F32_Phys.Read_Data_Unit(F32.Plane_Data);
+    procedure I64_Read_Data_Unit is new I64_Phys.Read_Data_Unit(I64.Plane_Data);
+    procedure I32_Read_Data_Unit is new I32_Phys.Read_Data_Unit(I32.Plane_Data);
+    procedure I16_Read_Data_Unit is new I16_Phys.Read_Data_Unit(I16.Plane_Data);
+    procedure U8_Read_Data_Unit is new U8_Phys.Read_Data_Unit(U8.Plane_Data);
+
+
 
 
     InFile   : SIO.File_Type;
@@ -122,7 +129,7 @@ begin
                     begin
                         F64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PF64.Init_Undef_For_Read(UInValid, UInValue, UValid, F64UValue);
-                        F64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        F64_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F64.Put_Results(UValid, Float_64'Image(F64UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F64.Put(F64_To_U64(F64UValue),  9,16);
@@ -135,7 +142,7 @@ begin
                     begin
                         F32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PF32.Init_Undef_For_Read(UInValid, UInValue, UValid, F32UValue);
-                        F32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        F32_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     F32.Put_Results(UValid, Float_32'Image(F32UValue));
                     TIO.Put("Hexa Undef : "); Hexa_F32.Put(F32_To_U32(F32UValue),  9,16);
@@ -148,7 +155,7 @@ begin
                     begin
                         I64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PI64.Init_Undef_For_Read(UInValid, UInValue, UValid, I64UValue);
-                        I64.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        I64_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I64.Put_Results(UValid, Integer_64'Image(I64UValue));
                  when  32 =>
@@ -158,7 +165,7 @@ begin
                     begin
                         I32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PI32.Init_Undef_For_Read(UInValid, UInValue, UValid, I32UValue);
-                        I32.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        I32_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I32.Put_Results(UValid, Integer_32'Image(I32UValue));
 
@@ -169,7 +176,7 @@ begin
                     begin
                         I16_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PI16.Init_Undef_For_Read(UInValid, UInValue, UValid, I16UValue);
-                        I16.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        I16_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     I16.Put_Results(UValid, Integer_16'Image(I16UValue));
                  when   8 =>
@@ -179,7 +186,7 @@ begin
                     begin
                         U8_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
                         PU8.Init_Undef_For_Read(UInValid, UInValue, UValid, U8UValue);
-                        U8.Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
+                        U8_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
                     end;
                     U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
 

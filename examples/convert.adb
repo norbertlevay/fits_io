@@ -85,7 +85,7 @@ begin
  end loop;
 
  LastWrittenIdx := SIO.Index(OutFile);
- Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
+-- Write_Padding(OutFile, LastWrittenIdx, HeaderPadValue);
  -- NOTE also make sure InFile Padding is skipped: now 
  -- Get() reads by Blocks
 
