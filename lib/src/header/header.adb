@@ -305,7 +305,7 @@ procedure Close(F : in SIO.File_Type)
 is
 begin
     String_80'Write(SIO.Stream(F), Keyword_Record.ENDCard);
---    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
+    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
 end Close;
 
 

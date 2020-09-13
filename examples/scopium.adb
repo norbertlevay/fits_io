@@ -17,7 +17,7 @@ with Raw.Data_Unit;                       -- writes data unit
 --with DU_Type.Physical.Data_Unit;          -- writes data unit
 with V3_Pool_Scaling; use V3_Pool_Scaling;
 
-with File.Misc;       use File.Misc; -- needs Write_Padding for Header
+--with File.Misc;       use File.Misc; -- needs Write_Padding for Header
 
 with Image;
 with DU_Type;

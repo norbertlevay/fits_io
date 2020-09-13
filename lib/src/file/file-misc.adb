@@ -3,7 +3,7 @@
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 -- with Ada.Unchecked_Conversion;
--- with Interfaces;
+with Interfaces;
 
 with Header; use Header;
 --with V3_Types;
@@ -43,23 +43,23 @@ package body File.Misc is
    -- And for conforming Data Extensions [FITS 7.1.3]:
    -- The data format shall be identical to that of a primary data array
    -- as described in Sect. 3.3.2.
---   procedure Write_Padding(FitsFile : in SIO.File_Type;
---                           From     : in SIO.Positive_Count;
---                           PadValue : in V3_Types.Unsigned_8)
---   is  
---
---    FillCnt   : constant Natural :=
---       Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
---    PadLength : constant Natural :=
---       Natural(BlockSize_bytes) - FillCnt + 1;
---
---
---    PadArr    : constant UInt8_Arr(1 .. Positive_Count(PadLength)) := (others => PadValue);
---    -- FIXME full of explicit casts!! review!!
---   begin
---    SIO.Set_Index(FitsFile,From);
---    UInt8_Arr'Write(SIO.Stream(FitsFile),PadArr);
---   end Write_Padding;
+   procedure Write_Padding(FitsFile : in SIO.File_Type;
+                           From     : in SIO.Positive_Count;
+                           PadValue : in Interfaces.Unsigned_8)
+   is  
+
+    FillCnt   : constant Natural :=
+       Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
+    PadLength : constant Natural :=
+       Natural(BlockSize_bytes) - FillCnt + 1;
+
+    type UInt8_PadArr is array (SIO.Positive_Count range <>) of Interfaces.Unsigned_8;
+    PadArr    : constant UInt8_PadArr(1 .. Positive_Count(PadLength)) := (others => PadValue);
+    -- FIXME full of explicit casts!! review!!
+   begin
+    SIO.Set_Index(FitsFile,From);
+    UInt8_PadArr'Write(SIO.Stream(FitsFile),PadArr);
+   end Write_Padding;
 
 
    -- Write Data by coordinates
