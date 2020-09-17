@@ -3,3 +3,28 @@
 see how to create new type which unites generic private range and mod
 types e.g. float and int and uint types
 
+
+
+Handling of Undefined values is "surprisingly complicated" because
+
+* for Float undefined values is NaN (which is out-of-range of valid values, good!) 
+
+* for Integers undefined value is reserved _from_ range of possible values
+
+* for (Unsigned)Integers undefined value is optional (if BLANK present in Header (Read),
+or for Write: user knows his data: might have data with or without undefined values
+
+* for Floats we should always assume possible NaN (e.g. undefined values presetn) ??
+
+* also user _may_ supply undefined value in target type (for instance
+source-type (BLANK) it was 1 but in target user would like to place to T'Last)
+in this case it should take precedence over UndefOut = A + B * UndefIn
+
+* and incase converting from Float-> Integer user _must_ supply Undef
+because it caanot ba calculated from Tsrc Float.NaN
+
+* because user may/must specify target-undefined value, and that may be
+incorrect: being in-range of target-valid values, we must check
+that Vout=UndefOut only-and-only-if Vin=UndefIn
+
+
