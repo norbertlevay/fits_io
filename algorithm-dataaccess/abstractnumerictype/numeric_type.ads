@@ -1,7 +1,15 @@
 
 
+-- NOTE for use in FITS_IO it is enough to privide conversions
+-- to and from Floats
+
 generic
 type T is private;
+
+with function To_Numeric(V : in Float) return T     is <>;
+with function To_Float  (V : in T)     return Float is <>;
+
+
 package Numeric_Type is
     subtype Numeric is T;
     type T_Arr is array (Positive range <>) of T;

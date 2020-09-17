@@ -7,9 +7,16 @@ package body Scaling is
 
 function Undefined(V : in Tsrc.Numeric) return Tdst.Numeric
 is
-    X : Tdst.Numeric;
+    Uout : Tdst.Numeric;
+    FUin  : Float;
+    FUout : Float;
 begin
-    return X;
+
+    FUin := Tsrc.To_Float(V);
+    FUout := A + B * FUin;
+    Uout := Tdst.To_Numeric(FUout);
+
+    return Uout;
 end Undefined;
 
 

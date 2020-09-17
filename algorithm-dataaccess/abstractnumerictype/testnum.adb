@@ -10,6 +10,23 @@ is
 
 package TIO renames Ada.Integer_Text_IO;
 package FIO is new Ada.Text_IO.Float_IO(Long_Float);
+
+-- pool of Numeric - Float converions
+
+function To_Numeric(V : in Float) return Long_Long_Float is
+                                                  begin return Long_Long_Float(V); end To_Numeric;
+function To_Numeric(V : in Float) return Long_Float is begin return Long_Float(V); end To_Numeric;
+function To_Numeric(V : in Float) return Float      is begin return Float(V);      end To_Numeric;
+function To_Numeric(V : in Float) return Integer    is begin return Integer(V);    end To_Numeric;
+
+function To_Float(V : in Integer)           return Float is begin return Float(V); end To_Float;
+function To_Float(V : in Float)             return Float is begin return Float(V); end To_Float;
+function To_Float(V : in Long_Float)        return Float is begin return Float(V); end To_Float;
+function To_Float(V : in Long_Long_Float)   return Float is begin return Float(V); end To_Float;
+
+-- -----------------------------------
+
+
 package Int is new Numeric_Type(T=>Integer);
 package Flt is new Numeric_Type(T=>Float);
 package LFlt is new Numeric_Type(T=>Long_Float);
@@ -44,6 +61,8 @@ package ttti is new ttt(Int);
 package tttllf is new ttt(LLFlt);
 package tttlf is new ttt(LFlt);
 
+------ Scaling
+
 package I32 is new Numeric_Type(Integer);
 package F64 is new Numeric_Type(Long_Float);
 
@@ -72,12 +91,6 @@ Ada.Text_IO.New_Line;
 TIO.Put(I32Udf);
 F64Udf := F64I32_Scaling.Undefined(I32Udf);
 FIO.Put(F64Udf);
-
-
-
-
-
-
 
 
 end testnum;
