@@ -9,29 +9,14 @@ type T is private;
 with function "+"(V : in Float) return T     is <>;
 with function "+"(V : in T)     return Float is <>;
 
-with function Is_Undef(V,U : in T) return Boolean is <>;
-
 package Numeric_Type is
 
     subtype Numeric is T;
-
-    type T_Arr is array (Positive range <>) of Numeric;
-
-    Undef_Valid : Boolean := False; -- FIXME should be private
 
     function Bit_Count return Positive;
 
     function To_Numeric(V : in Float) return T;
     function To_Float  (V : in T)     return Float;
-
-
-    procedure Set_Undefined(U : in Numeric);
-    function  Get_Undefined return Numeric;
-    function  Is_Undefined(V : in Numeric) return Boolean;
-
-private
-
-    Undef : Numeric;
 
 end Numeric_Type;
 

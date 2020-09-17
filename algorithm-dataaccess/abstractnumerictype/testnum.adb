@@ -45,7 +45,7 @@ package LLFlt is new Numeric_Type(T=>Long_Long_Float);
 --Vnumi : Int.T;
 --Vnumf : Flt.T;
 
-Aint : Int.T_Arr(1 .. 2) := (others => 0);
+Aint : array (Positive range 1 .. 2) of Int.Numeric := (others => 0);
 Vint : Int.Numeric := 0;
 
 
@@ -85,6 +85,10 @@ package I32F64_Scaling is new Scaling(F64,I32);
 Zero : Long_Float := 0.0;
 NaN  : Long_Float := 0.0/Zero;
 ------------------------------
+
+F64Arr : I32F64_Scaling.Tsrc_Numeric_Arr(1 .. 3) := (10.0,NaN,30.0);
+I32Arr : I32F64_Scaling.Tdst_Numeric_Arr(1 .. 3) := (1,2,3);
+
 begin
 
 TIO.Put(Int.Bit_Count);
@@ -109,18 +113,32 @@ FIO.Put(F64Udf);
 Ada.Text_IO.New_Line;
 Ada.Text_IO.Put_Line("Scaling test F->I with NaN");
 
-I32.Set_Undefined(I32Udf);
-I32F64_Scaling.Set_Undefined(NaN);
+--I32.Set_Undefined(I32Udf);
+I32F64_Scaling.Set_Undefined(NaN, Integer'First);
 I32Udf := I32F64_Scaling.Linear(NaN);
 TIO.Put(I32Udf);
 
 Ada.Text_IO.New_Line;
 Ada.Text_IO.Put_Line("Set_undefined test");
 
-F64I32_Scaling.Set_Undefined(I32Udf);
-TIO.Put(I32.Get_Undefined);
-FIO.Put(F64.Get_Undefined);
+F64I32_Scaling.Set_Undefined(I32Udf, NaN);
+--TIO.Put(I32.Get_Undefined);
+--FIO.Put(F64.Get_Undefined);
 
+
+Ada.Text_IO.New_Line;
+I32F64_Scaling.Linear(F64Arr, I32Arr);
+for I in F64Arr'Range
+loop
+    FIO.Put(F64Arr(I),3,3,3);
+end loop;
+Ada.Text_IO.New_Line;
+
+for I in I32Arr'Range
+loop
+    TIO.Put(I32Arr(I),12);
+end loop;
+Ada.Text_IO.New_Line;
 
 
 
