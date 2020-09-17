@@ -23,7 +23,10 @@ is
 begin
     return (Not (F = F));
 end Is_Undef_Float;
-
+-- NOTE one possibility to generate NaN's: good?
+--   Zero : Float := 0.0; -- FIXME from ieee.adb - said to be NON-PORTABLE ??? define NaN values
+--   NaN  : Float := 0.0/Zero;-- FIXME  define NaN values for various Float-types
+ 
 
 
 
@@ -34,28 +37,46 @@ is
     Vout : Tdst.Numeric;
     Fin  : Float;
     Fout : Float;
-    Zero : Float := 0.0; -- FIXME from ieee.adb - said to be NON-PORTABLE ???; define NaN values??
-    NaN  : Float := 0.0/Zero;-- FIXME  define NaN values for various Float-types
+    Use_Undefs : Boolean := (Tsrc.Undef_Valid AND Tdst.Undef_Valid);
 begin
 
-    if(Tsrc.Undef_Valid AND Tsrc.Is_Undefined(V))
-    then
-        Fin := NaN; 
-    else
-        Fin := Tsrc.To_Float(V);
-    end if;
+    -- instead of Use_Undefs-flag, could use OOP/tagged-records and dispatching ->
+    -- would save to repeat the else branch; however would be an overkill:
+    -- there are only two cases: we have or have-not Undef values
 
-    Fout := A + B * Fin;
-
-    if(Tdst.Undef_Valid AND Is_Undef_Float(Fout))
+    if(Use_Undefs)
     then
-        Vout := Tdst.Get_Undefined;
+
+        -- data has Undefs
+
+        if(Tsrc.Is_Undefined(V))
+        then
+            Vout := Tdst.Get_Undefined;
+        else
+
+            Fin  := Tsrc.To_Float(V);
+            Fout := A + B * Fin;
+            Vout := Tdst.To_Numeric(Fout);
+
+            if(Tdst.Is_Undefined(Vout))
+            then
+                null;-- error: "Vout undefined but Vin was not."
+            end if;
+
+        end if;
+
     else
+
+        -- data has no Undefs
+
+        Fin  := Tsrc.To_Float(V);
+        Fout := A + B * Fin;
         Vout := Tdst.To_Numeric(Fout);
-    end if;
 
+    end if;
 
     return Vout;
+
 end Linear;
 
 

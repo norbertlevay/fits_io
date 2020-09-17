@@ -45,12 +45,13 @@ package LLFlt is new Numeric_Type(T=>Long_Long_Float);
 --Vnumi : Int.T;
 --Vnumf : Flt.T;
 
-Aint : Int.T_Arr(1 .. 2);
-Vint : Int.Numeric;
+Aint : Int.T_Arr(1 .. 2) := (others => 0);
+Vint : Int.Numeric := 0;
 
 
 generic
  with package numt is new Numeric_Type(<>);
+ defVal : numt.Numeric;
 package ttt is
  procedure doSomething;
 end ttt;
@@ -59,15 +60,15 @@ package body ttt is
     use numt;
     procedure doSomething
     is
-        Vnt : Numeric;
+        Vnt : Numeric := defVal;
     begin
         TIO.Put(Vnt'Size);
     end doSomething;
 end ttt;
 
-package ttti is new ttt(Int);
-package tttllf is new ttt(LLFlt);
-package tttlf is new ttt(LFlt);
+package ttti is new ttt(Int,0);
+package tttllf is new ttt(LLFlt,0.0);
+package tttlf is new ttt(LFlt,0.0);
 
 ------ Scaling
 
