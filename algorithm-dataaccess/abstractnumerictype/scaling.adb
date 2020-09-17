@@ -4,28 +4,30 @@
 
 package body Scaling is
 
--- calculates the Undefined value for the Tdst domain
-function Undefined(V : in Tsrc.Numeric) return Tdst.Numeric
+
+
+procedure Set_Undefined(U : in Tsrc.Numeric)
 is
-    Uout : Tdst.Numeric;
-    FUin  : Float;
-    FUout : Float;
 begin
+    Tsrc.Set_Undefined(U);
+    Tdst.Set_Undefined(Linear(U));
+end Set_Undefined;
 
-    FUin := Tsrc.To_Float(V);
-    FUout := A + B * FUin;
-    Uout := Tdst.To_Numeric(FUout);
 
-    return Uout;
-end Undefined;
--- above: applies pure-conversion
 
--- below: converts with substitution when Undef (if Undef defined)
+
+
+
 function Is_Undef_Float(F : in Float) return Boolean
 is
 begin
     return (Not (F = F));
 end Is_Undef_Float;
+
+
+
+
+
 
 function Linear(V : in Tsrc.Numeric) return Tdst.Numeric
 is
@@ -51,7 +53,6 @@ begin
     else
         Vout := Tdst.To_Numeric(Fout);
     end if;
-
 
 
     return Vout;

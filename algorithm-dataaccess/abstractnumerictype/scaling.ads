@@ -12,12 +12,14 @@ with package Tsrc is new Numeric_Type(<>);
 with package Tdst is new Numeric_Type(<>);
 package Scaling is
 
-
     A : Float := 0.0;
     B : Float := 1.0;
 
-function Undefined(V : in Tsrc.Numeric) return Tdst.Numeric;
+procedure Set_Undefined(U: in Tsrc.Numeric);
+-- converts and sets undefined value U to both Tsrc and Tdst
 
+function Linear(V : in Tsrc.Numeric) return Tdst.Numeric;
+-- performs scaling applying Undef-value if defined
 
 end Scaling;
 

@@ -95,9 +95,29 @@ Ada.Text_IO.New_Line;
 
 -- Scaling
 
+Ada.Text_IO.Put_Line("Scaling test (Undefined values not set)");
 
 TIO.Put(I32Udf);
-F64Udf := F64I32_Scaling.Undefined(I32Udf);
+F64Udf := F64I32_Scaling.Linear(I32Udf);
+FIO.Put(F64Udf);
+
+
+
+Ada.Text_IO.New_Line;
+Ada.Text_IO.Put_Line("Set_undefined test");
+
+F64I32_Scaling.Set_Undefined(I32Udf);
+TIO.Put(I32.Get_Undefined);
+FIO.Put(F64.Get_Undefined);
+
+
+
+
+Ada.Text_IO.New_Line;
+Ada.Text_IO.Put_Line("Scaling test (Undefined values set)");
+
+TIO.Put(I32Udf);
+F64Udf := F64I32_Scaling.Linear(I32Udf);
 FIO.Put(F64Udf);
 
 
