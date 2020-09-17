@@ -9,11 +9,14 @@ type T is private;
 with function "+"(V : in Float) return T     is <>;
 with function "+"(V : in T)     return Float is <>;
 
+with function To_BITPIX(V : in T) return Integer is <>;
+
 package Numeric_Type is
 
     subtype Numeric is T;
 
     function Bit_Count return Positive;
+    function BITPIX return Integer;
 
     function To_Numeric(V : in Float) return T;
     function To_Float  (V : in T)     return Float;

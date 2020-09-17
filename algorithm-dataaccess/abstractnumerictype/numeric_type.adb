@@ -8,6 +8,15 @@ begin
     return V'Size;
 end Bit_Count;
 
+function BITPIX return Integer
+is
+V : T;
+begin
+    return To_BITPIX(V);
+end BITPIX;
+
+
+
 
   -- conversions to/from Float
 

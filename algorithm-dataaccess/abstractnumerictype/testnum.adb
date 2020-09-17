@@ -29,6 +29,10 @@ function Is_Undef(V,U : in Long_Float) return Boolean is begin return (not (V = 
 function Is_Undef(V,U : in Long_Long_Float) return Boolean is begin return (not (V = V)); end Is_Undef;
 
 
+function To_BITPIX(V : in Float  ) return Integer is begin return -V'Size; end To_BITPIX;
+function To_BITPIX(V : in Long_Float) return Integer is begin return -V'Size; end To_BITPIX;
+function To_BITPIX(V : in Long_Long_Float) return Integer is begin return -V'Size; end To_BITPIX;
+function To_BITPIX(V : in Integer) return Integer is begin return  V'Size; end To_BITPIX;
 
 
 
@@ -92,7 +96,10 @@ I32Arr : I32F64_Scaling.Tdst_Numeric_Arr(1 .. 3) := (1,2,3);
 begin
 
 TIO.Put(Int.Bit_Count);
+TIO.Put(Int.BITPIX);
 TIO.Put(Flt.Bit_Count);
+TIO.Put(Flt.BITPIX);
+Ada.Text_IO.New_Line;
 ttti.doSomething;
 tttlf.doSomething;
 tttllf.doSomething;
