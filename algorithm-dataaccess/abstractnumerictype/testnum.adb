@@ -77,8 +77,12 @@ package F64 is new Numeric_Type(Long_Float);
 I32Udf : I32.Numeric := Integer(11);
 F64Udf : F64.Numeric;
 
+--     Tdst Tsrc
 package F64I32_Scaling is new Scaling(I32,F64);
+package I32F64_Scaling is new Scaling(F64,I32);
 
+Zero : Long_Float := 0.0;
+NaN  : Long_Float := 0.0/Zero;
 ------------------------------
 begin
 
@@ -91,17 +95,23 @@ tttllf.doSomething;
 TIO.Put(Aint'Size);
 TIO.Put(Vint'Size);
 
-Ada.Text_IO.New_Line;
 
 -- Scaling
 
+Ada.Text_IO.New_Line;
 Ada.Text_IO.Put_Line("Scaling test (Undefined values not set)");
 
 TIO.Put(I32Udf);
 F64Udf := F64I32_Scaling.Linear(I32Udf);
 FIO.Put(F64Udf);
 
+Ada.Text_IO.New_Line;
+Ada.Text_IO.Put_Line("Scaling test F->I with NaN");
 
+I32.Set_Undefined(I32Udf);
+I32F64_Scaling.Set_Undefined(NaN);
+I32Udf := I32F64_Scaling.Linear(NaN);
+TIO.Put(I32Udf);
 
 Ada.Text_IO.New_Line;
 Ada.Text_IO.Put_Line("Set_undefined test");
