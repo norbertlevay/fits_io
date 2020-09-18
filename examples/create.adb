@@ -42,8 +42,8 @@ is
 
  -- create Header
 
- RowsCnt : constant SIO.Positive_Count := 500;
- ColsCnt : constant SIO.Positive_Count := 500;
+ RowsCnt : constant SIO.Positive_Count := 256;
+ ColsCnt : constant SIO.Positive_Count := 256;
  NAXISn  : NAXIS_Arr := (ColsCnt, RowsCnt);
 
  OptCards  : Card_Arr :=
