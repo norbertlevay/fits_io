@@ -1,10 +1,59 @@
+__________________________________________________
+Two issues which lead to Numeric_Type introduction
+
+[1] 
+the solution with Tf Tc Tm as generic params for type in Fits-file, type in which scaling is calculated (always float) and type in which caller receives the data, respectively ended up
+with excessive amount of with-ed func parameters. These needed to be repeated in applications
+as well because each package re-intruduced these types again, however
+
+pack1.Tf /= pack2.Tf
+
+so all with-func needed to be repeated. Issue is somewhat remedied if Child packages are derived
+fomr first packeg which has all with-s, thus sharing the types Tf Tc Tm, then
+
+pack1.Tf.child1(Tf) = pack1.Tf.child(Tf)
+
+both children see the same type. --> Collect all type related functionality (conversions) into
+one package and root all other packages on that.
 
 
-see how to create new type which unites generic private range and mod
-types e.g. float and int and uint types
+[2]
+type-symmetry and Read/Write : don't convert Tc->Tf but always go 2 steps: Tf->Tc and Tc->Tm
+then code can be shared between read-write swapping the types.
+E.g. rather then trying to convert between all possible combinations of Tf-Tm,
+divide the Linear func at Float (it becomes type symmetric)):
+
+Vout = conv( A + B * conv(Vin) )
+            ^^^^^^^^<- this part is in Float: divide Raw and Physical here:
+
+E.g.
+ops in Type1 ...
+Fin = conv(Vin)
+Fout = A + B * Fin  <--- central part in float symmetric operation before and after
+Vout = conv(Fout)
+... ops in Type2
+
+(see git-tag 'numeric-with-undefs-and-scaling-linear-symmetric')
+Raw outputs Float(Tc) and Physical accepts Flost(Tc) in Read direction
+Physical has data and converts them to Float and Raw accepts Float (converts to Tf) and writes.
+
+Introduce symmetric handling: Tf->Tc and separately Tc->Tm
+then swapping Tm->Tc (needed in Write) leads to the same code as in Tf->Tc
+
+Tf->Tc and Tm->Tc e.g. only Tx->Tc 
+
+Read  direction: Tx(=Tf)->Tc and Tc->Tx(=Tm)
+Write direction: Tx(=Tm)->Tc and Tc->Tc(=Tf)
+
+where Tc is some Float-type (of suitable resolution with respect to Tm Tf).
 
 
 
+
+
+
+
+__________________________________________________________________
 Handling of Undefined values is "surprisingly complicated" because
 
 * for Float undefined values is NaN (which is out-of-range of valid values, good!) 
@@ -29,6 +78,8 @@ that Vout=UndefOut only-and-only-if Vin=UndefIn
 
 
 
+
+__________________
 Renaming a type
 
 "A subtype of an indefinite subtype that does not add a constraint only
@@ -39,5 +90,8 @@ subtype My_String is String;
 My_String and String are interchangeable."
 
 From: https://en.wikibooks.org/wiki/Ada_Programming/Type_System#Anonymous_subtype
+
+
+
 
 
