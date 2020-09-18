@@ -4,14 +4,14 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 
 generic
-package Numeric_Type.Stream is
+package Numeric_Type.Num_IO is
 
 package SIO renames Ada.Streams.Stream_IO;
 
 
 
-procedure Read (S : SIO.Stream_Access; A : out Float_Arr);
-procedure Write(S : SIO.Stream_Access; A : in  Float_Arr);
+procedure Read (F : SIO.File_Type; A : out Float_Arr);
+procedure Write(F : SIO.File_Type; A : in  Float_Arr);
 
 
 
@@ -33,5 +33,5 @@ procedure Write_Data_Unit
   NAXISn : in NAXIS_Arr);
 
 
-end Numeric_Type.Stream;
+end Numeric_Type.Num_IO;
 
