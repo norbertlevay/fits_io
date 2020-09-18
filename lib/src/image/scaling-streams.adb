@@ -83,7 +83,7 @@ begin
     Tdst.Numeric'Write(SIO.Stream(F), Linear(E));
   end loop;
 
-  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
+  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
 
 end Write_Data_Unit;
 

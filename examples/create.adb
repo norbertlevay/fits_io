@@ -21,9 +21,14 @@ with Optional;        use Optional;       -- Card_Arr & ENDCard needed
 with Header;          use Header;         -- needed to setup Header-record
 with Raw.Data_Unit;                       -- writes data unit
 
-with File.Misc;       use File.Misc; -- needs Write_Padding for Header
+--with File.Misc;       use File.Misc; -- needs Write_Padding for Header
 
 with Image;
+
+with Numeric_Type;
+with Scaling;
+with Scaling.Streams;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 procedure create
 is
@@ -49,29 +54,24 @@ is
 
  package Im is new Image(Float_32, NAXISn, OptCards);
 
-
  -- callback to generate data values
 
  ColCnt : SIO.Positive_Count := 1;
- --type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
 
- procedure DUFLoatData(Data : out Float_32)
--- procedure DUFLoatData(Data : out F32_Arr)
+ package Src is new Numeric_Type(Float);-- FIXME replace with Float_32
+ package Dst is new Numeric_Type(Float);-- FIXME replace with Float_32
+
+ procedure DUFLoatData(Data : out Dst.Numeric)
  is
    use SIO; -- NOTE 'mod' "+" : 'operator not visible'
  begin
---  for I in Data'Range
---  loop
-    Data := Float_32(ColCnt mod ColsCnt);
-    --Data(I) := Float_32(ColCnt mod ColsCnt);
+    Data := Float(ColCnt mod ColsCnt);
     ColCnt := ColCnt + 1;
- -- end loop;
  end DUFloatData;
 
- package F32_Raw is new Raw(Float_32);--, F32_Arr);
- package F32_Raw_DU is new F32_Raw.Data_Unit;
- procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit_By_Element(0.0, DUFloatData);
- --procedure F32_Write_Data_Unit is new F32_Raw_DU.Write_Data_Unit(0.0, DUFloatData);
+ package SD_Scaling is new Scaling(Src,Dst);
+ package F32F32     is new SD_Scaling.Streams;
+ procedure F32_Write_Data_Unit is new F32F32.Write_Data_Unit(DUFloatData);
 
 begin
 
