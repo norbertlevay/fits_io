@@ -3,7 +3,7 @@
 -- so user may decide/fine-tune  which Float-precision to use for Scaling
 -- FIXME for now keep Ada.Float for simplicity
 
-
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Numeric_Type;
 
 generic
@@ -20,8 +20,8 @@ package Scaling is
     B : Float := 1.0;
 
 
- type Tsrc_Numeric_Arr is array (Positive range <>) of Tsrc.Numeric;
- type Tdst_Numeric_Arr is array (Positive range <>) of Tdst.Numeric;
+ type Tsrc_Numeric_Arr is array (Positive_Count range <>) of Tsrc.Numeric;
+ type Tdst_Numeric_Arr is array (Positive_Count range <>) of Tdst.Numeric;
 
 
 procedure Set_Undefined(Us : in Tsrc.Numeric; Ud : in Tdst.Numeric);
@@ -30,6 +30,17 @@ procedure Set_Undefined(Us : in Tsrc.Numeric; Ud : in Tdst.Numeric);
 function  Linear(V   : in Tsrc.Numeric) return Tdst.Numeric;
 procedure Linear(Ain : in Tsrc_Numeric_Arr; Aout : out Tdst_Numeric_Arr);
 -- perform scaling applying Undef-value if defined
+
+
+-- File access
+package SIO renames Ada.Streams.Stream_IO;
+
+-- Read: replaces source-array with file
+--function Linear(Fsrc : SIO.File_Type; Length : in Positive_Count) return Tdst_Numeric_Arr;
+procedure Linear(Fsrc : SIO.File_Type;      Aout : out Tdst_Numeric_Arr);
+
+-- Write: replaces destination-array with file
+procedure Linear(Ain : in Tsrc_Numeric_Arr; Fdst : SIO.File_Type);
 
 end Scaling;
 

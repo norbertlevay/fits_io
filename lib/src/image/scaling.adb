@@ -1,5 +1,5 @@
 
-
+with Endian;
 
 
 package body Scaling is
@@ -149,6 +149,35 @@ begin
     end if;
 
 end Linear;
+
+
+
+
+
+-- Read from file
+procedure Linear(Fsrc : SIO.File_Type; Aout : out Tdst_Numeric_Arr)
+is
+    Ain : Tsrc_Numeric_Arr(Aout'Range);
+    procedure CheckAndRevert is new Endian.Check_And_Revert(Tsrc.Numeric,Tsrc_Numeric_Arr);
+begin
+    Tsrc_Numeric_Arr'Read(SIO.Stream(Fsrc), Ain);
+    CheckAndRevert(Ain);
+    Linear(Ain,Aout);
+end Linear;
+
+
+-- Write to file
+procedure Linear(Ain : in Tsrc_Numeric_Arr; Fdst : SIO.File_Type)
+is
+    Aout : Tdst_Numeric_Arr(Ain'Range);
+    procedure CheckAndRevert is new Endian.Check_And_Revert(Tdst.Numeric,Tdst_Numeric_Arr);
+begin
+    Linear(Ain,Aout);
+    CheckAndRevert(Aout);
+    Tdst_Numeric_Arr'Write(SIO.Stream(Fdst), Aout);
+end Linear;
+
+
 
 
 
