@@ -1,37 +1,35 @@
 
+-- NOTE that type Tcalc is digits <>; can be added to Scaling generic-params
+-- so user may decide/fine-tune  which Float-precision to use for Scaling
+-- FIXME for now keep Ada.Float for simplicity
 
--- implements  Vout = A + B * Vin
--- for all type combinations
 
+with Numeric_Type;
 
 generic
-type Tout is private;   -- type of scaled output
-type Tc   is digits <>; -- type in which scaling is calculated
-type Tin  is private;   -- type of input
 
---with function Init_UOut(UInValid :  in     Boolean; UIn  : in     Tin;
---                        UOutValid : in out Boolean; UOut : in out Tout) return Boolean is <>;
+ with package Tsrc is new Numeric_Type(<>);
+ with package Tdst is new Numeric_Type(<>);
 
-with function Is_Undef(V,U : Tin;  UValid : Boolean) return Boolean is <>;
-with function Is_Undef(V,U : Tout; UValid : Boolean) return Boolean is <>;
-
-with function "+"(R : Tin) return Tc   is <>;
-with function "+"(R : Tc ) return Tout is <>;
-
+ with function Is_Undef(V,U : in Tsrc.Numeric) return Boolean is <>;
+ with function Is_Undef(V,U : in Tdst.Numeric) return Boolean is <>;
 
 package Scaling is
 
- A,B : Tc;
+    A : Float := 0.0;
+    B : Float := 1.0;
 
---procedure Init_Undef
---    (UInValid : in     Boolean; UIn  : in     Tin;
---    UOutValid : in out Boolean; UOut : in out Tout);
---function Is_Undef_Inited return Boolean;
 
-function Pure_Linear(Vin : Tin) return Tout;
--- no checks for Undef value
+ type Tsrc_Numeric_Arr is array (Positive range <>) of Tsrc.Numeric;
+ type Tdst_Numeric_Arr is array (Positive range <>) of Tdst.Numeric;
 
-function Linear(Vin : Tin) return Tout;
--- includes check and conversion of Undef values
+
+procedure Set_Undefined(Us : in Tsrc.Numeric; Ud : in Tdst.Numeric);
+-- converts and sets undefined value U to both Tsrc and Tdst
+
+function  Linear(V   : in Tsrc.Numeric) return Tdst.Numeric;
+procedure Linear(Ain : in Tsrc_Numeric_Arr; Aout : out Tdst_Numeric_Arr);
+-- perform scaling applying Undef-value if defined
 
 end Scaling;
+
