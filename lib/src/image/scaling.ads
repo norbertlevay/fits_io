@@ -3,7 +3,7 @@
 -- so user may decide/fine-tune  which Float-precision to use for Scaling
 -- FIXME for now keep Ada.Float for simplicity
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
 with Numeric_Type;
 
 generic
@@ -31,15 +31,6 @@ function  Linear(V   : in Tsrc.Numeric) return Tdst.Numeric;
 procedure Linear(Ain : in Tsrc_Numeric_Arr; Aout : out Tdst_Numeric_Arr);
 -- perform scaling applying Undef-value if defined
 
-
--- File access
-package SIO renames Ada.Streams.Stream_IO;
-
--- Read: replaces source-array with Stream
-procedure Linear(Ssrc : SIO.Stream_Access; Aout : out Tdst_Numeric_Arr);
-
--- Write: replaces destination-array with Stream
-procedure Linear(Ain : in Tsrc_Numeric_Arr; Sdst : SIO.Stream_Access);
 
 end Scaling;
 
