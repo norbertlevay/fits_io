@@ -58,6 +58,10 @@ is
 
  ColCnt : SIO.Positive_Count := 1;
 
+ Min : Float := Float'Last;
+ Max : Float := Float'First;
+
+
  package Src is new Numeric_Type(Float);-- FIXME replace with Float_32
  package Dst is new Numeric_Type(Float);-- FIXME replace with Float_32
 
@@ -67,6 +71,8 @@ is
  begin
     Data := Float(ColCnt mod ColsCnt);
     ColCnt := ColCnt + 1;
+    if(Data < Min) then Min := Data; end if;
+    if(Data > Max) then Max := Data; end if;
  end DUFloatData;
 
  package SD_Scaling is new Scaling(Src,Dst);
@@ -88,7 +94,10 @@ begin
 
  SIO.Close(File);
 
- exception
+ Put_Line("Min " & Float'Image(Min));
+ Put_Line("Max " & Float'Image(Max));
+
+exception
   when Except_ID : others =>
      declare
       Error : Ada.Text_IO.File_Type := Standard_Error;
