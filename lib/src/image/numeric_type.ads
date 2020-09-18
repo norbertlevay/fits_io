@@ -19,14 +19,19 @@ package Numeric_Type is
     subtype Numeric is T;
 
     type Numeric_Arr is array (Positive_Count range <>) of Numeric;
+    type Float_Arr   is array (Positive_Count range <>) of Float;
 
 
 
     function Bit_Count return Positive;
     function BITPIX return Integer;
 
-    function To_Numeric(V : in Float) return T;
-    function To_Float  (V : in T)     return Float;
+    function To_Numeric(V : in Float)   return Numeric;
+    function To_Float  (V : in Numeric) return Float;
+
+    function To_Numeric(Af : in Float_Arr)   return Numeric_Arr;
+    function To_Float  (An : in Numeric_Arr) return Float_Arr;
+
 
 end Numeric_Type;
 

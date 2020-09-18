@@ -33,5 +33,30 @@ end BITPIX;
   end To_Float;
 
 
+
+ function To_Numeric(Af : in Float_Arr) return Numeric_Arr
+ is
+     An : Numeric_Arr(Af'Range);
+ begin
+    for I in Af'Range
+    loop
+        An(I) := To_Numeric(Af(I));
+    end loop;
+    return An;
+ end To_Numeric;
+
+
+
+ function To_Float(An : in Numeric_Arr) return Float_Arr
+ is
+     Af : Float_Arr(An'Range);
+ begin
+    for I in An'Range
+    loop
+        Af(I) := To_Float(An(I));
+    end loop;
+    return Af;
+ end To_Float;
+
 end Numeric_Type;
 
