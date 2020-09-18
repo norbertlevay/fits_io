@@ -3,6 +3,9 @@
 -- NOTE for use in FITS_IO it is enough to privide conversions
 -- to and from Floats
 
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
+
+
 generic
 type T is private;
 
@@ -14,6 +17,10 @@ with function To_BITPIX(V : in T) return Integer is <>;
 package Numeric_Type is
 
     subtype Numeric is T;
+
+    type Numeric_Arr is array (Positive_Count range <>) of Numeric;
+
+
 
     function Bit_Count return Positive;
     function BITPIX return Integer;

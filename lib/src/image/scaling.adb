@@ -1,5 +1,4 @@
 
-with Endian;
 
 
 package body Scaling is
@@ -86,7 +85,7 @@ end Linear;
 
 
 
-procedure Linear(Ain : in Tsrc_Numeric_Arr; Aout : out Tdst_Numeric_Arr)
+procedure Linear(Ain : in Tsrc.Numeric_Arr; Aout : out Tdst.Numeric_Arr)
 is
     Vin  : Tsrc.Numeric;
     Vout : Tdst.Numeric;
