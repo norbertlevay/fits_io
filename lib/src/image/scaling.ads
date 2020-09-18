@@ -35,12 +35,11 @@ procedure Linear(Ain : in Tsrc_Numeric_Arr; Aout : out Tdst_Numeric_Arr);
 -- File access
 package SIO renames Ada.Streams.Stream_IO;
 
--- Read: replaces source-array with file
---function Linear(Fsrc : SIO.File_Type; Length : in Positive_Count) return Tdst_Numeric_Arr;
-procedure Linear(Fsrc : SIO.File_Type;      Aout : out Tdst_Numeric_Arr);
+-- Read: replaces source-array with Stream
+procedure Linear(Ssrc : SIO.Stream_Access; Aout : out Tdst_Numeric_Arr);
 
--- Write: replaces destination-array with file
-procedure Linear(Ain : in Tsrc_Numeric_Arr; Fdst : SIO.File_Type);
+-- Write: replaces destination-array with Stream
+procedure Linear(Ain : in Tsrc_Numeric_Arr; Sdst : SIO.Stream_Access);
 
 end Scaling;
 
