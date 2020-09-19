@@ -4,7 +4,7 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 
 generic
-package Numeric_Type.Num_IO is
+package Numeric_Type.Data_IO is
 
 package SIO renames Ada.Streams.Stream_IO;
 
@@ -33,5 +33,5 @@ procedure Write_Data_Unit
   NAXISn : in NAXIS_Arr);
 
 
-end Numeric_Type.Num_IO;
+end Numeric_Type.Data_IO;
 

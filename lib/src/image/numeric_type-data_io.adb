@@ -3,7 +3,7 @@ with Endian;
 with File.Misc; -- Write_Padding needed
 with Scaling;
 
-package body Numeric_Type.Num_IO is
+package body Numeric_Type.Data_IO is
 
 
 
@@ -82,5 +82,5 @@ begin
 end Write_Data_Unit;
 
 
-end Numeric_Type.Num_IO;
+end Numeric_Type.Data_IO;
 
