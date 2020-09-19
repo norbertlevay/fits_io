@@ -88,7 +88,18 @@ begin
 end Write_Data_Unit;
 
 
+--- 
+procedure Read_Array
+    (F : SIO.File_Type;
+    Im : in  ImDM.Data_Model; -- describes data stored in Tdst.Numeric_Arr
+    Am : out Tdst.Numeric_Arr)
+is begin null; end Read_Array;
 
+procedure Write_Array
+    (F : SIO.File_Type;
+    Im : in ImDM.Data_Model;
+    Am : in Tsrc.Numeric_Arr)
+is begin null; end Write_Array;
 
 
 

@@ -43,6 +43,7 @@ NAXISn : Mandatory.NAXIS_Arr;
 Cards  : Optional.Card_Arr := Optional.Null_Card_Arr;
 package Image is
 
+    type Data_Model is tagged null record;
 
     function To_Cards(BITPIX : in Integer) return Optional.Card_Arr;
     -- convert [T,NAXISn,Cards] -> Card_Arr
