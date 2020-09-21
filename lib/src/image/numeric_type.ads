@@ -14,6 +14,8 @@ with function "+"(V : in T)     return Float is <>;
 
 with function To_BITPIX(V : in T) return Integer is <>;
 
+with function Is_Undef(V,U : in T) return Boolean is <>;
+
 package Numeric_Type is
 
     subtype Numeric is T;
@@ -22,9 +24,10 @@ package Numeric_Type is
     type Float_Arr   is array (Positive_Count range <>) of Float;
 
 
-
     function Bit_Count return Positive;
     function BITPIX return Integer;
+
+    procedure Set_Undefined(U : Numeric);
 
     function To_Numeric(V : in Float)   return Numeric;
     function To_Float  (V : in Numeric) return Float;
