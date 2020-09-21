@@ -164,16 +164,20 @@ is
  procedure CheckAndRevert is new Endian.Check_And_Revert(Tf.Numeric,Tf.Numeric_Arr);
  A,B : Float; -- FIXME set from Image.Data_Model (which corresponds to Header)
 begin
+
     Tf.Numeric_Arr'Read(SIO.Stream(F), Af);
     CheckAndRevert(Af);
---    TfTm_Scaling(Af,Tm_Arr,A,B,Uf,Um);
-    Fin_Arr  := Tf.To_Float(Af);
+
+    --    TfTm_Scaling(Af,Tm_Arr,A,B,Uf,Um);
+
+    Fin_Arr := Tf.To_Float(Af);
     for I in Fin_Arr'Range
     loop
-        Fout_Arr(I) := Fin_Arr(I);
+        Fout_Arr(I) := A + B * Fin_Arr(I);
     end loop;
-    Tm_Arr   := Tm.To_Numeric(Fout_Arr);
+    Tm_Arr := Tm.To_Numeric(Fout_Arr);
     -- FIXME here misses check: Tm_Arr(I) undef, only if Af(I) was undef
+
 end Read_Array;
 
 
@@ -189,16 +193,20 @@ is
 procedure CheckAndRevert is new Endian.Check_And_Revert(Tf.Numeric,Tf.Numeric_Arr);
  A,B : Float; -- FIXME set from Image.Data_Model (which corresponds to Header)
 begin
-    Fin_Arr  := Tm.To_Float(Tm_Arr);      -- Undef Phys needed here
+
+    --    TmTf_Scaling(Tm_Arr,Af,A,B,Uf,Um);
+
+    Fin_Arr := Tm.To_Float(Tm_Arr);
     for I in Fin_Arr'Range
     loop
-        Fout_Arr(I) := Fin_Arr(I);
+        Fout_Arr(I) := A + B * Fin_Arr(I);
     end loop;
-    Af       := Tf.To_Numeric(Fout_Arr);  -- Undef Raw needed here
+    Af := Tf.To_Numeric(Fout_Arr);
     -- FIXME here misses check: Af(I) undef, only if Tm_Arr(I) was undef
---    TmTf_Scaling(Tm_Arr,Af,A,B,Uf,Um);
+
     CheckAndRevert(Af);
     Tf.Numeric_Arr'Write(SIO.Stream(F), Af);
+
 end Write_Array;
 
 
