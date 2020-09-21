@@ -13,7 +13,7 @@ with Endian;
 package body Data_IO is
 
 Uf : Tf.Numeric;
-Um : Tm.Numeric;
+Um : Tm.Numeric; -- FIXME use Raw and Physical instead Tf and Tm
 Use_Undefs : Boolean := False;
 
 -- FIXME set undef values from Tm_Image.DM - we miss calc the "other" side Undef
