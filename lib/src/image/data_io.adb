@@ -173,6 +173,7 @@ begin
         Fout_Arr(I) := Fin_Arr(I);
     end loop;
     Tm_Arr   := Tm.To_Numeric(Fout_Arr);
+    -- FIXME here misses check: Tm_Arr(I) undef, only if Af(I) was undef
 end Read_Array;
 
 
@@ -194,6 +195,7 @@ begin
         Fout_Arr(I) := Fin_Arr(I);
     end loop;
     Af       := Tf.To_Numeric(Fout_Arr);  -- Undef Raw needed here
+    -- FIXME here misses check: Af(I) undef, only if Tm_Arr(I) was undef
 --    TmTf_Scaling(Tm_Arr,Af,A,B,Uf,Um);
     CheckAndRevert(Af);
     Tf.Numeric_Arr'Write(SIO.Stream(F), Af);
