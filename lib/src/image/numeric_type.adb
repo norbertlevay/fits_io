@@ -33,6 +33,24 @@ end BITPIX;
      Undef_Valid := True;
  end Set_Undefined;
 
+ function  Is_Undefined_Valid return Boolean
+ is
+ begin
+     return Undef_Valid;
+ end Is_Undefined_Valid;
+
+
+ function  Get_Undefined return Numeric
+ is
+     Dummy : Numeric;
+ begin
+     if(Undef_Valid)
+     then return Undef;
+     else return Dummy; -- Error: "Undef is not valid"
+     end if;
+ end Get_Undefined;
+
+
 
   -- conversions to/from Float
 
@@ -45,11 +63,39 @@ end BITPIX;
 
   function To_Numeric(V : in Float) return Numeric
   is
+      Dummy : Numeric; -- replace with Exception
+      Vn : Numeric;
   begin
-      if(Undef_Valid AND Is_Undef_Float(V))
-      then return Undef;
-      else return +V;
+
+      if(Undef_Valid)
+      then
+
+        -- Undefined values in use
+
+          if(Is_Undef_Float(V))
+          then
+              return Undef;
+          else
+
+              Vn := +V; 
+
+              if(Vn = Undef)
+              then
+                  return Dummy; -- Error: "Vout is Undef but Vin was not" (V would be NaN)
+              else
+                  return Vn;
+              end if;
+
+          end if;
+
+      else
+
+        -- Undefined values not in use, all values are valid
+
+        return +V;
+
       end if;
+
   end To_Numeric;
 
 
@@ -68,32 +114,45 @@ end BITPIX;
  function To_Numeric(Af : in Float_Arr) return Numeric_Arr
  is
      An : Numeric_Arr(Af'Range);
+    Dummy : Numeric; -- FIXME replace with exceoption
  begin
 
      if(Undef_Valid)
      then
 
+        -- Undefined values in use
+
         for I in Af'Range
         loop
-            if(Is_Undef_Float(Af(I)))
-            then An(I) := Undef;
-            else An(I) := +Af(I);
-            end if;
-        end loop;
 
-        return An;
+            if(Is_Undef_Float(Af(I)))
+            then
+                An(I) := Undef;
+            else
+                An(I) := +Af(I);
+
+                if(An(I) = Undef)
+                then
+                    An(I) := Dummy; -- Error: "Vout is Undef but Vin was not" (Af(I) is not Undef)
+                end if;
+
+            end if;
+
+        end loop;
 
      else
 
-         for I in Af'Range
+        -- Undefined values not in use, all values valid
+
+        for I in Af'Range
         loop
-            An(I) := +(Af(I));
+            An(I) := +Af(I);
         end loop;
- 
-        return An;
- 
+
      end if;
- 
+
+     return An;
+
  end To_Numeric;
 
 

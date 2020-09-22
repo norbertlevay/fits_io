@@ -12,8 +12,6 @@ generic
  -- we must have read/created Header before doing Data_IO
  -- Image.Data_Model and Header are equivalent
 
- with function Is_Undef(V,U : in Tf.Numeric) return Boolean is <>;
- with function Is_Undef(V,U : in Tm.Numeric) return Boolean is <>;
 
 package Data_IO is
 

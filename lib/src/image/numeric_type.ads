@@ -28,6 +28,8 @@ package Numeric_Type is
     function BITPIX return Integer;
 
     procedure Set_Undefined(U : Numeric);
+    function  Is_Undefined_Valid return Boolean;
+    function  Get_Undefined return Numeric;
 
     function To_Numeric(V : in Float)   return Numeric;
     function To_Float  (V : in Numeric) return Float;

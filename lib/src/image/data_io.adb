@@ -27,129 +27,6 @@ end Set_Undefined;
 
 
 
--- for Read
-procedure TfTm_Scaling(Af : in Tf.Numeric_Arr; Tm_Arr : out Tm.Numeric_Arr;
-    A,B : in Float;
-    Uf : Tf.Numeric;
-    Um : Tm.Numeric)
-is
- Ff, Fm : Float;
- Vf : Tf.Numeric;
- Vm : Tm.Numeric;
-begin
-
-    if(Use_Undefs)
-    then
-
-        -- data may contain undefined values
-        -- if undef found, it is translated
-
-        for I in Af'Range
-        loop
-
-            Vf := Af(I);
-
-            if(Is_Undef(Vf,Uf))
-            then
-                Vm := Um;
-            else
-
-                Ff := Tf.To_Float(Vf);
-                Fm := A + B * Ff;
-                Vm := Tm.To_Numeric(Fm);
-
-                if(Is_Undef(Vm,Um))
-                then
-                    null;-- FIXME error: Vm undefined but Vf was not.
-                end if;
-
-            end if;
-
-            Tm_Arr(I) := Vm;
-
-        end loop;
-
-    else
-
-        -- data must not have undefined values
-        -- all data-values considered valid and will be scaled
-        -- (no undefined-value translation)
-
-        for I in Af'Range
-        loop
-            Vf := Af(I);
-
-            Ff := Tf.To_Float(Vf);
-            Fm := A + B * Ff;
-            Vm := Tm.To_Numeric(Fm);
-
-            Tm_Arr(I) := Vm;
-        end loop;
-
-    end if;
-
-end TfTm_Scaling;
-
-
-
--- for Write
-procedure TmTf_Scaling(Tm_Arr : in Tm.Numeric_Arr; Af : out Tf.Numeric_Arr;
-    A,B : in Float;
-    Uf : Tf.Numeric;
-    Um : Tm.Numeric)
-is
- Ff, Fm : Float;
- Vf : Tf.Numeric;
- Vm : Tm.Numeric;
-begin
-
-    -- Linear
-
-    if(Use_Undefs)
-    then
-
-        -- data may have undefined-values
-
-        for I in Af'Range
-        loop
-
-            Vm := Tm_Arr(I);
-
-            if(Is_Undef(Vm,Um))
-            then
-                Vf := Uf;
-            else
-
-                Ff := Tm.To_Float(Vm);
-                Fm := A + B * Ff;
-                Vf := Tf.To_Numeric(Fm);
-
-                if(Is_Undef(Vf,Uf))
-                then
-                    null;-- FIXME error: Vm undefined but Vf was not.
-                end if;
-
-            end if;
-
-            Af(I) := Vf;
-
-        end loop;
-
-    else
-
-        -- no undefined-values in data
-
-        for I in Af'Range
-        loop
-            Fm    := Tm.To_Float(Tm_Arr(I));
-            Ff    := A + B * Fm;
-            Af(I) := Tf.To_Numeric(Fm);
-        end loop;
-
-    end if;
-
-end TmTf_Scaling;
-
 
 
 
@@ -175,8 +52,15 @@ begin
     loop
         Fout_Arr(I) := A + B * Fin_Arr(I);
     end loop;
+
+    -- calc target-domain's Undef Value
+
+    if(Tf.Is_Undefined_Valid)
+    then
+        Tm.Set_Undefined(Tm."+"(A + B * Tf."+"(Tf.Get_Undefined)));
+    end if;
+
     Tm_Arr := Tm.To_Numeric(Fout_Arr);
-    -- FIXME here misses check: Tm_Arr(I) undef, only if Af(I) was undef
 
 end Read_Array;
 
@@ -201,9 +85,17 @@ begin
     loop
         Fout_Arr(I) := A + B * Fin_Arr(I);
     end loop;
-    Af := Tf.To_Numeric(Fout_Arr);
-    -- FIXME here misses check: Af(I) undef, only if Tm_Arr(I) was undef
 
+    -- calc target-domain's Undef Value
+
+    if(Tm.Is_Undefined_Valid)
+    then
+        Tf.Set_Undefined(Tf."+"(A + B * Tm."+"(Tm.Get_Undefined)));
+    end if;
+
+    Af := Tf.To_Numeric(Fout_Arr);
+
+    -- low-level write
     CheckAndRevert(Af);
     Tf.Numeric_Arr'Write(SIO.Stream(F), Af);
 
