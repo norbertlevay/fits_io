@@ -1,8 +1,6 @@
 --
 -- Example create & write small FITS file
---
 -- "small" meaning data (and header) fit into memory (heap).
-
 
 -- FIXME SIO.Create(): check behaviour AdaRM: overwrites if file already exists ?
 -- FIXME if AdaRM says SIO.Create guarantees File Index
@@ -17,18 +15,15 @@ with Ada.Streams.Stream_IO;
 with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
 with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
-with Optional;        use Optional;       -- Card_Arr & ENDCard needed 
-with Header;          use Header;         -- needed to setup Header-record
-with Raw.Data_Unit;                       -- writes data unit
-
---with File.Misc;       use File.Misc; -- needs Write_Padding for Header
+with Optional;        use Optional;       -- Card_Arr needed
+with Header;          use Header;         -- Create_Card needed
 
 with Image;
 
 with Numeric_Type;
-with Scaling;
-with Scaling.Streams;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+with Array_IO;
+with File.Misc;-- Write_Padding needed
 
 procedure create
 is
@@ -37,14 +32,13 @@ is
  package SIO renames Ada.Streams.Stream_IO;
 
  FileName : constant String := Command_Name & ".fits";
- File     : SIO.File_Type;
-
+ F        : SIO.File_Type;
 
  -- create Header
 
- RowsCnt : constant SIO.Positive_Count := 256;
- ColsCnt : constant SIO.Positive_Count := 256;
- NAXISn  : NAXIS_Arr := (ColsCnt, RowsCnt);
+ ColLength : constant SIO.Positive_Count := 256;
+ RowLength : constant SIO.Positive_Count := 456;
+ NAXISn  : NAXIS_Arr := (ColLength, RowLength);
 
  OptCards  : Card_Arr :=
             (
@@ -54,45 +48,45 @@ is
 
  package Im is new Image(Float_32, NAXISn, OptCards);
 
- -- callback to generate data values
+ -- write data
 
- ColCnt : SIO.Positive_Count := 1;
+ package Phys is new Numeric_Type(Float);
+ package Raw  is new Numeric_Type(Float);
+ package AIO  is new Array_IO(Raw,Phys);
 
- Min : Float := Float'Last;
- Max : Float := Float'First;
-
-
- package Src is new Numeric_Type(Float);-- FIXME replace with Float_32
- package Dst is new Numeric_Type(Float);-- FIXME replace with Float_32
-
- procedure DUFLoatData(Data : out Dst.Numeric)
- is
-   use SIO; -- NOTE 'mod' "+" : 'operator not visible'
- begin
-    Data := Float(ColCnt mod ColsCnt);
-    ColCnt := ColCnt + 1;
-    if(Data < Min) then Min := Data; end if;
-    if(Data > Max) then Max := Data; end if;
- end DUFloatData;
-
- package SD_Scaling is new Scaling(Src,Dst);
- package F32F32     is new SD_Scaling.Streams;
- procedure F32_Write_Data_Unit is new F32F32.Write_Data_Unit(DUFloatData);
-
+ Column : Phys.Numeric_Arr(1..ColLength);
+ Data : Float;
+ Min  : Float := Float'Last;
+ Max  : Float := Float'First;
 begin
 
- Put_Line("Usage  " & Command_Name );
  Put_Line("Writing " & FileName & " ... ");
 
- SIO.Create (File, SIO.Out_File, FileName);
+ SIO.Create (F, SIO.Out_File, FileName);
 
- Header.Write_Card_SIMPLE(File, True);
- Header.Write_Cards(File, Im.To_Cards(-(Float_32'Size)));
- Header.Close(File);
+ Header.Write_Card_SIMPLE(F, True);
+ Header.Write_Cards(F, Im.To_Cards(Raw.BITPIX));
+ Header.Close(F);
 
- F32_Write_Data_Unit(File, NAXISn); -- FIXME should be Im.NAXISn; how to do it ?
+ -- init phys-array
 
- SIO.Close(File);
+ for I in Column'Range
+ loop
+    Column(I) := Float(I) - 1.0;
+    Data := Column(I);
+    if(Data < Min) then Min := Data; end if;
+    if(Data > Max) then Max := Data; end if;
+end loop;
+
+ -- write Data Unit
+
+ for I in 1 .. RowLength
+ loop
+     AIO.Write(F, 0.0, 2.0, Column);
+ end loop;
+
+ File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
+ SIO.Close(F);
 
  Put_Line("Min " & Float'Image(Min));
  Put_Line("Max " & Float'Image(Max));
