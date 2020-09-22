@@ -35,6 +35,7 @@ is
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1;
 
+ IArr : array(SIO.Positive_Count range 1 .. 10) of Integer;
  FArr : Phys.Numeric_Arr(1 .. 10);
 
 begin
@@ -66,6 +67,7 @@ begin
 
     for I in FArr'Range
     loop
+            IArr(I) := FArr(I);
         MMTT.Minmax(FArr(I));
         --TIO.Put(" " & Float'Image(FArr(I)));
         TIO.Put(" " & Integer'Image(FArr(I)));

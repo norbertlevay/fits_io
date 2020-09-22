@@ -9,6 +9,13 @@ generic
  T_First : T;
  with function ">"(L,R : T) return Boolean is <>;
  with function "<"(L,R : T) return Boolean is <>;
+
+-- from Numeric_Type pool
+ with function "+"(V : in T)     return Float is <>;
+ with function "+"(V : in Float) return T is <>;
+
+ with function Is_Undef(V,U : in T) return Boolean is <>;
+ with function To_BITPIX(V : in T) return Integer is <>;
 package MinmaxTT is
 
 Min : T := T_Last;
