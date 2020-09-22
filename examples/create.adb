@@ -21,9 +21,10 @@ with Header;          use Header;         -- Create_Card needed
 with Image;
 
 with Numeric_Type;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 with File.Misc;-- Write_Padding needed
+
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 procedure create
 is
@@ -51,16 +52,17 @@ is
  -- write data
 
  package Phys is new Numeric_Type(Float);
- package Raw  is new Numeric_Type(Float);
+ package Raw  is new Numeric_Type(Short_Integer);
  package AIO  is new Array_IO(Raw,Phys);
 
  Column : Phys.Numeric_Arr(1..ColLength);
- Data : Float;
- Min  : Float := Float'Last;
- Max  : Float := Float'First;
+ Data : Phys.Numeric;
+ Min  : Phys.Numeric := Phys.Numeric'Last;
+ Max  : Phys.Numeric := Phys.Numeric'First;
+ use SIO;-- operator "-" on SIO.Count needed
 begin
 
- Put_Line("Writing " & FileName & " ... ");
+ Put_Line("Writing " & FileName & " ... "); 
 
  SIO.Create (F, SIO.Out_File, FileName);
 
@@ -72,7 +74,7 @@ begin
 
  for I in Column'Range
  loop
-    Column(I) := Float(I) - 1.0;
+    Column(I) := Phys.To_Numeric(Float(I-1));
     Data := Column(I);
     if(Data < Min) then Min := Data; end if;
     if(Data > Max) then Max := Data; end if;
@@ -82,14 +84,14 @@ end loop;
 
  for I in 1 .. RowLength
  loop
-     AIO.Write(F, 0.0, 2.0, Column);
+     AIO.Write(F, 0.0, 1.0, Column);
  end loop;
 
  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
  SIO.Close(F);
 
- Put_Line("Min " & Float'Image(Min));
- Put_Line("Max " & Float'Image(Max));
+ Put_Line("Min " & Phys.Numeric'Image(Min));
+ Put_Line("Max " & Phys.Numeric'Image(Max));
 
 exception
   when Except_ID : others =>
