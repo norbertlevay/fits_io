@@ -22,7 +22,7 @@ package Numeric_Type is
 
     type Numeric_Arr is array (Positive_Count range <>) of Numeric;
     type Float_Arr   is array (Positive_Count range <>) of Float;
-
+    -- FIXME move Float_Arr to be formal param, otherwise it is new type Numeric_Type.Float_Arr
 
     function Bit_Count return Positive;
     function BITPIX return Integer;
@@ -41,22 +41,13 @@ package Numeric_Type is
 end Numeric_Type;
 
 
-
-
-
-
 -- TODO
-    -- function To_Numeric(V : in Integer) return Numeric;
-    -- function To_Numeric(V : in Float) return Numeric;
-    -- ...
     -- for all Ada-types see package Standard: (GNAT implementation)
     -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Standard/GNAT
-    -- function To_Integer(V : in Numeric) return Integer;
-    -- ...
 
     -- GNAT/Standard basic num-types are:
 
-    -- integers are always 'range' metytype, not 'mod' !!
+    -- integers are always 'range' metatype, not 'mod' !!
 
     -- Short_Short_Integer
     -- Short_Integer

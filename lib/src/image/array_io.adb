@@ -7,11 +7,11 @@ with Endian;
 -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
 
 
-package body Data_IO is
+package body Array_IO is
 
 package Phys renames Physical;
 
-procedure Read_Array
+procedure Read
     (F : SIO.File_Type;
     A,B : in Float;
     Phys_Arr : out Physical.Numeric_Arr)
@@ -43,11 +43,11 @@ begin
 
     Phys_Arr := Phys.To_Numeric(Fout_Arr);
 
-end Read_Array;
+end Read;
 
 
 
-procedure Write_Array
+procedure Write
     (F : SIO.File_Type;
     A,B : in Float;
     Phys_Arr : in Physical.Numeric_Arr)
@@ -79,10 +79,8 @@ begin
     CheckAndRevert(Af);
     Raw.Numeric_Arr'Write(SIO.Stream(F), Af);
 
-end Write_Array;
+end Write;
 
 
-
-
-end Data_IO;
+end Array_IO;
 
