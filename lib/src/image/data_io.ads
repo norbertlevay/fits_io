@@ -7,25 +7,19 @@ with Image;
 generic
  with package Tf is new Numeric_Type(<>);
  with package Tm is new Numeric_Type(<>);
-
- with package Tm_Image is new Image(<>);  --T => Tm; others => <>);
- -- we must have read/created Header before doing Data_IO
- -- Image.Data_Model and Header are equivalent
-
-
 package Data_IO is
 
     package SIO renames Ada.Streams.Stream_IO;
 
 procedure Read_Array
     (F : SIO.File_Type;
-    Im : in Tm_Image.Data_Model;
-    Tm_Arr : out Tm.Numeric_Arr);
+    A,B     : in Float;
+    Tm_Arr  : out Tm.Numeric_Arr);
 
 procedure Write_Array
     (F : SIO.File_Type;
-    Im : in Tm_Image.Data_Model;
-    Tm_Arr : in Tm.Numeric_Arr);
+    A,B     : in Float;
+    Tm_Arr  : in Tm.Numeric_Arr);
 
 end Data_IO;
 

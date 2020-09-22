@@ -32,14 +32,13 @@ end Set_Undefined;
 
 procedure Read_Array
     (F : SIO.File_Type;
-    Im : in Tm_Image.Data_Model;
-    Tm_Arr : out Tm.Numeric_Arr)
+    A,B     : in Float;
+    Tm_Arr  : out Tm.Numeric_Arr)
 is
  Af : Tf.Numeric_Arr(Tm_Arr'Range);
  Fin_Arr  : Tf.Float_Arr(Tm_Arr'Range); -- FIXME uses 3x more space (Af Fin Fout arrays): price
  Fout_Arr : Tm.Float_Arr(Tm_Arr'Range); -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
  procedure CheckAndRevert is new Endian.Check_And_Revert(Tf.Numeric,Tf.Numeric_Arr);
- A,B : Float; -- FIXME set from Image.Data_Model (which corresponds to Header)
 begin
 
     Tf.Numeric_Arr'Read(SIO.Stream(F), Af);
@@ -68,14 +67,13 @@ end Read_Array;
 
 procedure Write_Array
     (F : SIO.File_Type;
-    Im : in Tm_Image.Data_Model;
-    Tm_Arr : in Tm.Numeric_Arr)
+    A,B     : in Float;
+    Tm_Arr  : in Tm.Numeric_Arr)
 is
- Af : Tf.Numeric_Arr(Tm_Arr'Range);
- Fin_Arr  : Tm.Float_Arr(Tm_Arr'Range);
- Fout_Arr : Tf.Float_Arr(Tm_Arr'Range);
+ Af         : Tf.Numeric_Arr(Tm_Arr'Range);
+ Fin_Arr    : Tm.Float_Arr(Tm_Arr'Range);
+ Fout_Arr   : Tf.Float_Arr(Tm_Arr'Range);
 procedure CheckAndRevert is new Endian.Check_And_Revert(Tf.Numeric,Tf.Numeric_Arr);
- A,B : Float; -- FIXME set from Image.Data_Model (which corresponds to Header)
 begin
 
     --    TmTf_Scaling(Tm_Arr,Af,A,B,Uf,Um);
