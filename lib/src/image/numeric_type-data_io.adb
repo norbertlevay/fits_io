@@ -1,7 +1,6 @@
 
 with Endian;
 with File.Misc; -- Write_Padding needed
-with Scaling;
 
 package body Numeric_Type.Data_IO is
 
