@@ -20,7 +20,7 @@ package body FITS_IO is
 
 procedure Read
     (F : SIO.File_Type;
-    TArr : out T_Arr)
+     V : out T)
 is
 begin
     null;
@@ -28,7 +28,7 @@ end Read;
 
 procedure Write
     (F : SIO.File_Type;
-    TArr : in T_Arr)
+     V : in T)
 is
 begin
  null;

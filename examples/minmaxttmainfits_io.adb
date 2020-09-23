@@ -26,7 +26,7 @@ is
 
  type I_Arr is array(SIO.Positive_Count range <>) of Integer;
  type F_Arr is array(SIO.Positive_Count range <>) of Float;
- package FIO  is new FITS_IO(Integer, I_Arr);
+ package FIO  is new FITS_IO(Integer);
 
  --package MMTT is new MinmaxTT(Float, Float'Last, Float'First);
  package MMTT is new MinmaxTT(Integer, I_Arr, F_Arr, Integer'Last, Integer'First);
@@ -34,7 +34,6 @@ is
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1;
  IArr : I_Arr(1 .. 10);
-
 begin
 
     if(CLI.Argument_Count /= 1 ) 
@@ -57,7 +56,10 @@ begin
             UInValid : Boolean := False;
         begin
 
-            FIO.Read(InFile, IArr);
+            for I in IArr'Range
+            loop
+                FIO.Read(InFile, IArr(I));
+            end loop;
             --AIO.Read(InFile, 0.0, 10.0, FArr);
 
         end;
