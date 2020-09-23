@@ -8,21 +8,18 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
 
 generic
 type T is private;
+type T_Arr is array (Positive_Count range <>) of T;
+type Float_Arr is array (Positive_Count range <>) of Float;
 
 with function "+"(V : in Float) return T     is <>;
 with function "+"(V : in T)     return Float is <>;
-
-with function To_BITPIX(V : in T) return Integer is <>;
-
 with function Is_Undef(V,U : in T) return Boolean is <>;
+with function To_BITPIX(V : in T) return Integer is <>;
 
 package Numeric_Type is
 
     subtype Numeric is T;
-
-    type Numeric_Arr is array (Positive_Count range <>) of Numeric;
-    type Float_Arr   is array (Positive_Count range <>) of Float;
-    -- FIXME move Float_Arr to be formal param, otherwise it is new type Numeric_Type.Float_Arr
+    subtype Numeric_Arr is T_Arr;
 
     function Bit_Count return Positive;
     function BITPIX return Integer;

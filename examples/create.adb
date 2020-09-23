@@ -51,11 +51,15 @@ is
 
  -- write data
 
- package Phys is new Numeric_Type(Float);
- package Raw  is new Numeric_Type(Short_Integer);
+ type Float_Arr is array (SIO.Positive_Count range <>) of Float;
+ type SI_Arr is array (SIO.Positive_Count range <>) of Short_Integer;
+
+ package Phys is new Numeric_Type(Float, Float_Arr, Float_Arr);
+ package Raw  is new Numeric_Type(Short_Integer,SI_Arr, Float_Arr);
  package AIO  is new Array_IO(Raw,Phys);
 
- Column : Phys.Numeric_Arr(1..ColLength);
+ Column : Float_Arr(1..ColLength);
+ --Column : Phys.Numeric_Arr(1..ColLength);
  Data : Phys.Numeric;
  Min  : Phys.Numeric := Phys.Numeric'Last;
  Max  : Phys.Numeric := Phys.Numeric'First;

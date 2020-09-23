@@ -8,13 +8,17 @@ with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 package body FITS_IO is
 
+--    type T_Arr is array(SIO.Positive_Count range <>) of T;
+    type Float_Arr is array(SIO.Positive_Count range <>) of Float;
+
+
 procedure Read
     (F : SIO.File_Type;
     TArr : out T_Arr)
 is
 
-    package Phys is new Numeric_Type(T);
-    package Raw  is new Numeric_Type(Float);
+    package Phys is new Numeric_Type(T,T_Arr,Float_Arr);
+    package Raw  is new Numeric_Type(Float,Float_Arr,Float_Arr);
     -- FIXME type is determined by BITPIX after having read the Header
     -- now assume Float...
     package AIO  is new Array_IO(Raw,Phys);
@@ -43,8 +47,8 @@ procedure Write
 is
     A,B : Float;
 
-    package Phys is new Numeric_Type(T);
-    package Raw  is new Numeric_Type(T);
+    package Phys is new Numeric_Type(T,T_Arr,Float_Arr);
+    package Raw  is new Numeric_Type(T,T_Arr,Float_Arr);
     package AIO  is new Array_IO(Raw,Phys);
 
 begin

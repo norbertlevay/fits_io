@@ -25,10 +25,11 @@ is
     package CLI renames Ada.Command_Line;
 
  type I_Arr is array(SIO.Positive_Count range <>) of Integer;
+ type F_Arr is array(SIO.Positive_Count range <>) of Float;
  package FIO  is new FITS_IO(Integer, I_Arr);
 
  --package MMTT is new MinmaxTT(Float, Float'Last, Float'First);
- package MMTT is new MinmaxTT(Integer, Integer'Last, Integer'First);
+ package MMTT is new MinmaxTT(Integer, I_Arr, F_Arr, Integer'Last, Integer'First);
 
  InFile   : SIO.File_Type;
  HDUStart : SIO.Positive_Count := 1;

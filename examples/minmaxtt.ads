@@ -1,10 +1,12 @@
 
-
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Numeric_Type;
 with Array_IO;
 
 generic
  type T is private;
+ type T_Arr is array (Positive_Count range <>) of T;
+ type Float_Arr is array (Positive_Count range <>) of Float;
  T_Last : T;
  T_First : T;
  with function ">"(L,R : T) return Boolean is <>;
