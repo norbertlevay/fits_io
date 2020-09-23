@@ -26,6 +26,9 @@ with File.Misc;-- Write_Padding needed
 
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
+with Buffer_Type;
+
+
 procedure create
 is
 
@@ -52,17 +55,21 @@ is
  -- write data
 
  type Float_Arr is array (SIO.Positive_Count range <>) of Float;
- type SI_Arr is array (SIO.Positive_Count range <>) of Short_Integer;
+-- type SI_Arr is array (SIO.Positive_Count range <>) of Short_Integer;
 
- package Phys is new Numeric_Type(Float, Float_Arr, Float_Arr);
- package Raw  is new Numeric_Type(Short_Integer,SI_Arr, Float_Arr);
- package AIO  is new Array_IO(Raw,Phys);
+-- package Phys is new Numeric_Type(Float, Float_Arr, Float_Arr);
+-- package Raw  is new Numeric_Type(Short_Integer,SI_Arr, Float_Arr);
+-- package AIO  is new Array_IO(Raw,Phys);
+
+ A : Float:=0.0;
+ B : Float:=1.0;
+package Buff is new Buffer_Type(Float, Float_Arr, A,B);
 
  Column : Float_Arr(1..ColLength);
  --Column : Phys.Numeric_Arr(1..ColLength);
- Data : Phys.Numeric;
- Min  : Phys.Numeric := Phys.Numeric'Last;
- Max  : Phys.Numeric := Phys.Numeric'First;
+ Data : Float;--Phys.Numeric;
+ Min  : Float;--Phys.Numeric := Phys.Numeric'Last;
+ Max  : Float;--Phys.Numeric := Phys.Numeric'First;
  use SIO;-- operator "-" on SIO.Count needed
 begin
 
@@ -71,14 +78,15 @@ begin
  SIO.Create (F, SIO.Out_File, FileName);
 
  Header.Write_Card_SIMPLE(F, True);
- Header.Write_Cards(F, Im.To_Cards(Raw.BITPIX));
+ Header.Write_Cards(F, Im.To_Cards(16));-- FIXME with Buffer_Type this is unknown here! Raw.BITPIX));
  Header.Close(F);
 
  -- init phys-array
 
  for I in Column'Range
  loop
-    Column(I) := Phys.To_Numeric(Float(I-1));
+    Column(I) := Float(I-1);
+    --Column(I) := Phys.To_Numeric(Float(I-1));
     Data := Column(I);
     if(Data < Min) then Min := Data; end if;
     if(Data > Max) then Max := Data; end if;
@@ -88,14 +96,18 @@ end loop;
 
  for I in 1 .. RowLength
  loop
-     AIO.Write(F, 0.0, 1.0, Column);
+     Buff.Write_Buffer(F, Column);
+     --AIO.Write(F, 0.0, 1.0, Column);
  end loop;
 
  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
  SIO.Close(F);
 
- Put_Line("Min " & Phys.Numeric'Image(Min));
- Put_Line("Max " & Phys.Numeric'Image(Max));
+ Put_Line("Min " & Float'Image(Min));
+ Put_Line("Max " & Float'Image(Max));
+-- Put_Line("Min " & Phys.Numeric'Image(Min));
+-- Put_Line("Max " & Phys.Numeric'Image(Max));
+
 
 exception
   when Except_ID : others =>
