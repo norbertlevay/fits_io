@@ -1,15 +1,15 @@
 
 
-with Numeric_Type;
-with Array_IO;
+--with Numeric_Type;
+--with Array_IO;
 
 
 
 package body MinmaxTT is
 
- package Phys is new Numeric_Type(T,T_Arr,Float_Arr);
- package Raw  is new Numeric_Type(T,T_Arr,Float_Arr);
- package AIO  is new Array_IO(Raw,Phys);
+-- package Phys is new Numeric_Type(T,T_Arr,Float_Arr);
+-- package Raw  is new Numeric_Type(T,T_Arr,Float_Arr);
+-- package AIO  is new Array_IO(Raw,Phys);
 
 
 
