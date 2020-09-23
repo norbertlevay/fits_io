@@ -16,6 +16,8 @@ with Optional;
 with Optional.Reserved;
 with Header;
 
+with Ada.Sequential_IO;
+
 procedure minmaxttmain
 is
 
@@ -23,6 +25,26 @@ is
     package SIO renames Ada.Streams.Stream_IO;
     package CLI renames Ada.Command_Line;
 
+
+ -- BEGIN : FITS_IO API considerations
+ -- also note: these FITS_*_IO packages below could be use
+ -- in Array_IO instead of Ada.Streams 'Write 'Read (used now)
+ -- OR the unused: serialization + Strems.Stream_IO Read/Write(Stream_Element_Array)
+
+ subtype Card_Type is String(1 .. 80);
+ type Card_Arr is array (Natural range <>) of Card_Type;
+ package FITS_Header_IO is new Ada.Sequential_IO(Element_Type => Card_Arr);
+
+ generic
+ type T (<>) is private;
+ package FITS_IO_exp is
+-- type Float_Arr is array (Natural range <>) of Float;
+ package FITS_Data_Unit_IO is new Ada.Sequential_IO(Element_Type => T);
+ end FITS_IO_exp;
+
+ -- should FITS_IO generic type be:
+ -- type Element_Type (<>) is private; <- like in sequential, allows for arrays
+ -- END
 
 
  package Phys is new Numeric_Type(Integer);
