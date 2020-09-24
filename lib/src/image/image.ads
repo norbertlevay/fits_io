@@ -50,6 +50,16 @@ package Image is
     -- FIXME unylear hoe convert T <-> BITPIX
 
 
+    -- Reserved keys
+
+    type Biblio_Key         is (AUTHOR, REFERENC);
+    type Descriptive_Key    is (DATE, REFERENC, ORIGIN, EXTEND, BLOCKED);
+    type Observation_Key    is (DATE-OBS, DATExxxx, TELESCOP, INSTRUME, OBSERVER, OBJECT);
+    type Commentary_Key     is (COMMENT, HISTORY);
+    type Array_Key          is (BSCALE, BZERO, BUNIT, BLANK, DATAMIN, DATAMAX);
+    type WCS_Key            is (TOO,MANY,ADD,LATER);
+    type Extension_Key      is (EXTNAME, EXTVER, EXTLEVEL);
+
 end Image;
 
 
