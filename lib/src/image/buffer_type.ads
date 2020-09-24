@@ -3,7 +3,6 @@ with Ada.Streams.Stream_IO;use Ada.Streams.Stream_IO;
 
 generic
 type T is private;
-type Buffer is array (Positive_Count range <>) of T;
 --Length : in SIO.Positive_Count := 2880;
 A : in out Float;-- := 0.0;
 B : in out Float;-- := 1.0;
@@ -17,8 +16,13 @@ package Buffer_Type is
 
     package SIO renames Ada.Streams.Stream_IO;
 
-procedure Read_Buffer(F: SIO.File_Type; Item : out Buffer);
-procedure Write_Buffer(F: SIO.File_Type; Item : in Buffer);
+type Buffer is array (Positive_Count range <>) of T;
+
+procedure Read_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; Item : out Buffer);
+procedure Write_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; Item : in Buffer);
+
+for Buffer'Write use Write_Buffer;
+for Buffer'Read use Read_Buffer;
 
 end Buffer_Type;
 

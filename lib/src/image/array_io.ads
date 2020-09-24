@@ -10,12 +10,12 @@ package Array_IO is
     package SIO renames Ada.Streams.Stream_IO;
 
 procedure Read
-    (F : SIO.File_Type;
+    (S :not null access Ada.Streams.Root_Stream_Type'Class; 
     A,B : in Float;
     Phys_Arr : out Physical.Numeric_Arr);
 
 procedure Write
-    (F : SIO.File_Type;
+    (S : not null access Ada.Streams.Root_Stream_Type'Class;
     A,B : in Float;
     Phys_Arr : in Physical.Numeric_Arr);
 

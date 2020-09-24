@@ -20,19 +20,21 @@ package body Buffer_Type is
  function To_BITPIX(V : in Short_Integer) return Integer is begin return V'Size; end To_BITPIX; 
 
 
-procedure Read_Buffer(F: SIO.File_Type; Item : out Buffer)
+--procedure Read_Buffer(F: SIO.File_Type; Item : out Buffer)
+procedure Read_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; Item : out Buffer)
 is
  package Phys is new Numeric_Type(T, Buffer, Float_Arr);
  package Raw  is new Numeric_Type(Short_Integer, SI_Arr, Float_Arr);
  -- FIXME Raw info normaly would come from Header like A,B; here we simplify: Tf=Tm
  package AIO  is new Array_IO(Raw,Phys);
 begin
-    AIO.Read(F, A,B, Item);
+    AIO.Read(S, A,B, Item);
 end Read_Buffer;
 
 
 
-procedure Write_Buffer(F: SIO.File_Type; Item : in Buffer)
+procedure Write_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; Item : in Buffer)
+--procedure Write_Buffer(F: SIO.File_Type; Item : in Buffer)
 is
  package Phys is new Numeric_Type(T, Buffer, Float_Arr);
  --package Raw  is new Numeric_Type(T, Buffer, Float_Arr);
@@ -41,7 +43,7 @@ is
  package AIO  is new Array_IO(Raw,Phys);
 
 begin
-    AIO.Write(F, A,B, Item);
+    AIO.Write(S, A,B, Item);
 end Write_Buffer;
 
 

@@ -12,7 +12,8 @@ package body Array_IO is
 package Phys renames Physical;
 
 procedure Read
-    (F : SIO.File_Type;
+    (S : not null access Ada.Streams.Root_Stream_Type'Class;
+    --(F : SIO.File_Type;
     A,B : in Float;
     Phys_Arr : out Physical.Numeric_Arr)
 is
@@ -24,7 +25,7 @@ begin
 
     -- low-level read
 
-    Raw.Numeric_Arr'Read(SIO.Stream(F), Af);
+    Raw.Numeric_Arr'Read(S, Af);
     Raw_CheckAndRevert(Af);
 
     -- conversions
@@ -48,7 +49,8 @@ end Read;
 
 
 procedure Write
-    (F : SIO.File_Type;
+--    (F : SIO.File_Type;
+    (S : not null access Ada.Streams.Root_Stream_Type'Class;
     A,B : in Float;
     Phys_Arr : in Physical.Numeric_Arr)
 is
@@ -77,7 +79,7 @@ begin
     -- low-level write
 
     Raw_CheckAndRevert(Af);
-    Raw.Numeric_Arr'Write(SIO.Stream(F), Af);
+    Raw.Numeric_Arr'Write(S, Af);
 
 end Write;
 

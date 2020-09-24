@@ -72,55 +72,51 @@ is
 
  -- write data
 
- type Float_Arr is array (SIO.Positive_Count range <>) of Float;
-
  A : Float:=0.0;
  B : Float:=1.0;
- package Buff is new Buffer_Type(Float, Float_Arr, A,B);
+ package Buff is new Buffer_Type(Float, A,B);
 
- Column : Float_Arr(1..ColLength);
- --Column : Phys.Numeric_Arr(1..ColLength);
- Data : Float;--Phys.Numeric;
- Min  : Float;--Phys.Numeric := Phys.Numeric'Last;
- Max  : Float;--Phys.Numeric := Phys.Numeric'First;
- use SIO;-- operator "-" on SIO.Count needed
+ Column : Buff.Buffer(1..ColLength);
+
+
+function Generate_Data(I : SIO.Count; ColLength : SIO.Positive_Count) return Buff.Buffer
+is
+    Column : Buff.Buffer(1..ColLength);
+begin
+ for I in Column'Range
+ loop
+    Column(I) := Float(I)-1.0;
+ end loop;
+ return Column;
+end Generate_Data;
+
+
+
+
 begin
 
  Put_Line("Writing " & FileName & " ... "); 
 
  SIO.Create (F, SIO.Out_File, FileName);
 
+-- write Header
+
  Header.Write_Card_SIMPLE(F, True);
  Header.Write_Cards(F, MandCards);
  Valued_Key_Record_Arr'Write(SIO.Stream(F), ArrKeyRecs);
  Header.Close(F);
 
- -- init phys-array
-
- for I in Column'Range
- loop
-    Column(I) := Float(I-1);
-    --Column(I) := Phys.To_Numeric(Float(I-1));
-    Data := Column(I);
-    if(Data < Min) then Min := Data; end if;
-    if(Data > Max) then Max := Data; end if;
-end loop;
-
- -- write Data Unit
+-- write Data Unit
 
  for I in 1 .. RowLength
  loop
-     Buff.Write_Buffer(F, Column);
-     --AIO.Write(F, 0.0, 1.0, Column);
+     Column := Generate_Data(I, ColLength);
+     Buff.Buffer'Write(SIO.Stream(F), Column);
  end loop;
-
  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
+
  SIO.Close(F);
 
- Put_Line("Min " & Float'Image(Min));
- Put_Line("Max " & Float'Image(Max));
--- Put_Line("Min " & Phys.Numeric'Image(Min));
--- Put_Line("Max " & Phys.Numeric'Image(Max));
 
 
 exception
