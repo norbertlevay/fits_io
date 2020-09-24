@@ -5,16 +5,33 @@ with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 package Optional.Reserved is
 
 
-   function BS8(S : String; Drop :Ada.Strings.Truncation := Ada.Strings.Error) 
-        return Bounded_String_8.Bounded_String
-                renames Bounded_String_8.To_Bounded_String;
+-- Conversion with To_Bounded_String renamed:
+-- 
+--   function BS8(S : String; Drop :Ada.Strings.Truncation := Ada.Strings.Error) 
+--        return Bounded_String_8.Bounded_String
+--                renames Bounded_String_8.To_Bounded_String;
+--   Descriptive_Keys : constant Optional.Bounded_String_8_Arr :=
+--        (BS8("DATE"),BS8("REFERENC"),BS8("ORIGIN"),BS8("EXTEND"),BS8("BLOCKED"));
+
+
+ use BS_8;
+ BZERO   : constant BS_8.Bounded_String := 1 * "BZERO";
+ BSCALE  : constant BS_8.Bounded_String := 1 * "BSCALE";
+ BUNIT   : constant BS_8.Bounded_String := 1 * "BUNIT";
+ BLANK   : constant BS_8.Bounded_String := 1 * "BLANK";
+ DATAMIN : constant BS_8.Bounded_String := 1 * "DATAMIN";
+ DATAMAX : constant BS_8.Bounded_String := 1 * "DATAMAX";
+ -- run-time error raised if the literal string longer
+
+
+
 
    Descriptive_Keys : constant Optional.Bounded_String_8_Arr :=
-        (BS8("DATE"),BS8("REFERENC"),BS8("ORIGIN"),BS8("EXTEND"),BS8("BLOCKED"));
+        (1* "DATE", 1* "REFERENC", 1* "ORIGIN", 1* "EXTEND", 1* "BLOCKED");
 
    Observation_Keys : constant Optional.Bounded_String_8_Arr :=
-        (BS8("DATE-OBS"),BS8("DATExxxx"),
-         BS8("TELESCOP"),BS8("INSTRUME"),BS8("OBSERVER"),BS8("OBJECT"));
+        (1* "DATE-OBS", 1* "DATExxxx", 
+         1* "TELESCOP", 1* "INSTRUME", 1* "OBSERVER", 1* "OBJECT");
         -- FIXME DATExxxx needs special handling!?
 
    -- NOTE bounded string operator * repeats the string (and performs the conversions??)
@@ -27,8 +44,8 @@ package Optional.Reserved is
                 (1 * "COMMENT", 1 * "HISTORY", 8 * " ");
 
    Array_Keys : constant Optional.Bounded_String_8_Arr :=  
-                (1 * "BSCALE", 1 * "BZERO", 1 * "BUNIT", 1 * "BLANK",
-                 1 * "DATAMAX", 1 * "DATAMIN");
+                (BSCALE, BZERO, BUNIT, BLANK,
+                 DATAMAX, DATAMIN);
 
 -- WCS keys : ... see Section 8
    WCS_Keys : constant Optional.Bounded_String_8_Arr :=

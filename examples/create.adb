@@ -15,7 +15,8 @@ with Ada.Streams.Stream_IO;
 with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
 with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
-with Optional;        use Optional;       -- Card_Arr needed
+with Optional;       -- use Optional;       -- Card_Arr needed
+with Optional.Reserved; use Optional.Reserved;
 with Header;          use Header;         -- Create_Card needed
 
 with Image;
@@ -28,42 +29,54 @@ with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Buffer_Type;
 
+with Ada.Strings.Bounded;
+
 
 procedure create
 is
 
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
+-- package BS renames Ada.Strings.Bounded;
 
  FileName : constant String := Command_Name & ".fits";
  F        : SIO.File_Type;
 
  -- create Header
 
+ -- mandatory cards
+
  ColLength : constant SIO.Positive_Count := 256;
  RowLength : constant SIO.Positive_Count := 456;
  NAXISn  : NAXIS_Arr := (ColLength, RowLength);
 
- OptCards  : Card_Arr :=
-            (
-                Create_Card("DATAMIN",  "0"),
-                Create_Card("DATAMAX","255")
-            );
+ package Im is new Image(Float_32, NAXISn);
 
- package Im is new Image(Float_32, NAXISn, OptCards);
+ MandCards : Optional.Card_Arr := Im.To_Cards(Short_Integer'Size);
+ -- FIXME Tf = Short_Integer, how to specify: with Buffer_Type unknown here! Raw.BITPIX
+ -- cfitsio makes here "automatic type conversion"
+
+ -- add some optional/reserved cards
+
+ type Valued_Key_Record_Arr is array (Integer range <>) of Optional.Valued_Key_Record;
+ use Optional.BS70;
+ ArrKeyRecs : Valued_Key_Record_Arr :=
+     (
+     (BZERO,    1*    "0.0"),
+     (BSCALE,   1*    "1.0"),
+     (BLANK,    1* "-32768"),
+     (DATAMIN,  1*      "0"),
+     (DATAMAX,  1*    "255")
+     );
+
 
  -- write data
 
  type Float_Arr is array (SIO.Positive_Count range <>) of Float;
--- type SI_Arr is array (SIO.Positive_Count range <>) of Short_Integer;
-
--- package Phys is new Numeric_Type(Float, Float_Arr, Float_Arr);
--- package Raw  is new Numeric_Type(Short_Integer,SI_Arr, Float_Arr);
--- package AIO  is new Array_IO(Raw,Phys);
 
  A : Float:=0.0;
  B : Float:=1.0;
-package Buff is new Buffer_Type(Float, Float_Arr, A,B);
+ package Buff is new Buffer_Type(Float, Float_Arr, A,B);
 
  Column : Float_Arr(1..ColLength);
  --Column : Phys.Numeric_Arr(1..ColLength);
@@ -78,7 +91,8 @@ begin
  SIO.Create (F, SIO.Out_File, FileName);
 
  Header.Write_Card_SIMPLE(F, True);
- Header.Write_Cards(F, Im.To_Cards(16));-- FIXME with Buffer_Type this is unknown here! Raw.BITPIX));
+ Header.Write_Cards(F, MandCards);
+ Valued_Key_Record_Arr'Write(SIO.Stream(F), ArrKeyRecs);
  Header.Close(F);
 
  -- init phys-array
