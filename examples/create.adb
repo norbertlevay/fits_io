@@ -6,7 +6,6 @@
 -- FIXME if AdaRM says SIO.Create guarantees File Index
 -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
-
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
@@ -37,10 +36,6 @@ is
 
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
--- package BS renames Ada.Strings.Bounded;
-
- FileName : constant String := Command_Name & ".fits";
- F        : SIO.File_Type;
 
  -- create Header
 
@@ -74,44 +69,49 @@ is
 
  A : Float:=0.0;
  B : Float:=1.0;
- package Buff is new Buffer_Type(Float, A,B);
+ package Column is new Buffer_Type(Float, A,B);
 
- Column : Buff.Buffer(1..ColLength);
+ Current_Column : Column.Buffer(1..ColLength);
 
 
-function Generate_Data(I : SIO.Count; ColLength : SIO.Positive_Count) return Buff.Buffer
+function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count) return Column.Buffer
 is
-    Column : Buff.Buffer(1..ColLength);
+    Gend_Column : Column.Buffer(1..ColLength);
 begin
- for I in Column'Range
+ for I in Gend_Column'Range
  loop
-    Column(I) := Float(I)-1.0;
+    Gend_Column(I) := Float(I)-1.0;
  end loop;
- return Column;
+ return Gend_Column;
 end Generate_Data;
 
 
 
+ FileName : constant String := Command_Name & ".fits";
+ F        : SIO.File_Type;
+ Buffer_Stream : SIO.Stream_Access;
+ -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Ada.Streams.Stream_IO
 
 begin
 
  Put_Line("Writing " & FileName & " ... "); 
 
  SIO.Create (F, SIO.Out_File, FileName);
+ Buffer_Stream := SIO.Stream(F);
 
--- write Header
+ -- write Header
 
  Header.Write_Card_SIMPLE(F, True);
  Header.Write_Cards(F, MandCards);
- Valued_Key_Record_Arr'Write(SIO.Stream(F), ArrKeyRecs);
+ Valued_Key_Record_Arr'Write(Buffer_Stream, ArrKeyRecs);
  Header.Close(F);
 
 -- write Data Unit
 
  for I in 1 .. RowLength
  loop
-     Column := Generate_Data(I, ColLength);
-     Buff.Buffer'Write(SIO.Stream(F), Column);
+     Current_Column := Generate_Data(I, ColLength);
+     Column.Buffer'Write(Buffer_Stream, Current_Column);
  end loop;
  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
 
@@ -120,11 +120,6 @@ begin
 
 
 exception
-  when Except_ID : others =>
-     declare
-      Error : Ada.Text_IO.File_Type := Standard_Error;
-     begin
-      Put_Line(Error, Exception_Information( Except_ID ) );
-     end;
+  when Except_ID : others => Put_Line(Standard_Error, Exception_Information(Except_ID));
 end create;
 
