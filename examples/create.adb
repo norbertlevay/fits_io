@@ -6,6 +6,18 @@
 -- FIXME if AdaRM says SIO.Create guarantees File Index
 -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
+ -- For Streams see:
+ -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Ada.Streams.Stream_IO
+ -- good, but misleading is this: 
+ --
+ -- Date_Rec'Write(Date_Stream, Some_Date)
+ --
+ -- the code used the generic ada-root-stream not specialization of any kind; so
+ -- more correct would be:
+ --
+ -- Date_Rec'Write(Out_Stream, Some_Date)
+ --
+
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
@@ -38,19 +50,22 @@ is
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
 
- -- create Header
+ -- specify Target-Type, why here ? FIXME handle as [A,B,Target_BITPIX] triple in Data
+ --Target_BITPIX : Integer := Short_Integer'Size;
+ --MandCards : Optional.Card_Arr := F32_Header.To_Cards(Target_BITPIX);
+ -- FIXME Tf = Short_Integer, how to specify: with Buffer_Type unknown here! Raw.BITPIX
+ -- cfitsio makes here "automatic type conversion"
+ --
+ -- FIXME It is hardoceded in Buffet_Type'Write 
 
- -- mandatory cards
+
 
  ColLength : constant SIO.Positive_Count := 256;
  RowLength : constant SIO.Positive_Count := 456;
- NAXISn  : NAXIS_Arr := (ColLength, RowLength);
+ NAXISn    : NAXIS_Arr := (ColLength, RowLength);
 
- package F32_Im is new Image(Float_32, NAXISn);
-
- MandCards : Optional.Card_Arr := F32_Im.To_Cards(Short_Integer'Size);
- -- FIXME Tf = Short_Integer, how to specify: with Buffer_Type unknown here! Raw.BITPIX
- -- cfitsio makes here "automatic type conversion"
+ package F32_Header is new Image(Float_32, NAXISn);
+ Mandatory_Keys : F32_Header.Image_Rec := (NAXISn'Length, -(Float_32'Size), NAXISn);
 
  -- add some optional/reserved cards
 
@@ -66,33 +81,27 @@ is
      );
 
 
- -- write data
+ -- prepare write data
 
- A : Float:=0.0;
- B : Float:=1.0;
- package F32 is new Buffer_Type(Float, A,B);
-
- Current_F32Column : F32.Buffer(1..ColLength);
+ package F32_Data is new Buffer_Type(Float);
+ Current_F32Column : F32_Data.Buffer(1..ColLength);
 
 
-function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count) return F32.Buffer
+function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count) return F32_Data.Buffer
 is
-    Col : F32.Buffer(1..ColLength);
+    Col : F32_Data.Buffer(1..ColLength);
 begin
- for I in Col'Range
- loop
-    Col(I) := Float(I)-1.0;
- end loop;
+ for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
  return Col;
 end Generate_Data;
 
 
+ -- FITS-file name
 
  Temp_File_Name  : constant String := Command_Name & ".fits.part";
  File_Name       : constant String := Command_Name & ".fits";
  Out_File   : SIO.File_Type;
  Out_Stream : SIO.Stream_Access;
- -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Ada.Streams.Stream_IO
 
 begin
 
@@ -104,7 +113,7 @@ begin
  -- write Header
 
  Header.Write_Card_SIMPLE(Out_File, True);
- Header.Write_Cards(Out_File, MandCards);
+ F32_Header.Image_Rec'Write(Out_Stream, Mandatory_Keys);
  Valued_Key_Record_Arr'Write(Out_Stream, ArrKeyRecs);
  Header.Close(Out_File);
 
@@ -112,10 +121,15 @@ begin
 
  for I in 1 .. RowLength
  loop
+
      Current_F32Column := Generate_Data(I, ColLength);
-     F32.Buffer'Write(Out_Stream, Current_F32Column);
+
+     F32_Data.Buffer'Write(Out_Stream, Current_F32Column);
+
  end loop;
  File.Misc.Write_Padding(Out_File, SIO.Index(Out_File), File.Misc.DataPadValue);
+
+-- succesfully written, close and rename
 
  SIO.Close(Out_File);
 

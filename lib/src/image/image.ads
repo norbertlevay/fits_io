@@ -31,7 +31,7 @@
 -- B, use private and pull-in mechanism (like in read) for those parts of code 
 -- which differ by meta-type (modular, integer, float)
 
-
+with Ada.Streams.Stream_IO; -- Stream needed
 
 with Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
@@ -43,11 +43,24 @@ NAXISn : Mandatory.NAXIS_Arr;
 Cards  : Optional.Card_Arr := Optional.Null_Card_Arr;
 package Image is
 
-    type Data_Model is tagged null record;
-
     function To_Cards(BITPIX : in Integer) return Optional.Card_Arr;
     -- convert [T,NAXISn,Cards] -> Card_Arr
     -- FIXME unylear hoe convert T <-> BITPIX
+
+
+-- Image
+
+type Image_Rec(NAXIS : Natural) is
+    record
+        BITPIX : Integer;
+        NAXISn : Mandatory.NAXIS_Arr(1 .. NAXIS);
+    end record;
+
+procedure Image_Write (
+             Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+             Item   : in  Image_Rec);
+
+for Image_Rec'Write use Image_Write;
 
 end Image;
 
