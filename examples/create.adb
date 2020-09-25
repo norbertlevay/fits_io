@@ -90,7 +90,7 @@ is
      (
      (BZERO,    1*    "0.0"),
      (BSCALE,   1*    "1.0"),
-     (BLANK,    1* "-32768"),
+     (BLANK,    1*    "255"),
      (DATAMIN,  1*      "0"),
      (DATAMAX,  1*    "255")
      );
