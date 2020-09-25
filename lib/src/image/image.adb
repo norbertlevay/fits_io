@@ -43,7 +43,6 @@ end To_Cards;
                Stream : not null access Ada.Streams.Root_Stream_Type'Class;
                Item   : in  Image_Rec)
  is
-     Target_BITPIX : Integer := 16; -- FIXME get this like [A,B,TargBITPIX] in data
      Target_Im : Image_Rec :=
                             (NAXIS => Item.NAXISn'Length, 
                             BITPIX => Target_BITPIX, 

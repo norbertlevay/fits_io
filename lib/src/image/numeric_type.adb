@@ -29,8 +29,15 @@ end BITPIX;
  procedure Set_Undefined(U : in Numeric)
  is
  begin
-     Undef       := U;
-     Undef_Valid := True;
+     -- set only if not set yet
+     -- API caller might set it
+     -- and must set it when source data is Float
+     -- and requests conversion to (U)Int
+     if(Not Undef_Valid)
+     then
+        Undef       := U;
+        Undef_Valid := True;
+     end if;
  end Set_Undefined;
 
  function  Is_Undefined_Valid return Boolean

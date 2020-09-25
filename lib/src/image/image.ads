@@ -40,21 +40,21 @@ with Optional;  -- Card_Arr needed
 generic
 type T is private;
 NAXISn : Mandatory.NAXIS_Arr;
+A : in Float := 0.0;
+B : in Float := 1.0;
+Target_BITPIX : Integer := 0; -- FIXME zero means default and should be To_BITPIX(V:T)
 Cards  : Optional.Card_Arr := Optional.Null_Card_Arr;
 package Image is
 
-    function To_Cards(BITPIX : in Integer) return Optional.Card_Arr;
-    -- convert [T,NAXISn,Cards] -> Card_Arr
-    -- FIXME unylear hoe convert T <-> BITPIX
 
 
--- Image
 
 type Image_Rec(NAXIS : Natural) is
     record
         BITPIX : Integer;
         NAXISn : Mandatory.NAXIS_Arr(1 .. NAXIS);
     end record;
+
 
 procedure Image_Write (
              Stream : not null access Ada.Streams.Root_Stream_Type'Class;

@@ -16,11 +16,13 @@ with Ada.Streams.Stream_IO;use Ada.Streams.Stream_IO;
 
 generic
 type T is private;
---Length : in SIO.Positive_Count := 2880;
+Undefined_Value : T;
+Undefined_Valid : Boolean := False;
+Target_Undefined_Value : Float   := 0.0; -- FIXME will be converted to target type
+Target_Undefined_Valid : Boolean := False; -- if valid
 A : in Float := 0.0;
 B : in Float := 1.0;
 Target_BITPIX : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
-
 
 with function "+"(V : in Float) return T     is <>; 
 with function "+"(V : in T)     return Float is <>; 
