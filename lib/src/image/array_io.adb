@@ -3,6 +3,7 @@ with Ada.Streams.Stream_IO;
 with Numeric_Type;
 with Endian;
 
+
 -- FIXME stack/local arrays: Af Fin_Arr Fout_Arr Af, use 3x more space: price to pay
 -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
 
@@ -71,7 +72,12 @@ begin
     -- calc target-domain's Undef Value
     if(Phys.Is_Undefined_Valid)
     then
-        Raw.Set_Undefined(Raw."+"(A + B * Phys."+"(Phys.Get_Undefined)));
+        if(Not Raw.Is_Undefined_Valid)
+        then
+            Raw.Set_Undefined(Raw."+"(A + B * Phys."+"(Phys.Get_Undefined)));
+        else
+            null; -- error: "Undef out must be set ????"
+        end if;
     end if;
 
     Af := Raw.To_Numeric(Fout_Arr);
