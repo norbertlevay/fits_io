@@ -24,6 +24,11 @@ function Init (Keys : in Bounded_String_8_Arr) return SIO.Positive_Count;
 function Next (Pos  : in SIO.Positive_Count; Card : in String_80) return SIO.Count;
 function Get_Cards return Card_Arr;
 
+-- ops on Card_Arr
+
+function Find_Key(Cards : Optional.Card_Arr; Key : BS_8.Bounded_String) return Card_Arr;
+
+
 
 -- Valued-key record
 
@@ -36,10 +41,17 @@ package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
          Value : Value_Type;
      end record;
 
+
+ procedure VKR_Read (
+            Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+            Item   : out  Valued_Key_Record);
+
+
  procedure VKR_Write (
             Stream : not null access Ada.Streams.Root_Stream_Type'Class;
             Item   : in  Valued_Key_Record);
 
+ for Valued_Key_Record'Read  use VKR_Read;
  for Valued_Key_Record'Write use VKR_Write;
 
 end Optional;

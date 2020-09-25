@@ -65,6 +65,32 @@ end Get_Cards;
 
 
 
+
+-- Ops on Card_Arr
+
+function Find_Key(Cards : Optional.Card_Arr; Key : BS_8.Bounded_String) return Card_Arr
+is
+    use Ada.Strings;
+    Key8 : String(1..8);
+begin
+    for I in Cards'Range
+    loop
+        Key8 := Cards(I)(1..8);
+        ASF.Trim(Key8, Both, Left);-- FIXME this must be conversion func Strin->Key_Type
+        if(Cards(I)(1..8) = Key8)
+        then
+            declare
+                Card : Card_Arr(1..1) := Cards(I..I);
+            begin
+                return Card;
+            end;
+        end if;
+    end loop;
+    return Null_Card_Arr;
+end Find_Key;
+
+
+
 -- Valued-key record
 
 -- NOTE for Valued_Key_Record later use tagged-record where Value string will
@@ -89,4 +115,23 @@ end Get_Cards;
  end VKR_Write;
 
 
+
+
+
+ procedure VKR_Read (
+            Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+            Item   : out  Valued_Key_Record)
+ is
+     Card : String(1..80);
+     use Ada.Strings;
+ begin
+     String'Read(Stream, Card);
+     Item.Key   := BS_8.To_Bounded_String(ASF.Trim(Card(1..8),  Both));
+     ASF.Trim(Card(11..30), Both, Right);
+     Item.Value := BS70.To_Bounded_String(Card(11..30));
+ end VKR_Read;
+
+
+
 end Optional;
+
