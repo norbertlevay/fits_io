@@ -10,6 +10,7 @@ with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Streams.Stream_IO;
+with Ada.Directories;
 
 with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
@@ -45,9 +46,9 @@ is
  RowLength : constant SIO.Positive_Count := 456;
  NAXISn  : NAXIS_Arr := (ColLength, RowLength);
 
- package Im is new Image(Float_32, NAXISn);
+ package F32_Im is new Image(Float_32, NAXISn);
 
- MandCards : Optional.Card_Arr := Im.To_Cards(Short_Integer'Size);
+ MandCards : Optional.Card_Arr := F32_Im.To_Cards(Short_Integer'Size);
  -- FIXME Tf = Short_Integer, how to specify: with Buffer_Type unknown here! Raw.BITPIX
  -- cfitsio makes here "automatic type conversion"
 
@@ -69,55 +70,58 @@ is
 
  A : Float:=0.0;
  B : Float:=1.0;
- package Column is new Buffer_Type(Float, A,B);
+ package F32 is new Buffer_Type(Float, A,B);
 
- Current_Column : Column.Buffer(1..ColLength);
+ Current_F32Column : F32.Buffer(1..ColLength);
 
 
-function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count) return Column.Buffer
+function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count) return F32.Buffer
 is
-    Gend_Column : Column.Buffer(1..ColLength);
+    Col : F32.Buffer(1..ColLength);
 begin
- for I in Gend_Column'Range
+ for I in Col'Range
  loop
-    Gend_Column(I) := Float(I)-1.0;
+    Col(I) := Float(I)-1.0;
  end loop;
- return Gend_Column;
+ return Col;
 end Generate_Data;
 
 
 
- FileName : constant String := Command_Name & ".fits";
- F        : SIO.File_Type;
- Buffer_Stream : SIO.Stream_Access;
+ Temp_File_Name  : constant String := Command_Name & ".fits.part";
+ File_Name       : constant String := Command_Name & ".fits";
+ Out_File   : SIO.File_Type;
+ Out_Stream : SIO.Stream_Access;
  -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Ada.Streams.Stream_IO
 
 begin
 
- Put_Line("Writing " & FileName & " ... "); 
+ SIO.Create (Out_File, SIO.Out_File, Temp_File_Name);
+ Out_Stream := SIO.Stream(Out_File);
 
- SIO.Create (F, SIO.Out_File, FileName);
- Buffer_Stream := SIO.Stream(F);
+ Put_Line("Writing: " & Temp_File_Name); 
 
  -- write Header
 
- Header.Write_Card_SIMPLE(F, True);
- Header.Write_Cards(F, MandCards);
- Valued_Key_Record_Arr'Write(Buffer_Stream, ArrKeyRecs);
- Header.Close(F);
+ Header.Write_Card_SIMPLE(Out_File, True);
+ Header.Write_Cards(Out_File, MandCards);
+ Valued_Key_Record_Arr'Write(Out_Stream, ArrKeyRecs);
+ Header.Close(Out_File);
 
 -- write Data Unit
 
  for I in 1 .. RowLength
  loop
-     Current_Column := Generate_Data(I, ColLength);
-     Column.Buffer'Write(Buffer_Stream, Current_Column);
+     Current_F32Column := Generate_Data(I, ColLength);
+     F32.Buffer'Write(Out_Stream, Current_F32Column);
  end loop;
- File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
+ File.Misc.Write_Padding(Out_File, SIO.Index(Out_File), File.Misc.DataPadValue);
 
- SIO.Close(F);
+ SIO.Close(Out_File);
 
+ Ada.Directories.Rename(Temp_File_Name, File_Name);
 
+ Put_Line("Ready  : " & File_Name); 
 
 exception
   when Except_ID : others => Put_Line(Standard_Error, Exception_Information(Except_ID));
