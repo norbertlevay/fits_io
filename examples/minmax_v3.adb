@@ -57,19 +57,25 @@ begin
             RowLength : SIO.Positive_Count := HDUInfo.NAXISn(2);
 
             use Optional;
-            Undefined_Valid : Boolean := Not (Array_Cards = Optional.Null_Card_Arr);
-            Undefined_Value : Float := Float'Value(Array_Cards(1)(11..30));
             Zero : Float := 0.0;
-            Target_Undefined_Value : Float := 0.0/Zero;
-            Target_Undefined_Valid : Boolean := Undefined_Valid;
+
+            File_Undefined_Valid : Boolean := Not (Array_Cards = Optional.Null_Card_Arr);
+            File_Undefined_Value : Float := Float'Value(Array_Cards(1)(11..30));
+            Memory_Undefined_Value : Float := 0.0/Zero;
+            Memory_Undefined_Valid : Boolean := File_Undefined_Valid;
             -- no need to set Undef, should come from Header BLANK
+            -- Test 2 cases: set and not, both should work
+
             -- A,B, needed in API??
             -- Target_BITPIX means always "the other side" for Read comes from Header
-            Target_BITPIX : Integer := HDUInfo.BITPIX;
+            Memory_BITPIX : Integer := -32; -- from DataModel
+            File_BITPIX   : Integer := HDUInfo.BITPIX; -- from Header
             package F32_Data is new Buffer_Type(Float, 
-                    Undefined_Value,Undefined_Valid,
-                    Target_Undefined_Value,Target_Undefined_Valid,
-                    0.0,1.0,Target_BITPIX);
+                    Memory_Undefined_Value, Memory_Undefined_Valid,
+                    File_Undefined_Value,   File_Undefined_Valid,
+                    0.0,1.0,
+                    Memory_BITPIX,
+                    File_BITPIX);
             subtype ColBuffer is F32_Data.Buffer(1..ColLength);
             Current_F32Column : F32_Data.Buffer(1..ColLength);
 
@@ -93,8 +99,10 @@ begin
                     --TIO.Put(" "&Float'Image(V));
                     if(UValid)
                     then
+                       -- TIO.Put_Line("DBG1" & Float'Image(V));
                        if((Not (V = V)))
                        then
+                           -- TIO.Put_Line("DBG2");
                            Undef_Count := Undef_Count + 1;
                        else
                            if(V < Min) then Min := V; end if;
@@ -111,27 +119,21 @@ begin
         -- main --------------------------------------------------------------------
         begin
 
-            -- if BLANK in Header use its value
-            if(Undefined_Valid)
-            then
-                Undefined_Value := Float'Value(Array_Cards(1)(11..30));
-            end if;
-
             for I in 1 .. RowLength
             loop
 
                 F32_Data.Buffer'Read(In_Stream, Current_F32Column);
 
-                Analyze_Data(I,Current_F32Column, Target_Undefined_Valid, Target_Undefined_Value);
+                Analyze_Data(I,Current_F32Column, True, Memory_Undefined_Value);
 
             end loop;
 
 
 
-            TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Undefined_Valid));
-            if(Undefined_Valid)
+            TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Memory_Undefined_Valid));
+            if(Memory_Undefined_Valid)
             then
-                TIO.Put_Line("Undef_Value            : " & Float'Image(Undefined_Value));
+                TIO.Put_Line("Undef_Value            : " & Float'Image(Memory_Undefined_Value));
             end if;
 --            TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
             TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
