@@ -33,11 +33,11 @@ end BITPIX;
      -- API caller might set it
      -- and must set it when source data is Float
      -- and requests conversion to (U)Int
-     if(Not Undef_Valid)
-     then
+--     if(Not Undef_Valid)
+--     then
         Undef       := U;
         Undef_Valid := True;
-     end if;
+--     end if;
  end Set_Undefined;
 
  function  Is_Undefined_Valid return Boolean
@@ -86,7 +86,7 @@ end BITPIX;
 
               Vn := +V; 
 
-              if(Vn = Undef)
+              if(Is_Undef(Vn,Undef))-- = Undef)
               then
                   return Dummy; -- Error: "Vout is Undef but Vin was not" (V would be NaN)
               else
@@ -138,7 +138,7 @@ end BITPIX;
             else
                 An(I) := +Af(I);
 
-                if(An(I) = Undef)
+                if(Is_Undef(An(I),Undef))
                 then
                     An(I) := Dummy; -- Error: "Vout is Undef but Vin was not" (Af(I) is not Undef)
                 end if;

@@ -1,4 +1,6 @@
 
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Ada.Streams.Stream_IO;
 with Numeric_Type;
 with Endian;
@@ -40,7 +42,10 @@ begin
     -- calc target-domain's Undef Value
     if(Raw.Is_Undefined_Valid)
     then
-        Phys.Set_Undefined(Phys."+"(A + B * Raw."+"(Raw.Get_Undefined)));
+        if(Not Phys.Is_Undefined_Valid)
+        then
+            Phys.Set_Undefined(Phys."+"(A + B * Raw."+"(Raw.Get_Undefined)));
+        end if;
     end if;
 
     Phys_Arr := Phys.To_Numeric(Fout_Arr);
