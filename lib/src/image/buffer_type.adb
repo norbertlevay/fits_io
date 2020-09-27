@@ -84,9 +84,10 @@ begin
         if(File_Undefined_Valid)
         then
             case(File_BITPIX) is
-                when  0 =>   TRaw.Set_Undefined(  TRaw.To_Numeric(+File_Undefined_Value));
-                when 16 => I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
-                when  8 | 32 | 64 | -32 | -64 => null; -- Warn: "Not implemented"
+                when   0 =>   TRaw.Set_Undefined(  TRaw.To_Numeric(+File_Undefined_Value));
+                when  16 => I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
+                when -32 => F32Raw.Set_Undefined(F32Raw.To_Numeric(+File_Undefined_Value));
+                when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
                 when others => null; -- Error: "Invalid BITPIX for target"
             end case;
         end if;
