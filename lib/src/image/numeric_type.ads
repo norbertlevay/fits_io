@@ -30,10 +30,11 @@ package Numeric_Type is
 
     function To_Numeric(V : in Float)   return Numeric;
     function To_Float  (V : in Numeric) return Float;
+    -- used in Undefined-value computaion (one value only)
 
     function To_Numeric(Af : in Float_Arr)   return Numeric_Arr;
     function To_Float  (An : in Numeric_Arr) return Float_Arr;
-
+    -- used in Data Unit values conversion and scaling (array of values)
 
 end Numeric_Type;
 
