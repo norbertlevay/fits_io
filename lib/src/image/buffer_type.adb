@@ -17,7 +17,9 @@ package body Buffer_Type is
  function "+"(V : in Short_Integer)     return Float is begin return Float(V); end "+";
 
  function Is_Undef(V,U : in Short_Integer) return Boolean is begin return (V=U); end Is_Undef;
+ function Is_Undef(V,U : in Float)         return Boolean is begin return Not (V=V); end Is_Undef;
  function To_BITPIX(V : in Short_Integer) return Integer is begin return V'Size; end To_BITPIX;
+ function To_BITPIX(V : in Float)         return Integer is begin return -(V'Size); end To_BITPIX;
 
  -- prepare the conversion arrays
 
@@ -29,6 +31,9 @@ package body Buffer_Type is
  package I16Raw  is new Numeric_Type(Short_Integer, I16_Arr, Float_Arr);
  package I16_AIO is new Array_IO(I16Raw,Phys);
 
+ package F32Raw  is new Numeric_Type(Float, Float_Arr, Float_Arr);
+ package F32_AIO is new Array_IO(F32Raw,Phys);
+
 
 
 
@@ -36,18 +41,31 @@ procedure Read_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; Ite
 is
 begin
 
-    if(Undefined_Valid)
+    if(File_Undefined_Valid)
     then
 
-        Phys.Set_Undefined(Undefined_Value);
+        I16Raw.Set_Undefined(+(File_Undefined_Value));
+
+        -- did user force undefined value ? it has precedence
+        if(Memory_Undefined_Valid)
+        then
+             case(Memory_BITPIX) is
+                when  0 | 8 | 16 | 32 | 64 | -32 | -64 => 
+                    Phys.Set_Undefined(Memory_Undefined_Value);
+                when others => null; -- Error: "Invalid BITPIX for target"
+            end case;
+        else
+            null; -- lib calculates
+        end if;
 
     end if;
 
 
-    case(Target_BITPIX) is
-        when  0 =>   T_AIO.Read(S, A,B, Item);
-        when 16 => I16_AIO.Read(S, A,B, Item);
-        when  8 | 32 | 64 | -32 | -64 => null; -- Warn: "Not implemented"
+    case(File_BITPIX) is
+        when   0 =>   T_AIO.Read(S, A,B, Item);
+        when  16 => I16_AIO.Read(S, A,B, Item);
+        when -32 => F32_AIO.Read(S, A,B, Item);
+        when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
         when others => null; -- Error: "Invalid BITPIX for target"
     end case;
 end Read_Buffer;
@@ -58,19 +76,16 @@ procedure Write_Buffer(S: not null access Ada.Streams.Root_Stream_Type'Class; It
 is
 begin
 
-    if(Undefined_Valid)
+    if(Memory_Undefined_Valid)
     then
-        Phys.Set_Undefined(Undefined_Value);
+        Phys.Set_Undefined(Memory_Undefined_Value);
 
-        -- caller has supplied Undefined value for target
-        -- it has precedent, so set it (Undef value can be set only
-        -- once after init of Numeric_Type see Set_Undefined)
-
-        if(Target_Undefined_Valid)
+        -- did caller force undefined value ? it has precedence
+        if(File_Undefined_Valid)
         then
-            case(Target_BITPIX) is
-                when  0 =>   TRaw.Set_Undefined(  TRaw.To_Numeric(Target_Undefined_Value));
-                when 16 => I16Raw.Set_Undefined(I16Raw.To_Numeric(Target_Undefined_Value));
+            case(File_BITPIX) is
+                when  0 =>   TRaw.Set_Undefined(  TRaw.To_Numeric(+File_Undefined_Value));
+                when 16 => I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
                 when  8 | 32 | 64 | -32 | -64 => null; -- Warn: "Not implemented"
                 when others => null; -- Error: "Invalid BITPIX for target"
             end case;
@@ -79,10 +94,11 @@ begin
     end if;
 
 
-    case(Target_BITPIX) is
-        when  0 =>   T_AIO.Write(S, A,B, Item);
-        when 16 => I16_AIO.Write(S, A,B, Item);
-        when  8 | 32 | 64 | -32 | -64 => null; -- Warn: "Not implemented"
+    case(File_BITPIX) is
+        when   0 =>   T_AIO.Write(S, A,B, Item);
+        when  16 => I16_AIO.Write(S, A,B, Item);
+        when -32 => F32_AIO.Write(S, A,B, Item);
+        when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
         when others => null; -- Error: "Invalid BITPIX for target"
     end case;
 end Write_Buffer;
