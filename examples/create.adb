@@ -58,97 +58,110 @@ with Ada.Strings.Bounded;
 procedure create
 is
 
- package TIO renames Ada.Text_IO;
- package SIO renames Ada.Streams.Stream_IO;
+    Zero  :  Float := 0.0;
+    F_NaN : constant Float := 0.0/Zero;
 
- Zero  :  Float := 0.0;
- F_NaN : constant Float := 0.0/Zero;
+    package TIO renames Ada.Text_IO;
+    package SIO renames Ada.Streams.Stream_IO;
 
- ColLength : constant SIO.Positive_Count := 256;
- RowLength : constant SIO.Positive_Count := 456;
+    -- Metadata
 
- NAXISn                 : NAXIS_Arr := (ColLength, RowLength);
- Data_Min               : Float     :=   0.0;
- Data_Max               : Float     := 255.0;
- Data_Unit              : String    := "Undef";
- Data_Undef_Valid       : Boolean   := True;
- Data_Undef_Value       : Float     := F_NaN;
+    ColLength : constant SIO.Positive_Count := 256;
+    RowLength : constant SIO.Positive_Count := 456;
 
- Memory_BITPIX  : Integer := -(Float'Size);
- File_BITPIX    : Integer := Short_Integer'Size; -- needed only for Image'Write
+    subtype MD_Tm is Float;
 
+    MD_NAXISn            : NAXIS_Arr := (ColLength, RowLength);
+    MD_Min               : Float     :=   0.0;
+    MD_Max               : Float     := 255.0;
+    MD_Unit              : String    := "Undef";
+    MD_Undef_Valid       : Boolean   := True;
+    MD_Undef_Value       : Float     := F_NaN;
 
- -- set-up image metadata
+    MD_Memory_BITPIX  : Integer := -(MD_Tm'Size);
+                    -- FIXME use To_BITPIX(Dummy : MD_Tm) return Integer
 
- package F32_Header is new Image
-     (Float,
-     NAXISn,
-     Data_Undef_Valid, Data_Undef_Value,
-     Data_Min, Data_Max,
-     Data_Unit,
-     File_BITPIX-- FIXME should not be here: it is transfer-param not Metadata
-     );
+    -- Inputs for Write
 
+    In_File_BITPIX : Integer := Short_Integer'Size; -- needed only for Image'Write
+    In_A : Float := 0.0;
+    In_B : Float := 1.0;
 
- Mandatory_Keys : F32_Header.Image_Rec := (NAXISn'Length, Memory_BITPIX, NAXISn);
- -- add some optional/reserved cards
- type Valued_Key_Record_Arr is array (Integer range <>) of Optional.Valued_Key_Record;
- use Optional.BS70;
- -- FIXME these values need to be generated from: A,B, (Target_)Undefined_Value
- ArrKeyRecs : Valued_Key_Record_Arr :=
-     (
-     (BZERO,    1*    "0.0"),
-     (BSCALE,   1*    "1.0"),
-     (BLANK,    1*    "255"),
-     (DATAMIN,  1*      "0"),
-     (DATAMAX,  1*    "255")
-     );
+    -- F->I conversion: caller must supply Undef value
+    -- for the file if data has undef values
+    In_File_Undefined_Valid : Boolean := MD_Undef_Valid;
+    In_File_Undefined_Value : Float   := Float(Short_Integer'Last);
+                            -- FIXME convert File_BITPIX -> T and T'Last
 
+    ---------------------------
 
- -- set-up transfer buffer for Write
+    -- set-up image Header
 
- Memory_Undefined_Valid : Boolean   := Data_Undef_Valid;
- Memory_Undefined_Value : Float     := Data_Undef_Value;
- File_Undefined_Value   : Float     := Float(Short_Integer'Last);
- File_Undefined_Valid   : Boolean   := True; -- MUST specify value because convert Float->Integer
- A : Float := 0.0; -- adjust to actual values
- B : Float := 1.0; -- when converting data
+    package F32_Header is new Image
+        (MD_Tm,
+        MD_NAXISn,
+        MD_Undef_Valid, MD_Undef_Value,
+        MD_Min, MD_Max,
+        MD_Unit,
+        In_File_BITPIX-- FIXME should not be here: it is transfer-param not Metadata
+        );
 
-package F32_Data is new Buffer_Type(Float,
-         Memory_Undefined_Value, Memory_Undefined_Valid,
-         File_Undefined_Value,   File_Undefined_Valid,
-         A,B,
-         Memory_BITPIX,
-         File_BITPIX);
-
- -- NOTE
- -- [Float, Memory_Undefined_Value/Valid] - describe data we have
- -- [File_Undefined_Value/Valid, A,B, File_BITPIX] - describe data in file
+    Mandatory_Keys : F32_Header.Image_Rec := (MD_NAXISn'Length, MD_Memory_BITPIX, MD_NAXISn);
+    -- add some optional/reserved cards
+    type Valued_Key_Record_Arr is array (Integer range <>) of Optional.Valued_Key_Record;
+    use Optional.BS70;
+    -- FIXME these values need to be generated from: A,B, (Target_)Undefined_Value
+    ArrKeyRecs : Valued_Key_Record_Arr :=
+         (
+        (BZERO,    1*    "0.0"),
+        (BSCALE,   1*    "1.0"),
+        (BLANK,    1*    "255"),
+        (DATAMIN,  1*      "0"),
+        (DATAMAX,  1*    "255")
+        );
 
 
+    -- set-up transfer buffer for Write
 
- Current_F32Column : F32_Data.Buffer(1..ColLength);
+    package F32_Data is new Buffer_Type
+        (T => MD_Tm,
+        Memory_Undefined_Value => MD_Undef_Value,
+        Memory_Undefined_Valid => MD_Undef_Valid,
+        File_Undefined_Value   => In_File_Undefined_Value,
+        File_Undefined_Valid   => In_File_Undefined_Valid,
+        A => In_A,
+        B => In_B,
+        Memory_BITPIX => MD_Memory_BITPIX,
+        File_BITPIX   => In_File_BITPIX);
+
+    -- NOTE
+    -- [Float, Memory_Undefined_Value/Valid] - describe data we have
+    -- [File_Undefined_Value/Valid, A,B, File_BITPIX] - describe data in file
 
 
-function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count;
+    -- simulate some data
+
+    Current_F32Column : F32_Data.Buffer(1..ColLength);
+
+    function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count;
                         Undef_Valid : Boolean; Undef_Value : Float) return F32_Data.Buffer
-is
-    Col : F32_Data.Buffer(1..ColLength);
-    use SIO;
-begin
- for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
- -- simulate some Undefined data
- if (Undef_Valid) then Col(1 + ((R-1) mod ColLength)) := Undef_Value; end if;
- return Col;
-end Generate_Data;
+    is
+        Col : F32_Data.Buffer(1..ColLength);
+        use SIO;
+    begin
+        for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
+        -- simulate some Undefined data
+        if (Undef_Valid) then Col(1 + ((R-1) mod ColLength)) := Undef_Value; end if;
+        return Col;
+    end Generate_Data;
 
 
- -- FITS-file name
+    -- FITS-file name
 
- Temp_File_Name  : constant String := Command_Name & ".fits.part";
- File_Name       : constant String := Command_Name & ".fits";
- Out_File   : SIO.File_Type;
- Out_Stream : SIO.Stream_Access;
+    Temp_File_Name  : constant String := Command_Name & ".fits.part";
+    File_Name       : constant String := Command_Name & ".fits";
+    Out_File   : SIO.File_Type;
+    Out_Stream : SIO.Stream_Access;
 
 begin
 
@@ -170,7 +183,7 @@ begin
  loop
 
      Current_F32Column := Generate_Data(I, ColLength,
-                        Memory_Undefined_Valid, Memory_Undefined_Value);
+                            MD_Undef_Valid, MD_Undef_Value);
 
      F32_Data.Buffer'Write(Out_Stream, Current_F32Column);
 
