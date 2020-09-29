@@ -55,27 +55,30 @@ begin
 
             ColLength : SIO.Positive_Count := HDUInfo.NAXISn(1);
             RowLength : SIO.Positive_Count := HDUInfo.NAXISn(2);
+            -- use to set-up Buffer size
 
             use Optional;
-            Zero : Float := 0.0;
+            Zero    : Float := 0.0;
+            F_NaN   : constant Float := 0.0/Zero;
 
-            File_Undefined_Valid : Boolean := Not (Array_Cards = Optional.Null_Card_Arr);
-            File_Undefined_Value : Float := Float'Value(Array_Cards(1)(11..30));
-            Memory_Undefined_Value : Float := 0.0/Zero;
-            Memory_Undefined_Valid : Boolean := File_Undefined_Valid;
-            -- no need to set Undef, should come from Header BLANK
-            -- Test 2 cases: set and not, both should work
+            -- set-up data-transfer buffer for Read
 
-            -- A,B, needed in API??
-            -- Target_BITPIX means always "the other side" for Read comes from Header
-            Memory_BITPIX : Integer := -32; -- from DataModel
-            File_BITPIX   : Integer := HDUInfo.BITPIX; -- from Header
+            File_Undefined_Valid    : Boolean   := Not (Array_Cards = Optional.Null_Card_Arr);
+            File_Undefined_Value    : Float     := Float'Value(Array_Cards(1)(11..30));
+            Memory_Undefined_Valid  : Boolean   := File_Undefined_Valid;
+            Memory_Undefined_Value  : Float     := F_NaN;   -- FIXME calc type-independently
+            A                       : Float     := 0.0;     -- FIXME
+            B                       : Float     := 1.0;     -- FIXME
+            Memory_BITPIX           : Integer   := -32;             -- from DataModel
+            File_BITPIX             : Integer   := HDUInfo.BITPIX;  -- from Header
+
             package F32_Data is new Buffer_Type(Float, 
                     Memory_Undefined_Value, Memory_Undefined_Valid,
                     File_Undefined_Value,   File_Undefined_Valid,
-                    0.0,1.0,
+                    A,B,
                     Memory_BITPIX,
                     File_BITPIX);
+
             subtype ColBuffer is F32_Data.Buffer(1..ColLength);
             Current_F32Column : F32_Data.Buffer(1..ColLength);
 

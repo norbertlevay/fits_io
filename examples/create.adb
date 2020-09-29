@@ -17,6 +17,17 @@
  --
  -- Date_Rec'Write(Out_Stream, Some_Date)
  --
+ -- NOTE on Buffer_Type set-up:
+ -- specify Target-Type, why here ? FIXME handle as [A,B,Target_BITPIX] triple in Data
+ -- MandCards : Optional.Card_Arr := F32_Header.To_Cards(Target_BITPIX);
+ -- NOTE File_BITPIX: cfitsio makes here "automatic type conversion"
+ --
+ -- NOTE on Image metadata set-up:
+ -- NOTE source data (Tm) is described in Image-data-model
+ -- if we write cards, those must be cards of the target Tf
+ -- Info needed to specify and translate to target type is
+ -- basically the Optional.Reserved.Array_Keys :
+
 
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -50,39 +61,37 @@ is
  package TIO renames Ada.Text_IO;
  package SIO renames Ada.Streams.Stream_IO;
 
- Zero :  Float  := 0.0;
- F_NaN : Float := 0.0/Zero;
-
- -- specify Target-Type, why here ? FIXME handle as [A,B,Target_BITPIX] triple in Data
- --Target_BITPIX : Integer := Short_Integer'Size;
- --MandCards : Optional.Card_Arr := F32_Header.To_Cards(Target_BITPIX);
- -- FIXME Tf = Short_Integer, how to specify: with Buffer_Type unknown here! Raw.BITPIX
- -- cfitsio makes here "automatic type conversion"
- --
- -- FIXME It is hardoceded in Buffet_Type'Write 
-
-
+ Zero  :  Float := 0.0;
+ F_NaN : constant Float := 0.0/Zero;
 
  ColLength : constant SIO.Positive_Count := 256;
  RowLength : constant SIO.Positive_Count := 456;
- NAXISn    : NAXIS_Arr := (ColLength, RowLength);
 
- -- NOTE source data (Tm) is described in Image-data-model
- -- if we write cards, those must be cards of the target Tf
+ NAXISn                 : NAXIS_Arr := (ColLength, RowLength);
+ Data_Min               : Float     :=   0.0;
+ Data_Max               : Float     := 255.0;
+ Data_Unit              : String    := "Undef";
+ Data_Undef_Valid       : Boolean   := True;
+ Data_Undef_Value       : Float     := F_NaN;
 
- -- Info needed to specify and translate to target type is
- -- basically the Optional.Reserved.Array_Keys :
- A : Float := 0.0; -- adjust to actual values
- B : Float := 1.0; -- when converting data
- Target_BITPIX : Integer := Short_Integer'Size;
-
-
- package F32_Header is new Image(Float_32, NAXISn, A,B, Target_BITPIX);
- Mandatory_Keys : F32_Header.Image_Rec := (NAXISn'Length, -(Float_32'Size), NAXISn);
+ Memory_BITPIX  : Integer := -(Float'Size);
+ File_BITPIX    : Integer := Short_Integer'Size; -- needed only for Image'Write
 
 
+ -- set-up image metadata
+
+ package F32_Header is new Image
+     (Float,
+     NAXISn,
+     Data_Undef_Valid, Data_Undef_Value,
+     Data_Min, Data_Max,
+     Data_Unit,
+     File_BITPIX-- FIXME should not be here: it is transfer-param not Metadata
+     );
+
+
+ Mandatory_Keys : F32_Header.Image_Rec := (NAXISn'Length, Memory_BITPIX, NAXISn);
  -- add some optional/reserved cards
-
  type Valued_Key_Record_Arr is array (Integer range <>) of Optional.Valued_Key_Record;
  use Optional.BS70;
  -- FIXME these values need to be generated from: A,B, (Target_)Undefined_Value
@@ -96,17 +105,28 @@ is
      );
 
 
- -- prepare write data
-Undefined_Valid : Boolean := True;
-Undefined_Value : Float := F_NaN;
-Target_Undefined_Value : Float := Float(255);--Short_Integer'Last);
-Target_Undefined_Valid : Boolean := True; -- MUST specify value because convert Float->Integer
+ -- set-up transfer buffer for Write
 
--- [Float, Undefined_Value/Valid] - describe data we have
--- [Target_Undefined_Value/Valid, A,B,Target_BITPIX] - describe data in file
-package F32_Data is new Buffer_Type(Float, Undefined_Value,Undefined_Valid,
-                                           Target_Undefined_Value,Target_Undefined_Valid,
-                                           A,B,Target_BITPIX);
+ Memory_Undefined_Valid : Boolean   := Data_Undef_Valid;
+ Memory_Undefined_Value : Float     := Data_Undef_Value;
+ File_Undefined_Value   : Float     := Float(Short_Integer'Last);
+ File_Undefined_Valid   : Boolean   := True; -- MUST specify value because convert Float->Integer
+ A : Float := 0.0; -- adjust to actual values
+ B : Float := 1.0; -- when converting data
+
+package F32_Data is new Buffer_Type(Float,
+         Memory_Undefined_Value, Memory_Undefined_Valid,
+         File_Undefined_Value,   File_Undefined_Valid,
+         A,B,
+         Memory_BITPIX,
+         File_BITPIX);
+
+ -- NOTE
+ -- [Float, Memory_Undefined_Value/Valid] - describe data we have
+ -- [File_Undefined_Value/Valid, A,B, File_BITPIX] - describe data in file
+
+
+
  Current_F32Column : F32_Data.Buffer(1..ColLength);
 
 
@@ -150,7 +170,7 @@ begin
  loop
 
      Current_F32Column := Generate_Data(I, ColLength,
-                        Undefined_Valid, Undefined_Value);
+                        Memory_Undefined_Valid, Memory_Undefined_Value);
 
      F32_Data.Buffer'Write(Out_Stream, Current_F32Column);
 

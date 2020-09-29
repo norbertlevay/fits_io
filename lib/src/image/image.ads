@@ -40,8 +40,10 @@ with Optional;  -- Card_Arr needed
 generic
 type T is private;
 NAXISn : Mandatory.NAXIS_Arr;
-A : in Float := 0.0;
-B : in Float := 1.0;
+Undefined_Valid : Boolean;
+Undefined_Value : T;
+Min, Max        : T;
+Unit            : String := "";
 Target_BITPIX : Integer := 0; -- FIXME zero means default and should be To_BITPIX(V:T)
 Cards  : Optional.Card_Arr := Optional.Null_Card_Arr;
 package Image is
