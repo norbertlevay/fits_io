@@ -17,6 +17,7 @@ with Buffer_Type;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 --with V3_Pool_Scaling;  use V3_Pool_Scaling;
 
+with Image;
 
 procedure minmax_V3 is
 
@@ -119,9 +120,18 @@ begin
               end loop;
             end Analyze_Data;
 
-
         -- main --------------------------------------------------------------------
         begin
+
+            File.Set_File_Block_Index(InFile,HDUStart);
+            declare
+                package F32 is new Image(Float,Float'Last);
+                F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
+            begin
+                Put_Line("S: " & Integer'Image(F32_Image.NAXISn'Last) );
+            end;
+
+
 
             for I in 1 .. RowLength
             loop

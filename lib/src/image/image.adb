@@ -69,7 +69,41 @@ end To_Cards;
 
 
 
+-- Read/Parse header
+ function  Read_Mandatory (Fits_Stream : in SIO.Stream_Access) return Mandatory.Result_Rec
+ is
+     Card : String(1..80);
+     CardNum : SIO.Count;
+    use SIO;
+ begin
+     CardNum := Mandatory.Reset_State;
+     loop
+         String'Read(Fits_Stream, Card);
+         CardNum := Mandatory.Next(CardNum, Card);
+         exit when (CardNum = 0);
+     end loop;
 
+     declare
+         Res : Mandatory.Result_Rec := Mandatory.Get;
+     begin
+         return Res;
+     end;
+ end Read_Mandatory;
+
+
+
+     function Image_Input(
+                 Stream : not null access Ada.Streams.Root_Stream_Type'Class)
+                 return Image_Rec
+     is
+--         HDUStart : SIO.Positive_Count := SIO.Index(Stream);
+         Mand : Mandatory.Result_Rec := Read_Mandatory(SIO.Stream_Access(Stream));
+         Im : Image_Rec(Mand.NAXISn'Length, 0);
+--         Valued_Keys : Valued_Key_Record_Arr
+     begin
+         Im.NAXISn := Mand.NAXISn;
+         return Im;
+     end Image_Input;
 
 
 end Image;

@@ -1,35 +1,43 @@
 
 -- internal model of FITS-image for creating Headers:
 -- user chooses type T in which he has created tha data
--- user provides the dimesnions NAXISn
--- optionally, user can add any reserved or proprietary Cards
+-- user provides the dimesnions NAXISn and the Undefined value, if applicable
+-- optionally, user can add any reserved Cards
+--
+-- This model is final-size: NAXISn is final (NAXIS-card), and count of
+-- reserved cards is final as they are predefined:
+-- Image_Model'Input  -> will load Mandatory and Reserved cards
+-- Image_Model'Output -> will write Mandatory and Reserved cards
+--
+-- Array NAXISn and Array of Reserved cards has unknown,
+-- but _limited_ length:
+-- use 'Input instead of 'Read: card NAXIS and count of
+-- pre-defined Reserved cards provide max limit
+--
+-- Count of Proprietars cards is unknown and _unlimited_
+-- so use buffer-approach to read them (like the data).
+-- Optional-Proprietary cards are read/parsed and written separately
+-- as array of generic cards.
 
--- FIXME how to deal with Reserved and proprietary cards ?
--- A, generic params for the -> can generics params be null if not needed ?
--- B, use child-package(s) ? How many ?
 
--- Reserved support: should optionally allow to add info like Biblio, Observation...
--- (see Optional-Reserved.ads in lib/src/parser) (implement as array-of-cards?)
--- Optional (proprietary): should allow to add array-of arbitrary cards created by user
--- at write (?) chwck that all FITS-standard rules are satisfied
+-- NOTE on 'Class'Write attribe and dispatching:
+-- (http://ada-auth.org/standards/12rm/html/RM-13-13-2.html)
+-- Dispatches to the subprogram denoted by the Write attribute of the
+-- specific type identified by the tag of Item.
+-- 
+-- procedure S'Class'Write(
+--   Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+--   Item   : in T'Class)
+
+
 
 -- NOTE FITS v3 the user data type is one of:
 -- Unsigned_8 .. Unsigned_64
 -- Signed_8 .. Signed_64
 -- Float_32 and Float_64
-
 -- It is responsibility of the Fits_IO package to convert
 -- any of those type to raw-type defined in FITS v3 (U8, I16..I64, F32,F64)
 -- which is a restricted set of the above types
-
--- FIXME how to convert generic T to BITPIX ?
--- we need to: 
--- recognize UInt_8 -> raw but other UInt_n must be converted to Int_n (for v3 FITS by Tab 11)
--- recognize Int_8 and convert it to U8, but other Int_n -> raw
--- recognize Float -> written directly as raw
--- A, use three implementations for Modular Integer Float
--- B, use private and pull-in mechanism (like in read) for those parts of code 
--- which differ by meta-type (modular, integer, float)
 
 with Ada.Streams.Stream_IO; -- Stream needed
 
@@ -41,6 +49,8 @@ generic
  type T is private;
  Dummy_Undef_Val : T; -- FIXME hm... only for init: Valid is FAlse
 package Image is
+
+    package SIO renames Ada.Streams.Stream_IO;
 
     type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
 
@@ -58,11 +68,29 @@ package Image is
         Valued_Keys : Valued_Key_Record_Arr) return Image_Rec;
 
 
+        -- FIXME when use tagged-records to cover Undef vals, change both
+        -- Image_Rec'Input 'Output to -> 'Class'Input 'Class'Output
+        -- where Class is some Image_Root <- Record with only NAXISn in it ?
+
+        -- FIXME change Image_Write -> Image_Output
+
     procedure Image_Write (
                  Stream : not null access Ada.Streams.Root_Stream_Type'Class;
                  Item   : in  Image_Rec);
 
     for Image_Rec'Write use Image_Write;
+
+
+
+    function Image_Input(
+                Stream : not null access Ada.Streams.Root_Stream_Type'Class)
+                return Image_Rec;
+
+
+    for Image_Rec'Input use Image_Input;
+
+
+
 
 end Image;
 
