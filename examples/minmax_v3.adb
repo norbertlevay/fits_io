@@ -123,13 +123,39 @@ begin
         -- main --------------------------------------------------------------------
         begin
 
+            -- BEGIN Stream-based solution
+
             File.Set_File_Block_Index(InFile,HDUStart);
+
             declare
                 package F32 is new Image(Float,Float'Last);
                 F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
             begin
-                Put_Line("S: " & Integer'Image(F32_Image.NAXISn'Last) );
+                Put_Line("NAXIS: " & Integer'Image(F32_Image.NAXISn'Last) );
             end;
+
+            File.Set_File_Block_Index(InFile,HDUStart);
+            -- FIXME Stream may be repositioned only outside the operators
+            -- to do Mandatory+Reserved Keys in one call: mandatory parser needs to
+            -- be enhanced to parse also Reserved-Keys and return in Reserved.Get 
+            -- (Similar to Mandatory.Get)
+            declare
+                ResKeys : Optional.Reserved.Reserved_Key_Arr := 
+                    Optional.Reserved.Reserved_Key_Arr'Input(In_Stream);
+            begin
+                Put_Line("ResKeys#: " & SIO.Positive_Count'Image(ResKeys'Length));
+                if(ResKeys'Length > 0)
+                then
+                    for I in ResKeys'Range
+                    loop
+                        Put_Line(BS_8.To_String(ResKeys(I).Key) &" "& 
+                                BS70.To_String(ResKeys(I).Value));
+                    end loop;
+                end if;
+            end;
+
+            -- END Stream-based solution
+
 
 
 

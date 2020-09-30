@@ -91,19 +91,20 @@ end To_Cards;
  end Read_Mandatory;
 
 
-
      function Image_Input(
                  Stream : not null access Ada.Streams.Root_Stream_Type'Class)
                  return Image_Rec
      is
---         HDUStart : SIO.Positive_Count := SIO.Index(Stream);
+         HDUStart : SIO.Positive_Count := SIO.Index(Stream);
          Mand : Mandatory.Result_Rec := Read_Mandatory(SIO.Stream_Access(Stream));
-         Im : Image_Rec(Mand.NAXISn'Length, 0);
---         Valued_Keys : Valued_Key_Record_Arr
      begin
-         Im.NAXISn := Mand.NAXISn;
-         return Im;
-     end Image_Input;
+        declare
+         Im : Image_Rec(Mand.NAXISn'Length, 0);
+        begin
+            Im.NAXISn := Mand.NAXISn;
+            return Im;
+        end;
+    end Image_Input;
 
 
 end Image;

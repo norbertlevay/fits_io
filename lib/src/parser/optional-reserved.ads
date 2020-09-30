@@ -67,7 +67,12 @@ package Optional.Reserved is
         (Descriptive_Keys & Observation_Keys & Biblio_Keys & Array_Keys & WCS_Keys);
 
 
+ type Reserved_Key_Arr is array(SIO.Positive_Count range <>) of Valued_Key_Record;
 
+ function Parse_Reserved_Keys (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
+     return Reserved_Key_Arr;
+
+ for Reserved_Key_Arr'Input use Parse_Reserved_Keys;
 
 
 end Optional.Reserved;
