@@ -161,7 +161,7 @@ begin
 
  Header.Write_Card_SIMPLE(Out_File, True);
  F32_Image.Target_BITPIX := In_File_BITPIX;
- F32_Header.Image_Rec'Write(Out_Stream, F32_Image);
+ F32_Header.Image_Rec'Output(Out_Stream, F32_Image);
  Header.Close(Out_File);
 
 -- write Data Unit

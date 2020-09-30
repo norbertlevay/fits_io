@@ -72,13 +72,12 @@ package Image is
         -- Image_Rec'Input 'Output to -> 'Class'Input 'Class'Output
         -- where Class is some Image_Root <- Record with only NAXISn in it ?
 
-        -- FIXME change Image_Write -> Image_Output
 
-    procedure Image_Write (
+    procedure Image_Output (
                  Stream : not null access Ada.Streams.Root_Stream_Type'Class;
                  Item   : in  Image_Rec);
 
-    for Image_Rec'Write use Image_Write;
+    for Image_Rec'Output use Image_Output;
 
 
 

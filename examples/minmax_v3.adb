@@ -1,3 +1,12 @@
+
+    -- FIXME Stream may be repositioned only outside the operators
+    -- to do Mandatory+Reserved Keys in one call: mandatory parser needs to
+    -- be enhanced to parse also Reserved-Keys and return in Reserved.Get 
+    -- (Similar to Mandatory.Get)
+
+
+
+
 with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
 
@@ -24,174 +33,161 @@ procedure minmax_V3 is
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
 
-    InFile   : SIO.File_Type;
+    Zero    : Float := 0.0;
+    F_NaN   : constant Float := 0.0/Zero;
+
+    -- access FITS-file Primary HDU
+    In_File   : SIO.File_Type;
     In_Stream : SIO.Stream_Access;
-    HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
+    HDUStart  : constant SIO.Positive_Count := 1;
+
+    -- values passed from Header to Data Read-Buffer
+    Is_BLANK_In_Header  : Boolean := False;
+    BLANK_Value         : Optional.BS70.Bounded_String;
+    BITPIX_Value        : Integer;
+    ColLength : SIO.Positive_Count;
+    RowLength : SIO.Positive_Count;
+
+    -- vars for 'Data Analyzes' example
+    Min         : Float := Float'Last;
+    Max         : Float := Float'First;
+    Undef_Count : SIO.Count := 0;
 
 begin
+
+    -- Open file as a Stream
 
     if(Argument_Count /= 1 ) 
     then 
       TIO.Put_Line("Usage  " & Command_Name & " <file name>");
       return;
     else
-      SIO.Open(InFile, SIO.In_File, (Argument(1)));
-      In_Stream := SIO.Stream(InFile);
+      SIO.Open(In_File, SIO.In_File, (Argument(1)));
+      In_Stream := SIO.Stream(In_File);
     end if;
 
-    File.Set_File_Block_Index(InFile,HDUStart);
+
+    -- Read Mandatory Cards
+
+    File.Set_File_Block_Index(In_File, HDUStart);
 
     declare
-        HDUInfo : File.HDU_Info_Type := File.Read_Header(InFile);
+        package F32 is new Image(Float, Float'Last);
+        F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
     begin
-        File.Set_File_Block_Index(InFile,HDUStart);
-        declare
-            Cards   : Optional.Card_Arr := 
-                Header.Read_Optional(InFile, Optional.Reserved.Array_Keys);
-
-            Array_Cards : Optional.Card_Arr := Optional.Find_Key(Cards, Optional.Reserved.BLANK);
-
-            -- FIXME cards read -> all info available convert it!
-                -- Mandatory in HDUInfo
-                -- all Reserved-keys in Cards, if present in Header
-
-            ColLength : SIO.Positive_Count := HDUInfo.NAXISn(1);
-            RowLength : SIO.Positive_Count := HDUInfo.NAXISn(2);
-            -- use to set-up Buffer size
-
-            use Optional;
-            Zero    : Float := 0.0;
-            F_NaN   : constant Float := 0.0/Zero;
-
-            -- set-up data-transfer buffer for Read
-
-            File_Undefined_Valid    : Boolean   := Not (Array_Cards = Optional.Null_Card_Arr);
-            File_Undefined_Value    : Float     := Float'Value(Array_Cards(1)(11..30));
-            Memory_Undefined_Valid  : Boolean   := File_Undefined_Valid;
-            Memory_Undefined_Value  : Float     := F_NaN;   -- FIXME calc type-independently
-            A                       : Float     := 0.0;     -- FIXME
-            B                       : Float     := 1.0;     -- FIXME
-            Memory_BITPIX           : Integer   := -32;             -- from DataModel
-            File_BITPIX             : Integer   := HDUInfo.BITPIX;  -- from Header
-
-            package F32_Data is new Buffer_Type(Float, 
-                    Memory_Undefined_Value, Memory_Undefined_Valid,
-                    File_Undefined_Value,   File_Undefined_Valid,
-                    A,B,
-                    Memory_BITPIX,
-                    File_BITPIX);
-
-            subtype ColBuffer is F32_Data.Buffer(1..ColLength);
-            Current_F32Column : F32_Data.Buffer(1..ColLength);
-
-            -- example of data elaboration: find min max and count undef values
-            Min : Float := Float'Last;
-            Max : Float := Float'First;
-            Undef_Count : SIO.Count := 0;
-
-            procedure Analyze_Data(R : SIO.Positive_Count;
-                                CurF32Col : ColBuffer;
-                                UValid : Boolean; UValue : Float)
-            is
-                V : Float;
-                use SIO;
-            begin
-
-                for I in CurF32Col'Range
-                loop
-
-                    V := CurF32Col(I);
-                    --TIO.Put(" "&Float'Image(V));
-                    if(UValid)
-                    then
-                       -- TIO.Put_Line("DBG1" & Float'Image(V));
-                       if((Not (V = V)))
-                       then
-                           -- TIO.Put_Line("DBG2");
-                           Undef_Count := Undef_Count + 1;
-                       else
-                           if(V < Min) then Min := V; end if;
-                           if(V > Max) then Max := V; end if;
-                       end if;
-                    else
-                        if(V < Min) then Min := V; end if;
-                        if(V > Max) then Max := V; end if;
-                    end if;
-              end loop;
-            end Analyze_Data;
-
-        -- main --------------------------------------------------------------------
-        begin
-
-            -- BEGIN Stream-based solution
-
-            File.Set_File_Block_Index(InFile,HDUStart);
-
-            declare
-                package F32 is new Image(Float,Float'Last);
-                F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
-            begin
-                Put_Line("NAXIS: " & Integer'Image(F32_Image.NAXISn'Last) );
-            end;
-
-            File.Set_File_Block_Index(InFile,HDUStart);
-            -- FIXME Stream may be repositioned only outside the operators
-            -- to do Mandatory+Reserved Keys in one call: mandatory parser needs to
-            -- be enhanced to parse also Reserved-Keys and return in Reserved.Get 
-            -- (Similar to Mandatory.Get)
-            declare
-                ResKeys : Optional.Reserved.Reserved_Key_Arr := 
-                    Optional.Reserved.Reserved_Key_Arr'Input(In_Stream);
-            begin
-                Put_Line("ResKeys#: " & SIO.Positive_Count'Image(ResKeys'Length));
-                if(ResKeys'Length > 0)
-                then
-                    for I in ResKeys'Range
-                    loop
-                        Put_Line(BS_8.To_String(ResKeys(I).Key) &" "& 
-                                BS70.To_String(ResKeys(I).Value));
-                    end loop;
-                end if;
-            end;
-
-            -- END Stream-based solution
-
-
-
-
-            for I in 1 .. RowLength
-            loop
-
-                F32_Data.Buffer'Read(In_Stream, Current_F32Column);
-
-                Analyze_Data(I,Current_F32Column, True, Memory_Undefined_Value);
-
-            end loop;
-
-
-
-            TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Memory_Undefined_Valid));
-            if(Memory_Undefined_Valid)
-            then
-                TIO.Put_Line("Undef_Value            : " & Float'Image(Memory_Undefined_Value));
-            end if;
---            TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
-            TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
-            TIO.Put_Line("Min                    : " & Float'Image(Min));
-            TIO.Put_Line("Max                    : " & Float'Image(Max));
-            
-            TIO.Put_Line("Optional.Reserved cards:");
-            for I in Cards'Range
-            loop
-                Put_Line(Cards(I));
-            end loop;
-
-
-        end;
+        BITPIX_Value := F32_Image.Target_BITPIX;
+        New_Line;
+        Put_Line("Target_BITPIX: " & Integer'Image(F32_Image.Target_BITPIX) );
+        Put_Line("NAXIS        : " & Integer'Image(F32_Image.NAXISn'Last) );
+        ColLength := F32_Image.NAXISn(1);
+        if(F32_Image.NAXISn'Last > 1)
+        then
+            RowLength := F32_Image.NAXISn(2);
+        else
+            RowLength := 1;
+        end if;
     end;
 
 
-    SIO.Close(InFile);
+    -- Read Reserved Cards
+
+    File.Set_File_Block_Index(In_File, HDUStart);
+
+    declare
+        ResKeys : Optional.Reserved.Reserved_Key_Arr := 
+            Optional.Reserved.Reserved_Key_Arr'Input(In_Stream);
+    begin
+        New_Line;
+        Put_Line("ResKeys#: " & SIO.Positive_Count'Image(ResKeys'Length));
+        if(ResKeys'Length > 0)
+        then
+            for I in ResKeys'Range
+            loop
+                Put_Line(Optional.BS_8.To_String(ResKeys(I).Key) &" "& 
+                                    Optional.BS70.To_String(ResKeys(I).Value));
+                if(Optional.BS_8.To_String(ResKeys(I).Key) = "BLANK")
+                then
+                    BLANK_Value := ResKeys(I).Value;
+                    Is_BLANK_In_Header := True;
+                end if;
+            end loop;
+        end if;
+    end;
+
+
+    -- Set-up data read buffer
+
+    declare
+        Memory_Undefined_Valid  : Boolean := Is_BLANK_In_Header;--File_Undefined_Valid;
+        Memory_Undefined_Value  : Float   := F_NaN;   -- FIXME calc not set
+        -- FIXME above needed in Analyze_Data (and print results)
+
+        package F32_Data is new Buffer_Type
+            (T => Float,
+            Memory_Undefined_Value  => F_NaN,
+            Memory_Undefined_Valid  => Is_BLANK_In_Header,
+            File_Undefined_Value    => Float'Value(Optional.BS70.To_String(BLANK_Value)),
+            File_Undefined_Valid    => Is_BLANK_In_Header,
+            A => 0.0,  -- FIXME calc, not set
+            B => 1.0,  -- FIXME calc, not set
+            Memory_BITPIX   => -(Float'Size), -- from Data Model
+            File_BITPIX     => BITPIX_Value); -- from Header
+
+
+        -- example of data elaboration: find min max and count undef values
+
+        subtype ColBuffer is F32_Data.Buffer(1..ColLength);
+
+        procedure Analyze_Data
+            (R : SIO.Positive_Count;
+            CurF32Col: ColBuffer;
+            UValid : Boolean; UValue : Float)
+        is
+            V : Float;
+            use SIO;
+        begin
+            for I in CurF32Col'Range
+            loop
+                V := CurF32Col(I);
+                if(UValid And (Not (V = V)))
+                then
+                        Undef_Count := Undef_Count + 1;
+                else
+                        if(V < Min) then Min := V; end if;
+                        if(V > Max) then Max := V; end if;
+                end if;
+            end loop;
+        end Analyze_Data;
+
+        Current_F32Column : F32_Data.Buffer(1..ColLength);
+ 
+     begin
+
+         -- read all Data Unit
+
+         for I in 1 .. RowLength
+         loop
+             F32_Data.Buffer'Read(In_Stream, Current_F32Column);
+             Analyze_Data(I,Current_F32Column, True, Memory_Undefined_Value);
+         end loop;
+
+        -- print results
+
+         New_Line;
+         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Memory_Undefined_Valid));
+         if(Memory_Undefined_Valid)
+         then
+             TIO.Put_Line("Undef_Value            : " & Float'Image(Memory_Undefined_Value));
+         end if;
+         -- TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
+         TIO.Put_Line("Undef_Count (NaN)      : " & SIO.Count'Image(Undef_Count));
+         TIO.Put_Line("Min                    : " & Float'Image(Min));
+         TIO.Put_Line("Max                    : " & Float'Image(Max));
+
+     end;
+
+    SIO.Close(In_File);
+
 
 exception
 

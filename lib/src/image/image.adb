@@ -58,14 +58,14 @@ end To_Cards;
 -- Image
 
 
- procedure Image_Write (
+ procedure Image_Output (
                Stream : not null access Ada.Streams.Root_Stream_Type'Class;
                Item   : in  Image_Rec)
  is
     MandCards : Optional.Card_Arr := To_Cards(Item);
  begin
      Optional.Card_Arr'Write(Stream, MandCards);
- end Image_Write;
+ end Image_Output;
 
 
 
@@ -95,13 +95,13 @@ end To_Cards;
                  Stream : not null access Ada.Streams.Root_Stream_Type'Class)
                  return Image_Rec
      is
-         HDUStart : SIO.Positive_Count := SIO.Index(Stream);
          Mand : Mandatory.Result_Rec := Read_Mandatory(SIO.Stream_Access(Stream));
      begin
         declare
          Im : Image_Rec(Mand.NAXISn'Length, 0);
         begin
             Im.NAXISn := Mand.NAXISn;
+            Im.Target_BITPIX := Mand.BITPIX;
             return Im;
         end;
     end Image_Input;
