@@ -1,6 +1,7 @@
+with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 
-with Ada.Text_IO;
-use Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
@@ -155,6 +156,24 @@ begin
 
 
     SIO.Close(InFile);
+
+exception
+
+  when Except_ID : others =>
+     declare
+      Error : Ada.Text_IO.File_Type := Standard_Error;
+     begin
+      New_Line(Error);
+      Put_Line(Error, "Exception_Information: ");
+      Put_Line(Error, Exception_Information( Except_ID ) );
+      New_Line(Error);
+      Put_Line(Error, "Call stack traceback symbols: addr2line -e ./fits addr1 addr2 ...");
+      Put_Line(" > Trace-back of call stack: " );
+      Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
+      -- See more at: http://compgroups.net/comp.lang.ada/gnat-symbolic-traceback-on-exceptions/1409155#sthash.lNdkTjq6.dpuf
+      -- Do the same manually, use:
+      -- addr2line -e ./fits addr1 addr2 ...
+     end;
 
 end minmax_V3;
 

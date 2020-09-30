@@ -4,6 +4,8 @@ with Ada.Strings.Fixed;
 
 with Keyword_Record; -- String_80 needed
 
+with Ada.Text_IO; use Ada.Text_IO;
+
 package body Optional is
 
 package ASF renames Ada.Strings.Fixed;
@@ -13,8 +15,8 @@ package ASF renames Ada.Strings.Fixed;
 Arr_Last  : constant Positive := 100;
 -- max this many cards searched in one pass
 
-K : Bounded_String_8_Arr(1 .. Arr_Last);
-C : Card_Arr(1 .. Arr_Last);
+K : Bounded_String_8_Arr(1 .. Arr_Last);-- FIXME starts from 0
+C : Card_Arr(1 .. Arr_Last);            -- FIXME starts from 1
 -- positions in use in the above arrays
 K_Last : Natural := 0; 
 C_Last : Natural := 0;
@@ -26,7 +28,12 @@ C_Last : Natural := 0;
 function Init (Keys : in Bounded_String_8_Arr) return SIO.Positive_Count
 is
 begin
-    K_Last := Keys'Last;
+    K_Last := Keys'Last + 1; -- Bounded_String_8_Arr starts from 0
+--    Put_Line("HUHU " & Natural'Image(K_Last));
+--    for I in Keys'Range
+--    loop
+--        Put_Line("HUH " & Integer'Image(I) & ": " & BS_8.To_String(Keys(I)));
+--    end loop;
     K(1..K_Last) := Keys;
     C_Last := 0;
 

@@ -97,28 +97,15 @@ is
 
     -- set-up image Header
 
-    package F32_Header is new Image
-        (MD_Tm,
-        MD_NAXISn,
-        MD_Undef_Valid, MD_Undef_Value,
-        MD_Min, MD_Max,
-        MD_Unit,
-        In_File_BITPIX-- FIXME should not be here: it is transfer-param not Metadata
-        );
+    package F32_Header is new Image(MD_Tm, Float'Last);
 
-    Mandatory_Keys : F32_Header.Image_Rec := (MD_NAXISn'Length, MD_Memory_BITPIX, MD_NAXISn);
-    -- add some optional/reserved cards
-    type Valued_Key_Record_Arr is array (Integer range <>) of Optional.Valued_Key_Record;
     use Optional.BS70;
-    -- FIXME these values need to be generated from: A,B, (Target_)Undefined_Value
-    ArrKeyRecs : Valued_Key_Record_Arr :=
-         (
-        (BZERO,    1*    "0.0"),
-        (BSCALE,   1*    "1.0"),
-        (BLANK,    1*    "255"),
-        (DATAMIN,  1*      "0"),
-        (DATAMAX,  1*    "255")
-        );
+    F32_Image : F32_Header.Image_Rec := F32_Header.Metadata(MD_NAXISn,
+                ((BZERO,    1*    "0.0"),
+                 (BSCALE,   1*    "1.0"),
+                 (BLANK,    1*    "255"),
+                 (DATAMIN,  1*      "0"),
+                 (DATAMAX,  1*    "255")));
 
 
     -- set-up transfer buffer for Write
@@ -173,8 +160,8 @@ begin
  -- write Header
 
  Header.Write_Card_SIMPLE(Out_File, True);
- F32_Header.Image_Rec'Write(Out_Stream, Mandatory_Keys);
- Valued_Key_Record_Arr'Write(Out_Stream, ArrKeyRecs);
+ F32_Image.Target_BITPIX := In_File_BITPIX;
+ F32_Header.Image_Rec'Write(Out_Stream, F32_Image);
  Header.Close(Out_File);
 
 -- write Data Unit

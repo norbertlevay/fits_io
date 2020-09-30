@@ -12,7 +12,7 @@ package SIO renames Ada.Streams.Stream_IO;
 package Bounded_String_8 is new Generic_Bounded_Length(8);
 package BS_8 renames Bounded_String_8;
 
-type Bounded_String_8_Arr  is array (Positive range <>) of Bounded_String_8.Bounded_String;
+type Bounded_String_8_Arr  is array (Natural range <>) of Bounded_String_8.Bounded_String;
 
 
 type Card_Arr is array (Positive range <>) of String_80;

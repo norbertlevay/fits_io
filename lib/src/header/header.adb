@@ -216,6 +216,14 @@ begin
 end Create_Mandatory_Card;
 
 
+function To_Value_String( V : in String) return String
+is
+    Vstr: String(1 .. 20);
+begin
+    Move(V, Vstr, Error, Right);
+    return Vstr;
+end To_Value_String;
+
 
 function To_Value_String( V : in Integer) return String
 is

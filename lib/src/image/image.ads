@@ -38,31 +38,31 @@ with Optional;  -- Card_Arr needed
 
 
 generic
-type T is private;
-NAXISn : Mandatory.NAXIS_Arr;
-Undefined_Valid : Boolean;
-Undefined_Value : T;
-Min, Max        : T;
-Unit            : String := "";
-Target_BITPIX : Integer := 0; -- FIXME zero means default and should be To_BITPIX(V:T)
-Cards  : Optional.Card_Arr := Optional.Null_Card_Arr;
+ type T is private;
+ Dummy_Undef_Val : T; -- FIXME hm... only for init: Valid is FAlse
 package Image is
 
+    type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
+
+    type Image_Rec(NAXIS : Natural; Key_Count : Natural) is
+        record
+            NAXISn          : Mandatory.NAXIS_Arr(1 .. NAXIS);
+            Undefined_Valid : Boolean;
+            Undefined_Value : T;
+            Valued_Keys     : Valued_Key_Record_Arr(0 .. Key_Count);
+            Target_BITPIX   : Integer; -- FIXME not here: not Metadata but transfer-param
+        end record;
+
+    function Metadata
+        (NAXISn     : Mandatory.NAXIS_Arr;
+        Valued_Keys : Valued_Key_Record_Arr) return Image_Rec;
 
 
+    procedure Image_Write (
+                 Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+                 Item   : in  Image_Rec);
 
-type Image_Rec(NAXIS : Natural) is
-    record
-        BITPIX : Integer;
-        NAXISn : Mandatory.NAXIS_Arr(1 .. NAXIS);
-    end record;
-
-
-procedure Image_Write (
-             Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-             Item   : in  Image_Rec);
-
-for Image_Rec'Write use Image_Write;
+    for Image_Rec'Write use Image_Write;
 
 end Image;
 

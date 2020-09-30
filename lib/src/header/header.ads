@@ -32,6 +32,7 @@ package Header is
 
 
 function To_Value_String( V : in Integer) return String;
+function To_Value_String( V : in String) return String;
 
 
 function Create_Card(Key : in String; Value : in String) return String_80;
