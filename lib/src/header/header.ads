@@ -10,6 +10,44 @@ package Header is
 
     package SIO renames Ada.Streams.Stream_IO;
 
+
+    -- BEGIN new ------------------------------------------------------------------------------
+
+    type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
+
+    type Header_Rec(NAXIS, Desc_Last, Obs_Last, Bib_Last,
+                    Comms_Last, Arrs_Last, Wcs_Last, Ext_Last : Natural) is
+        record
+            BITPIX : Integer;
+            NAXISn : Mandatory.NAXIS_Arr(1 .. NAXIS);
+            Desc   : Valued_Key_Record_Arr(1 .. Desc_Last);
+            Obs    : Valued_Key_Record_Arr(1 .. Obs_Last);
+            Biblio : Valued_Key_Record_Arr(1 .. Bib_Last);
+            Arrs   : Valued_Key_Record_Arr(1 .. Arrs_Last);
+            Wcs    : Valued_Key_Record_Arr(1 .. Wcs_Last);
+            Ext    : Valued_Key_Record_Arr(1 .. Ext_Last);
+        end record;
+    -- read/parse all keys as defined by standard
+
+    -- or alternatively
+
+--    function  Read_Mandatory (FitsFile : in SIO.File_Type; Keys : Key_Arr := Null_Keys)
+--        return Mand_And_Reserved_Rec; -- or Header_Rec above
+    -- read/parse mandatory and selected keys (by 'Keys' param)
+
+    -- NOTE the Header_Rec_Input used for 'Input internally calls Read_Mandatory
+    -- below with 'Keys' set to all reserved as defined by standard
+
+    -- FIXME  Comments : Valued_Key_Record_Arr(1 .. Comms_Last);-- FIXME is not Valued_Key !
+    -- also max count of commnets is not known - does not belong here
+
+    -- FIXME check, that all other reserved card-groups are final/bounded in count-of-cards
+
+    -- END new ------------------------------------------------------------------------------
+
+
+
+
     -- Read funcs below always read all header, e.g.
     -- leave File_Index pointing to Data Unit start
     -- FIXME how to make this explicit ? func name, some param??
