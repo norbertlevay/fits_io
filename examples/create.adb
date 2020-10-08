@@ -29,11 +29,13 @@
  -- basically the Optional.Reserved.Array_Keys :
 
 
-with Ada.Text_IO;      use Ada.Text_IO;
+with Ada.Text_IO;      --use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Directories;
+
+with FITS;           use FITS;
 
 with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
@@ -66,8 +68,8 @@ is
 
     -- Metadata
 
-    ColLength : constant SIO.Positive_Count := 256;
-    RowLength : constant SIO.Positive_Count := 456;
+    ColLength : constant Positive_Count := 256;
+    RowLength : constant Positive_Count := 456;
 
     subtype MD_Tm is Float;
 
@@ -109,9 +111,12 @@ is
 
 
     -- set-up transfer buffer for Write
+   type Float_Arr is array (Positive_Count range <>) of Float;
+   package MMDD_TTmm is new Numeric_Type(MD_Tm, Float_Arr, FLoat_Arr);
 
     package F32_Data is new Buffer_Type
-        (T => MD_Tm,
+        --(T => MD_Tm,
+        (Phys => MMDD_TTmm,
         Memory_Undefined_Value => MD_Undef_Value,
         Memory_Undefined_Valid => MD_Undef_Valid,
         File_Undefined_Value   => In_File_Undefined_Value,
@@ -130,11 +135,11 @@ is
 
     Current_F32Column : F32_Data.Buffer(1..ColLength);
 
-    function Generate_Data(R : SIO.Count; ColLength : SIO.Positive_Count;
+    function Generate_Data(R : FITS.Count; ColLength : FITS.Positive_Count;
                         Undef_Valid : Boolean; Undef_Value : Float) return F32_Data.Buffer
     is
-        Col : F32_Data.Buffer(1..ColLength);
-        use SIO;
+        Col : F32_Data.Buffer(1 .. ColLength);
+    --    use SIO;
     begin
         for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
         -- simulate some Undefined data
@@ -155,7 +160,7 @@ begin
  SIO.Create (Out_File, SIO.Out_File, Temp_File_Name);
  Out_Stream := SIO.Stream(Out_File);
 
- Put_Line("Writing: " & Temp_File_Name); 
+ TIO.Put_Line("Writing: " & Temp_File_Name); 
 
  -- write Header
 
@@ -183,9 +188,9 @@ begin
 
  Ada.Directories.Rename(Temp_File_Name, File_Name);
 
- Put_Line("Ready  : " & File_Name); 
+ TIO.Put_Line("Ready  : " & File_Name); 
 
 exception
-  when Except_ID : others => Put_Line(Standard_Error, Exception_Information(Except_ID));
+  when Except_ID : others => TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
 end create;
 

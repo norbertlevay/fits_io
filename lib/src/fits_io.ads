@@ -37,7 +37,7 @@ package FITS_IO is
 --   subtype Positive_Count is Ada.Streams.Stream_IO.Positive_Count;--Count range 1 .. Count'Last;
 --   subtype FIndex is Integer range 1 .. 999;
 --   type NAXIS_Arr is array (FIndex range <>) of Positive_Count;
--- FIXME all four types abouve mived to FITS.ads because are shared with Numeric_Type
+-- FIXME all four types above moved to FITS.ads because are shared with Numeric_Type
    -- ans cause cyclic dependency
 
 
@@ -55,7 +55,6 @@ package FITS_IO is
          File_BITPIX     : Integer := 0;
       end record;
 
-   -- Data Unit
 
    procedure Read_Header
      (File    : SIO.File_Type;
@@ -69,6 +68,8 @@ package FITS_IO is
        NAXISn : NAXIS_Arr;
        Undef  : Physical.Numeric);-- := Physical.Null_Numeric) is null;
 
+
+   -- Data Unit
 
    procedure Read
      (File    : SIO.File_Type;
