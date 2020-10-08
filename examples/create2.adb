@@ -38,7 +38,7 @@ with Ada.Directories;
 with FITS;           use FITS;
 with FITS_IO;
 
-with V3_Types;        use V3_Types;
+--with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
 with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
 with Optional;       -- use Optional;       -- Card_Arr needed
@@ -48,7 +48,7 @@ with Header;          use Header;         -- Create_Card needed
 with Image;
 
 with Numeric_Type;
-with Array_IO;
+--with Array_IO;
 with File.Misc;-- Write_Padding needed
 
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
@@ -113,10 +113,7 @@ is
 
 
     -- set-up transfer buffer for Write
-   type Tm_Arr    is array (Positive_Count range <>) of MD_Tm;
-   type Float_Arr is array (Positive_Count range <>) of Float;
-   package F32_Phys is new Numeric_Type( MD_Tm, Tm_Arr, Float_Arr);
-   package F32_FIO  is new FITS_IO(Physical => F32_Phys);
+   package F32_FIO  is new FITS_IO(T => MD_Tm);
 
    F32Scaling : F32_FIO.Scaling_Rec := (
         MD_Undef_Value,
@@ -130,6 +127,8 @@ is
 
 
     -- simulate some data
+
+   subtype Tm_Arr is F32_FIO.T_Arr;
 
     Current_F32Column : Tm_Arr(1..ColLength);
 

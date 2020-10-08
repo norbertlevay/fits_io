@@ -28,8 +28,17 @@ with FITS; use FITS;
 with Numeric_Type;
 
 generic
- with package Physical is new Numeric_Type(<>);
+type T is private;
+
+with function "+"(V : in Float)   return T is <>; 
+with function "+"(V : in T) return Float   is <>; 
+with function Is_Undef  (V,U : in T) return Boolean is <>; 
+with function To_BITPIX (V   : in T) return Integer is <>; 
+
 package FITS_IO is
+
+
+type T_Arr is array (Positive_Count range <>) of T;
 
    package SIO renames Ada.Streams.Stream_IO;
 
@@ -45,7 +54,7 @@ package FITS_IO is
 
    type Scaling_Rec is
       record
-         Memory_Undefined_Value  : Physical.Numeric;
+         Memory_Undefined_Value  : T;
          Memory_Undefined_Valid  : Boolean := False; -- if valid
          File_Undefined_Value    : Float := 0.0;
          File_Undefined_Valid    : Boolean := False;
@@ -60,13 +69,13 @@ package FITS_IO is
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
       NAXISn : out NAXIS_Arr;
-      Undef  : in out Physical.Numeric);
+      Undef  : in out T);
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
        NAXISn : NAXIS_Arr;
-       Undef  : Physical.Numeric);-- := Physical.Null_Numeric) is null;
+       Undef  : T);-- := Physical.Null_Numeric) is null;
 
 
    -- Data Unit
@@ -74,13 +83,13 @@ package FITS_IO is
    procedure Read
      (File    : SIO.File_Type;
       Scaling : Scaling_Rec;
-      Item : out Physical.Numeric_Arr;
+      Item : out T_Arr;
       Last : out Count);
 
    procedure Write
      (File    : SIO.File_Type;
       Scaling : Scaling_Rec;
-      Item : Physical.Numeric_Arr);
+      Item : T_Arr);
 
 
    -- Exceptions

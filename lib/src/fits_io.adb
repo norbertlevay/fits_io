@@ -4,10 +4,16 @@ with Array_IO;
 
 package body FITS_IO is
 
+
+
+
+
    -- FIXME index is Positive but shopuld be Positive_Count
    -- - caused circular include of FITS and Numeric_Type
    type Float_Arr is array (Positive_Count range <>) of Float;
    type I16_Arr   is array (Positive_Count range <>) of Short_Integer;
+
+   package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
 
    package I16Raw  is new Numeric_Type(Short_Integer, I16_Arr,    Float_Arr);
    package F32Raw  is new Numeric_Type(Float,         Float_Arr,  Float_Arr);
@@ -30,13 +36,13 @@ package body FITS_IO is
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
       NAXISn : out NAXIS_Arr;
-      Undef  : in out Physical.Numeric) is begin null; end;
+      Undef  : in out T) is begin null; end;
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
        NAXISn : NAXIS_Arr;
-       Undef  : Physical.Numeric) is begin null; end;-- := Physical.Null_Numeric) is null;
+       Undef  : T) is begin null; end;-- := Physical.Null_Numeric) is null;
 
 
 
@@ -49,7 +55,7 @@ package body FITS_IO is
    procedure Read
      (File    : SIO.File_Type;
       Scaling : Scaling_Rec;
-      Item : out Physical.Numeric_Arr;
+      Item : out T_Arr;
       Last : out Count)
    is
    begin
@@ -91,7 +97,7 @@ package body FITS_IO is
    procedure Write
      (File    : SIO.File_Type;
       Scaling : Scaling_Rec;
-      Item : Physical.Numeric_Arr)
+      Item : T_Arr)
    is
    begin
 
