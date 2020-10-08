@@ -47,10 +47,10 @@
  
 -- NOTE for Mandatory keys implement Fixed Format definition parsing
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;-- use Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings; use Ada.Strings;
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;-- Trim needed
+with Ada.Strings.Fixed;-- use Ada.Strings.Fixed;-- Trim needed
 
 
 package body Keyword_Record is
@@ -74,10 +74,10 @@ package body Keyword_Record is
     end To_Boolean;
 
 
-    function To_Integer(Value : String) return SIO.Count
+    function To_Integer(Value : String) return Count
     is
     begin
-        return SIO.Count'Value(Value);
+        return Count'Value(Value);
     end To_Integer;
 
 
@@ -94,6 +94,7 @@ package body Keyword_Record is
         S : String := Value; -- rename
         AFirst  : Positive;
         ASecond : Positive;
+        use Ada.Strings.Fixed;-- Trim needed
     begin
         -- separate optional comment from string value
 

@@ -1,16 +1,25 @@
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;--use Ada.Text_IO;
+--with Ada.Streams.Stream_IO;use Ada.Streams.Stream_IO; -- Positive_Count needed
+with Ada.Streams; -- Stream access needed
+
+with FITS; use FITS;-- Positive_Count needed
 
 with Numeric_Type;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+
 with Array_IO;
 
 
 
 package body Buffer_Type is
 
- type Float_Arr is array (SIO.Positive_Count range <>) of Float;
- type I16_Arr   is array (SIO.Positive_Count range <>) of Short_Integer;
+
+--    package SIO renames Ada.Streams.Stream_IO;
+
+
+ type Float_Arr is array (Positive_Count range <>) of Float;
+ type I16_Arr   is array (Positive_Count range <>) of Short_Integer;
 
  package I16Raw  is new Numeric_Type(Short_Integer, I16_Arr,    Float_Arr);
  package F32Raw  is new Numeric_Type(Float,         Float_Arr,  Float_Arr);

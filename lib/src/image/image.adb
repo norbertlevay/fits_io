@@ -1,10 +1,12 @@
 
 
-with Ada.Streams.Stream_IO;
+--with Ada.Streams.Stream_IO;
 with Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
 with Header;    -- Image_Rec needed
 --with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
+
+with FITS; use FITS;
 
 package body Image is
 
@@ -73,8 +75,8 @@ end To_Cards;
  function  Read_Mandatory (Fits_Stream : in SIO.Stream_Access) return Mandatory.Result_Rec
  is
      Card : String(1..80);
-     CardNum : SIO.Count;
-    use SIO;
+     CardNum : Count;
+    --use SIO;
  begin
      CardNum := Mandatory.Reset_State;
      loop

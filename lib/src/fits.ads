@@ -21,11 +21,18 @@
 -- Ada GNAT implementation [FITS ?][GNAT ?].
 --
 
+with Ada.Streams.Stream_IO;
+
 package FITS is
 
    type Byte is mod 256;
    for Byte'Size use 8;
    -- [FITS] defines Byte as 8-bit
+
+   type Count           is new Ada.Streams.Stream_IO.Count;
+   subtype Positive_Count  is Count range 1 .. Count'Last;
+   --type Positive_Count  is new Ada.Streams.Stream_IO.Positive_Count;
+   -- FIXME or subtype instead of 'new' ?
 
 end FITS;
 

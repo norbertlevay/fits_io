@@ -16,7 +16,6 @@ package Phys renames Physical;
 
 procedure Read
     (S : not null access Ada.Streams.Root_Stream_Type'Class;
-    --(F : SIO.File_Type;
     A,B : in Float;
     Phys_Arr : out Physical.Numeric_Arr)
 is
@@ -55,7 +54,6 @@ end Read;
 
 
 procedure Write
---    (F : SIO.File_Type;
     (S : not null access Ada.Streams.Root_Stream_Type'Class;
     A,B : in Float;
     Phys_Arr : in Physical.Numeric_Arr)

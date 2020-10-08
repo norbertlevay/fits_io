@@ -37,7 +37,7 @@ package body File_Funcs is
         end loop;
 
         Nbits := Positive_Count(abs BITPIX) * Nbits;
-        
+
         return Nbits;
 
     end PrimaryImage_DataSize_bits;

@@ -11,7 +11,8 @@
 
 with Ada.Text_IO;
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with FITS; use FITS;
+with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
 with Ada.Unchecked_Conversion;
 with Interfaces;
 
@@ -23,7 +24,7 @@ with File_Funcs;
 
 package body Raw is
 
-  use SIO;
+  --use SIO;
 
   package TIO renames Ada.Text_IO;
 
@@ -111,11 +112,12 @@ package body Raw is
     AValues : in out T_Arr)
   is
     -- StreamElem count (File_Index) from File begining:
-    DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
-    DUIndex : Positive_Count := Raw_Funcs.To_DU_Index(First, NAXISn);
+    DUStart_SE  : Positive_Count := 1 + (DUStart-1) * 2880;
+    DUIndex     : Positive_Count := Raw_Funcs.To_DU_Index(First, NAXISn);
     --procedure ReadArray is new Read_Array(T,T_Arr);
  begin
-    SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+    SIO.Set_Index(F, SIO.Count(DUStart_SE + (DUIndex-1)*T'Size/8));
+    -- FIXME use Stream_Elemen'Size AND cast to SIO.Count !!
     Read_Array(F, AValues);
   end Read_Raw_Line;
 
@@ -244,7 +246,8 @@ package body Raw is
         end loop;
 
         DestDUIndex  := Raw_Funcs.To_DU_Index(DestC, NAXISn);
-        SIOFileIndex := DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880;
+        SIOFileIndex := SIO.Count(DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880);
+        -- FIXME cast SIO.Count !!
         SIO.Set_Index(File, SIOFileIndex);
         Write_Array(File, Line);
       end loop;

@@ -20,8 +20,7 @@
 -- each cycle-round). 
 -- So overriden 'Write 'Read calling (Scaling and Conversion) would be attached to T not T_Arr
 
-
-with Ada.Streams.Stream_IO;use Ada.Streams.Stream_IO;
+with Ada.Streams;
 with Numeric_Type;
 
 
@@ -40,7 +39,7 @@ generic
 
 package Buffer_Type is
 
-    package SIO renames Ada.Streams.Stream_IO;
+    --package SIO renames Ada.Streams.Stream_IO;
 
     subtype Buffer is Phys.Numeric_Arr;
 

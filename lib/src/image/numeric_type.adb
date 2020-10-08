@@ -3,14 +3,14 @@ package body Numeric_Type is
 
 function Bit_Count return Positive
 is
-V : T := To_Numeric(0.0);
+V : Numeric := To_Numeric(0.0);
 begin
     return V'Size;
 end Bit_Count;
 
 function BITPIX return Integer
 is
-V : T := To_Numeric(0.0);
+V : Numeric := To_Numeric(0.0);
 begin
     return To_BITPIX(V);
 end BITPIX;

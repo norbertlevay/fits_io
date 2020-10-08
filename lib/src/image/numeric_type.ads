@@ -3,23 +3,20 @@
 -- NOTE for use in FITS_IO it is enough to privide conversions
 -- to and from Floats
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
-
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
+with FITS; use FITS; -- Positive_Count needed
 
 generic
-type T is private;
-type T_Arr is array (Positive_Count range <>) of T;
-type Float_Arr is array (Positive_Count range <>) of Float;
+type Numeric is private;
+type Numeric_Arr is array (Positive_Count range <>) of Numeric;
+type Float_Arr   is array (Positive_Count range <>) of Float;
 
-with function "+"(V : in Float) return T     is <>;
-with function "+"(V : in T)     return Float is <>;
-with function Is_Undef(V,U : in T) return Boolean is <>;
-with function To_BITPIX(V : in T) return Integer is <>;
+with function "+"(V : in Float)   return Numeric is <>;
+with function "+"(V : in Numeric) return Float   is <>;
+with function Is_Undef  (V,U : in Numeric) return Boolean is <>;
+with function To_BITPIX (V   : in Numeric) return Integer is <>;
 
 package Numeric_Type is
-
-    subtype Numeric is T;
-    subtype Numeric_Arr is T_Arr;
 
     function Bit_Count return Positive;
     function BITPIX return Integer;

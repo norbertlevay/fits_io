@@ -11,19 +11,22 @@
 
 with Ada.Text_IO;
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Unchecked_Conversion;
 with Interfaces;
 
-with Mandatory;     use Mandatory; -- NAXIS_Arr needed
-with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
+with FITS; use FITS;
+
+with Mandatory;   --  use Mandatory; -- NAXIS_Arr needed
+with Keyword_Record; --use Keyword_Record; -- FIndex needed in NAXIS_Arr
 with Raw_Funcs;-- use Raw_Funcs;
 with File_Funcs;
 
 
+
 package body Raw.Data_Unit is
 
-  use SIO;
+--  use SIO;
   package TIO renames Ada.Text_IO;
 
 
@@ -32,7 +35,7 @@ package body Raw.Data_Unit is
 
 function DU_Length_blks(BITPIX : in Natural; NAXISn : in NAXIS_Arr) return Positive_Count
 is
-  Size_bits : SIO.Count;
+  Size_bits : Positive_Count;
   BitsPerBlock : constant Positive_Count := (2880*8);
 begin
    Size_bits := File_Funcs.PrimaryImage_DataSize_Bits(BITPIX, NAXISn);

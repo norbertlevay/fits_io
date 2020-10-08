@@ -18,7 +18,9 @@
 
 -- FIXME what Indexes should T_Arr have ?  (1..max or 'First .. 'Last)
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with FITS; use FITS;
+
+with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 generic

@@ -34,11 +34,11 @@
 with Ada.Text_IO;
 
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
-with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
+with FITS; use FITS;
+with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO;
+with Ada.Strings.Fixed;     --use Ada.Strings.Fixed;
+with Ada.Strings.Bounded;   --use Ada.Strings.Bounded;
 with Ada.Strings; use Ada.Strings;
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with Ada.Unchecked_Deallocation;
 
 --with V3_Types;   use V3_Types; -- Float_32 needed
@@ -73,16 +73,16 @@ package body Header is
    --
 
    procedure Read_Card (File : in SIO.File_Type;
-            HStart : in SIO.Positive_Count;
-                        CurBlkNum : in out SIO.Count;
+            HStart : in Positive_Count;
+                        CurBlkNum : in out Count;
                         Blk : in out Card_Block;
-                        CardNum : in SIO.Positive_Count;
+                        CardNum : in Positive_Count;
                         Card    : out  String)
    is
-         BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
-         BlkNum : SIO.Positive_Count;
+         BlockSize_SIOunits : constant Positive_Count := 2880;
+         BlkNum : Positive_Count;
          CardNumInBlk : Natural;
-         BlkNumIndex : SIO.Positive_Count;
+         BlkNumIndex : Positive_Count;
    begin
          BlkNum := 1 + (CardNum - 1) / 36; 
          CardNumInBlk := Natural(CardNum - (BlkNum - 1) * 36);-- FIXME is < 36 Natural is ok if two lines together
@@ -96,7 +96,8 @@ package body Header is
                         -- FileBlkNum - relative to File start
                BlkNumIndex :=  HStart + (BlkNum-1) * BlockSize_SIOunits;
 
-               SIO.Set_Index(File, BlkNumIndex);
+               SIO.Set_Index(File, SIO.Count(BlkNumIndex));
+               -- FIXME cast
                Card_Block'Read(SIO.Stream(File), Blk);
                CurBlkNum := BlkNum;
                -- FIXME END   only this section depends on SIO. file access
@@ -110,11 +111,11 @@ package body Header is
 -- read info help in Mandatory keys of the Header
   function  Read_Mandatory (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
   is
-        HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
-                CardNum : SIO.Count;
+        HeaderStart : Positive_Count := FITS.Count(SIO.Index(FitsFile));--FIXME cast
+                CardNum : Count;
                 Card : String(1..80);
 
-                CurBlkNum : SIO.Count := 0; -- none read yet
+                CurBlkNum : Count := 0; -- none read yet
                 Blk : Card_Block;
    begin
                 CardNum := Mandatory.Reset_State;
@@ -139,11 +140,11 @@ package body Header is
                        Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr
    is
-    HeaderStart : SIO.Positive_Count := SIO.Index(FitsFile);    
-        CardNum : SIO.Count;
+    HeaderStart : Positive_Count := FITS.Positive_Count(SIO.Index(FitsFile));
+        CardNum : Count;
         Card : String(1..80);
 
-    CurBlkNum : SIO.Count := 0; -- none read yet
+    CurBlkNum : Count := 0; -- none read yet
     Blk : Card_Block;
    begin
         CardNum := Optional.Init(Keys);
@@ -192,6 +193,7 @@ function Create_Card(Key : in String; Value : in String) return String_80
 is
     C : String(1 .. 80);
     Val_Len : Positive := Value'Length;
+    use Ada.Strings.Fixed;
 begin
     Move(Key,   C(1  .. 8));
     Move("= ",  C(9  ..10));
@@ -207,6 +209,7 @@ end Create_Card;
 function Create_Mandatory_Card(Key : in String; Value : in String) return String_80
 is
     C : String(1 .. 80);
+    use Ada.Strings.Fixed;
 begin
     Move(Key,   C(1 .. 8));
     Move("= ",  C(9 ..10));
@@ -219,6 +222,7 @@ end Create_Mandatory_Card;
 function To_Value_String( V : in String) return String
 is
     Vstr: String(1 .. 20);
+    use Ada.Strings.Fixed;
 begin
     Move(V, Vstr, Error, Right);
     return Vstr;
@@ -228,6 +232,7 @@ end To_Value_String;
 function To_Value_String( V : in Integer) return String
 is
     Vstr: String(1 .. 20);
+    use Ada.Strings.Fixed;
 begin
     Move(Integer'Image(V), Vstr, Error, Right);
     return Vstr;
@@ -235,11 +240,12 @@ end To_Value_String;
 
 
 
-function To_Value_String( V : in SIO.Count) return String
+function To_Value_String( V : in Count) return String
 is
     Vstr: String(1 .. 20);
+    use Ada.Strings.Fixed;
 begin
-    Move(SIO.Count'Image(V), Vstr, Error, Right);
+    Move(FITS.Count'Image(V), Vstr, Error, Right);
     return Vstr;
 end To_Value_String;
 
@@ -254,6 +260,7 @@ end To_Value_String;
 function To_Value_String( V : in Boolean) return String
 is
     Vstr : String(1 .. 20);
+    use Ada.Strings.Fixed;
 begin
     if(V = True) then
         Move("T", Vstr, Error, Right);
@@ -266,6 +273,7 @@ end To_Value_String;
 function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr
 is
     Cards : Card_Arr(1 .. NAXISn'Last);
+    use Ada.Strings.Fixed;
 begin
     for I in NAXISn'Range
     loop

@@ -51,7 +51,7 @@ separate(Mandatory)
     end if;
 
     TIO.Put(Boolean'Image(State.ENDCardSet) & " END ");
-        TIO.Put_Line(SIO.Positive_Count'Image(State.ENDCardPos));
+        TIO.Put_Line(Positive_Count'Image(State.ENDCardPos));
    
     TIO.Put_Line("State_Name: " & State_Name'Image(State.Name));
     TIO.Put_Line("State.XTENSION_Val : " & XT_Type'Image(State.XTENSION_Val));

@@ -1,7 +1,9 @@
 
 -- high level block/HDU copying
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with FITS; use FITS;
+
+with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO;
 -- with Ada.Unchecked_Conversion;
 with Interfaces;
 
@@ -47,14 +49,14 @@ package body File.Misc is
                            From     : in SIO.Positive_Count;
                            PadValue : in Interfaces.Unsigned_8)
    is  
-
+    use SIO;
     FillCnt   : constant Natural :=
        Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
     PadLength : constant Natural :=
        Natural(BlockSize_bytes) - FillCnt + 1;
 
     type UInt8_PadArr is array (SIO.Positive_Count range <>) of Interfaces.Unsigned_8;
-    PadArr    : constant UInt8_PadArr(1 .. Positive_Count(PadLength)) := (others => PadValue);
+    PadArr    : constant UInt8_PadArr(1 .. SIO.Positive_Count(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!
    begin
     SIO.Set_Index(FitsFile,From);
@@ -121,7 +123,7 @@ package body File.Misc is
 
 
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
-   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return SIO.Count
+   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Count
    is  
         PSize : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
    begin

@@ -74,7 +74,8 @@ package body Raw_Funcs is
   -- calc divisions and fractions
   --
   declare
-    PrevRem : Count := Offset - 1;
+    PrevRem : Positive_Count := Offset - 1;
+    -- FIXME what if Offset = 1 -> Constraint_Error on PrevRem PosCount
   begin
     for I in reverse MaxCoords'First .. MaxCoords'Last
     loop

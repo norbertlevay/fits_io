@@ -1,13 +1,14 @@
 
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- (Positive_)Count needed
+with Ada.Strings.Unbounded;-- use Ada.Strings.Unbounded;
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- (Positive_)Count needed
+with FITS; use FITS; -- (Positive_)Count needed
 
 with Keyword_Record; -- FIndex needed
 
 package Mandatory is
 
-    package SIO renames Ada.Streams.Stream_IO;-- Count needed
+--    package SIO renames Ada.Streams.Stream_IO;-- Count needed
 
     type HDU_Type is
         (NO_DATA, IMAGE, RANDOM_GROUPS, -- Primary
@@ -15,7 +16,7 @@ package Mandatory is
         STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
     type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Positive_Count;
-    type TFORM_Arr is array (Positive range <>) of Unbounded_String;
+    type TFORM_Arr is array (Positive range <>) of Ada.Strings.Unbounded.Unbounded_String;
 
     type Result_Rec(HDU : HDU_Type;
             NAXIS_Last   : Natural;
@@ -29,7 +30,7 @@ package Mandatory is
                 NAXISn : NAXIS_Arr(1 .. NAXIS_Last);
                 case HDU is
                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
-                    PCOUNT : SIO.Count;
+                    PCOUNT : Count;
                     GCOUNT : Positive_Count;
 
                     case HDU is
@@ -50,8 +51,8 @@ package Mandatory is
         end record;
 -- FIXME using ranges after case-when ... is dangerous: if HDU_Type enum changes order of elements
 
-    function Reset_State return SIO.Positive_Count; 
-    function Next (Pos : in SIO.Positive_Count; Card : in Keyword_Record.String_80) return SIO.Count;
+    function Reset_State return Positive_Count; 
+    function Next (Pos : in Positive_Count; Card : in Keyword_Record.String_80) return Count;
     function Get return Result_Rec;
 
 

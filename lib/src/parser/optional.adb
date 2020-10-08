@@ -4,7 +4,7 @@ with Ada.Strings.Fixed;
 
 with Keyword_Record; -- String_80 needed
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;-- use Ada.Text_IO;
 
 package body Optional is
 
@@ -25,7 +25,7 @@ C_Last : Natural := 0;
 -- FIXME what happens if C-array remains empty (no key match) ? 
 -- In Get_Cards: C(1..0) because C_Last remains 0
 
-function Init (Keys : in Bounded_String_8_Arr) return SIO.Positive_Count
+function Init (Keys : in Bounded_String_8_Arr) return Positive_Count
 is
 begin
     K_Last := Keys'Last + 1; -- Bounded_String_8_Arr starts from 0
@@ -41,11 +41,11 @@ begin
 end Init;
 
 
-function Next (Pos  : in SIO.Positive_Count; Card : in String_80) return SIO.Count
+function Next (Pos  : in Positive_Count; Card : in KWR.String_80) return Count
 is
-    use SIO;
+--    use SIO;
 begin
-    if(Card = ENDCard) then return 0; end if;
+    if(Card = KWR.ENDCard) then return 0; end if;
 
     for I in 1 .. K_Last
     loop

@@ -1,10 +1,10 @@
 
 with Ada.Text_IO;
 
-
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
-with Ada.Strings.Bounded;   use Ada.Strings.Bounded;
+with FITS; use FITS;
+with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
+with Ada.Strings.Fixed;     --use Ada.Strings.Fixed;
+with Ada.Strings.Bounded;   --use Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
@@ -74,10 +74,10 @@ package body File is
         -- FIXME consider funcs depending on variable record, put where the variable record is
         -- they always must check presence of the variable fields and 
         -- call external funcs accordingly
-function  Calc_DataUnit_Size_blocks  
-                (Res : in Mandatory.Result_Rec) return SIO.Count
+function  Calc_DataUnit_Size_blocks
+                (Res : in Mandatory.Result_Rec) return Count
 is
-    Size_bits : SIO.Count;
+    Size_bits : Count;
 
     BitsPerBlock : constant Positive_Count := (2880*8);
         -- FIXME generic FITS-constant: move elsewhere
@@ -115,15 +115,16 @@ procedure Set_Index
 is
         package TIO renames Ada.Text_IO;
 
-        BlockSize_SIOunits : constant SIO.Positive_Count := 2880;
+        BlockSize_SIOunits : constant Positive_Count := 2880;
 
         CurHDUNum : Positive;
-        HeaderStart : SIO.Positive_Count;
+        HeaderStart : Positive_Count;
         HDUSize_blocks : Positive_Count;
-        CurBlkNum : SIO.Count := 0; -- none read yet
+        CurBlkNum : Count := 0; -- none read yet
+        use SIO;
 begin
         HeaderStart := 1;
-        SIO.Set_Index(File,HeaderStart);
+        SIO.Set_Index(File, SIO.Count(HeaderStart));-- FIXME cast
 
         CurHDUNum := 1;
 
@@ -148,16 +149,16 @@ begin
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
-                                        & Positive_Count'Image(HDUSize_blocks));
+                                        & FITS.Positive_Count'Image(HDUSize_blocks));
 
                 -- move to next HDU
 
                 HeaderStart := HeaderStart
-                                + SIO.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
+                                + FITS.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
                 TIO.New_Line;
-                TIO.Put_Line("DBG> Next ExtHeaderStart: " & SIO.Positive_Count'Image(HeaderStart));
+                TIO.Put_Line("DBG> Next ExtHeaderStart: " & FITS.Positive_Count'Image(HeaderStart));
 
-                SIO.Set_Index(File, HeaderStart);
+                SIO.Set_Index(File, SIO.Count(HeaderStart));--FIXME cast
 
                 CurHDUNum := CurHDUNum + 1;
 
@@ -177,7 +178,7 @@ BlockSize_sioelems : constant Positive_Count
 -- size counted in SIO file-index elements
 
 
-function File_Block_Index(File : File_Type) return Positive_Count
+function File_Block_Index(File : SIO.File_Type) return Positive_Count
 is
     SIO_Index : Positive_Count := Index(File);
 begin
@@ -187,7 +188,7 @@ end File_Block_Index;
 
 
 procedure Set_File_Block_Index
-        (File        : File_Type; 
+        (File        : SIO.File_Type; 
          Block_Index : in Positive_Count)
 is
     SIO_Index : Positive_Count :=  
