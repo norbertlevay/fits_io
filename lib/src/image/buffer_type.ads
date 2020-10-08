@@ -34,7 +34,7 @@ generic
  A : in Float    := 0.0;
  B : in Float    := 1.0;
  Memory_BITPIX   : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
- File_BITPIX     : Integer :=0;
+ File_BITPIX     : Integer := 0;
 
 
 package Buffer_Type is

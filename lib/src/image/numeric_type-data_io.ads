@@ -1,5 +1,5 @@
 
-with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO;
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 

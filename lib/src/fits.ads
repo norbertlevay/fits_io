@@ -23,16 +23,15 @@
 
 with Ada.Streams.Stream_IO;
 
+
 package FITS is
 
-   type Byte is mod 256;
-   for Byte'Size use 8;
-   -- [FITS] defines Byte as 8-bit
+   type Count          is new Ada.Streams.Stream_IO.Count;
+   subtype Positive_Count is Count range 1 .. Count'Last;
+   --subtype Positive_Count is Ada.Streams.Stream_IO.Positive_Count;--Count range 1 .. Count'Last;
 
-   type Count           is new Ada.Streams.Stream_IO.Count;
-   subtype Positive_Count  is Count range 1 .. Count'Last;
-   --type Positive_Count  is new Ada.Streams.Stream_IO.Positive_Count;
-   -- FIXME or subtype instead of 'new' ?
+   subtype FIndex is Integer range 1 .. 999;
+   type NAXIS_Arr is array (FIndex range <>) of Positive_Count;
 
 end FITS;
 

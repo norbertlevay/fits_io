@@ -184,7 +184,7 @@ end Is_Primary;
 
     function In_READ_FIXED_POSITION_CARDS(Pos : Positive_Count; Card : KW.String_80) return Positive_Count
     is
-        Idx : KW.FIndex;
+        Idx : FIndex;
     begin
         if(Pos = 1)
         then
@@ -695,9 +695,9 @@ end Is_Primary;
 
 
 
-    function Get_TBCOLn return Mandatory.NAXIS_Arr
+    function Get_TBCOLn return NAXIS_Arr
     is
-        Arr : Mandatory.NAXIS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+        Arr : NAXIS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
     begin
         for I in 1 .. State.TFIELDS_Val
         loop

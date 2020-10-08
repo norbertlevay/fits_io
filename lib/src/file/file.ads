@@ -22,7 +22,7 @@ package File is
       XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
       CardsCnt : Positive_Count;       -- number of cards in this Header
       BITPIX   : Integer;             -- data type
-      NAXISn   : Mandatory.NAXIS_Arr(1..NAXIS); -- data dimensions
+      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
    end record;
 
    function Read_Header (FitsFile : in  SIO.File_Type)

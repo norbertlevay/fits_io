@@ -3,7 +3,6 @@
 with Ada.Strings.Unbounded;-- use Ada.Strings.Unbounded;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- (Positive_)Count needed
 with FITS; use FITS; -- (Positive_)Count needed
-
 with Keyword_Record; -- FIndex needed
 
 package Mandatory is
@@ -15,7 +14,7 @@ package Mandatory is
         CONFORMING_EXTENSION,
         STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
-    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Positive_Count;
+--    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Positive_Count;
     type TFORM_Arr is array (Positive range <>) of Ada.Strings.Unbounded.Unbounded_String;
 
     type Result_Rec(HDU : HDU_Type;

@@ -41,7 +41,7 @@
 
 with Ada.Streams.Stream_IO; -- Stream needed
 
-with Mandatory; -- NAXIS_Arr needed
+with FITS; use FITS;--Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
 
 
@@ -56,7 +56,7 @@ package Image is
 
     type Image_Rec(NAXIS : Natural; Key_Count : Natural) is
         record
-            NAXISn          : Mandatory.NAXIS_Arr(1 .. NAXIS);
+            NAXISn          : NAXIS_Arr(1 .. NAXIS);
             Undefined_Valid : Boolean;
             Undefined_Value : T;
             Valued_Keys     : Valued_Key_Record_Arr(0 .. Key_Count);
@@ -64,7 +64,7 @@ package Image is
         end record;
 
     function Metadata
-        (NAXISn     : Mandatory.NAXIS_Arr;
+        (NAXISn     : NAXIS_Arr;
         Valued_Keys : Valued_Key_Record_Arr) return Image_Rec;
 
 

@@ -1,10 +1,11 @@
 
+-- Numeric_Type represents data-element of FITS Data Unit
+-- * can hold undefined value
+-- * can be instantiated with any number: float, integer or modular
+-- * supports conversion between Float and any of above types
 
--- NOTE for use in FITS_IO it is enough to privide conversions
--- to and from Floats
-
---with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count needed
-with FITS; use FITS; -- Positive_Count needed
+with FITS; use FITS;
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count
 
 generic
 type Numeric is private;
@@ -36,7 +37,7 @@ package Numeric_Type is
 end Numeric_Type;
 
 
--- TODO
+-- NOTE
     -- for all Ada-types see package Standard: (GNAT implementation)
     -- https://en.wikibooks.org/wiki/Ada_Programming/Libraries/Standard/GNAT
 

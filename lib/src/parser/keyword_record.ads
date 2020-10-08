@@ -17,8 +17,8 @@ package Keyword_Record is
     EmptyCard : constant String_80 := (others => ' ');
 
 
-    subtype FIndex is Integer range 1 .. 999;-- FIXME rename and move? elsewhere??
-    
+--    subtype FIndex is Integer range 1 .. 999;-- FIXME rename and move? elsewhere??
+
     function To_Boolean(Value : String) return Boolean;
     function To_Integer(Value : String) return Count; -- FIXME was FInteger
     function To_FIndex(Value : String) return FIndex;

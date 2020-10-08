@@ -15,7 +15,7 @@ package body Image is
 
 
     function Metadata
-        (NAXISn      : Mandatory.NAXIS_Arr;
+        (NAXISn      : NAXIS_Arr;
          Valued_Keys : Valued_Key_Record_Arr) return Image_Rec
     is
         Im : Image_Rec(NAXISn'Last, Valued_Keys'Last);

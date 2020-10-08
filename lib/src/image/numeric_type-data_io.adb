@@ -2,6 +2,10 @@
 with Endian;
 with File.Misc; -- Write_Padding needed
 
+
+-- FIXME actually: plug-in here the Raw-module: deals only with one type
+
+
 package body Numeric_Type.Data_IO is
 
 

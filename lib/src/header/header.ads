@@ -1,9 +1,9 @@
 
 with Ada.Streams.Stream_IO;
-
+with FITS; use FITS; -- NAXIS_Arr needed
+with Mandatory;-- Result_Rec needed
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 with Keyword_Record; use Keyword_Record; -- String_80 needed
-with Mandatory; use Mandatory;-- NAXIS_Arr needed
 with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
 
 package Header is
@@ -19,7 +19,7 @@ package Header is
                     Comms_Last, Arrs_Last, Wcs_Last, Ext_Last : Natural) is
         record
             BITPIX : Integer;
-            NAXISn : Mandatory.NAXIS_Arr(1 .. NAXIS);
+            NAXISn : NAXIS_Arr(1 .. NAXIS);
             Desc   : Valued_Key_Record_Arr(1 .. Desc_Last);
             Obs    : Valued_Key_Record_Arr(1 .. Obs_Last);
             Biblio : Valued_Key_Record_Arr(1 .. Bib_Last);
