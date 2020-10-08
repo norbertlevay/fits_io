@@ -25,7 +25,6 @@ with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 
 with FITS; use FITS;
-with Numeric_Type;
 
 generic
 type T is private;

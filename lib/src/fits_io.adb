@@ -1,4 +1,5 @@
 
+with Numeric_Type;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 
