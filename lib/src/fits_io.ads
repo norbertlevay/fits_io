@@ -39,8 +39,9 @@ package FITS_IO is
    -- card related
    package BS  renames Ada.Strings.Bounded;
 
-   package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
-   package BS_8 renames Bounded_String_8;
+--   package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
+--   package BS_8 renames Bounded_String_8;
+   package BS_8 is new BS.Generic_Bounded_Length( 8);
    package BS70 is new BS.Generic_Bounded_Length(70);
 
 
@@ -68,18 +69,23 @@ package FITS_IO is
    -- In Scaling_Rec use Floats or Strings for UndefVal
    -- String better: define Null_Undef := "" -> means no-Undef (no need for Boolean Valid flag)
 
+   type Image_Data_Model(NAXIS_Last : Natural) is
+      record
+         BITPIX   : Integer;
+         NAXISn   : NAXIS_Array(1..NAXIS_Last);
+         Undef    : BS70.Bounded_String;
+         Unit     : BS70.Bounded_String;
+         A,B      : Float;
+      end record;
+
 
    procedure Read_Header
-     (File    : SIO.File_Type;
-      Scaling : out Scaling_Rec;
-      NAXISn : out NAXIS_Array;
-      Undef  : in out BS70.Bounded_String);
+     (File  : SIO.File_Type;
+      Image : out Image_Data_Model);
 
    procedure Write_Header
-      (File    : SIO.File_Type;
-       Scaling : Scaling_Rec;
-       NAXISn : NAXIS_Array;
-       Undef  : BS70.Bounded_String := Null_Undefined_Value);
+      (File  : SIO.File_Type;
+       Image : Image_Data_Model);
 
 
 

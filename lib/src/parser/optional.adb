@@ -50,7 +50,7 @@ begin
     for I in 1 .. K_Last
     loop
         declare
-            Key : String := Bounded_String_8.To_String(K(I));
+            Key : String := BS_8.To_String(K(I));
         begin
             if(Card(1..Key'Last) = Key) 
             then

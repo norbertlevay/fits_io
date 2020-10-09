@@ -36,7 +36,7 @@ package Optional.Reserved is
 
    -- NOTE bounded string operator * repeats the string (and performs the conversions??)
    -- so it can be (mis)used to initialize bounded_string with string like this:
-   use Bounded_String_8;
+   use BS_8;
    Biblio_Keys : constant Optional.Bounded_String_8_Arr :=  
                 (1 * "AUTHOR", 1 * "REFERENC");
 

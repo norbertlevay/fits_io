@@ -16,9 +16,10 @@ package Header is
     type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
 
     type Header_Rec(NAXIS, Desc_Last, Obs_Last, Bib_Last,
-                    Comms_Last, Arrs_Last, Wcs_Last, Ext_Last : Natural) is
+                    Comms_Last, Arrs_Last, Wcs_Last, Ext_Last,
+                    Prop_Last : Natural) is
         record
-            BITPIX : Integer;
+            BITPIX : Integer; -- BITPIX in FIle
             NAXISn : NAXIS_Array(1 .. NAXIS);
             Desc   : Valued_Key_Record_Arr(1 .. Desc_Last);
             Obs    : Valued_Key_Record_Arr(1 .. Obs_Last);
@@ -26,6 +27,7 @@ package Header is
             Arrs   : Valued_Key_Record_Arr(1 .. Arrs_Last);
             Wcs    : Valued_Key_Record_Arr(1 .. Wcs_Last);
             Ext    : Valued_Key_Record_Arr(1 .. Ext_Last);
+            Prop   : Valued_Key_Record_Arr(1 .. Prop_Last); -- proprietary cards
         end record;
     -- read/parse all keys as defined by standard
 
