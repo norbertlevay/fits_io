@@ -75,7 +75,7 @@ package body FITS_IO is
                 when others => null; -- Error: "Invalid BITPIX for target"
             end case;
         else
-            null; -- lib calculates
+            null; -- lib calculates FIXME it is calc'd in Array_IO
         end if;
 
     end if;
@@ -102,11 +102,15 @@ package body FITS_IO is
    is
    begin
 
+   -- Set Undefined value if used and forced by caller
+
     if(Scaling.Memory_Undefined_Valid)
     then
         Physical.Set_Undefined(Scaling.Memory_Undefined_Value);
 
         -- did caller force undefined value ? it has precedence
+        -- FIXME can this be generalized and set in Array_IO ? rather then here
+        -- separately for each instance ? : Should Undef val be given Float
         if(Scaling.File_Undefined_Valid)
         then
             case(Scaling.File_BITPIX) is
@@ -115,10 +119,14 @@ package body FITS_IO is
                 when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
                 when others => null; -- Error: "Invalid BITPIX for target"
             end case;
+        else
+            null; -- lib calculates FIXME now it is calc'd in Array_IO - there only once
+                  -- coded, here separatly for each instance
         end if;
 
     end if;
 
+    -- Scaling
 
     case(Scaling.File_BITPIX) is
         when  16 => I16_AIO.Write(SIO.Stream(File), Scaling.A,Scaling.B, Item);

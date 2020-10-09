@@ -53,7 +53,7 @@ type T_Arr is array (Positive_Count range <>) of T;
 
    type Scaling_Rec is
       record
-         Memory_Undefined_Value  : T;
+         Memory_Undefined_Value  : T; --FIXME should be Float like File_UndefVal ?
          Memory_Undefined_Valid  : Boolean := False; -- if valid
          File_Undefined_Value    : Float := 0.0;
          File_Undefined_Valid    : Boolean := False;
@@ -62,6 +62,13 @@ type T_Arr is array (Positive_Count range <>) of T;
          Memory_BITPIX   : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
          File_BITPIX     : Integer := 0;
       end record;
+
+   Null_Scaling : constant Scaling_Rec := ( +(0.0),False, 0.0,False, 0.0,1.0, 0,0);
+
+   -- NOTE All Header section:  Scaling_Rec and Read_/Write_Header
+   -- should by T-type independent:
+   -- In Scaling_Rec use Floats or Strings for UndefVal
+   -- String better: define Null_Undef := "" -> means no-Undef (no need for Boolean Valid flag)
 
 
    procedure Read_Header
