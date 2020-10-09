@@ -37,6 +37,7 @@ with Ada.Directories;
 
 with FITS;           use FITS;
 with FITS_IO;
+with FITS_IO.Data_Unit;
 
 --with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
@@ -111,9 +112,9 @@ is
 
 
     -- set-up transfer buffer for Write
-   package F32_FIO  is new FITS_IO(T => MD_Tm);
+   package F32_FIO  is new FITS_IO.Data_Unit(T => MD_Tm);
 
-   F32Scaling : F32_FIO.Scaling_Rec := (
+   F32Scaling : FITS_IO.Scaling_Rec := (
         1*MD_Undef_Value,
         1*In_File_Undefined_Value,
         In_A,
@@ -147,7 +148,7 @@ is
     Out_File   : SIO.File_Type;
     Out_Stream : SIO.Stream_Access;
 
-   MD_Undef_Valid : Boolean := Not (MD_Undef_Value = F32_FIO.Null_Undefined_Value);
+   MD_Undef_Valid : Boolean := Not (MD_Undef_Value = FITS_IO.Null_Undefined_Value);
 
 begin
 
@@ -164,8 +165,6 @@ begin
  Header.Close(Out_File);
 
 -- write Data Unit
-
- TIO.Put_Line("HUHU1");
 
  for I in 1 .. RowLength
  loop

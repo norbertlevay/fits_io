@@ -28,18 +28,7 @@ with FITS; use FITS;
 
 with Optional; -- BS70 needed
 
-generic
-type T is private;
-
-with function "+"(V : in Float)   return T is <>; 
-with function "+"(V : in T) return Float   is <>; 
-with function Is_Undef  (V,U : in T) return Boolean is <>; 
-with function To_BITPIX (V   : in T) return Integer is <>; 
-
 package FITS_IO is
-
-
-type T_Arr is array (Positive_Count range <>) of T;
 
    package SIO renames Ada.Streams.Stream_IO;
 
@@ -88,19 +77,6 @@ type T_Arr is array (Positive_Count range <>) of T;
        NAXISn : NAXIS_Arr;
        Undef  : Optional.BS70.Bounded_String := Null_Undefined_Value);
 
-
-   -- Data Unit
-
-   procedure Read
-     (File    : SIO.File_Type;
-      Scaling : Scaling_Rec;
-      Item : out T_Arr;
-      Last : out Count);
-
-   procedure Write
-     (File    : SIO.File_Type;
-      Scaling : Scaling_Rec;
-      Item : T_Arr);
 
 
    -- Exceptions
