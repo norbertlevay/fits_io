@@ -1,21 +1,15 @@
 
 -- high level block/HDU copying
 
-with FITS; use FITS;
 
-with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO;
--- with Ada.Unchecked_Conversion;
+with Ada.Streams.Stream_IO;
 with Interfaces;
 
 with Header; use Header;
---with V3_Types;
 
 with Keyword_Record; use Keyword_Record;-- String_80 needed
 
 package body File.Misc is
-
- --  type UInt8_Arr   is array ( Positive_Count range <> ) of V3_Types.Unsigned_8;
-	-- use to write Padding
 
    StreamElemSize_bits : Positive_Count := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]

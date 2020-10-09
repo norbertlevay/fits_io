@@ -5,17 +5,17 @@ with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;-- (Positive_)Count need
 with Ada.Strings.Bounded; --	use Ada.Strings.Bounded;
 with Keyword_Record; --use Keyword_Record; -- String_80 needed
 
-with FITS; use FITS; -- Count needed
+with FITS_IO; use FITS_IO; -- Count needed
 
 package Optional is
 
 package SIO renames Ada.Streams.Stream_IO;
-package BS  renames Ada.Strings.Bounded;
+--package BS  renames Ada.Strings.Bounded;
 
 package KWR renames Keyword_Record;
 
-package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
-package BS_8 renames Bounded_String_8;
+--package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
+--package BS_8 renames Bounded_String_8;
 
 type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
 
@@ -37,7 +37,7 @@ function Find_Key(Cards : Optional.Card_Arr; Key : BS_8.Bounded_String) return C
 
 -- Valued-key record
 
-package BS70 is new BS.Generic_Bounded_Length(70);
+--package BS70 is new BS.Generic_Bounded_Length(70);
  subtype Key_Type   is BS_8.Bounded_String;
  subtype Value_Type is BS70.Bounded_String;
  type Valued_Key_Record is

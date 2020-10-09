@@ -1,5 +1,5 @@
 
-with FITS; use FITS;
+with FITS_IO; use FITS_IO;
 with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded;-- use Ada.Strings.Bounded; -- Max20 only FIXME !!

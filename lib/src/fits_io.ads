@@ -24,31 +24,36 @@
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 
-with FITS; use FITS;
-
-with Optional; -- BS70 needed
+with Ada.Strings.Bounded;
 
 package FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
 
---   subtype Count          is Ada.Streams.Stream_IO.Count;
---   subtype Positive_Count is Ada.Streams.Stream_IO.Positive_Count;--Count range 1 .. Count'Last;
---   subtype FIndex is Integer range 1 .. 999;
---   type NAXIS_Arr is array (FIndex range <>) of Positive_Count;
+   type Count          is new Ada.Streams.Stream_IO.Count;
+   subtype Positive_Count is Count range 1 .. Count'Last;
+   subtype FIndex is Integer range 1 .. 999;
+   type NAXIS_Arr is array (FIndex range <>) of Positive_Count;
 -- FIXME all four types above moved to FITS.ads because are shared with Numeric_Type
    -- ans cause cyclic dependency
+
+   -- card related
+   package BS  renames Ada.Strings.Bounded;
+
+   package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
+   package BS_8 renames Bounded_String_8;
+   package BS70 is new BS.Generic_Bounded_Length(70);
 
 
    -- Header
 
-   Null_Undefined_Value : constant Optional.BS70.Bounded_String
-                                 := Optional.BS70.To_Bounded_String("");
+   Null_Undefined_Value : constant BS70.Bounded_String
+                                 := BS70.To_Bounded_String("");
 
    type Scaling_Rec is
       record
-         Memory_Undefined_Value : Optional.BS70.Bounded_String := Null_Undefined_Value;
-         File_Undefined_Value   : Optional.BS70.Bounded_String := Null_Undefined_Value;
+         Memory_Undefined_Value : BS70.Bounded_String := Null_Undefined_Value;
+         File_Undefined_Value   : BS70.Bounded_String := Null_Undefined_Value;
          A : Float    := 0.0;
          B : Float    := 1.0;
          Memory_BITPIX   : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
@@ -69,13 +74,13 @@ package FITS_IO is
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
       NAXISn : out NAXIS_Arr;
-      Undef  : in out Optional.BS70.Bounded_String);
+      Undef  : in out BS70.Bounded_String);
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
        NAXISn : NAXIS_Arr;
-       Undef  : Optional.BS70.Bounded_String := Null_Undefined_Value);
+       Undef  : BS70.Bounded_String := Null_Undefined_Value);
 
 
 

@@ -5,7 +5,7 @@
 
 with Mandatory; use Mandatory; -- NAXIS_Arr needed
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- Positive_Count needed
-with FITS; use FITS; -- Positive_Count needed
+with FITS_IO; use FITS_IO; -- Positive_Count needed
 
 package Raw_Funcs is
 

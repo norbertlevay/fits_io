@@ -15,13 +15,13 @@ package body FITS_IO is
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
       NAXISn : out NAXIS_Arr;
-      Undef  : in out Optional.BS70.Bounded_String) is begin null; end;
+      Undef  : in out BS70.Bounded_String) is begin null; end;
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
        NAXISn : NAXIS_Arr;
-       Undef  : Optional.BS70.Bounded_String := Null_Undefined_Value) is begin null; end;
+       Undef  : BS70.Bounded_String := Null_Undefined_Value) is begin null; end;
 
 
 

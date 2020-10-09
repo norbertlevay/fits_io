@@ -2,7 +2,7 @@
 
 with Ada.Strings.Unbounded;-- use Ada.Strings.Unbounded;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO; -- (Positive_)Count needed
-with FITS; use FITS; -- (Positive_)Count needed
+with FITS_IO; use FITS_IO; -- (Positive_)Count needed
 with Keyword_Record; -- FIndex needed
 
 package Mandatory is

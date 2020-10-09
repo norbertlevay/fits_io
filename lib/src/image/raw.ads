@@ -18,10 +18,10 @@
 
 -- FIXME what Indexes should T_Arr have ?  (1..max or 'First .. 'Last)
 
-with FITS; use FITS;
+with FITS_IO; use FITS_IO;
 
 with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
-with Mandatory; use Mandatory; -- NAXIS_Arr needed
+--with Mandatory; use Mandatory; -- NAXIS_Arr needed
 
 generic
   type T is private;

@@ -6,7 +6,7 @@ with Optional;  -- Card_Arr needed
 with Header;    -- Image_Rec needed
 --with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
 
-with FITS; use FITS;
+with FITS_IO; use FITS_IO;
 
 package body Image is
 
@@ -47,9 +47,9 @@ begin
     loop
         Ix := Ix + 1;
         Cards(Ix) := Header.Create_Mandatory_Card
-                            (Optional.BS_8.To_String(Im.Valued_Keys(I).Key),
+                            (BS_8.To_String(Im.Valued_Keys(I).Key),
                              Header.To_Value_String(
-                                 Optional.BS70.To_String(Im.Valued_Keys(I).Value)));
+                                 BS70.To_String(Im.Valued_Keys(I).Value)));
     end loop;
     return Cards;
 end To_Cards;

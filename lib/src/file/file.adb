@@ -1,10 +1,9 @@
 
 with Ada.Text_IO;
 
-with FITS; use FITS;
-with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
-with Ada.Strings.Fixed;     --use Ada.Strings.Fixed;
-with Ada.Strings.Bounded;   --use Ada.Strings.Bounded;
+with Ada.Streams.Stream_IO;
+with Ada.Strings.Fixed;
+with Ada.Strings.Bounded;
 
 with Ada.Unchecked_Deallocation;
 
@@ -121,7 +120,7 @@ is
         HeaderStart : Positive_Count;
         HDUSize_blocks : Positive_Count;
         CurBlkNum : Count := 0; -- none read yet
-        use SIO;
+--        use SIO;
 begin
         HeaderStart := 1;
         SIO.Set_Index(File, SIO.Count(HeaderStart));-- FIXME cast
@@ -149,14 +148,14 @@ begin
                 end;
 
                 TIO.Put_Line("DBG> HDUSize [blocks]: "
-                                        & FITS.Positive_Count'Image(HDUSize_blocks));
+                                        & Positive_Count'Image(HDUSize_blocks));
 
                 -- move to next HDU
 
                 HeaderStart := HeaderStart
-                                + FITS.Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
+                                + Positive_Count(HDUSize_blocks) * BlockSize_SIOunits;
                 TIO.New_Line;
-                TIO.Put_Line("DBG> Next ExtHeaderStart: " & FITS.Positive_Count'Image(HeaderStart));
+                TIO.Put_Line("DBG> Next ExtHeaderStart: " & Positive_Count'Image(HeaderStart));
 
                 SIO.Set_Index(File, SIO.Count(HeaderStart));--FIXME cast
 

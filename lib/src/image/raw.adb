@@ -11,14 +11,11 @@
 
 with Ada.Text_IO;
 
-with FITS; use FITS;
-with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Conversion;
 with Interfaces;
 
-with Mandatory;     use Mandatory; -- NAXIS_Arr needed
-with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
-with Raw_Funcs;-- use Raw_Funcs;
+with Raw_Funcs;
 with File_Funcs;
 
 

@@ -4,7 +4,7 @@
 -- 4.2.1 longest string is 68 chars: card(11..80) less the two quotes
 -- 4.2.3 4.2.4 ..software packages can limit the range of Integer/float values...
 
-with FITS; use FITS;
+with FITS_IO; use FITS_IO;
 --with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO; -- Count needed
 
 

@@ -41,7 +41,7 @@
 
 with Ada.Streams.Stream_IO; -- Stream needed
 
-with FITS; use FITS;--Mandatory; -- NAXIS_Arr needed
+with FITS_IO; use FITS_IO;--Mandatory; -- NAXIS_Arr needed
 with Optional;  -- Card_Arr needed
 
 

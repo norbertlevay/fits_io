@@ -35,8 +35,7 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Directories;
 
-with FITS;           use FITS;
-with FITS_IO;
+with FITS_IO;           use FITS_IO;
 with FITS_IO.Data_Unit;
 
 --with V3_Types;        use V3_Types;
@@ -102,7 +101,7 @@ is
 
     package F32_Header is new Image(MD_Tm, Float'Last);
 
-    use Optional.BS70;
+    use BS70;
     F32_Image : F32_Header.Image_Rec := F32_Header.Metadata(MD_NAXISn,
                 ((BZERO,    1*    "0.0"),
                  (BSCALE,   1*    "1.0"),
@@ -129,7 +128,7 @@ is
 
     Current_F32Column : Tm_Arr(1..ColLength);
 
-    function Generate_Data(R : FITS.Count; ColLength : FITS.Positive_Count;
+    function Generate_Data(R : FITS_IO.Count; ColLength : FITS_IO.Positive_Count;
        Undef_Valid : Boolean; Undef_Value : Float) return Tm_Arr
     is
         Col : Tm_Arr(1 .. ColLength);

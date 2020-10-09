@@ -1,6 +1,6 @@
 
 with Ada.Streams.Stream_IO;
-with FITS; use FITS; -- NAXIS_Arr needed
+with FITS_IO; use FITS_IO; -- NAXIS_Arr needed
 with Mandatory;-- Result_Rec needed
 with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
 with Keyword_Record; use Keyword_Record; -- String_80 needed

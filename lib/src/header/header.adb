@@ -34,7 +34,7 @@
 with Ada.Text_IO;
 
 
-with FITS; use FITS;
+with FITS_IO; use FITS_IO;
 with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO;
 with Ada.Strings.Fixed;     --use Ada.Strings.Fixed;
 with Ada.Strings.Bounded;   --use Ada.Strings.Bounded;
@@ -111,7 +111,7 @@ package body Header is
 -- read info help in Mandatory keys of the Header
   function  Read_Mandatory (FitsFile : in SIO.File_Type) return Mandatory.Result_Rec
   is
-        HeaderStart : Positive_Count := FITS.Count(SIO.Index(FitsFile));--FIXME cast
+        HeaderStart : Positive_Count := Count(SIO.Index(FitsFile));--FIXME cast
                 CardNum : Count;
                 Card : String(1..80);
 
@@ -140,7 +140,7 @@ package body Header is
                        Keys : in Optional.Bounded_String_8_Arr)
       return Card_Arr
    is
-    HeaderStart : Positive_Count := FITS.Positive_Count(SIO.Index(FitsFile));
+    HeaderStart : Positive_Count := Positive_Count(SIO.Index(FitsFile));
         CardNum : Count;
         Card : String(1..80);
 
@@ -243,9 +243,8 @@ end To_Value_String;
 function To_Value_String( V : in Count) return String
 is
     Vstr: String(1 .. 20);
-    use Ada.Strings.Fixed;
 begin
-    Move(FITS.Count'Image(V), Vstr, Error, Right);
+    Ada.Strings.Fixed.Move(Count'Image(V), Vstr, Error, Right);
     return Vstr;
 end To_Value_String;
 
