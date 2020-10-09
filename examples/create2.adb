@@ -77,8 +77,7 @@ is
     MD_Min               : Float     :=   0.0;
     MD_Max               : Float     := 255.0;
     MD_Unit              : String    := "Undef";
-    MD_Undef_Valid       : Boolean   := True;
-    MD_Undef_Value       : Float     := F_NaN;
+    MD_Undef_Value       : String    := Float'Image(F_NaN);
 
     MD_Memory_BITPIX  : Integer := -(MD_Tm'Size);
                     -- FIXME use To_BITPIX(Dummy : MD_Tm) return Integer
@@ -91,8 +90,7 @@ is
 
     -- F->I conversion: caller must supply Undef value
     -- for the file if data has undef values
-    In_File_Undefined_Valid : Boolean := MD_Undef_Valid;
-    In_File_Undefined_Value : Float   := Float(Short_Integer'Last);
+    In_File_Undefined_Value : String := Short_Integer'Image(Short_Integer'Last);
                             -- FIXME convert File_BITPIX -> T and T'Last
 
     ---------------------------
@@ -116,10 +114,8 @@ is
    package F32_FIO  is new FITS_IO(T => MD_Tm);
 
    F32Scaling : F32_FIO.Scaling_Rec := (
-        MD_Undef_Value,
-        MD_Undef_Valid,
-        In_File_Undefined_Value,
-        In_File_Undefined_Valid,
+        1*MD_Undef_Value,
+        1*In_File_Undefined_Value,
         In_A,
         In_B,
         MD_Memory_BITPIX,
@@ -136,7 +132,6 @@ is
        Undef_Valid : Boolean; Undef_Value : Float) return Tm_Arr
     is
         Col : Tm_Arr(1 .. ColLength);
-    --    use SIO;
     begin
         for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
         -- simulate some Undefined data
@@ -151,6 +146,8 @@ is
     File_Name       : constant String := Command_Name & ".fits";
     Out_File   : SIO.File_Type;
     Out_Stream : SIO.Stream_Access;
+
+   MD_Undef_Valid : Boolean := Not (MD_Undef_Value = F32_FIO.Null_Undefined_Value);
 
 begin
 
@@ -168,11 +165,13 @@ begin
 
 -- write Data Unit
 
+ TIO.Put_Line("HUHU1");
+
  for I in 1 .. RowLength
  loop
 
      Current_F32Column := Generate_Data(I, ColLength,
-                            MD_Undef_Valid, MD_Undef_Value);
+                            MD_Undef_Valid, F_NaN);
 
      F32_FIO.Write(Out_File, F32Scaling, Current_F32Column);
 

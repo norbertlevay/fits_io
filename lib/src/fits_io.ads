@@ -26,6 +26,8 @@ with Ada.Streams.Stream_IO;
 
 with FITS; use FITS;
 
+with Optional; -- BS70 needed
+
 generic
 type T is private;
 
@@ -51,19 +53,22 @@ type T_Arr is array (Positive_Count range <>) of T;
 
    -- Header
 
+   Null_Undefined_Value : constant Optional.BS70.Bounded_String
+                                 := Optional.BS70.To_Bounded_String("");
+
    type Scaling_Rec is
       record
-         Memory_Undefined_Value  : T; --FIXME should be Float like File_UndefVal ?
-         Memory_Undefined_Valid  : Boolean := False; -- if valid
-         File_Undefined_Value    : Float := 0.0;
-         File_Undefined_Valid    : Boolean := False;
+         Memory_Undefined_Value : Optional.BS70.Bounded_String := Null_Undefined_Value;
+         File_Undefined_Value   : Optional.BS70.Bounded_String := Null_Undefined_Value;
          A : Float    := 0.0;
          B : Float    := 1.0;
          Memory_BITPIX   : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
          File_BITPIX     : Integer := 0;
       end record;
 
-   Null_Scaling : constant Scaling_Rec := ( +(0.0),False, 0.0,False, 0.0,1.0, 0,0);
+   Null_Scaling : constant Scaling_Rec := (  Null_Undefined_Value, Null_Undefined_Value,
+                                             0.0,1.0,
+                                             0,0);
 
    -- NOTE All Header section:  Scaling_Rec and Read_/Write_Header
    -- should by T-type independent:
@@ -75,13 +80,13 @@ type T_Arr is array (Positive_Count range <>) of T;
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
       NAXISn : out NAXIS_Arr;
-      Undef  : in out T);
+      Undef  : in out Optional.BS70.Bounded_String);
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
        NAXISn : NAXIS_Arr;
-       Undef  : T);-- := Physical.Null_Numeric) is null;
+       Undef  : Optional.BS70.Bounded_String := Null_Undefined_Value);
 
 
    -- Data Unit
