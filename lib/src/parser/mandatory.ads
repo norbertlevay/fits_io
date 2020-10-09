@@ -14,7 +14,7 @@ package Mandatory is
         CONFORMING_EXTENSION,
         STANDARD_IMAGE, STANDARD_TABLE, STANDARD_BINTABLE);
 
---    type NAXIS_Arr is array (Keyword_Record.FIndex range <>) of Positive_Count;
+--    type NAXIS_Array is array (Keyword_Record.FIndex range <>) of Positive_Count;
     type TFORM_Arr is array (Positive range <>) of Ada.Strings.Unbounded.Unbounded_String;
 
     type Result_Rec(HDU : HDU_Type;
@@ -26,7 +26,7 @@ package Mandatory is
 
             case HDU is
             when IMAGE .. STANDARD_BINTABLE  =>
-                NAXISn : NAXIS_Arr(1 .. NAXIS_Last);
+                NAXISn : NAXIS_Array(1 .. NAXIS_Last);
                 case HDU is
                 when RANDOM_GROUPS .. STANDARD_BINTABLE =>
                     PCOUNT : Count;
@@ -37,7 +37,7 @@ package Mandatory is
                         TFORMn : TFORM_Arr(1..TFIELDS_Last);
                         case HDU is
                         when STANDARD_TABLE =>
-                            TBCOLn : NAXIS_Arr(1..TFIELDS_Last);
+                            TBCOLn : NAXIS_Array(1..TFIELDS_Last);
                         when others => null;
                         end case;
                     when others => null;

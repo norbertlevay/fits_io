@@ -29,7 +29,7 @@
  -- basically the Optional.Reserved.Array_Keys :
 
 
-with Ada.Text_IO;      --use Ada.Text_IO;
+with Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Streams.Stream_IO;
@@ -38,23 +38,16 @@ with Ada.Directories;
 with FITS_IO;           use FITS_IO;
 with FITS_IO.Data_Unit;
 
---with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
-with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
-with Optional;       -- use Optional;       -- Card_Arr needed
+--with Optional;                            -- Card_Arr needed
 with Optional.Reserved; use Optional.Reserved;
 with Header;          use Header;         -- Create_Card needed
-
 with Image;
 
 with Numeric_Type;
---with Array_IO;
-with File.Misc;-- Write_Padding needed
-
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
---with Buffer_Type;
-
+with File.Misc;-- Write_Padding needed
 with Ada.Strings.Bounded;
 
 
@@ -73,7 +66,7 @@ is
 
     subtype MD_Tm is Float;
 
-    MD_NAXISn            : NAXIS_Arr := (ColLength, RowLength);
+    MD_NAXISn            : NAXIS_Array := (ColLength, RowLength);
     MD_Min               : Float     :=   0.0;
     MD_Max               : Float     := 255.0;
     MD_Unit              : String    := "Undef";

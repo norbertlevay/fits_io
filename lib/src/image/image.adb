@@ -1,10 +1,8 @@
 
 
---with Ada.Streams.Stream_IO;
-with Mandatory; -- NAXIS_Arr needed
+with Mandatory;
 with Optional;  -- Card_Arr needed
 with Header;    -- Image_Rec needed
---with V3_Types; -- FIXME only temporaly here; goes with To_BITPIX
 
 with FITS_IO; use FITS_IO;
 
@@ -15,7 +13,7 @@ package body Image is
 
 
     function Metadata
-        (NAXISn      : NAXIS_Arr;
+        (NAXISn      : NAXIS_Array;
          Valued_Keys : Valued_Key_Record_Arr) return Image_Rec
     is
         Im : Image_Rec(NAXISn'Last, Valued_Keys'Last);

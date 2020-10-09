@@ -1,8 +1,8 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;-- Count needed
-with Ada.Strings.Unbounded; --use Ada.Strings.Unbounded;
-with Ada.Strings.Unbounded.Text_IO; --use Ada.Strings.Unbounded.Text_IO;
+with Ada.Streams.Stream_IO;
+with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Text_IO;
 
 with Keyword_Record; -- String_80 needed
 
@@ -64,9 +64,9 @@ type State_Type is
 
         Name            : State_Name;
         XTENSION_Val    : XT_Type;
-        NAXIS_Val       : Natural;--KW.FIndex; FIXME 
+        NAXIS_Val       : Natural;--NAXIS_Index; FIXME 
         NAXIS1_Val  : Count;
-        TFIELDS_Val     : Natural;--KW.FIndex; FIXME
+        TFIELDS_Val     : Natural;--NAXIS_Index; FIXME
 
     -- Mandatory
         SIMPLE   : CardValue(20);
@@ -184,7 +184,7 @@ end Is_Primary;
 
     function In_READ_FIXED_POSITION_CARDS(Pos : Positive_Count; Card : KW.String_80) return Positive_Count
     is
-        Idx : FIndex;
+        Idx : NAXIS_Index;
     begin
         if(Pos = 1)
         then
@@ -219,7 +219,7 @@ end Is_Primary;
         then
             Set(State.NAXIS, Card);
 
-            State.NAXIS_Val := KW.To_FIndex(State.NAXIS.Value);
+            State.NAXIS_Val := KW.To_NAXIS_Index(State.NAXIS.Value);
 
             -- from Primary
 
@@ -278,7 +278,7 @@ end Is_Primary;
         then
             Set(State.TFIELDS, Card);
 
-            State.TFIELDS_Val := KW.To_FIndex(State.TFIELDS.Value);
+            State.TFIELDS_Val := KW.To_NAXIS_Index(State.TFIELDS.Value);
 
             case(State.XTENSION_Val) is
                 when ASCII_TABLE | BIN_TABLE =>
@@ -695,9 +695,9 @@ end Is_Primary;
 
 
 
-    function Get_TBCOLn return NAXIS_Arr
+    function Get_TBCOLn return NAXIS_Array
     is
-        Arr : NAXIS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+        Arr : NAXIS_Array(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
     begin
         for I in 1 .. State.TFIELDS_Val
         loop

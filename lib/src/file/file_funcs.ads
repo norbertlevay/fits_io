@@ -8,13 +8,13 @@
 with FITS_IO; use FITS_IO; -- Positive_Count needed
 --with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO; -- Positive_Count needed
 
-with Mandatory; -- NAXIS_Arr needed
+with Mandatory; -- NAXIS_Array needed
 
 
 package File_Funcs is
 
 
-    function Data_Unit_Size_elems(NAXISn : NAXIS_Arr)
+    function Data_Unit_Size_elems(NAXISn : NAXIS_Array)
         return Positive_Count;
 
 
@@ -26,14 +26,14 @@ package File_Funcs is
     
     function PrimaryImage_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : NAXIS_Arr) return Positive_Count;
+         NAXIS  : NAXIS_Array) return Positive_Count;
 
 
     -- implements [FITS] Eq(2)
     
     function ConformingExtension_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : NAXIS_Arr;
+         NAXIS  : NAXIS_Array;
          PCOUNT : Count;
          GCOUNT : Positive_Count) return Positive_Count;
 
@@ -42,7 +42,7 @@ package File_Funcs is
 
      function RandomGroups_DataSize_bits
         (BITPIX : Integer;
-         NAXIS  : NAXIS_Arr;
+         NAXIS  : NAXIS_Array;
          PCOUNT : Count;
          GCOUNT : Positive_Count) return Positive_Count;
 

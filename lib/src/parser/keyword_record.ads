@@ -5,7 +5,6 @@
 -- 4.2.3 4.2.4 ..software packages can limit the range of Integer/float values...
 
 with FITS_IO; use FITS_IO;
---with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO; -- Count needed
 
 
 package Keyword_Record is
@@ -17,19 +16,17 @@ package Keyword_Record is
     EmptyCard : constant String_80 := (others => ' ');
 
 
---    subtype FIndex is Integer range 1 .. 999;-- FIXME rename and move? elsewhere??
-
     function To_Boolean(Value : String) return Boolean;
     function To_Integer(Value : String) return Count; -- FIXME was FInteger
-    function To_FIndex(Value : String) return FIndex;
+    function To_NAXIS_Index(Value : String) return NAXIS_Index;
     function To_String (Value : String) return String;
     function To_Float (Value : String) return Float;
-    
+
 
     function Match_Key(Key : in String; Card : in String_80) return Boolean;
     function Match_Indexed_Key(Root : in String; Card : in String_80) return Boolean;
 
-    function Take_Index(Root : in String; Card : in String_80) return FIndex;
+    function Take_Index(Root : in String; Card : in String_80) return NAXIS_Index;
 
     Invalid_Card_Value : exception;
 

@@ -2,9 +2,9 @@
 with FITS_IO; use FITS_IO;
 with Ada.Streams.Stream_IO;
 
-with Ada.Strings.Bounded;-- use Ada.Strings.Bounded; -- Max20 only FIXME !!
+with Ada.Strings.Bounded; -- Max20 only FIXME !!
 
-with Mandatory; -- NAXIS_Arr needed
+with Mandatory; -- NAXIS_Array needed
 with Optional; -- Bounded_String_8 Card_Arr needed 
 use Optional; -- Card_Arr used elsewhere then Optional
 
@@ -22,7 +22,7 @@ package File is
       XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
       CardsCnt : Positive_Count;       -- number of cards in this Header
       BITPIX   : Integer;             -- data type
-      NAXISn   : NAXIS_Arr(1..NAXIS); -- data dimensions
+      NAXISn   : NAXIS_Array(1..NAXIS); -- data dimensions
    end record;
 
    function Read_Header (FitsFile : in  SIO.File_Type)

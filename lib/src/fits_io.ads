@@ -30,12 +30,11 @@ package FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   type Count          is new Ada.Streams.Stream_IO.Count;
-   subtype Positive_Count is Count range 1 .. Count'Last;
-   subtype FIndex is Integer range 1 .. 999;
-   type NAXIS_Arr is array (FIndex range <>) of Positive_Count;
--- FIXME all four types above moved to FITS.ads because are shared with Numeric_Type
-   -- ans cause cyclic dependency
+   type     Count          is new Ada.Streams.Stream_IO.Count;
+   subtype  Positive_Count is Count range 1 .. Count'Last;
+
+   subtype  NAXIS_Index is Integer range 1 .. 999;
+   type     NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    -- card related
    package BS  renames Ada.Strings.Bounded;
@@ -73,13 +72,13 @@ package FITS_IO is
    procedure Read_Header
      (File    : SIO.File_Type;
       Scaling : out Scaling_Rec;
-      NAXISn : out NAXIS_Arr;
+      NAXISn : out NAXIS_Array;
       Undef  : in out BS70.Bounded_String);
 
    procedure Write_Header
       (File    : SIO.File_Type;
        Scaling : Scaling_Rec;
-       NAXISn : NAXIS_Arr;
+       NAXISn : NAXIS_Array;
        Undef  : BS70.Bounded_String := Null_Undefined_Value);
 
 

@@ -38,7 +38,7 @@ end Write;
 
 
 
-function DU_Data_Count(NAXISn : in NAXIS_Arr) return Positive_Count
+function DU_Data_Count(NAXISn : in NAXIS_Array) return Positive_Count
 is
   Acc : Positive_Count := 1;
 begin
@@ -53,7 +53,7 @@ end DU_Data_Count;
 
 procedure Read_Data_Unit
   (F : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
     DULength : Positive_Count := DU_Data_Count(NAXISn);
     E : Numeric;
@@ -69,7 +69,7 @@ end Read_Data_Unit;
 
 procedure Write_Data_Unit
   (F : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
     DULength : Positive_Count := DU_Data_Count(NAXISn);
     E : Float;

@@ -269,7 +269,7 @@ begin
     return Vstr;
 end To_Value_String;
 
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Arr) return Card_Arr
+function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Arr
 is
     Cards : Card_Arr(1 .. NAXISn'Last);
     use Ada.Strings.Fixed;

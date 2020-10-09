@@ -1,12 +1,12 @@
 
 
 
-with Mandatory; -- NAXIS_Arr needed
+with Mandatory; -- NAXIS_Array needed
 
 package body File_Funcs is
 
 
-    function Data_Unit_Size_elems(NAXISn : NAXIS_Arr) return Positive_Count
+    function Data_Unit_Size_elems(NAXISn : NAXIS_Array) return Positive_Count
     is
         Elem_Count : Positive_Count := 1;
     begin
@@ -26,7 +26,7 @@ package body File_Funcs is
 
         function PrimaryImage_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : NAXIS_Arr) return Positive_Count
+                 NAXIS  : NAXIS_Array) return Positive_Count
     is
         Nbits : Positive_Count := 1;
     begin
@@ -47,7 +47,7 @@ package body File_Funcs is
  
         function ConformingExtension_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : NAXIS_Arr;
+                 NAXIS  : NAXIS_Array;
                  PCOUNT : Count;
                  GCOUNT : Positive_Count) return Positive_Count
     is
@@ -66,11 +66,11 @@ package body File_Funcs is
     
     function RandomGroups_DataSize_bits
                 (BITPIX : Integer;
-                 NAXIS  : NAXIS_Arr;
+                 NAXIS  : NAXIS_Array;
                  PCOUNT : Count;
                  GCOUNT : Positive_Count) return Positive_Count
     is
-        NAXISCopy : NAXIS_Arr := NAXIS;
+        NAXISCopy : NAXIS_Array := NAXIS;
     begin
         
         -- in RandomGroups NAXIS1 = 0

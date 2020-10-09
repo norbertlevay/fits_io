@@ -41,13 +41,13 @@
 
 with Ada.Streams.Stream_IO; -- Stream needed
 
-with FITS_IO; use FITS_IO;--Mandatory; -- NAXIS_Arr needed
+with FITS_IO; use FITS_IO;-- NAXIS_Array needed
 with Optional;  -- Card_Arr needed
 
 
 generic
  type T is private;
- Dummy_Undef_Val : T; -- FIXME hm... only for init: Valid is FAlse
+ Dummy_Undef_Val : T; -- FIXME hm... only for init: Valid is False
 package Image is
 
     package SIO renames Ada.Streams.Stream_IO;
@@ -56,7 +56,7 @@ package Image is
 
     type Image_Rec(NAXIS : Natural; Key_Count : Natural) is
         record
-            NAXISn          : NAXIS_Arr(1 .. NAXIS);
+            NAXISn          : NAXIS_Array(1 .. NAXIS);
             Undefined_Valid : Boolean;
             Undefined_Value : T;
             Valued_Keys     : Valued_Key_Record_Arr(0 .. Key_Count);
@@ -64,7 +64,7 @@ package Image is
         end record;
 
     function Metadata
-        (NAXISn     : NAXIS_Arr;
+        (NAXISn     : NAXIS_Array;
         Valued_Keys : Valued_Key_Record_Arr) return Image_Rec;
 
 

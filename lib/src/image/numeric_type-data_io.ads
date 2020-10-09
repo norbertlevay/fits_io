@@ -1,6 +1,6 @@
 
 with Ada.Streams.Stream_IO;
-with Mandatory; use Mandatory; -- NAXIS_Arr needed
+--with Mandatory; use Mandatory; -- NAXIS_Array needed
 
 
 generic
@@ -22,7 +22,7 @@ generic
   with procedure Elem(E : in Float);
 procedure Read_Data_Unit
   (F : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 
@@ -30,7 +30,7 @@ generic
   with procedure Elem(E : out Float);
 procedure Write_Data_Unit
   (F : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 end Numeric_Type.Data_IO;

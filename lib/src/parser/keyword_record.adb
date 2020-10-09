@@ -47,10 +47,10 @@
  
 -- NOTE for Mandatory keys implement Fixed Format definition parsing
 
-with Ada.Text_IO;-- use Ada.Text_IO;
+with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Strings; use Ada.Strings;
-with Ada.Strings.Fixed;-- use Ada.Strings.Fixed;-- Trim needed
+with Ada.Strings.Fixed;
 
 
 package body Keyword_Record is
@@ -81,11 +81,11 @@ package body Keyword_Record is
     end To_Integer;
 
 
-    function To_FIndex(Value : String) return FIndex
+    function To_NAXIS_Index(Value : String) return NAXIS_Index
     is
     begin
-        return Findex'Value(Value);
-    end To_FIndex;
+        return NAXIS_Index'Value(Value);
+    end To_NAXIS_Index;
     
     
     
@@ -169,10 +169,10 @@ package body Keyword_Record is
     end Match_Indexed_Key;
 
 
-    function Take_Index(Root : in String; Card : in String_80) return FIndex
+    function Take_Index(Root : in String; Card : in String_80) return NAXIS_Index
     is
     begin
-        return To_FIndex( Card(Root'Length + 1 .. 8) ); 
+        return To_NAXIS_Index( Card(Root'Length + 1 .. 8) ); 
     end Take_Index;
 
 

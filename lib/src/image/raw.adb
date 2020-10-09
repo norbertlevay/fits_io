@@ -104,8 +104,8 @@ package body Raw is
   procedure Read_Raw_Line
     (F : SIO.File_Type;
     DUStart : in Positive_Count; -- block count
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
     AValues : in out T_Arr)
   is
     -- StreamElem count (File_Index) from File begining:
@@ -123,10 +123,10 @@ package body Raw is
   procedure Read_Volume
     (File : SIO.File_Type;
     DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
-    --Last    : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array; -- organization of data in Volume
+    --Last    : in NAXIS_Array;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
   is
 --    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
@@ -136,16 +136,16 @@ package body Raw is
     --LineLength : Positive_Count := 1 + (Last(1) - First(1));
     --Line: T_Arr(1 .. LineLength);
 
-      Last : NAXIS_Arr := VolumeSize;
+      Last : NAXIS_Array := VolumeSize;
 
     -- generate coords vars
-    Winit : FIndex := 2;
-    W : FIndex;
-    C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
-    CV : NAXIS_Arr := First;  -- Current coords in target Volume
+    Winit : NAXIS_Index := 2;
+    W : NAXIS_Index;
+    C  : NAXIS_Array := First;  -- Current coords in source Data Unit
+    CV : NAXIS_Array := First;  -- Current coords in target Volume
     Vf, Vl : Positive_Count;
-    Unity : constant NAXIS_Arr(First'Range) := (others => 1);
-    VolNAXISn : NAXIS_Arr(First'Range);
+    Unity : constant NAXIS_Array(First'Range) := (others => 1);
+    VolNAXISn : NAXIS_Array(First'Range);
   begin
 
       -- convert VoilumeSize -> Last
@@ -209,17 +209,17 @@ package body Raw is
  procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count; -- count in Blocks
-    NAXISn  : in NAXIS_Arr;    -- organization of data in DU
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
+    NAXISn  : in NAXIS_Array;    -- organization of data in DU
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array; -- organization of data in Volume
     Volume     : in T_Arr)
  is
    LineLength : Positive_Count := VolumeSize(1);
    Line       : T_Arr(1 .. LineLength);
    LineFirst  : Positive_Count;
    LineLast   : Positive_Count := LineLength;
-   C     : NAXIS_Arr(First'First .. First'Last);
-   DestC : NAXIS_Arr(First'First .. First'Last);
+   C     : NAXIS_Array(First'First .. First'Last);
+   DestC : NAXIS_Array(First'First .. First'Last);
    DestDUIndex : Positive_Count;
    SIOFileIndex : SIO.Positive_Count;
 --   procedure Write_One_Line is new Write_Array(T, T_Arr);
