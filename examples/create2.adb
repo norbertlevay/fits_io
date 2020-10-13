@@ -106,13 +106,24 @@ is
     -- set-up transfer buffer for Write
    package F32_FIO  is new FITS_IO.Data_Unit(T => MD_Tm);
 
-   F32Scaling : FITS_IO.Scaling_Rec := (
-        1*MD_Undef_Value,
-        1*In_File_Undefined_Value,
-        In_A,
-        In_B,
-        MD_Memory_BITPIX,
-        In_File_BITPIX);
+   F32Scaling : FITS_IO.Scaling_Rec
+   := (
+      MD_NAXISn'Last
+      ,
+      (MD_NAXISn'Last,
+      In_File_BITPIX,
+      MD_NAXISn,
+      1*In_File_Undefined_Value,
+      1*MD_Unit,
+      In_A,In_B)
+      ,
+      (MD_NAXISn'Last,
+      MD_Memory_BITPIX,
+      MD_NAXISn,
+      1*MD_Undef_Value,
+      1*MD_Unit,
+      In_A,In_B)
+   );
 
 
     -- simulate some data

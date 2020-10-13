@@ -50,7 +50,7 @@ package FITS_IO is
    Null_Undefined_Value : constant BS70.Bounded_String
                                  := BS70.To_Bounded_String("");
 
-   type Scaling_Rec is
+   type Scaling_Rec_NOT_USED is
       record
          Memory_Undefined_Value : BS70.Bounded_String := Null_Undefined_Value;
          File_Undefined_Value   : BS70.Bounded_String := Null_Undefined_Value;
@@ -60,7 +60,7 @@ package FITS_IO is
          File_BITPIX     : Integer := 0;
       end record;
 
-   Null_Scaling : constant Scaling_Rec := (  Null_Undefined_Value, Null_Undefined_Value,
+   Null_Scaling_NOT_USED : constant Scaling_Rec_NOT_USED := (  Null_Undefined_Value, Null_Undefined_Value,
                                              0.0,1.0,
                                              0,0);
 
@@ -78,6 +78,12 @@ package FITS_IO is
          A,B      : Float;
       end record;
 
+   --type Transfer_Rec(NAXIS_Last : Natural) is
+   type Scaling_Rec(NAXIS_Last : Natural) is
+      record
+         Raw      : Image_Data_Model(NAXIS_Last);
+         Physical : Image_Data_Model(NAXIS_Last);
+      end record;
 
    procedure Read_Header
      (File  : SIO.File_Type;
