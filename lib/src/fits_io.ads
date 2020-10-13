@@ -79,11 +79,11 @@ package FITS_IO is
       end record;
 
    --type Transfer_Rec(NAXIS_Last : Natural) is
-   type Scaling_Rec(NAXIS_Last : Natural) is
-      record
-         Raw      : Image_Data_Model(NAXIS_Last);
-         Physical : Image_Data_Model(NAXIS_Last);
-      end record;
+--   type Scaling_Rec(NAXIS_Last : Natural) is
+--      record
+--         Raw      : Image_Data_Model(NAXIS_Last);
+--         Physical : Image_Data_Model(NAXIS_Last);
+--i      end record;
 
    procedure Read_Header
      (File  : SIO.File_Type;

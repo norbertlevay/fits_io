@@ -106,7 +106,7 @@ is
     -- set-up transfer buffer for Write
    package F32_FIO  is new FITS_IO.Data_Unit(T => MD_Tm);
 
-   F32Scaling : FITS_IO.Scaling_Rec
+   F32Scaling : F32_FIO.Scaling_Rec
    := (
       MD_NAXISn'Last
       ,
