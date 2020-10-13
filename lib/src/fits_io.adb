@@ -1,4 +1,7 @@
 
+with Ada.Strings.Fixed;
+with Ada.Strings; -- Trim needed
+use Ada.Strings; -- Left needed for Trim
 
 with Mandatory; -- Result_rec needed
 with Header;    -- Valued_Key_Record_Arr needed
@@ -101,11 +104,72 @@ package body FITS_IO is
 
    -- for Write: convert from Image_Data_Model -> Cards
 
+   function Needed_Array_Length(Image : Image_Data_Model) return Natural
+   is
+      Len : Natural;
+      use BS70;
+   begin
+      -- BITPIX + NAXIS + NAXIS array
+      Len := 2 + Image.NAXISn'Length;
+      -- optional BLANK
+      if(Image.Undef /= Null_Undefined_Value)
+      then
+         Len := Len + 1;
+      end if;
+      -- optional BUNIT
+      if(Image.Unit /= Null_Undefined_Value)
+      then
+         Len := Len + 1;
+      end if;
+      -- optional BZERO BSCALE
+      if(True)--Image.BITPIX >= 0) -- if not Float
+      then
+         Len := Len + 2;
+      end if;
+      return Len;
+   end Needed_Array_Length;
+
+
    function To_Cards(Image : Image_Data_Model) return Header.Valued_Key_Record_Arr
    is
-      Key_Recs : Header.Valued_Key_Record_Arr(0..1);
+      Card_Count  : Natural := Needed_Array_Length(Image);
+      Key_Recs    : Header.Valued_Key_Record_Arr(1 .. Card_Count);
+      use BS_8;
+      use BS70;
+      use Ada.Strings.Fixed;--Trim needed
+      Bx : Integer;
    begin
-      -- FIXME implement
+      -- FIXME implement converion function CardKey,CardValue <-> Ada/FITSlib native types
+      -- BITPIX NAXIS Undef Unit A B
+      Key_Recs(1) := (1* "BITPIX", 1*Integer'Image(Image.BITPIX));
+      Key_Recs(2) := (1* "NAXIS",  1*NAXIS_Index'Image(Image.NAXISn'Last));
+      for I in Image.NAXISn'Range
+      loop
+         Key_Recs(3 + (I - 1))
+           := (1*("NAXIS" & Trim(Integer'Image(I),Left)),1*Positive_Count'Image(Image.NAXISn(I)));
+      end loop;
+      -- base index: points to next free card-slot
+      Bx := 3 + (Image.NAXISn'Length);
+       -- optional BLANK
+      if(Image.Undef /= Null_Undefined_Value)
+      then
+         Key_Recs(Bx) := (1*"BLANK", Image.Undef);
+         Bx := Bx + 1;
+      end if;
+      -- optional BUNIT
+      if(Image.Unit /= Null_Undefined_Value)
+      then
+         Key_Recs(Bx) := (1*"BUNIT", Image.Unit);
+         Bx := Bx + 1;
+      end if;
+      -- optional BZERO BSCALE
+      if(True)--Image.BITPIX >= 0) -- if not Float
+      then
+         Key_Recs(Bx) := (1*"BZERO",  1* Float'Image(Image.A));
+         Bx := Bx + 1;
+         Key_Recs(Bx) := (1*"BSCALE", 1* Float'image(Image.B));
+         Bx := Bx + 1;
+      end if;
       return Key_Recs;
    end To_Cards;
 
@@ -117,7 +181,14 @@ package body FITS_IO is
    is
       Image : Image_Data_Model(Parse_Result.NAXIS_Last);
    begin
-      -- FIXME implement
+      Image.BITPIX := Parse_Result.BITPIX;
+      Image.NAXISn := Parse_Result.NAXISn;
+      -- FIXME implement missing parse Optional: Undef Unit A B
+      -- now set to default
+      Image.Undef := Null_Undefined_Value;
+      Image.Unit  := Null_Undefined_Value;
+      Image.A := 0.0;
+      Image.B := 1.0;
       return Image;
    end To_Image;
 

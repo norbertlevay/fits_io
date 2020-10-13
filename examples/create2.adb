@@ -69,7 +69,7 @@ is
     MD_NAXISn            : NAXIS_Array := (ColLength, RowLength);
     MD_Min               : Float     :=   0.0;
     MD_Max               : Float     := 255.0;
-    MD_Unit              : String    := "Undef";
+    MD_Unit              : String    := "'Undef'";
     MD_Undef_Value       : String    := Float'Image(F_NaN);
 
     MD_Memory_BITPIX  : Integer := -(MD_Tm'Size);
@@ -163,8 +163,9 @@ begin
  -- write Header
 
  Header.Write_Card_SIMPLE(Out_File, True);
- F32_Image.Target_BITPIX := In_File_BITPIX;
- F32_Header.Image_Rec'Output(Out_Stream, F32_Image);
+-- F32_Image.Target_BITPIX := In_File_BITPIX;
+-- F32_Header.Image_Rec'Output(Out_Stream, F32_Image);
+ FITS_IO.Write_Header(Out_File, F32Scaling.Physical);
  Header.Close(Out_File);
 
 -- write Data Unit
