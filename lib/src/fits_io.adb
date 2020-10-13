@@ -34,7 +34,7 @@ package body FITS_IO is
       then
          Phys_Im.Undef := Null_Undefined_Value;
       else
-          -- if caller suppledy Phys.Undef use it, otherwise calculate it
+          -- if caller supplied Phys.Undef use it, otherwise calculate it
          if(Mem_Undef = Null_Undefined_Value)
          then
             Phys_Im.Undef := Mem_Undef;
