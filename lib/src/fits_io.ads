@@ -39,35 +39,21 @@ package FITS_IO is
    -- card related
    package BS  renames Ada.Strings.Bounded;
 
---   package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
---   package BS_8 renames Bounded_String_8;
    package BS_8 is new BS.Generic_Bounded_Length( 8);
    package BS70 is new BS.Generic_Bounded_Length(70);
-
-
-   -- Header
 
    Null_Undefined_Value : constant BS70.Bounded_String
                                  := BS70.To_Bounded_String("");
 
-   type Scaling_Rec_NOT_USED is
-      record
-         Memory_Undefined_Value : BS70.Bounded_String := Null_Undefined_Value;
-         File_Undefined_Value   : BS70.Bounded_String := Null_Undefined_Value;
-         A : Float    := 0.0;
-         B : Float    := 1.0;
-         Memory_BITPIX   : Integer := 0; -- zero means the same as T, no scaling needed A,B=(0,1)
-         File_BITPIX     : Integer := 0;
-      end record;
-
-   Null_Scaling_NOT_USED : constant Scaling_Rec_NOT_USED := (  Null_Undefined_Value, Null_Undefined_Value,
-                                             0.0,1.0,
-                                             0,0);
 
    -- NOTE All Header section:  Scaling_Rec and Read_/Write_Header
    -- should by T-type independent:
    -- In Scaling_Rec use Floats or Strings for UndefVal
    -- String better: define Null_Undef := "" -> means no-Undef (no need for Boolean Valid flag)
+   -- FIXME should the Scaling_Rec declaration be on FITS_IO then ?
+                                 -- see it as result of Header read/write
+                                 -- os see it as start of data unit access ??
+
 
    type Image_Data_Model(NAXIS_Last : Natural) is
       record
@@ -78,12 +64,6 @@ package FITS_IO is
          A,B      : Float;
       end record;
 
-   --type Transfer_Rec(NAXIS_Last : Natural) is
---   type Scaling_Rec(NAXIS_Last : Natural) is
---      record
---         Raw      : Image_Data_Model(NAXIS_Last);
---         Physical : Image_Data_Model(NAXIS_Last);
---i      end record;
 
    procedure Read_Header
      (File  : SIO.File_Type;
