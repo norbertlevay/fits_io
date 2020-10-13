@@ -9,40 +9,89 @@ package body FITS_IO is
    -- Image_Data_Model conversions
 
 
-
-
-
    -- for Read direction
+
    function To_Physical
       (File_Image : Image_Data_Model;
-      Mem_BITPIX : Integer) return Image_Data_Model
+      Mem_BITPIX : Integer;
+      Mem_Undef  : BS70.Bounded_String)-- caller's preference for Undef
+      return Image_Data_Model
    is
       Phys_Im : Image_Data_Model := File_Image;
       -- NAXISn and Unit copied, will not change
+      use BS70;-- operator '=' needed
    begin
-      Phys_Im.BITPIX := Mem_BITPIX; -- FIXME type conversion: Tmem must be known:
-      Phys_Im.Undef  := Null_Undefined_Value;-- convert Undef_Tf=BLANK -> Undef_Tm, if BLANK exist
-      Phys_Im.A := 0.0; -- = BZERO
-      Phys_Im.B := 1.0; -- = BSCALE
+
+      Phys_Im.BITPIX := Mem_BITPIX;
+      -- FIXME type conversion: Tmem must be known:
+
+      -- read from BZERO BSCALE
+      Phys_Im.A := -File_Image.A / File_Image.B;
+      Phys_Im.B :=  1.0 / File_Image.B;
+
+      -- read from BLANK
+      if(File_Image.Undef = Null_Undefined_Value)
+      then
+         Phys_Im.Undef := Null_Undefined_Value;
+      else
+          -- if caller suppledy Phys.Undef use it, otherwise calculate it
+         if(Mem_Undef = Null_Undefined_Value)
+         then
+            Phys_Im.Undef := Mem_Undef;
+         else
+            declare
+               Uraw : Float := Float'Value(BS70.To_String(File_Image.Undef));
+               Uph  : Float := File_Image.A + File_Image.B * Uraw;
+            begin
+               Phys_Im.Undef := BS70.To_Bounded_String(Float'Image(Uph));
+            end;
+        end if;
+      end if;
+
       return Phys_Im;
    end To_Physical;
 
 
 
-
-
    -- for Write direction
+
    function To_Raw
       (Physical_Image : Image_Data_Model;
-      Mem_BITPIX : Integer) return Image_Data_Model
+      Raw_BITPIX : Integer;
+      Raw_Undef  : BS70.Bounded_String) -- caller's preference for Undef
+      return Image_Data_Model
    is
       File_Im : Image_Data_Model := Physical_Image;
       -- copy NAXISn and Unit - those do not change
+      use BS70;-- operator '=' needed
    begin
-      File_Im.BITPIX := Mem_BITPIX; -- no conversion; write in same type as available data
-      File_Im.Undef := Null_Undefined_Value; -- convert Undef_Tm -> Undef_Tf if U_Tm exists
-      File_Im.A := 0.0; -- such that if Tmem Values scaled, results are in [Units]
-      File_Im.B := 1.0; -- e.g. Vout [Unit] = A + B * Vmem   [BZERO,BSCALE] = Inverz([A,B])
+
+      File_Im.BITPIX := Raw_BITPIX;--Physical_Image.BITPIX;
+      -- FIXME for starters no conversion; write in same type as available data
+
+      -- later write as BZERO BSCALE
+      File_Im.A := -Physical_Image.A / Physical_Image.B;
+      File_Im.B := 1.0 / Physical_Image.B;
+
+      -- later write as BLANK
+      if (Physical_Image.Undef = Null_Undefined_Value)
+      then
+         File_Im.Undef := Null_Undefined_Value;
+      else
+         -- if caller supplied File.Undef use it, otherwise calculate it
+         if(Raw_Undef = Null_Undefined_Value)
+         then
+            File_Im.Undef := Raw_Undef;
+         else
+            declare
+               Uph  : Float := Float'Value(BS70.To_String(Physical_Image.Undef));
+               Uraw : Float := Physical_Image.A + Physical_Image.B * Uph;
+            begin
+               File_Im.Undef := BS70.To_Bounded_String(Float'Image(Uraw));
+            end;
+         end if;
+      end if;
+
       return File_Im;
    end To_Raw;
 
@@ -51,6 +100,7 @@ package body FITS_IO is
 
 
    -- for Write: convert from Image_Data_Model -> Cards
+
    function To_Cards(Image : Image_Data_Model) return Header.Valued_Key_Record_Arr
    is
       Key_Recs : Header.Valued_Key_Record_Arr(0..1);
@@ -59,7 +109,10 @@ package body FITS_IO is
       return Key_Recs;
    end To_Cards;
 
+
+
    -- for Read: convert from Mandatory.Result_Rec -> Image_Data_Model
+
    function To_Image(Parse_Result : Mandatory.Result_Rec) return Image_Data_Model
    is
       Image : Image_Data_Model(Parse_Result.NAXIS_Last);
@@ -77,13 +130,15 @@ package body FITS_IO is
 
    procedure Read_Header
      (File  : SIO.File_Type;
-      Image : out Image_Data_Model)
+      Image : in out Image_Data_Model)
    is
-      Parsed_Mandatory  : Mandatory.Result_Rec := Header.Read_Mandatory(File);
-      Image_File        : Image_Data_Model := To_Image(Parsed_Mandatory);
-      Mem_BITPIX        : Integer := 0;-- FIXME where to get this ?
+      Parsed_Mandatory  : Mandatory.Result_Rec  := Header.Read_Mandatory(File);
+      Image_File        : Image_Data_Model      := To_Image(Parsed_Mandatory);
+
+      Mem_BITPIX : Integer := Image.BITPIX; -- FIXME where to get this ? or needed here ?
+      Mem_Undef  : BS70.Bounded_String := Null_Undefined_Value;-- FIXME how to get this ?
    begin
-      Image := To_Physical(Image_File, Mem_BITPIX);
+      Image := To_Physical(Image_File, Mem_BITPIX, Mem_Undef);
    end Read_Header;
    -- FIXME verify: call must leave File Index pointing to DataUnit
 
@@ -93,8 +148,10 @@ package body FITS_IO is
       (File  : SIO.File_Type;
        Image : Image_Data_Model)
    is
-      Mem_BITPIX : Integer := 0; -- FIXME where to get this ?
-      Image_File : Image_Data_Model := To_Raw(Image, Mem_BITPIX);
+      Raw_BITPIX : Integer := Image.BITPIX; -- FIXME where to get this ? or needed here ?
+      Raw_Undef  : BS70.Bounded_String := Null_Undefined_Value;-- FIXME how to get this ?
+
+      Image_File : Image_Data_Model             := To_Raw(Image, Raw_BITPIX, Raw_Undef);
       Key_Recs   : Header.Valued_Key_Record_Arr := To_Cards(Image_File);
    begin
       Header.Valued_Key_Record_Arr'Write(SIO.Stream(File), Key_Recs);

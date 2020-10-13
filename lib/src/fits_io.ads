@@ -67,7 +67,8 @@ package FITS_IO is
 
    procedure Read_Header
      (File  : SIO.File_Type;
-      Image : out Image_Data_Model);
+      Image : in out Image_Data_Model);
+   -- in out must supply Image.BITPIX
 
    procedure Write_Header
       (File  : SIO.File_Type;
