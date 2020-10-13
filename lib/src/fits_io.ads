@@ -65,6 +65,11 @@ package FITS_IO is
       end record;
 
 
+   -- FIXME Undef value when stored in Header as BLANK must have string-format of type BITPIX
+   -- FIXME Undef value when read from BLANK must have string-format
+   -- of type Image.BITPIX in Image_Data_Model - e.g. Undef must be in the same type as Data
+
+
    procedure Read_Header
      (File  : SIO.File_Type;
       Image : in out Image_Data_Model);
