@@ -64,6 +64,8 @@ package FITS_IO is
          A,B      : Float;
       end record;
 
+   -- FIXME still missing Min,Max -> DATAMIN DATAMAX
+   -- NOTE Min Max Undef -> must have format corresponding to type BITPIX=T
 
    -- FIXME Undef value when stored in Header as BLANK must have string-format of type BITPIX
    -- FIXME Undef value when read from BLANK must have string-format
