@@ -71,6 +71,38 @@ package FITS_IO is
    -- FIXME Undef value when read from BLANK must have string-format
    -- of type Image.BITPIX in Image_Data_Model - e.g. Undef must be in the same type as Data
 
+   -- "Low-level" API / Raw-valued Image
+
+   -- for Write
+   function To_Raw
+      (Physical_Image : Image_Data_Model;
+      Raw_BITPIX : Integer;
+      Raw_Undef  : BS70.Bounded_String) -- caller's preference for Undef
+      return Image_Data_Model;
+
+   -- for Read
+   function To_Physical
+      (Raw_Image  : Image_Data_Model;
+      Phys_BITPIX : Integer;
+      Phys_Undef  : BS70.Bounded_String)-- caller's preference for Undef
+      return Image_Data_Model;
+
+
+   procedure Read_Raw_Header
+     (File  : SIO.File_Type;
+      Raw_Image : in out Image_Data_Model);
+
+   procedure Write_Raw_Header
+      (File  : SIO.File_Type;
+       Raw_Image : Image_Data_Model);
+
+
+
+
+
+   -- "High-level" API /Physical-valued Image
+
+
    -- Read_Header IS FULLY DEFINED
    -- Mem_BITPIX = func(T) (choice: use application dictates)
    -- -- Mem_Undef (optional override)

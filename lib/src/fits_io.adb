@@ -15,36 +15,36 @@ package body FITS_IO is
    -- for Read direction
 
    function To_Physical
-      (File_Image : Image_Data_Model;
-      Mem_BITPIX : Integer;
-      Mem_Undef  : BS70.Bounded_String)-- caller's preference for Undef
+      (Raw_Image  : Image_Data_Model;
+      Phys_BITPIX : Integer;
+      Phys_Undef  : BS70.Bounded_String)-- caller's preference for Undef
       return Image_Data_Model
    is
-      Phys_Im : Image_Data_Model := File_Image;
+      Phys_Im : Image_Data_Model := Raw_Image;
       -- NAXISn and Unit copied, will not change
       use BS70;-- operator '=' needed
    begin
 
-      Phys_Im.BITPIX := Mem_BITPIX;
+      Phys_Im.BITPIX := Phys_BITPIX;
       -- FIXME type conversion: Tmem must be known:
 
       -- read from BZERO BSCALE
-      Phys_Im.A := -File_Image.A / File_Image.B;
-      Phys_Im.B :=  1.0 / File_Image.B;
+      Phys_Im.A := -Raw_Image.A / Raw_Image.B;
+      Phys_Im.B :=  1.0 / Raw_Image.B;
 
       -- read from BLANK
-      if(File_Image.Undef = Null_Undefined_Value)
+      if(Raw_Image.Undef = Null_Undefined_Value)
       then
          Phys_Im.Undef := Null_Undefined_Value;
       else
           -- if caller supplied Phys.Undef use it, otherwise calculate it
-         if(Mem_Undef = Null_Undefined_Value)
+         if(Phys_Undef = Null_Undefined_Value)
          then
-            Phys_Im.Undef := Mem_Undef;
+            Phys_Im.Undef := Phys_Undef;
          else
             declare
-               Uraw : Float := Float'Value(BS70.To_String(File_Image.Undef));
-               Uph  : Float := File_Image.A + File_Image.B * Uraw;
+               Uraw : Float := Float'Value(BS70.To_String(Raw_Image.Undef));
+               Uph  : Float := Raw_Image.A + Raw_Image.B * Uraw;
             begin
                Phys_Im.Undef := BS70.To_Bounded_String(Float'Image(Uph));
             end;
@@ -193,22 +193,49 @@ package body FITS_IO is
    end To_Image;
 
 
+   -- low-level API
+
+   procedure Read_Raw_Header
+     (File  : SIO.File_Type;
+      Raw_Image : in out Image_Data_Model) -- FIXME review why in-out arg?
+   is
+      Parsed_Mandatory  : Mandatory.Result_Rec  := Header.Read_Mandatory(File);
+   begin
+      Raw_Image := To_Image(Parsed_Mandatory);
+   end Read_Raw_Header;
+   -- FIXME verify: call must leave File Index pointing to DataUnit
+
+
+
+   procedure Write_Raw_Header
+      (File  : SIO.File_Type;
+       Raw_Image : Image_Data_Model)
+   is
+      Key_Recs   : Header.Valued_Key_Record_Arr := To_Cards(Raw_Image);
+   begin
+      Header.Valued_Key_Record_Arr'Write(SIO.Stream(File), Key_Recs);
+   end Write_Raw_Header;
+   -- FIXME Write END-card and padding
+   -- FIXME verify: call must leave File Index pointing to DataUnit
 
 
 
 
-   -- API
+
+
+   -- high-level API
 
    procedure Read_Header
      (File  : SIO.File_Type;
       Image : in out Image_Data_Model)
    is
-      Parsed_Mandatory  : Mandatory.Result_Rec  := Header.Read_Mandatory(File);
-      Image_File        : Image_Data_Model      := To_Image(Parsed_Mandatory);
+--      Parsed_Mandatory  : Mandatory.Result_Rec  := Header.Read_Mandatory(File);
+      Image_File        : Image_Data_Model(Image.NAXISn'Last);-- := To_Image(Parsed_Mandatory);
 
       Mem_BITPIX : Integer := Image.BITPIX; -- FIXME where to get this ? or needed here ?
       Mem_Undef  : BS70.Bounded_String := Null_Undefined_Value;-- FIXME how to get this ?
    begin
+      Read_Raw_Header(File, Image_File);
       Image := To_Physical(Image_File, Mem_BITPIX, Mem_Undef);
    end Read_Header;
    -- FIXME verify: call must leave File Index pointing to DataUnit
@@ -223,9 +250,10 @@ package body FITS_IO is
       Raw_Undef  : BS70.Bounded_String := Null_Undefined_Value;-- FIXME how to get this ?
 
       Image_File : Image_Data_Model             := To_Raw(Image, Raw_BITPIX, Raw_Undef);
-      Key_Recs   : Header.Valued_Key_Record_Arr := To_Cards(Image_File);
+--      Key_Recs   : Header.Valued_Key_Record_Arr := To_Cards(Image_File);
    begin
-      Header.Valued_Key_Record_Arr'Write(SIO.Stream(File), Key_Recs);
+--      Header.Valued_Key_Record_Arr'Write(SIO.Stream(File), Key_Recs);
+      Write_Raw_Header(File, Image_File);
    end Write_Header;
    -- FIXME Write END-card and padding
    -- FIXME verify: call must leave File Index pointing to DataUnit
