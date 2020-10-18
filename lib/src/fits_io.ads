@@ -71,6 +71,10 @@ package FITS_IO is
    -- FIXME Undef value when read from BLANK must have string-format
    -- of type Image.BITPIX in Image_Data_Model - e.g. Undef must be in the same type as Data
 
+   -- Data Unit length
+   function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
+
+
    -- "Low-level" API / Raw-valued Image
 
    -- for Write
