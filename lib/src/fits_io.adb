@@ -21,15 +21,7 @@ package body FITS_IO is
       return Data_Cnt;
    end Data_Element_Count;
 
-   function Data_Unit_Length_blocks(BITPIX : Integer; NAXISn : NAXIS_Array) return Count
-   is
-      Elem_Cnt   : Count    := Data_Element_Count(NAXISn);
-      Elem_Bytes : Positive_Count := Positive_Count((abs BITPIX) / 8);
-   begin
-      return  1 + (Elem_Cnt * Elem_Bytes) / 2880; 
-      -- FIXME incorrect when (ECnt*EBytes) divisable by 2880
-      -- and Primary may have no data
-   end Data_Unit_Length_blocks;
+
 
 
    -- Image_Data_Model conversions
