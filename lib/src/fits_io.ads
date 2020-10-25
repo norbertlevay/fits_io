@@ -64,6 +64,27 @@ package FITS_IO is
          A,B      : Float;
       end record;
 
+
+
+
+   type Dat_Rec is
+      record
+         BITPIX   : Integer;
+         Undef    : BS70.Bounded_String;
+         A,B      : Float;
+      end record;
+
+   type Xfer_Rec is
+      record
+         Raw  : Dat_Rec;
+         Phys : Dat_Rec;
+      end record;
+
+
+
+
+
+
    -- FIXME still missing Min,Max -> DATAMIN DATAMAX
    -- NOTE Min Max Undef -> must have format corresponding to type BITPIX=T
 
@@ -84,6 +105,12 @@ package FITS_IO is
       Raw_Undef  : BS70.Bounded_String) -- caller's preference for Undef
       return Image_Data_Model;
 
+
+   procedure Write_Raw_Header
+      (File  : SIO.File_Type;
+       Raw_Image : Image_Data_Model);
+
+
    -- for Read
    function To_Physical
       (Raw_Image  : Image_Data_Model;
@@ -95,10 +122,6 @@ package FITS_IO is
    procedure Read_Raw_Header
      (File  : SIO.File_Type;
       Raw_Image : in out Image_Data_Model);
-
-   procedure Write_Raw_Header
-      (File  : SIO.File_Type;
-       Raw_Image : Image_Data_Model);
 
 
 

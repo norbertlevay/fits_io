@@ -37,10 +37,37 @@ package body FITS_IO.Data_Unit is
       end if;
    end To_Undef_Value;
 
-
-   -- FIXME Read/Write misses Raw.[A,B] <-> Physical.[A,B] conversions
-
-
+   --
+   -- FIXME Undef value should be:
+   --
+   -- Undef_Valid : Boolean
+   -- Undef_Raw   : T_Raw  := converted or user-defined value @Write
+   -- Undef_Phys  : T_Phys := converted or user-defined value @Read
+   --
+   -- if Valid False -> values irrelevant
+   -- if Valid True  -> _both_ values must be defined
+   --
+   -- ideally values should be in their own Type (T_Phys and T_Raw), but
+   -- both types available only here: -> Undef calc/conversion must be in
+   -- this module/package based on this input:
+   --
+   -- @Read  -> BLANK : String
+   -- @Write -> Undef : T_Phys  <- be generic param () ?
+   --
+   -- @Read  Undef_Valid True -> if BLANK found in Header
+   -- @Write Undef_Valid True -> if caller has defined for his data
+   -- 
+   -- FIXME below in Read/Write Undef handling overcomplicated; 
+   -- valuse should be converted/calculed earlier not in Read/Write;
+   -- it should be only (for both Read and Write the same):
+   --
+   -- if(Undef_Valid)
+   --    Physical.Set_Undefined(Undef_Phys);
+   --    case(RawBITPIX)
+   --       TT.Raw.Set_Undefined(+(BLANK));
+   --    end case
+   --  end if;
+   --
 
   procedure Read
      (File    : SIO.File_Type;
@@ -55,30 +82,34 @@ package body FITS_IO.Data_Unit is
       File_Undefined_Value : Float;
    begin
 
+   -- Set Undefined value
+
     if(File_Undefined_Valid)
     then
 
         File_Undefined_Value := To_Undef_Value(To_String(Scaling.Raw.Undef));
 
-        I16Raw.Set_Undefined(+(File_Undefined_Value));
+        case(Scaling.Raw.BITPIX) is
+             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
+             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+File_Undefined_Value));
+             when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
+             when others => null; -- Error: "Invalid BITPIX for target"
+        end case;
 
         -- did user force undefined value ? it has precedence
         if(Memory_Undefined_Valid)
         then
 
            Memory_Undefined_Value := To_Undef_Value(To_String(Scaling.Physical.Undef));
+           Physical.Set_Undefined(+(Memory_Undefined_Value));
 
-           case(Scaling.Physical.BITPIX) is
-              when  0 | 8 | 16 | 32 | 64 | -32 | -64 =>
-                    Physical.Set_Undefined(+(Memory_Undefined_Value));
-              when others => null; -- Error: "Invalid BITPIX for target"
-           end case;
         else
-           null; -- lib calculates FIXME it is calc'd in Array_IO
+           null; -- FIXME calc after Header read/written, not here; NOTE also calc'd in Array_IO
         end if;
 
     end if;
 
+    -- Scaling
 
     case(Scaling.Raw.BITPIX) is
         when  16 => I16_AIO.Read(SIO.Stream(File), Scaling.Raw.A,Scaling.Raw.B, Item);
@@ -102,14 +133,13 @@ package body FITS_IO.Data_Unit is
       File_Undefined_Value : Float;
    begin
 
-   -- Set Undefined value if used and forced by caller
+   -- Set Undefined value
 
     if(Memory_Undefined_Valid)
     then
 
-       Memory_Undefined_Value := To_Undef_Value(To_String(Scaling.Physical.Undef));
-
-       Physical.Set_Undefined(+Memory_Undefined_Value);
+        Memory_Undefined_Value := To_Undef_Value(To_String(Scaling.Physical.Undef));
+        Physical.Set_Undefined(+Memory_Undefined_Value);
 
         -- did caller force undefined value ? it has precedence
         -- FIXME can this be generalized and set in Array_IO ? rather then here
@@ -117,7 +147,7 @@ package body FITS_IO.Data_Unit is
         if(File_Undefined_Valid)
         then
 
-        File_Undefined_Value := To_Undef_Value(To_String(Scaling.Raw.Undef));
+           File_Undefined_Value := To_Undef_Value(To_String(Scaling.Raw.Undef));
 
            case(Scaling.Raw.BITPIX) is
                 when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
@@ -125,22 +155,21 @@ package body FITS_IO.Data_Unit is
                 when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
                 when others => null; -- Error: "Invalid BITPIX for target"
            end case;
+
         else
-            null; -- lib calculates FIXME now it is calc'd in Array_IO - there only once
-                  -- coded, here separatly for each instance
+           null; -- FIXME calc after Header read/written, not here; NOTE also calc'd in Array_IO
         end if;
 
     end if;
 
     -- Scaling
 
-    case(Scaling.Raw.BITPIX) is
+    case(Scaling.Raw.BITPIX) is    -- FIXME should be Scaling.Physical.A.B ?$
         when  16 => I16_AIO.Write(SIO.Stream(File), Scaling.Raw.A,Scaling.Raw.B, Item);
         when -32 => F32_AIO.Write(SIO.Stream(File), Scaling.Raw.A,Scaling.Raw.B, Item);
         when  8 | 32 | 64 | -64 => null; -- Warn: "Not implemented"
         when others => null; -- Error: "Invalid BITPIX for target"
     end case;
-
 
    end Write;
 
