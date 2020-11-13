@@ -9,8 +9,6 @@ with Array_IO;
 
 package body FITS_IO.Data_Unit is
 
-   -- FIXME index is Positive but shopuld be Positive_Count
-   -- - caused circular include of FITS and Numeric_Type
    type Float_Arr is array (Positive_Count range <>) of Float;
    type I16_Arr   is array (Positive_Count range <>) of Short_Integer;
 
@@ -22,8 +20,6 @@ package body FITS_IO.Data_Unit is
    package I16_AIO is new Array_IO(I16Raw, Physical);
    package F32_AIO is new Array_IO(F32Raw, Physical);
 
-
-   Null_String : constant String := "";
 
    type Scaling_Rec is record
       A,B : Float;
@@ -38,7 +34,7 @@ package body FITS_IO.Data_Unit is
 
 
    -- Ada will not convert NaN****** string into NaN value
-       -- FIXME later to be part of Keyword_Record Value conversion/parsing routines
+   -- FIXME later to be part of Keyword_Record Value conversion/parsing routines
    function To_Undef_Value(S : String) return Float
    is  
       Zero : Float := 0.0;
@@ -81,8 +77,6 @@ package body FITS_IO.Data_Unit is
       Item : out T_Arr;
       Last : out Count)
    is
-      use BS70;
-      File_Undefined_Value : Float;
    begin
 
    -- Set Undefined value
@@ -92,11 +86,9 @@ package body FITS_IO.Data_Unit is
 
         Physical.Set_Undefined(+Scaling.Undef_Phys);
 
-        File_Undefined_Value := Scaling.Undef_Raw;
-        --File_Undefined_Value := To_Undef_Value(To_String(Scaling.Undef_Raw));
         case(Scaling.BITPIX) is
-             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
-             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+File_Undefined_Value));
+             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+Scaling.Undef_Raw));
+             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
              when  8 | 32 | 64 | -64 => null;
              when others => null;
         end case;
@@ -120,8 +112,6 @@ package body FITS_IO.Data_Unit is
       Scaling : Access_Rec;
       Item : T_Arr)
    is
-      use BS70;
-      File_Undefined_Value : Float;
    begin
 
    -- Set Undefined value
@@ -131,11 +121,9 @@ package body FITS_IO.Data_Unit is
 
         Physical.Set_Undefined(+Scaling.Undef_Phys);
 
-        File_Undefined_Value := Scaling.Undef_Raw;
-        --File_Undefined_Value := To_Undef_Value(To_String(Scaling.Undef_Raw));
         case(Scaling.BITPIX) is
-             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+File_Undefined_Value));
-             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+File_Undefined_Value));
+             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+Scaling.Undef_Raw));
+             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
              when  8 | 32 | 64 | -64 => null;
              when others => null;
         end case;

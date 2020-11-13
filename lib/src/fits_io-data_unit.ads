@@ -14,6 +14,9 @@
 -- only Data_Unit package is generic by T and defines Physical-side
 
 
+-- NOTE Read/Write call should _only_ shift File-index as it goes through Data Unit
+-- no other state (ScalingRec & local vars) should change, (besides data moved of course)
+
 -- NOTE on higher-level API: what if Header would be generic by T_Raw ?
 -- just as Data_Unit is generic by T_Physical ?
 -- (Header type-indepence would apply only to proprietary cards
@@ -23,7 +26,8 @@
 -- just like Data_Unit (through 2 Numeric Types) is converting  DU-Types/any T_Phys <-> Float
 -- NOTE !!! except of BITPIX any other keys affected by choice of T_Raw ??
 -- Header is metadata -> as such it _describes_ Raw-side
--- DataUnit is the data itself -> must be implemented as such (T-defined not described by BITPIX key)
+-- DataUnit is the data itself -> 
+-- must be implemented as such (T-defined not described by BITPIX key)
 
 
 with Init; use Init;
@@ -36,16 +40,12 @@ with function "+"(V : in Float)   return T is <>;
 with function "+"(V : in T) return Float   is <>; 
 with function Is_Undef  (V,U : in T) return Boolean is <>; 
 with function To_BITPIX (V   : in T) return Integer is <>; 
---with procedure Scale_AB(V : T; Raw_BITPIX : Integer; A : out Float; B : out Float) is <>;
 
 package FITS_IO.Data_Unit is
 
    type T_Arr is array (Positive_Count range <>) of T;
    subtype Buffer is T_Arr;
 
-
-   -- NOTE Read/Write call should _only_ shift File-index as it goes through Data Unit
-   -- no other state (ScalingRec & local vars) should change, (besides data moved of course)
 
 
    -- Xfer params: READ IS FULLY SPECIFIED
@@ -54,7 +54,7 @@ package FITS_IO.Data_Unit is
    -- -- Physical.Undef (optional override)
   procedure Read
      (File    : SIO.File_Type;
-      Scaling : Access_Rec;  --   <- replace with Image_Data_Model ??
+      Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count);
 
@@ -67,7 +67,7 @@ package FITS_IO.Data_Unit is
    -- -- Raw.Undef (optional override)
   procedure Write
      (File    : SIO.File_Type;
-      Scaling : Access_Rec; --  <- replace with Image_Data_Model ??
+      Scaling : Access_Rec;
       Item : T_Arr);
 
   -- NOTE should [BITPIX A,B] :
@@ -76,3 +76,4 @@ package FITS_IO.Data_Unit is
   -- 3, optionally parametrize to depend on Physical.Min/Max of the Data
 
 end FITS_IO.Data_Unit;
+

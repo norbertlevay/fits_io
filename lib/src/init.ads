@@ -9,6 +9,10 @@ package Init is
 
    -- Array_Keys: BZERO BSCALE BUNIT BLANK DATAMIN DATAMAX
 
+   -- Access_Rec represents Array_Keys: BZERO BSCALE BLANK
+   -- BZERO BSCALE are type Float
+   -- BLANK is type <BITPIX>
+
    type Access_Rec is record
       BITPIX : Integer;
       A,B : Float;
