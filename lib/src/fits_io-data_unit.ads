@@ -25,6 +25,10 @@
 -- Header is metadata -> as such it _describes_ Raw-side
 -- DataUnit is the data itself -> must be implemented as such (T-defined not described by BITPIX key)
 
+
+with Init; use Init;
+
+
 generic
 type T is private;
 
@@ -32,35 +36,12 @@ with function "+"(V : in Float)   return T is <>;
 with function "+"(V : in T) return Float   is <>; 
 with function Is_Undef  (V,U : in T) return Boolean is <>; 
 with function To_BITPIX (V   : in T) return Integer is <>; 
-with procedure Scale_AB(V : T; Raw_BITPIX : Integer; A : out Float; B : out Float) is <>;
+--with procedure Scale_AB(V : T; Raw_BITPIX : Integer; A : out Float; B : out Float) is <>;
 
 package FITS_IO.Data_Unit is
 
    type T_Arr is array (Positive_Count range <>) of T;
-
-
-   -- FIXME ? hide inside body and in Read/Write calls below,
-   --  replace with Image_Data_Model used to read/write Header
-   type Scaling_Rec(NAXIS_Last : Natural) is
-      record
-         Raw      : Image_Data_Model(NAXIS_Last);
-         Physical : Image_Data_Model(NAXIS_Last);
-      end record;
-
-   generic
-      type T is private;
-   procedure Init_Reads
-      (Raw_BITPIX : Integer;
-      BZERO, BSCALE : String;
-      A,B : out Float);
-
-   generic
-      type T is private;
-   procedure Init_Writes
-      (Raw_BITPIX : Integer;
-      BZERO, BSCALE : String;
-      A,B : out Float);
-
+   subtype Buffer is T_Arr;
 
 
    -- NOTE Read/Write call should _only_ shift File-index as it goes through Data Unit
@@ -73,7 +54,7 @@ package FITS_IO.Data_Unit is
    -- -- Physical.Undef (optional override)
   procedure Read
      (File    : SIO.File_Type;
-      Scaling : Scaling_Rec;  --   <- replace with Image_Data_Model ??
+      Scaling : Access_Rec;  --   <- replace with Image_Data_Model ??
       Item : out T_Arr;
       Last : out Count);
 
@@ -86,7 +67,7 @@ package FITS_IO.Data_Unit is
    -- -- Raw.Undef (optional override)
   procedure Write
      (File    : SIO.File_Type;
-      Scaling : Scaling_Rec; --  <- replace with Image_Data_Model ??
+      Scaling : Access_Rec; --  <- replace with Image_Data_Model ??
       Item : T_Arr);
 
   -- NOTE should [BITPIX A,B] :

@@ -35,11 +35,12 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Directories;
 
-with FITS;           use FITS;
+with FITS_IO;           use FITS_IO;
+with FITS_IO.Data_Unit;
 
 with V3_Types;        use V3_Types;
 with Keyword_Record;  use Keyword_Record; -- FPositive needed
-with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
+--with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
 with Optional;       -- use Optional;       -- Card_Arr needed
 with Optional.Reserved; use Optional.Reserved;
 with Header;          use Header;         -- Create_Card needed
@@ -52,9 +53,9 @@ with File.Misc;-- Write_Padding needed
 
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
-with Buffer_Type;
-
 with Ada.Strings.Bounded;
+
+with Init;
 
 
 procedure create
@@ -73,7 +74,7 @@ is
 
     subtype MD_Tm is Float;
 
-    MD_NAXISn            : NAXIS_Arr := (ColLength, RowLength);
+    MD_NAXISn            : NAXIS_Array := (ColLength, RowLength);
     MD_Min               : Float     :=   0.0;
     MD_Max               : Float     := 255.0;
     MD_Unit              : String    := "Undef";
@@ -101,7 +102,7 @@ is
 
     package F32_Header is new Image(MD_Tm, Float'Last);
 
-    use Optional.BS70;
+    use BS70;
     F32_Image : F32_Header.Image_Rec := F32_Header.Metadata(MD_NAXISn,
                 ((BZERO,    1*    "0.0"),
                  (BSCALE,   1*    "1.0"),
@@ -114,35 +115,22 @@ is
    type Float_Arr is array (Positive_Count range <>) of Float;
    package MMDD_TTmm is new Numeric_Type(MD_Tm, Float_Arr, FLoat_Arr);
 
-    package F32_Data is new Buffer_Type
-        --(T => MD_Tm,
-        (Phys => MMDD_TTmm,
-        Memory_Undefined_Value => MD_Undef_Value,
-        Memory_Undefined_Valid => MD_Undef_Valid,
-        File_Undefined_Value   => In_File_Undefined_Value,
-        File_Undefined_Valid   => In_File_Undefined_Valid,
-        A => In_A,
-        B => In_B,
-        Memory_BITPIX => MD_Memory_BITPIX,
-        File_BITPIX   => In_File_BITPIX);
 
-    -- NOTE
-    -- [Float, Memory_Undefined_Value/Valid] - describe data we have
-    -- [File_Undefined_Value/Valid, A,B, File_BITPIX] - describe data in file
+   package F32_Data is new FITS_IO.Data_Unit(MD_Tm);
+   DUAccess : Init.Access_Rec;
+
 
 
     -- simulate some data
 
-    Current_F32Column : F32_Data.Buffer(1..ColLength);
+    Current_F32Column : F32_Data.T_Arr(1..ColLength);
 
-    function Generate_Data(R : FITS.Count; ColLength : FITS.Positive_Count;
-                        Undef_Valid : Boolean; Undef_Value : Float) return F32_Data.Buffer
+    function Generate_Data(R : FITS_IO.Count; ColLength : FITS_IO.Positive_Count;
+                        Undef_Valid : Boolean; Undef_Value : Float) return F32_Data.T_Arr
     is
         Col : F32_Data.Buffer(1 .. ColLength);
-    --    use SIO;
     begin
         for I in Col'Range loop Col(I) := Float(I)-1.0; end loop;
-        -- simulate some Undefined data
         if (Undef_Valid) then Col(1 + ((R-1) mod ColLength)) := Undef_Value; end if;
         return Col;
     end Generate_Data;
@@ -160,6 +148,23 @@ begin
  SIO.Create (Out_File, SIO.Out_File, Temp_File_Name);
  Out_Stream := SIO.Stream(Out_File);
 
+
+ Init.Init_Writes
+         (BITPIX           => In_File_BITPIX,
+         Undef_Phys_Used   => MD_Undef_Valid,
+         Undef_Phys        => MD_Undef_Value,
+         Undef_Raw_Valid   => MD_Undef_Valid,
+         Undef_Raw         => -100.0,
+         DU_Access         => DUAccess);
+
+ Init.Put_Access_Rec(DUAccess);
+ declare
+    ArrKeys : Header.Valued_Key_Record_Arr := Init.To_Array_Keys(DUAccess);
+ begin
+    Init.Put_Array_Keys(ArrKeys);
+ end;
+
+
  TIO.Put_Line("Writing: " & Temp_File_Name); 
 
  -- write Header
@@ -173,12 +178,9 @@ begin
 
  for I in 1 .. RowLength
  loop
-
      Current_F32Column := Generate_Data(I, ColLength,
                             MD_Undef_Valid, MD_Undef_Value);
-
-     F32_Data.Buffer'Write(Out_Stream, Current_F32Column);
-
+     F32_Data.Write(Out_File, DUAccess, Current_F32Column);
  end loop;
  File.Misc.Write_Padding(Out_File, SIO.Index(Out_File), File.Misc.DataPadValue);
 

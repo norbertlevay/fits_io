@@ -36,4 +36,8 @@ package Init is
    function To_Array_Keys(DU_Access : Access_Rec) return Header.Valued_Key_Record_Arr;
 
 
+
+   -- utils
+   procedure Put_Access_Rec(AccRec : Init.Access_Rec);
+   procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr);
 end Init;

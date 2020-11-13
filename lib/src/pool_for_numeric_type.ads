@@ -33,10 +33,5 @@ function To_BITPIX(V : in Short_Integer) return Integer;
 function To_BITPIX(V : in Short_Short_Integer) return Integer;
 
 
-procedure Scale_AB(V : Unsigned_64; Raw_BITPIX : Integer; A : out Float; B : out Float);
-procedure Scale_AB(V : Unsigned_32; Raw_BITPIX : Integer; A : out Float; B : out Float);
-procedure Scale_AB(V : Unsigned_16; Raw_BITPIX : Integer; A : out Float; B : out Float);
-procedure Scale_AB(V : Integer_8;   Raw_BITPIX : Integer; A : out Float; B : out Float);
-
 
 end Pool_For_Numeric_Type;

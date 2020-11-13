@@ -2,7 +2,11 @@
 with Optional;
 with FITS_IO;
 
+with Ada.Text_IO;
+
 package body Init is
+
+   package TIO renames Ada.Text_IO;
 
 
    procedure Init_Reads
@@ -156,6 +160,42 @@ package body Init is
          return ArrKeys;
       end;
    end To_Array_Keys;
+
+
+
+   -- utils
+   procedure Put_Access_Rec(AccRec : Init.Access_Rec)
+   is  
+     sBITPIX : String := Integer'Image(AccRec.BITPIX);
+     sA : String := Float'Image(AccRec.A);
+     sB : String := Float'Image(AccRec.B);
+     sUndef_Used : String := Boolean'Image(AccRec.Undef_Used);
+     sUndef_Raw  : String := Float'Image(AccRec.Undef_Raw);
+     sUndef_Phys : String := Float'Image(AccRec.Undef_Phys);
+  begin
+
+   TIO.Put_Line("BITPIX = " & sBITPIX);
+   TIO.Put_Line("[A,B]  = " & sA & " " & sB);
+   if(AccRec.Undef_Used)
+   then
+      TIO.Put_Line("Undef_Raw  = " & sUndef_Raw);
+      TIO.Put_Line("Undef_Phys = " & sUndef_Phys);
+   end if;
+
+  end Put_Access_Rec;
+
+  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr)
+  is  
+     use FITS_IO.BS_8;
+     use FITS_IO.BS70;
+  begin
+     for I in Keys'Range
+      loop
+         TIO.Put_Line(To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
+      end loop;
+  end Put_Array_Keys;
+
+
 
 
 end Init;
