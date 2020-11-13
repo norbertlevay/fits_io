@@ -9,6 +9,57 @@ with Header;    -- Valued_Key_Record_Arr needed
 
 package body FITS_IO is
 
+   -- BEGIN Xfer_Rec based solution
+
+   -- sets [A,B] and (optionally) calculates Undefs
+
+
+  procedure Init_Read
+      (Raw_BITPIX : Integer;
+      Undef_Valid : Boolean;
+      Undef_Raw   : String;
+      A,B       : out Float;
+      Undef_Phys: out T)
+  is
+  begin
+
+     -- Phys_BITPIX := To_BITPIX(VT);
+
+     -- implement Tab11 := func(Raw_BITPIX, PHYS_BITPIX) or set [0.0 1.0]
+     -- FIXME ? in generic ? -> this is for integers only: generic T is range <>;
+--      A := ...
+--      B := ...
+
+     if(Undef_Valid)
+     then
+        null;
+        -- calc Undef_Phys
+ --       Undef_Raw  := To_Raw(URaw_String)
+ --       Undef_Phys := To_Physical( A + B * Undef_Raw );
+        -- move here Set_Undefined section from Data_Unit.Read() leaves only case(RawBITPIX) Array_IO.Read... in DU.Read
+
+     end if;
+
+  end Init_Read;
+
+
+  procedure Init_Write
+      (Raw_BITPIX : Integer;
+      Undef_Valid : Boolean;
+      Undef_Raw   : out String;
+      A,B       : out Float;
+      Undef_Phys: T)
+  is
+  begin
+     -- same as Init_Read but
+     -- A,B inverse values and Raw calc'd from Phys:
+     -- Undef_Raw := To_Raw( A + B * Undef_Phys)
+     -- move here Set_Undefined section from Data_Unit.Write() leaves only case(RawBITPIX) Array_IO.Write... in DU.Write
+     null;
+  end Init_Write;
+
+
+   -- END Xfer_Rec
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count
    is

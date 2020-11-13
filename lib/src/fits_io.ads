@@ -66,22 +66,51 @@ package FITS_IO is
 
 
 
+   -- -------------------------------------------------------------------------
+   -- BEGIN Xfer_Rec based solution:
 
-   type Dat_Rec is
-      record
-         BITPIX   : Integer;
-         Undef    : BS70.Bounded_String;
-         A,B      : Float;
-      end record;
-
-   type Xfer_Rec is
-      record
-         Raw  : Dat_Rec;
-         Phys : Dat_Rec;
-      end record;
+   -- FIXME or: eliminate dependecy on expilicit T and use Phys_BITPIX instead and FLoats (or Strings)
+   -- e.g. make it type independent and so possible to compute in Header section, instead
+   -- of instance of Data_Unit ???
 
 
+   -- @Write: Xfer_Rec must be set while Header is constructed
+   -- @Read:  Xfer_Rec must be set when Header is read
+--   type Xfer_Rec is              -- @Write                        @Read
+--      record
+-- inside File_Type:
+         Raw_BITPIX  : Integer;  -- free choice                   from Header
+         Undef_Valid : Boolean;  -- is input                      BLANK in Header ?
+         Undef_Raw   : BS70.Bounded_String;  -- calc'd from UPhys BLANK
+-- locals in Data_Type(T):
+         -- below depend on T:
+         A,B         : Float;    -- [0.0, 1.0] or Tab11           BZERO BSCALE
+--       Undef_Phys  : T;        -- is input                      calc'd from URaw
+--     end record;
+         -- [A,B]: FIXME Tab11/A,B depends on T ? and Raw_BITPIX
+         -- Undef_Phys: FIXME T is known only _after_ instantiation of Read/Write
+         -- Header is handled _before_  --> should be Float ? & in DU Read/Write only convert to T
 
+   generic
+      type T is private;
+   procedure Init_Read
+      (Raw_BITPIX : Integer;
+      Undef_Valid : Boolean;
+      Undef_Raw   : String;
+      A,B       : out Float;
+      Undef_Phys: out T);
+
+   generic
+      type T is private;
+   procedure Init_Write
+      (Raw_BITPIX : Integer;
+      Undef_Valid : Boolean;
+      Undef_Raw   : out String;
+      A,B       : out Float;
+      Undef_Phys: T);
+
+   -- END Xfer_Rec
+   -- -------------------------------------------------------------------------
 
 
 
