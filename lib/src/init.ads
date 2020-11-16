@@ -28,6 +28,13 @@ package Init is
       DATAMIN, DATAMAX : in Float; -- DATAMAX /= DATAMIN
       A : out Float; B : out Float);
 
+   -- FIXME Linear_Scale() includes the Tab11 A-shift; Init_Reads/Writes should not shift again !!
+   -- ?? remove from inside Init_Reads/Writes the Tab11-shift and provide - as Linear_Scale -
+   -- as separate API element ?? Then Init_Reads/Writes depends on BITPIX again -> remove BITPIX
+   -- from Init_Reads and Access_Rec ??
+
+
+
    -- Access_Rec represents Array_Keys: BZERO BSCALE BLANK
    -- BZERO BSCALE are type Float
    -- BLANK is type <BITPIX>
