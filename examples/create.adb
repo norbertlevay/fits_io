@@ -86,7 +86,8 @@ is
 
     -- Inputs for Write
 
-    In_File_BITPIX : Integer := Short_Integer'Size; -- needed only for Image'Write
+    In_File_DUType : Init.DU_Type := Init.Int16;
+    --In_File_BITPIX : Integer := Short_Integer'Size; -- needed only for Image'Write
     In_A : Float := 0.0;
     In_B : Float := 1.0;
 
@@ -150,7 +151,8 @@ begin
 
 
  Init.Init_Writes
-         (BITPIX           => In_File_BITPIX,
+         (DUType           => In_File_DUType,
+            --BITPIX           => In_File_BITPIX,
          Undef_Phys_Used   => MD_Undef_Valid,
          Undef_Phys        => MD_Undef_Value,
          Undef_Raw_Valid   => MD_Undef_Valid,
@@ -170,7 +172,7 @@ begin
  -- write Header
 
  Header.Write_Card_SIMPLE(Out_File, True);
- F32_Image.Target_BITPIX := In_File_BITPIX;
+ F32_Image.Target_BITPIX := DUAccess.BITPIX;
  F32_Header.Image_Rec'Output(Out_Stream, F32_Image);
  Header.Close(Out_File);
 

@@ -9,8 +9,31 @@ package body Init is
    package TIO renames Ada.Text_IO;
 
 
+   procedure DU_Type_To_BITPIX
+      (DUType : DU_Type;
+      BITPIX  : out Integer;
+      Aui     : out Float)
+   is
+   begin
+      -- implements Tab11 FITS v3
+      case(DUType) is
+         when   Int8 => Aui :=                -128.0; BITPIX :=   8; -- -2**7
+         when  UInt8 => Aui :=                   0.0; BITPIX :=   8;
+         when  Int16 => Aui :=                   0.0; BITPIX :=  16;
+         when UInt16 => Aui :=               32768.0; BITPIX :=  16; --  2**15
+         when  Int32 => Aui :=                   0.0; BITPIX :=  32;
+         when UInt32 => Aui :=          2147483648.0; BITPIX :=  32; --  2**31
+         when  Int64 => Aui :=                   0.0; BITPIX :=  64;
+         when UInt64 => Aui := 9223372036854775808.0; BITPIX :=  64; --  2**63
+         when    F32 => Aui :=                   0.0; BITPIX := -32;
+         when    F64 => Aui :=                   0.0; BITPIX := -64;
+      end case;
+   end DU_Type_To_BITPIX;
+
+
+
    procedure Init_Reads
-      (BITPIX  : Integer;
+      (DUType    : in DU_Type;
       Array_Keys : in Header.Valued_Key_Record_Arr;
       A           : in Float := 0.0;
       B           : in Float := 1.0;
@@ -18,15 +41,14 @@ package body Init is
       Undef_Phys       : in Float   := 0.0;
       DU_Access   : out Access_Rec)
    is
+      BITPIX  : Integer;
        -- Tab11 UInt-Int conversion shift
-      Aui : Float := 0.0; -- FIXME use pool::Scale_AB(T, Raw_BITPIX,...)
+      Aui : Float := 0.0;
       Ah, Bh : Float; -- A,B from Header BZERO BSCALE
       use FITS_IO.BS_8;
       Undef_Raw_Used : Boolean := False;
       Undef_Raw : Float;
    begin
-
-      DU_Access.BITPIX := BITPIX;
 
       -- calc [A,B]
 
@@ -48,9 +70,12 @@ package body Init is
          end if;
       end loop;
 
+      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
+
+      DU_Access.BITPIX := BITPIX;
+
       DU_Access.A := A + Ah + Aui;
       DU_Access.B := B * Bh;
-
 
       -- calc Undef
 
@@ -80,7 +105,7 @@ package body Init is
 
 
    procedure Init_Writes
-      (BITPIX         : in Integer;
+      (DUType         : in DU_Type;
       Undef_Phys_Used : in Boolean;
       Undef_Phys      : in Float;
       A               : in Float := 0.0;
@@ -90,8 +115,11 @@ package body Init is
       DU_Access       : out Access_Rec)
    is
       -- Tab11 UInt-Int conversion shift
-      Aui : Float := 0.0; -- FIXME use pool::Scale_AB(T, Raw_BITPIX,...)
+      BITPIX : Integer;
+      Aui    : Float;
    begin
+
+      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
 
       DU_Access.BITPIX := BITPIX;
 
