@@ -4,6 +4,8 @@ with FITS_IO;
 
 with Ada.Text_IO;
 
+with Interfaces; use Interfaces; -- or use V3_Types
+
 package body Init is
 
    package TIO renames Ada.Text_IO;
@@ -29,6 +31,46 @@ package body Init is
          when    F64 => Aui :=                   0.0; BITPIX := -64;
       end case;
    end DU_Type_To_BITPIX;
+
+
+   -- DU_Type & DATAMIN DATAMAX -> [A, B]
+
+   procedure DU_Type_Min_Max(DUIntType : in DU_Int_Type; Min, Max : out Float)
+   is
+   begin
+      case(DUIntType) is
+         when  Int8 =>  Min := Float( Integer_8'First);  Max := Float(Integer_8'Last);
+         when UInt8 =>  Min := Float(Unsigned_8'First);  Max := Float(Unsigned_8'Last);
+         when  Int16 => Min := Float(Integer_16'First);  Max := Float(Integer_16'Last);
+         when UInt16 => Min := Float(Unsigned_16'First); Max := Float(Unsigned_16'Last);
+         when  Int32 => Min := Float( Integer_32'First); Max := Float(Integer_32'Last);
+         when UInt32 => Min := Float(Unsigned_32'First); Max := Float(Unsigned_32'Last);
+         when  Int64 => Min := Float( Integer_64'First); Max := Float(Integer_64'Last);
+         when UInt64 => Min := Float(Unsigned_64'First); Max := Float(Unsigned_64'Last);
+         when F32 | F64 => null; -- FIXME DU_Int_Type but compiler complains missing F32 F64 ?!
+      end case;
+   end DU_Type_Min_Max;
+
+
+   procedure Linear_Scale
+      (DUIntType : in DU_Int_Type;
+      DATAMIN, DATAMAX : in Float;
+      A : out Float; B : out Float)
+   is
+      Min, Max : Float;
+   begin
+
+     if ((DATAMAX - DATAMIN) = 0.0)
+     then
+        null;-- Programming Error
+     end if;
+
+     DU_Type_Min_Max(DUIntType, Min, Max);
+
+     B := (Max - Min) / (DATAMAX - DATAMIN);
+     A := Max - B * DATAMAX;
+
+   end Linear_Scale;
 
 
 

@@ -12,6 +12,9 @@ package Init is
       UInt8,  Int16,  Int32,  Int64,
       F32, F64);
 
+   subtype DU_Int_Type is DU_Type range Int8 .. Int64;
+
+
    -- implements signed-unsigned conversions for integer types as of Tab11
    procedure DU_Type_To_BITPIX
       (DUType : DU_Type;
@@ -19,6 +22,11 @@ package Init is
       Aui     : out Float);
 
    -- Array_Keys: BZERO BSCALE BUNIT BLANK DATAMIN DATAMAX
+
+   procedure Linear_Scale
+      (DUIntType : in DU_Int_Type;
+      DATAMIN, DATAMAX : in Float; -- DATAMAX /= DATAMIN
+      A : out Float; B : out Float);
 
    -- Access_Rec represents Array_Keys: BZERO BSCALE BLANK
    -- BZERO BSCALE are type Float
