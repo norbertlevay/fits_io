@@ -15,7 +15,7 @@ package body Init is
       Aui     : out Float)
    is
    begin
-      -- implements Tab11 FITS v3
+      -- implements Tab11 FITSv3
       case(DUType) is
          when   Int8 => Aui :=                -128.0; BITPIX :=   8; -- -2**7
          when  UInt8 => Aui :=                   0.0; BITPIX :=   8;
@@ -41,9 +41,8 @@ package body Init is
       Undef_Phys       : in Float   := 0.0;
       DU_Access   : out Access_Rec)
    is
-      BITPIX  : Integer;
-       -- Tab11 UInt-Int conversion shift
-      Aui : Float := 0.0;
+      BITPIX : Integer;
+      Aui : Float; -- Tab11 UInt-Int conversion shift
       Ah, Bh : Float; -- A,B from Header BZERO BSCALE
       use FITS_IO.BS_8;
       Undef_Raw_Used : Boolean := False;
@@ -114,9 +113,8 @@ package body Init is
       Undef_Raw       : in Float   := 0.0;
       DU_Access       : out Access_Rec)
    is
-      -- Tab11 UInt-Int conversion shift
       BITPIX : Integer;
-      Aui    : Float;
+      Aui    : Float; -- Tab11 UInt-Int conversion shift
    begin
 
       DU_Type_To_BITPIX(DUType, BITPIX, Aui);
