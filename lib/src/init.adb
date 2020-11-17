@@ -39,13 +39,13 @@ package body Init is
    is
    begin
       case(DUIntType) is
-         when  Int8 =>  Min := Float( Integer_8'First);  Max := Float(Integer_8'Last);
-         when UInt8 =>  Min := Float(Unsigned_8'First);  Max := Float(Unsigned_8'Last);
-         when  Int16 => Min := Float(Integer_16'First);  Max := Float(Integer_16'Last);
+         when  Int8  => Min := Float( Integer_8'First);  Max := Float( Integer_8'Last);
+         when UInt8  => Min := Float(Unsigned_8'First);  Max := Float(Unsigned_8'Last);
+         when  Int16 => Min := Float( Integer_16'First); Max := Float( Integer_16'Last);
          when UInt16 => Min := Float(Unsigned_16'First); Max := Float(Unsigned_16'Last);
-         when  Int32 => Min := Float( Integer_32'First); Max := Float(Integer_32'Last);
+         when  Int32 => Min := Float( Integer_32'First); Max := Float( Integer_32'Last);
          when UInt32 => Min := Float(Unsigned_32'First); Max := Float(Unsigned_32'Last);
-         when  Int64 => Min := Float( Integer_64'First); Max := Float(Integer_64'Last);
+         when  Int64 => Min := Float( Integer_64'First); Max := Float( Integer_64'Last);
          when UInt64 => Min := Float(Unsigned_64'First); Max := Float(Unsigned_64'Last);
          when F32 | F64 => null; -- FIXME DU_Int_Type but compiler complains missing F32 F64 ?!
       end case;
@@ -74,6 +74,76 @@ package body Init is
 
 
 
+   -- FIXME replace with one implementation
+   -- Undef_Init(A,B, Undef_1_Used, Undef_1, Undef_2_Valid, Undef_2, Undef_Rec out)
+   -- and swap Undef_1 <-> Undef_2 for Read Write
+   -- and for write: A => -A/B  B => 1/B
+
+   procedure Undef_Init_For_Reads
+      (A, B : in Float;
+      Undef_Raw_Used   : in Boolean;
+      Undef_Raw        : in Float;
+      Undef_Phys_Valid : in Boolean := False;
+      Undef_Phys       : in Float   := 0.0;
+      DU_Access : out Access_Rec)
+  is
+  begin
+
+      DU_Access.Undef_Used := Undef_Raw_Used;
+
+      if(DU_Access.Undef_Used)
+      then
+
+         DU_Access.Undef_Raw := Undef_Raw;
+
+         if(Undef_Phys_Valid)
+         then
+            DU_Access.Undef_Phys := Undef_Phys;
+         else
+            DU_Access.Undef_Phys := A + B * DU_Access.Undef_Raw;
+         end if;
+
+      end if;
+
+      DU_Access.A := A;
+      DU_Access.B := B;
+
+   end Undef_Init_For_Reads;
+
+
+   procedure Undef_Init_For_Writes
+      (A, B : in Float; -- B /= 0
+      Undef_Phys_Used : in Boolean;
+      Undef_Phys      : in Float;
+      Undef_Raw_Valid : in Boolean := False;
+      Undef_Raw       : in Float   := 0.0;
+      DU_Access : out Access_Rec)
+   is
+   begin
+
+      DU_Access.Undef_Used := Undef_Phys_Used;
+
+      if(DU_Access.Undef_Used)
+      then
+
+         DU_Access.Undef_Phys := Undef_Phys;
+
+         if(Undef_Raw_Valid)
+         then
+            DU_Access.Undef_Raw := Undef_Raw;
+         else
+            DU_Access.Undef_Raw := (DU_Access.Undef_Phys - A) / B;
+         end if;
+
+      end if;
+
+      DU_Access.A := A;
+      DU_Access.B := B;
+
+   end Undef_Init_For_Writes;
+
+
+
    procedure Init_Reads
       (DUType    : in DU_Type;
       Array_Keys : in Header.Valued_Key_Record_Arr;
@@ -85,10 +155,12 @@ package body Init is
    is
       BITPIX : Integer;
       Aui : Float; -- Tab11 UInt-Int conversion shift
-      Ah, Bh : Float; -- A,B from Header BZERO BSCALE
+      Ah : Float := 0.0; -- A,B from Header BZERO BSCALE
+      Bh : Float := 1.0; -- A,B from Header BZERO BSCALE
       use FITS_IO.BS_8;
       Undef_Raw_Used : Boolean := False;
       Undef_Raw : Float;
+      Aall, Ball : Float;
    begin
 
       -- calc [A,B]
@@ -105,43 +177,26 @@ package body Init is
          then
             Undef_Raw_Used := True;
             Undef_Raw := Float'Value(FITS_IO.BS70.To_String(Array_Keys(I).Value));
-         else
-            Ah := 0.0;
-            Bh := 1.0;
-         end if;
+        end if;
       end loop;
 
       DU_Type_To_BITPIX(DUType, BITPIX, Aui);
 
-      DU_Access.BITPIX := BITPIX;
-
-      DU_Access.A := A + Ah + Aui;
-      DU_Access.B := B * Bh;
+      Aall := A + Ah + Aui;
+      Ball := B * Bh;
 
       -- calc Undef
 
-      DU_Access.Undef_Used := Undef_Raw_Used;
+      Undef_Init_For_Reads(Aall, Ball,
+            Undef_Raw_Used,
+            Undef_Raw,
+            Undef_Phys_Valid,
+            Undef_Phys,
+            DU_Access);
 
-      if(DU_Access.Undef_Used)
-      then
-
-         DU_Access.Undef_Raw := Undef_Raw;
-
-         if(Undef_Phys_Valid)
-         then
-            DU_Access.Undef_Phys := Undef_Phys;
-         else
-            DU_Access.Undef_Phys := DU_Access.A + DU_Access.B * DU_Access.Undef_Raw;
-         end if;
-
-      end if;
-
+      DU_Access.BITPIX := BITPIX;
 
    end Init_Reads;
-
-
-
-
 
 
 
@@ -157,37 +212,29 @@ package body Init is
    is
       BITPIX : Integer;
       Aui    : Float; -- Tab11 UInt-Int conversion shift
+      Aall, Ball : Float;
    begin
-
-      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
-
-      DU_Access.BITPIX := BITPIX;
 
       -- calc [A,B]
 
-      DU_Access.A := A + Aui;
-      DU_Access.B := B;
+      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
 
+      Aall := A + Aui;
+      Ball := B;
 
       -- calc Undef
 
-      DU_Access.Undef_Used := Undef_Phys_Used;
+      Undef_Init_For_Writes(Aall, Ball,
+         Undef_Phys_Used,
+         Undef_Phys,
+         Undef_Raw_Valid,
+         Undef_Raw,
+         DU_Access);
 
-      if(DU_Access.Undef_Used)
-      then
-
-         DU_Access.Undef_Phys := Undef_Phys;
-
-         if(Undef_Raw_Valid)
-         then
-            DU_Access.Undef_Raw := Undef_Raw;
-         else
-            DU_Access.Undef_Raw := (DU_Access.Undef_Phys - DU_Access.A) / DU_Access.B;
-         end if;
-
-      end if;
+      DU_Access.BITPIX := BITPIX;
 
    end Init_Writes;
+
 
 
 
