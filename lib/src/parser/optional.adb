@@ -45,7 +45,7 @@ function Next (Pos  : in Positive_Count; Card : in KWR.String_80) return Count
 is
 --    use SIO;
 begin
-    if(Card = KWR.ENDCard) then return 0; end if;
+    if(Card = ENDCard) then return 0; end if;
 
     for I in 1 .. K_Last
     loop

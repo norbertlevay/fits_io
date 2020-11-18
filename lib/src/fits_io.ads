@@ -4,6 +4,7 @@ with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded;
 
+
 package FITS_IO is
 
    type File_Type is limited private;
@@ -38,6 +39,22 @@ package FITS_IO is
    -----------------------------
    -- Input-Output Operations --
    -----------------------------
+
+   subtype String_80 is String(1..80);
+   ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+   EmptyCard : constant String_80 := (others => ' ');
+
+  type Card_Array is array (Positive range <>) of String_80;
+
+   procedure Read
+     (File : File_Type;
+      Item : out Card_Array;
+      Last : out Count);
+
+   procedure Write
+     (File : File_Type;
+      Item : Card_Array);
+
 
    -- Header
 

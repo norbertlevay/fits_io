@@ -144,6 +144,13 @@ is
     Out_File   : FITS_IO.File_Type;
     Out_Stream : SIO.Stream_Access;
 
+
+   -- compose Header
+
+  First_Card  : Card_Array(1 .. 1) := (1=>Create_Mandatory_Card("SIMPLE",To_Value_String(True)));
+  --Image_Cards : Card_Array := F32_Header.To_Cards(F32_Image);
+  --Cards : Card_Array := First_Card & Image_Cards;
+
 begin
 
  Create (Out_File, FITS_IO.Out_File, Temp_File_Name);
@@ -169,11 +176,11 @@ begin
 
  TIO.Put_Line("Writing: " & Temp_File_Name); 
 
+ F32_Image.Target_BITPIX := DUAccess.BITPIX;
+
  -- write Header
 
- Header.Write_Card_SIMPLE(Out_File, True);
- F32_Image.Target_BITPIX := DUAccess.BITPIX;
- F32_Header.Image_Rec'Output(Out_Stream, F32_Image);
+ Write(Out_File, First_Card & F32_Header.To_Cards(F32_Image));
  Header.Close(Out_File);
 
 -- write Data Unit

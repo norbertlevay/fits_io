@@ -12,8 +12,8 @@ package Keyword_Record is
     --package SIO renames Ada.Streams.Stream_IO; -- Count needed
 
     subtype String_80 is String(1..80);
-    ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
-    EmptyCard : constant String_80 := (others => ' ');
+--    ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+--    EmptyCard : constant String_80 := (others => ' ');
 
 
     function To_Boolean(Value : String) return Boolean;

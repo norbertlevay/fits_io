@@ -7,7 +7,8 @@ with Interfaces;
 
 with Header; use Header;
 
-with Keyword_Record; use Keyword_Record;-- String_80 needed
+--with Keyword_Record; use Keyword_Record;-- String_80 needed
+with FITS_IO; -- String_80 needed
 
 package body File.Misc is
 

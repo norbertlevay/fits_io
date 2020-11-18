@@ -46,13 +46,13 @@ with Mandatory;
 with File; use File;
 with File.Misc; -- needs Write_Padding for Header
 with File_Funcs;
-with Keyword_Record;  use Keyword_Record;
+--with Keyword_Record;  use Keyword_Record;
 
 
 package body Header is
 
     package TIO renames Ada.Text_IO;
-    package KW renames Keyword_Record;
+--    package KW renames Keyword_Record;
 
 
     CardsCntInBlock : constant Positive := 36;
@@ -282,6 +282,19 @@ begin
     return Cards;
 end Create_NAXIS_Card_Arr;
 
+function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Array
+is
+    Cards : Card_Array(1 .. NAXISn'Last);
+    use Ada.Strings.Fixed;
+begin
+    for I in NAXISn'Range
+    loop
+        Cards(I) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
+                                        To_Value_String(NAXISn(I)));
+    end loop;
+    return Cards;
+end Create_NAXIS_Card_Arr;
+
 
 
 
@@ -319,7 +332,7 @@ end Write_Cards;
 procedure Close(F : in SIO.File_Type)
 is
 begin
-    String_80'Write(SIO.Stream(F), Keyword_Record.ENDCard);
+    String_80'Write(SIO.Stream(F), ENDCard);
     File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
 end Close;
 

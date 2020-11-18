@@ -65,6 +65,34 @@ package body FITS_IO is
       return SIO.Stream(File.SIO_File);
    end Stream;
 
+
+
+
+
+   -----------------------------
+   -- Input-Output Operations --
+   -----------------------------
+
+   procedure Read
+     (File : File_Type;
+      Item : out Card_Array;
+      Last : out Count)
+   is
+   begin
+      Card_Array'Read(Stream(File), Item);
+   end Read;
+
+   procedure Write
+     (File : File_Type;
+      Item : Card_Array)
+   is
+   begin
+      Card_Array'Write(Stream(File), Item);
+   end Write;
+
+
+
+
    ----------------------------------------
    -- Operations on Position within File --
    ----------------------------------------

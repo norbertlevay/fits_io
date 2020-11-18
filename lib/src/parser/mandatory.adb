@@ -318,7 +318,7 @@ end Is_Primary;
     function In_WAIT_END(Pos : Positive_Count; Card : KW.String_80) return Count
     is
     begin
-        if( KW.ENDCard = Card )
+        if( ENDCard = Card )
         then
             State.ENDCardPos := Pos;
             State.ENDCardSet := True;
@@ -438,7 +438,7 @@ end Is_Primary;
                         end if;
 
 
-                elsif (Card = KW.ENDCard)
+                elsif (Card = ENDCard)
                 then
                         State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
@@ -542,7 +542,7 @@ end Is_Primary;
             end if;
 
 
-        elsif( Card = KW.ENDCard )
+        elsif( Card = ENDCard )
         then
             State.ENDCardPos := Pos;
             State.ENDCardSet := True;

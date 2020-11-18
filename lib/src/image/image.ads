@@ -89,7 +89,8 @@ package Image is
     for Image_Rec'Input use Image_Input;
 
 
-
+   -- FIXME temporarly
+   function To_Cards( Im : in Image_Rec ) return FITS_IO.Card_Array;
 
 end Image;
 

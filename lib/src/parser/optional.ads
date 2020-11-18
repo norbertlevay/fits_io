@@ -23,7 +23,7 @@ type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
 type Card_Arr is array (Positive range <>) of KWR.String_80;
 -- FIXME consider Index of Card_Arr derived from NAXIS value type (SIO.Positive)
 -- theory in can be as big as DataUnit-length/80 
-Null_Card_Arr : Optional.Card_Arr(1 .. 0) := (others => KWR.ENDCard);
+Null_Card_Arr : Optional.Card_Arr(1 .. 0) := (others => ENDCard);
 
 function Init (Keys : in Bounded_String_8_Arr) return Positive_Count;
 function Next (Pos  : in Positive_Count; Card : in KWR.String_80) return Count;
