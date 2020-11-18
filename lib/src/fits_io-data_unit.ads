@@ -53,7 +53,7 @@ package FITS_IO.Data_Unit is
    -- all Raw : from Header
    -- -- Physical.Undef (optional override)
   procedure Read
-     (File    : SIO.File_Type;
+     (File    : File_Type;
       Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count);
@@ -66,7 +66,7 @@ package FITS_IO.Data_Unit is
    -- Raw.[A,B]
    -- -- Raw.Undef (optional override)
   procedure Write
-     (File    : SIO.File_Type;
+     (File    : File_Type;
       Scaling : Access_Rec;
       Item : T_Arr);
 

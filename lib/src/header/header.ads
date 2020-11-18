@@ -8,7 +8,8 @@ with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed
 
 package Header is
 
-    package SIO renames Ada.Streams.Stream_IO;
+--    package SIO renames Ada.Streams.Stream_IO;
+    package SIO renames FITS_IO;
 
 
     -- BEGIN new ------------------------------------------------------------------------------

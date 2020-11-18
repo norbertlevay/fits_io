@@ -9,6 +9,8 @@ with Array_IO;
 
 package body FITS_IO.Data_Unit is
 
+   package SIO renames Ada.Streams.Stream_IO;
+
    type Float_Arr is array (Positive_Count range <>) of Float;
    type I16_Arr   is array (Positive_Count range <>) of Short_Integer;
 
@@ -72,7 +74,7 @@ package body FITS_IO.Data_Unit is
 
 
    procedure Read
-     (File    : SIO.File_Type;
+     (File    : File_Type;
       Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count)
@@ -98,8 +100,8 @@ package body FITS_IO.Data_Unit is
     -- Scaling
 
     case(Scaling.BITPIX) is
-        when  16 => I16_AIO.Read(SIO.Stream(File), Scaling.A,Scaling.B, Item);
-        when -32 => F32_AIO.Read(SIO.Stream(File), Scaling.A,Scaling.B, Item);
+        when  16 => I16_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
         when  8 | 32 | 64 | -64 => null;
         when others => null;
     end case;
@@ -108,7 +110,7 @@ package body FITS_IO.Data_Unit is
 
 
   procedure Write
-     (File    : SIO.File_Type;
+     (File    : File_Type;
       Scaling : Access_Rec;
       Item : T_Arr)
    is
@@ -133,8 +135,8 @@ package body FITS_IO.Data_Unit is
     -- Scaling
 
     case(Scaling.BITPIX) is
-        when  16 => I16_AIO.Write(SIO.Stream(File), Scaling.A,Scaling.B, Item);
-        when -32 => F32_AIO.Write(SIO.Stream(File), Scaling.A,Scaling.B, Item);
+        when  16 => I16_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
         when  8 | 32 | 64 | -64 => null;
         when others => null;
     end case;

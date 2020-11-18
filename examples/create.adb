@@ -141,13 +141,13 @@ is
 
     Temp_File_Name  : constant String := Command_Name & ".fits.part";
     File_Name       : constant String := Command_Name & ".fits";
-    Out_File   : SIO.File_Type;
+    Out_File   : FITS_IO.File_Type;
     Out_Stream : SIO.Stream_Access;
 
 begin
 
- SIO.Create (Out_File, SIO.Out_File, Temp_File_Name);
- Out_Stream := SIO.Stream(Out_File);
+ Create (Out_File, FITS_IO.Out_File, Temp_File_Name);
+ Out_Stream := FITS_IO.Stream(Out_File);
 
 
  Init.Init_Writes
@@ -184,11 +184,11 @@ begin
                             MD_Undef_Valid, MD_Undef_Value);
      F32_Data.Write(Out_File, DUAccess, Current_F32Column);
  end loop;
- File.Misc.Write_Padding(Out_File, SIO.Index(Out_File), File.Misc.DataPadValue);
+ File.Misc.Write_Padding(Out_File, Index(Out_File), File.Misc.DataPadValue);
 
 -- succesfully written, close and rename
 
- SIO.Close(Out_File);
+ FITS_IO.Close(Out_File);
 
  Ada.Directories.Rename(Temp_File_Name, File_Name);
 
