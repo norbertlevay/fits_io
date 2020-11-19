@@ -2,8 +2,6 @@
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 
---with Ada.Strings.Bounded;
-
 
 package FITS_IO is
 

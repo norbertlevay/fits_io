@@ -6,10 +6,10 @@ with Init; use Init;
 generic
 type T is private;
 
-with function "+"(V : in Float) return T     is <>; 
-with function "+"(V : in T)     return Float is <>; 
-with function Is_Undef  (V,U : in T) return Boolean is <>; 
-with function To_BITPIX (V   : in T) return Integer is <>; 
+with function "+"(V : in Float) return T     is <>;
+with function "+"(V : in T)     return Float is <>;
+with function Is_Undef  (V,U : in T) return Boolean is <>;
+with function To_BITPIX (V   : in T) return Integer is <>;
 
 package FITS_IO.Data_Unit is
 

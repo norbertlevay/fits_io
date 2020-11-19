@@ -1,203 +1,225 @@
 
-with Ada.Text_IO;
+with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
+
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Streams.Stream_IO;
-with Ada.Command_Line;
-with Ada.Unchecked_Conversion;
+with Ada.Command_Line; use Ada.Command_Line;
 
-with V3_Types;          use V3_Types;
+with V3_Types;  use V3_Types;
 
-with File;              -- HDU_Info_Type needed
-with Optional;          -- Card_Arr needed
-with Optional.Reserved; -- Reserved cards needed
-with Header;            -- Header.Read_Optional needed
+with File;
 
-with Scaling;
-with V3_Pool_Scaling;   use V3_Pool_Scaling;
+with Optional;
+with Optional.Reserved;
+with Header;
+--with Buffer_Type;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
-with DU_Type;
-with DU_Type.Physical;
---with DU_Type.Physical.Data_Unit;
-with DU_Type.Minmax;
+with Image;
+
+with FITS_IO;
+with FITS_IO.Data_Unit;
+
+with Init;
 
 procedure minmax is
 
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
-    package CLI renames Ada.Command_Line;
 
-    package PF64 is new DU_Type(Float_64,    Float_64, Float_64);
-    package PF32 is new DU_Type(Float_32,    Float_32, Float_32);
-    package PI64 is new DU_Type(Integer_64,  Float_64, Integer_64);
-    package PI32 is new DU_Type(Integer_32,  Float_64, Integer_32);
-    package PI16 is new DU_Type(Integer_16,  Float_32, Integer_16);
-    package PU8  is new DU_Type(Unsigned_8,   Float_32, Unsigned_8);
+    Zero    : Float := 0.0;
+    F_NaN   : constant Float := 0.0/Zero;
 
+    -- access FITS-file Primary HDU
+    In_File   : FITS_IO.File_Type;
+    In_Stream : SIO.Stream_Access;
 
-    package F64R_Scaling is new Scaling(Float_64,   Float_64, Float_64);
-    package F32R_Scaling is new Scaling(Float_32,   Float_32, Float_32);
-    package I64R_Scaling is new Scaling(Integer_64, Float_64, Integer_64);
-    package I32R_Scaling is new Scaling(Integer_32, Float_64, Integer_32);
-    package I16R_Scaling is new Scaling(Integer_16, Float_32, Integer_16);
-    package  U8R_Scaling is new Scaling(Unsigned_8, Float_32, Unsigned_8);
+    -- values passed from Header to Data Read-Buffer
+    Is_BLANK_In_Header  : Boolean := False;
+    BLANK_Value         : Optional.BS70.Bounded_String;
+    BITPIX_Value        : Integer;
+    ColLength : FITS_IO.Positive_Count;
+    RowLength : FITS_IO.Positive_Count;
 
-    package F64_Phys   is new PF64.Physical(F64R_Scaling,F64R_Scaling);
-    package F32_Phys   is new PF32.Physical(F32R_Scaling,F32R_Scaling);
-    package I64_Phys   is new PI64.Physical(I64R_Scaling,I64R_Scaling);
-    package I32_Phys   is new PI32.Physical(I32R_Scaling,I32R_Scaling);
-    package I16_Phys   is new PI16.Physical(I16R_Scaling,I16R_Scaling);
-    package U8_Phys    is new PU8.Physical(U8R_Scaling,U8R_Scaling);
+    -- vars for 'Data Analyzes' example
+    Min         : Float := Float'Last;
+    Max         : Float := Float'First;
+    Undef_Count : FITS_IO.Count := 0;
 
---    package F64_PhysDU is new F64_Phys.Data_Unit;
---    package F32_PhysDU is new F32_Phys.Data_Unit;
---    package I64_PhysDU is new I64_Phys.Data_Unit;
---    package I32_PhysDU is new I32_Phys.Data_Unit;
---    package I16_PhysDU is new I16_Phys.Data_Unit;
---    package U8_PhysDU  is new U8_Phys.Data_Unit;
-
-    -- app code for all T
-    package F64 is new PF64.Minmax;--(F64_Phys);--,F64_PhysDU);
-    package F32 is new PF32.Minmax;--(F32_Phys);--,F32_PhysDU);
-    package I64 is new PI64.Minmax;--(I64_Phys);--,I64_PhysDU);
-    package I32 is new PI32.Minmax;--(I32_Phys);--,I32_PhysDU);
-    package I16 is new PI16.Minmax;--(I16_Phys);--,I16_PhysDU);
-    package U8  is new PU8.Minmax;--(U8_Phys);--,U8_PhysDU);
-
-    procedure F64_Read_Data_Unit is new F64_Phys.Read_Data_Unit(F64.Plane_Data);
-    procedure F32_Read_Data_Unit is new F32_Phys.Read_Data_Unit(F32.Plane_Data);
-    procedure I64_Read_Data_Unit is new I64_Phys.Read_Data_Unit(I64.Plane_Data);
-    procedure I32_Read_Data_Unit is new I32_Phys.Read_Data_Unit(I32.Plane_Data);
-    procedure I16_Read_Data_Unit is new I16_Phys.Read_Data_Unit(I16.Plane_Data);
-    procedure U8_Read_Data_Unit is new U8_Phys.Read_Data_Unit(U8.Plane_Data);
-
-
-
-
-    InFile   : SIO.File_Type;
-    HDUStart : SIO.Positive_Count := 1; -- Primary HDU only
-
-    UValid : Boolean := False;
-    -- user does not wish to provide these vals (if he would,
-    -- then those should be generic params and supplied separately at instantiation for each type)
-    -- here we initialize only to avoid warning
-    F64UValue : Float_64 := F64NaN;
-    F32UValue : Float_32 := F32NaN;
-    I64UValue : Integer_64 := Integer_64'Last;
-    I32UValue : Integer_32 := Integer_32'Last;
-    I16UValue : Integer_16 := Integer_16'Last;
-    U8UValue : Unsigned_8 := Unsigned_8'Last;
-
-
-    -- output NaN as hexadecimal
-    function F64_To_U64 is
-      new Ada.Unchecked_Conversion (Source => Float_64,
-                                    Target => Unsigned_64);
-    function F32_To_U32 is
-      new Ada.Unchecked_Conversion (Source => Float_32,
-                                    Target => Unsigned_32);
-
-    package Hexa_F64 is new Ada.Text_IO.Modular_IO(Unsigned_64);
-    package Hexa_F32 is new Ada.Text_IO.Modular_IO(Unsigned_32);
+        Scaling : Init.Access_Rec;
 begin
 
-    if(CLI.Argument_Count /= 1 ) 
+    -- Open file as a Stream
+
+    if(Argument_Count /= 1 ) 
     then 
-      TIO.Put_Line("Usage  " & CLI.Command_Name & " <file name>");
+      TIO.Put_Line("Usage  " & Command_Name & " <file name>");
       return;
     else
-      SIO.Open(InFile, SIO.In_File, (CLI.Argument(1)));
+      FITS_IO.Open(In_File, FITS_IO.In_File, (Argument(1)));
+      In_Stream := FITS_IO.Stream(In_File);
     end if;
 
-    File.Set_File_Block_Index(InFile,HDUStart);
+
+    -- Read Mandatory Cards
 
     declare
-        HDUInfo : File.HDU_Info_Type := File.Read_Header(InFile);
+        package F32 is new Image(Float, Float'Last);
+        F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
     begin
-
-        File.Set_File_Block_Index(InFile,HDUStart);
-
-        declare
-            Cards   : Optional.Card_Arr := 
-            Header.Read_Optional(InFile, Optional.Reserved.Reserved_Keys);
-            UInValid : Boolean := False;
-        begin
-
-            case(HDUInfo.BITPIX) is
-                when -64 =>
-                    declare
-                        UInValue : Float_64;
-                        A,B : Float_64;
-                    begin
-                        F64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PF64.Init_Undef_For_Read(UInValid, UInValue, UValid, F64UValue);
-                        F64_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    F64.Put_Results(UValid, Float_64'Image(F64UValue));
-                    TIO.Put("Hexa Undef : "); Hexa_F64.Put(F64_To_U64(F64UValue),  9,16);
-                    TIO.New_Line;
-
-                when -32 =>
-                     declare
-                        UInValue : Float_32;
-                        A,B : Float_32;
-                    begin
-                        F32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PF32.Init_Undef_For_Read(UInValid, UInValue, UValid, F32UValue);
-                        F32_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    F32.Put_Results(UValid, Float_32'Image(F32UValue));
-                    TIO.Put("Hexa Undef : "); Hexa_F32.Put(F32_To_U32(F32UValue),  9,16);
-                    TIO.New_Line;
-
-                 when  64 =>
-                    declare
-                        UInValue : Integer_64;
-                        A,B : Float_64;
-                    begin
-                        I64_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PI64.Init_Undef_For_Read(UInValid, UInValue, UValid, I64UValue);
-                        I64_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    I64.Put_Results(UValid, Integer_64'Image(I64UValue));
-                 when  32 =>
-                    declare
-                        UInValue : Integer_32;
-                        A,B : Float_64;
-                    begin
-                        I32_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PI32.Init_Undef_For_Read(UInValid, UInValue, UValid, I32UValue);
-                        I32_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    I32.Put_Results(UValid, Integer_32'Image(I32UValue));
-
-                 when  16 =>
-                    declare
-                        UInValue : Integer_16;
-                        A,B : Float_32;
-                    begin
-                        I16_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PI16.Init_Undef_For_Read(UInValid, UInValue, UValid, I16UValue);
-                        I16_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    I16.Put_Results(UValid, Integer_16'Image(I16UValue));
-                 when   8 =>
-                     declare
-                        UInValue : Unsigned_8;
-                        A,B : Float_32;
-                    begin
-                        U8_Phys.Header_Info(Cards, A,B, UInValid, UInValue);
-                        PU8.Init_Undef_For_Read(UInValid, UInValue, UValid, U8UValue);
-                        U8_Read_Data_Unit(InFile,HDUInfo.NAXISn, A,B);
-                    end;
-                    U8.Put_Results(UValid, Unsigned_8'Image(U8UValue));
-
-                when others => null; -- FIXME Error
-            end case;
-
-        end;
-
+        BITPIX_Value := F32_Image.Target_BITPIX;
+        New_Line;
+        Put_Line("Target_BITPIX: " & Integer'Image(F32_Image.Target_BITPIX) );
+        Put_Line("NAXIS        : " & Integer'Image(F32_Image.NAXISn'Last) );
+        ColLength := F32_Image.NAXISn(1);
+        if(F32_Image.NAXISn'Last > 1)
+        then
+            RowLength := F32_Image.NAXISn(2);
+        else
+            RowLength := 1;
+        end if;
     end;
 
-    SIO.Close(InFile);
+
+    -- Read Reserved Cards
+
+    File.Set_File_Block_Index(In_File, 1);
+
+    declare
+        ResKeys : Optional.Reserved.Reserved_Key_Arr :=
+            Optional.Reserved.Reserved_Key_Arr'Input(In_Stream);
+        ArrKeys : Header.Valued_Key_Record_Arr(1..0);
+    begin
+
+        New_Line;
+        Put_Line("ResKeys#: " & FITS_IO.Positive_Count'Image(ResKeys'Length));
+        if(ResKeys'Length > 0)
+        then
+            for I in ResKeys'Range
+            loop
+                Put_Line(Optional.BS_8.To_String(ResKeys(I).Key) &" "& 
+                                    Optional.BS70.To_String(ResKeys(I).Value));
+                if(Optional.BS_8.To_String(ResKeys(I).Key) = "BLANK")
+                then
+                    BLANK_Value := ResKeys(I).Value;
+                    Is_BLANK_In_Header := True;
+                end if;
+            end loop;
+        end if;
+ 
+        Init.Init_Reads(DUType => Init.F32, Array_Keys => ArrKeys, DU_Access => Scaling);
+        Scaling.BITPIX := 16; --F32_Image.Target_BITPIX;
+        Scaling.Undef_Used := Is_BLANK_In_Header;
+        Scaling.Undef_Raw  := -100.0;--Float'Value(Optional.BS70.To_String(BLANK_Value));
+        Scaling.Undef_Phys := F_NaN;
+   end;
+
+
+    -- Set-up data read buffer
+
+    declare
+        Memory_Undefined_Valid  : Boolean := Is_BLANK_In_Header;--File_Undefined_Valid;
+        Memory_Undefined_Value  : Float   := F_NaN;   -- FIXME calc not set
+        -- FIXME above needed in Analyze_Data (and print results)
+
+--        package F32_Data is new Buffer_Type
+--            (T => Float,
+--            Memory_Undefined_Value  => F_NaN,
+--            Memory_Undefined_Valid  => Is_BLANK_In_Header,
+--            File_Undefined_Value    => Float'Value(Optional.BS70.To_String(BLANK_Value)),
+--            File_Undefined_Valid    => Is_BLANK_In_Header,
+--            A => 0.0,  -- FIXME calc, not set
+--            B => 1.0,  -- FIXME calc, not set
+--            Memory_BITPIX   => -(Float'Size), -- from Data Model
+--            File_BITPIX     => BITPIX_Value); -- from Header
+
+
+        package F32_Data is new FITS_IO.Data_Unit(Float);
+
+        -- example of data elaboration: find min max and count undef values
+
+        subtype ColBuffer is F32_Data.Buffer(1..ColLength);
+
+        procedure Analyze_Data
+            (R : FITS_IO.Positive_Count;
+            CurF32Col: ColBuffer;
+            UValid : Boolean; UValue : Float)
+        is
+            V : Float;
+            use FITS_IO;
+        begin
+            for I in CurF32Col'Range
+            loop
+                V := CurF32Col(I);
+                if(UValid And (Not (V = V)))
+                then
+                        Undef_Count := Undef_Count + 1;
+                else
+                        if(V < Min)
+                        then
+                           Min := V;
+                           TIO.Put("i" & FITS_IO.Count'Image(R) & "X"&FITS_IO.Count'Image(I));
+                           TIO.Put( " " & Float'Image(V));
+                        end if;
+                        if(V > Max)
+                        then
+                           Max := V;
+                           TIO.Put("x" & FITS_IO.Count'Image(R) &"X" &FITS_IO.Count'Image(I));
+                           TIO.Put(" " & Float'Image(V));
+                        end if;
+                end if;
+            end loop;
+        end Analyze_Data;
+
+        Current_F32Column : F32_Data.Buffer(1..ColLength);
+        Last : FITS_IO.Count;
+     begin
+
+
+         -- read all Data Unit
+
+         for I in 1 .. RowLength
+         loop
+             F32_Data.Read(In_File, Scaling, Current_F32Column, Last);
+             Analyze_Data(I,Current_F32Column, True, Memory_Undefined_Value);
+         end loop;
+
+        -- print results
+
+         New_Line;
+         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Memory_Undefined_Valid));
+         if(Memory_Undefined_Valid)
+         then
+             TIO.Put_Line("Undef_Value            : " & Float'Image(Memory_Undefined_Value));
+         end if;
+         -- TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
+         TIO.Put_Line("Undef_Count (NaN)      : " & FITS_IO.Count'Image(Undef_Count));
+         TIO.Put_Line("Min                    : " & Float'Image(Min));
+         TIO.Put_Line("Max                    : " & Float'Image(Max));
+
+     end;
+
+    FITS_IO.Close(In_File);
+
+
+exception
+
+  when Except_ID : others =>
+     declare
+      Error : Ada.Text_IO.File_Type := Standard_Error;
+     begin
+      New_Line(Error);
+      Put_Line(Error, "Exception_Information: ");
+      Put_Line(Error, Exception_Information( Except_ID ) );
+      New_Line(Error);
+      Put_Line(Error, "Call stack traceback symbols: addr2line -e ./fits addr1 addr2 ...");
+      Put_Line(" > Trace-back of call stack: " );
+      Put_Line( GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID) );
+      -- See more at: http://compgroups.net/comp.lang.ada/gnat-symbolic-traceback-on-exceptions/1409155#sthash.lNdkTjq6.dpuf
+      -- Do the same manually, use:
+      -- addr2line -e ./fits addr1 addr2 ...
+     end;
 
 end minmax;
 
