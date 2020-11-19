@@ -119,21 +119,6 @@ begin
     -- Set-up data read buffer
 
     declare
-        Memory_Undefined_Valid  : Boolean := Is_BLANK_In_Header;--File_Undefined_Valid;
-        Memory_Undefined_Value  : Float   := F_NaN;   -- FIXME calc not set
-        -- FIXME above needed in Analyze_Data (and print results)
-
---        package F32_Data is new Buffer_Type
---            (T => Float,
---            Memory_Undefined_Value  => F_NaN,
---            Memory_Undefined_Valid  => Is_BLANK_In_Header,
---            File_Undefined_Value    => Float'Value(Optional.BS70.To_String(BLANK_Value)),
---            File_Undefined_Valid    => Is_BLANK_In_Header,
---            A => 0.0,  -- FIXME calc, not set
---            B => 1.0,  -- FIXME calc, not set
---            Memory_BITPIX   => -(Float'Size), -- from Data Model
---            File_BITPIX     => BITPIX_Value); -- from Header
-
 
         package F32_Data is new FITS_IO.Data_Unit(Float);
 
@@ -182,18 +167,17 @@ begin
          for I in 1 .. RowLength
          loop
              F32_Data.Read(In_File, Scaling, Current_F32Column, Last);
-             Analyze_Data(I,Current_F32Column, True, Memory_Undefined_Value);
+             Analyze_Data(I,Current_F32Column, Scaling.Undef_Used, Scaling.Undef_Phys);
          end loop;
 
         -- print results
 
          New_Line;
-         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Memory_Undefined_Valid));
-         if(Memory_Undefined_Valid)
+         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Scaling.Undef_Used));
+         if(Scaling.Undef_Used)
          then
-             TIO.Put_Line("Undef_Value            : " & Float'Image(Memory_Undefined_Value));
+             TIO.Put_Line("Undef_Value            : " & Float'Image(Scaling.Undef_Phys));
          end if;
-         -- TIO.Put_Line("Special_Count (Inf...) : " & SIO.Count'Image(Special_Count));
          TIO.Put_Line("Undef_Count (NaN)      : " & FITS_IO.Count'Image(Undef_Count));
          TIO.Put_Line("Min                    : " & Float'Image(Min));
          TIO.Put_Line("Max                    : " & Float'Image(Max));
