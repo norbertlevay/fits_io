@@ -45,9 +45,9 @@ begin
     loop
         Ix := Ix + 1;
         Cards(Ix) := Header.Create_Mandatory_Card
-                            (BS_8.To_String(Im.Valued_Keys(I).Key),
+                            (Optional.BS_8.To_String(Im.Valued_Keys(I).Key),
                              Header.To_Value_String(
-                                 BS70.To_String(Im.Valued_Keys(I).Value)));
+                                 Optional.BS70.To_String(Im.Valued_Keys(I).Value)));
     end loop;
     return Cards;
 end To_Cards;
@@ -69,9 +69,9 @@ begin
     loop
         Ix := Ix + 1;
         Cards(Ix) := Header.Create_Mandatory_Card
-                            (BS_8.To_String(Im.Valued_Keys(I).Key),
+                            (Optional.BS_8.To_String(Im.Valued_Keys(I).Key),
                              Header.To_Value_String(
-                                 BS70.To_String(Im.Valued_Keys(I).Value)));
+                                 Optional.BS70.To_String(Im.Valued_Keys(I).Value)));
     end loop;
     return Cards;
 end To_Cards;

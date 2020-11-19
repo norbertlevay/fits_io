@@ -1,12 +1,14 @@
 
-with Ada.Streams.Stream_IO;
+--with Ada.Streams.Stream_IO;
 --with Mandatory; use Mandatory; -- NAXIS_Array needed
 
+with FITS_IO; use FITS_IO;
 
 generic
 package Numeric_Type.Data_IO is
 
-package SIO renames Ada.Streams.Stream_IO;
+package SIO renames FITS_IO;
+--package SIO renames Ada.Streams.Stream_IO;
 
 
 

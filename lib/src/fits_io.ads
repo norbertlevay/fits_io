@@ -2,7 +2,7 @@
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 
-with Ada.Strings.Bounded;
+--with Ada.Strings.Bounded;
 
 
 package FITS_IO is
@@ -40,8 +40,8 @@ package FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
-   subtype String_80 is String(1..80);
-   ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
+   subtype String_80 is String(1 .. 80);
+   ENDCard   : constant String_80 := ('E','N','D', others => ' ');
    EmptyCard : constant String_80 := (others => ' ');
 
   type Card_Array is array (Positive range <>) of String_80;
@@ -56,23 +56,12 @@ package FITS_IO is
       Item : Card_Array);
 
 
-   -- Header
-
-   package BS  renames Ada.Strings.Bounded;
-
-   package BS_8 is new BS.Generic_Bounded_Length( 8);
-   package BS70 is new BS.Generic_Bounded_Length(70);
-
-   Null_Undefined_Value : constant BS70.Bounded_String
-                                 := BS70.To_Bounded_String("");
-
    -- Data
 
-   subtype  NAXIS_Index is Integer range 1 .. 999;
-   type     NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+   subtype NAXIS_Index is Integer range 1 .. 999;
+   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
-   -- Data Unit length
 
 
    ----------------------------------------
@@ -83,7 +72,6 @@ package FITS_IO is
 
    function Index (File : File_Type) return Positive_Count;
    function Size  (File : File_Type) return Count;
-
 
 
   ----------------

@@ -6,9 +6,14 @@ with Ada.Text_IO;
 
 with Interfaces; use Interfaces; -- or use V3_Types
 
+with Ada.Strings.Bounded;
+
 package body Init is
 
    package TIO renames Ada.Text_IO;
+
+
+
 
 
    procedure DU_Type_To_BITPIX
@@ -157,7 +162,7 @@ package body Init is
       Aui : Float; -- Tab11 UInt-Int conversion shift
       Ah : Float := 0.0; -- A,B from Header BZERO BSCALE
       Bh : Float := 1.0; -- A,B from Header BZERO BSCALE
-      use FITS_IO.BS_8;
+      use Optional.BS_8;
       Undef_Raw_Used : Boolean := False;
       Undef_Raw : Float;
       Aall, Ball : Float;
@@ -169,14 +174,14 @@ package body Init is
       loop
          if(Array_Keys(I).Key    = "BZERO   ")
          then
-            Ah := Float'Value(FITS_IO.BS70.To_String(Array_Keys(I).Value));
+            Ah := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
          elsif(Array_Keys(I).Key = "BSCALE  ")
          then
-            Bh := Float'Value(FITS_IO.BS70.To_String(Array_Keys(I).Value));
+            Bh := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
          elsif(Array_Keys(I).Key = "BLANK   ")
          then
             Undef_Raw_Used := True;
-            Undef_Raw := Float'Value(FITS_IO.BS70.To_String(Array_Keys(I).Value));
+            Undef_Raw := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
         end if;
       end loop;
 
@@ -244,8 +249,8 @@ package body Init is
    is
       Ncards : Natural := 0;
       KeysBuffer : Header.Valued_Key_Record_Arr(1..3);
-      use FITS_IO.BS_8;
-      use FITS_IO.BS70;
+      use Optional.BS_8;
+      use Optional.BS70;
    begin
 
       if(DU_Access.A /= 0.0)
@@ -301,8 +306,8 @@ package body Init is
 
   procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr)
   is  
-     use FITS_IO.BS_8;
-     use FITS_IO.BS70;
+     use Optional.BS_8;
+     use Optional.BS70;
   begin
      for I in Keys'Range
       loop

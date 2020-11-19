@@ -16,6 +16,13 @@ package KWR renames Keyword_Record;
 
 --package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
 --package BS_8 renames Bounded_String_8;
+   package BS  renames Ada.Strings.Bounded;
+
+   package BS_8 is new BS.Generic_Bounded_Length( 8); 
+   package BS70 is new BS.Generic_Bounded_Length(70);
+
+--   Null_Undefined_Value : constant BS70.Bounded_String
+--                                 := BS70.To_Bounded_String("");
 
 type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
 

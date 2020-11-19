@@ -103,7 +103,7 @@ is
 
     package F32_Header is new Image(MD_Tm, Float'Last);
 
-    use BS70;
+    use Optional.BS70;
     F32_Image : F32_Header.Image_Rec := F32_Header.Metadata(MD_NAXISn,
                 ((BZERO,    1*    "0.0"),
                  (BSCALE,   1*    "1.0"),

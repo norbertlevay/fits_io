@@ -68,7 +68,7 @@ end Read_Data_Unit;
 
 
 procedure Write_Data_Unit
-  (F : SIO.File_Type;
+  (F : File_Type;
   NAXISn : in NAXIS_Array)
 is
     DULength : Positive_Count := DU_Data_Count(NAXISn);
@@ -80,7 +80,7 @@ begin
     Numeric'Write(SIO.Stream(F), To_Numeric(E));
   end loop;
 
-  File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.DataPadValue);
+  File.Misc.Write_Padding(F,FITS_IO.Index(F),File.Misc.DataPadValue);
 
 end Write_Data_Unit;
 
