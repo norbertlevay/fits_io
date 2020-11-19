@@ -11,7 +11,8 @@ package Keyword_Record is
 
     --package SIO renames Ada.Streams.Stream_IO; -- Count needed
 
-    subtype String_80 is String(1..80);
+    subtype String_80 is FITS_IO.String_80;
+--    subtype String_80 is String(1..80);
 --    ENDCard   : constant String_80 := (1 => 'E', 2 => 'N', 3 => 'D', others => ' ');
 --    EmptyCard : constant String_80 := (others => ' ');
 

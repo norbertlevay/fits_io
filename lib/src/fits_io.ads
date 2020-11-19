@@ -42,7 +42,7 @@ package FITS_IO is
    ENDCard   : constant String_80 := ('E','N','D', others => ' ');
    EmptyCard : constant String_80 := (others => ' ');
 
-  type Card_Array is array (Positive range <>) of String_80;
+  type Card_Array is array (Positive_Count range <>) of String_80;
 
    procedure Read
      (File : File_Type;

@@ -9,27 +9,17 @@ with FITS_IO; use FITS_IO; -- Count needed
 
 package Optional is
 
-package SIO renames Ada.Streams.Stream_IO;
---package BS  renames Ada.Strings.Bounded;
+   package SIO renames Ada.Streams.Stream_IO;
+   package KWR renames Keyword_Record;
 
-package KWR renames Keyword_Record;
-
---package Bounded_String_8 is new BS.Generic_Bounded_Length(8);
---package BS_8 renames Bounded_String_8;
    package BS  renames Ada.Strings.Bounded;
-
    package BS_8 is new BS.Generic_Bounded_Length( 8); 
    package BS70 is new BS.Generic_Bounded_Length(70);
 
---   Null_Undefined_Value : constant BS70.Bounded_String
---                                 := BS70.To_Bounded_String("");
-
-type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
+   type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
 
 
-type Card_Arr is array (Positive range <>) of KWR.String_80;
--- FIXME consider Index of Card_Arr derived from NAXIS value type (SIO.Positive)
--- theory in can be as big as DataUnit-length/80 
+subtype Card_Arr is FITS_IO.Card_Array;
 Null_Card_Arr : Optional.Card_Arr(1 .. 0) := (others => ENDCard);
 
 function Init (Keys : in Bounded_String_8_Arr) return Positive_Count;

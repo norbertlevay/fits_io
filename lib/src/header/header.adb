@@ -269,27 +269,15 @@ begin
     return Vstr;
 end To_Value_String;
 
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Arr
-is
-    Cards : Card_Arr(1 .. NAXISn'Last);
-    use Ada.Strings.Fixed;
-begin
-    for I in NAXISn'Range
-    loop
-        Cards(I) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
-                                        To_Value_String(NAXISn(I)));
-    end loop;
-    return Cards;
-end Create_NAXIS_Card_Arr;
-
 function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Array
 is
-    Cards : Card_Array(1 .. NAXISn'Last);
+   -- FIXME explicit conversion
+    Cards : Card_Array(1 .. Positive_Count(NAXISn'Last));
     use Ada.Strings.Fixed;
 begin
     for I in NAXISn'Range
     loop
-        Cards(I) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
+        Cards(Positive_Count(I)) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
                                         To_Value_String(NAXISn(I)));
     end loop;
     return Cards;

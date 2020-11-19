@@ -159,7 +159,6 @@ begin
 
  Init.Init_Writes
          (DUType           => In_File_DUType,
-            --BITPIX           => In_File_BITPIX,
          Undef_Phys_Used   => MD_Undef_Valid,
          Undef_Phys        => MD_Undef_Value,
          Undef_Raw_Valid   => MD_Undef_Valid,

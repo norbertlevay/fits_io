@@ -78,7 +78,7 @@ function To_Value_String( V : in Boolean) return String;
 
 function Create_Card(Key : in String; Value : in String) return String_80;
 function Create_Mandatory_Card(Key : in String; Value : in String) return String_80;
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Arr;
+--function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Arr;
 function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Array;
 
 

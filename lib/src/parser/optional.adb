@@ -16,10 +16,10 @@ Arr_Last  : constant Positive := 100;
 -- max this many cards searched in one pass
 
 K : Bounded_String_8_Arr(1 .. Arr_Last);-- FIXME starts from 0
-C : Card_Arr(1 .. Arr_Last);            -- FIXME starts from 1
+C : Card_Arr(1 .. Positive_Count(Arr_Last)); -- FIXME starts from 1 & explicit cast!
 -- positions in use in the above arrays
 K_Last : Natural := 0; 
-C_Last : Natural := 0;
+C_Last : Count := 0;
 
 -- FIXME everywhere fix array indexes: use 'First 'Last (loops and array asignments :=)
 -- FIXME what happens if C-array remains empty (no key match) ? 
