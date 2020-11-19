@@ -38,6 +38,8 @@ package FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
+   -- Cards
+
    subtype String_80 is String(1 .. 80);
    ENDCard   : constant String_80 := ('E','N','D', others => ' ');
    EmptyCard : constant String_80 := (others => ' ');
@@ -53,6 +55,11 @@ package FITS_IO is
      (File : File_Type;
       Item : Card_Array);
 
+   -- Header
+
+   -- read/write Mandatory-record
+   -- read/append Optional-cards (read may return null array) in: Key_Array   out: Card_Array
+   -- always read/write all header, up to END_Card (incl padding: skip at read; append at write)
 
    -- Data
 
