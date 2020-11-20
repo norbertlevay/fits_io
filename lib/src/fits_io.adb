@@ -116,52 +116,70 @@ package body FITS_IO is
 
    -- Header
 
+
+
+
+
    -- Data
 
 
    procedure Create
-      (DU : in out Data_Unit_Type;
+      (Data_Unit : in out Data_Unit_Type;
       File : in File_Type;
-      DUType : in DU_Type)
+      Raw_Type : in DU_Type)
    is
       ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
       FMode : File_Mode := Mode(File);
    begin
       case(FMode) is
          when Append_File =>
+
             Init.Init_Writes
-               (DUType => DUType,
+               (Raw_Type => Raw_Type,
                Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
                Undef_Phys        => 0.0, -- FIXME must param to Open/Create
-               DU_Access => DU.Scaling);
+               DU_Access => Data_Unit.Scaling);
+
          when others => null; -- error : invalid op in this Mode FIXME
       end case;
    end Create;
 
 
+
+
    procedure Open
-      (DU : in out Data_Unit_Type;
+      (Data_Unit : in out Data_Unit_Type;
       File : in File_Type;
-      DUType : in DU_Type)
+      Raw_Type : in DU_Type)
    is
       ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
       FMode : File_Mode := Mode(File);
    begin
       case(FMode) is
          when In_File =>
-            Init.Init_Reads(DUType => DUType, Array_Keys => ArrKeys, DU_Access => DU.Scaling);
+
+            Init.Init_Reads
+               (Raw_Type => Raw_Type,
+               Array_Keys => ArrKeys,
+               DU_Access => Data_Unit.Scaling);
+
          when Out_File =>
+
             Init.Init_Writes
-               (DUType => DUType,
+               (Raw_Type => Raw_Type,
                Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
                Undef_Phys        => 0.0, -- FIXME must param to Open/Create
-               DU_Access => DU.Scaling);
+               DU_Access => Data_Unit.Scaling);
+
          when others => null; -- error : invalid op in this Mode FIXME
       end case;
    end Open;
 
+
+
+
    procedure Close
-      (DU : in out Data_Unit_Type;
+      (Data_Unit : in out Data_Unit_Type;
       FFile : in File_Type)
    is
       FMode : File_Mode := Mode(FFile);

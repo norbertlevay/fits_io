@@ -78,17 +78,17 @@ package FITS_IO is
       F32, F64);
 
    procedure Create
-      (DU : in out Data_Unit_Type;
-      File   : in File_Type;
-      DUType : in DU_Type);
+      (Data_Unit : in out Data_Unit_Type;
+      File     : in File_Type;
+      Raw_Type : in DU_Type);
 
    procedure Open
-      (DU : in out Data_Unit_Type;
-      File   : in File_Type;
-      DUType : in DU_Type);
+      (Data_Unit : in out Data_Unit_Type;
+      File     : in File_Type;
+      Raw_Type : in DU_Type);
 
    procedure Close
-      (DU : in out Data_Unit_Type;
+      (Data_Unit : in out Data_Unit_Type;
       FFile : in File_Type);
 
 

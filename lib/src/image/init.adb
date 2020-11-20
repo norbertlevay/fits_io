@@ -149,7 +149,7 @@ package body Init is
 
 
    procedure Init_Reads
-      (DUType    : in DU_Type;
+      (Raw_Type : in DU_Type;
       Array_Keys : in Header.Valued_Key_Record_Arr;
       A           : in Float := 0.0;
       B           : in Float := 1.0;
@@ -184,7 +184,7 @@ package body Init is
         end if;
       end loop;
 
-      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
+      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
       Aall := A + Ah + Aui;
       Ball := B * Bh;
@@ -205,7 +205,7 @@ package body Init is
 
 
    procedure Init_Writes
-      (DUType         : in DU_Type;
+      (Raw_Type         : in DU_Type;
       Undef_Phys_Used : in Boolean;
       Undef_Phys      : in Float;
       A               : in Float := 0.0;
@@ -219,11 +219,9 @@ package body Init is
       Aall, Ball : Float;
    begin
 
-      TIO.Put_Line("Init_Writes");
-
       -- calc [A,B]
 
-      DU_Type_To_BITPIX(DUType, BITPIX, Aui);
+      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
       Aall := A + Aui;
       Ball := B;
@@ -238,8 +236,6 @@ package body Init is
          DU_Access);
 
       DU_Access.BITPIX := BITPIX;
-
-      Put_Access_Rec(DU_Access);
 
    end Init_Writes;
 
