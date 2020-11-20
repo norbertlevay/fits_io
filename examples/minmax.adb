@@ -13,7 +13,6 @@ with File;
 with Optional;
 with Optional.Reserved;
 with Header;
---with Buffer_Type;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Image;
@@ -31,7 +30,6 @@ procedure minmax is
     Zero    : Float := 0.0;
     F_NaN   : constant Float := 0.0/Zero;
 
-    -- access FITS-file Primary HDU
     In_File   : FITS_IO.File_Type;
     In_Stream : SIO.Stream_Access;
 
@@ -66,12 +64,12 @@ begin
     -- Read Mandatory Cards
 
     declare
-        package F32 is new Image(Float, Float'Last);
+        package F32 is new Image(Float);
         F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
     begin
-        BITPIX_Value := F32_Image.Target_BITPIX;
+        BITPIX_Value := F32_Image.BITPIX;
         New_Line;
-        Put_Line("Target_BITPIX: " & Integer'Image(F32_Image.Target_BITPIX) );
+        Put_Line("BITPIX: " & Integer'Image(F32_Image.BITPIX) );
         Put_Line("NAXIS        : " & Integer'Image(F32_Image.NAXISn'Last) );
         ColLength := F32_Image.NAXISn(1);
         if(F32_Image.NAXISn'Last > 1)
@@ -109,7 +107,7 @@ begin
             end loop;
         end if;
 
-       FITS_IO.Open(DU, In_File, FITS_IO.F32);
+       FITS_IO.Open(DU, In_File, FITS_IO.Int16);
 --        Init.Init_Reads(DUType => Init.F32, Array_Keys => ArrKeys, DU_Access => Scaling);
 --        Scaling.BITPIX := 16; --F32_Image.Target_BITPIX;
 --        Scaling.Undef_Used := Is_BLANK_In_Header;
@@ -126,7 +124,7 @@ begin
 
         -- example of data elaboration: find min max and count undef values
 
-        subtype ColBuffer is F32_Data.Buffer(1..ColLength);
+        subtype ColBuffer is F32_Data.T_Arr(1..ColLength);
 
         procedure Analyze_Data
             (R : FITS_IO.Positive_Count;
@@ -159,7 +157,7 @@ begin
             end loop;
         end Analyze_Data;
 
-        Current_F32Column : F32_Data.Buffer(1..ColLength);
+        Current_F32Column : F32_Data.T_Arr(1..ColLength);
         Last : FITS_IO.Count;
      begin
 
