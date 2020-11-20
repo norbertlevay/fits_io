@@ -10,6 +10,8 @@ with Ada.Streams.Stream_IO;
 
 with Init;
 
+with File.Misc; -- Padding needed
+
 package body FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
@@ -160,15 +162,15 @@ package body FITS_IO is
 
    procedure Close
       (DU : in out Data_Unit_Type;
-      File : in File_Type)
+      FFile : in File_Type)
    is
-      FMode : File_Mode := Mode(File);
+      FMode : File_Mode := Mode(FFile);
    begin
       case(FMode) is
          when In_File =>
             null;-- reset Data_Unit_Type
          when Out_File | Append_File =>
-            null; -- append Padding
+            File.Misc.Write_Padding(FFile, Index(FFile), File.Misc.DataPadValue);
       end case;
    end Close;
 

@@ -1,7 +1,6 @@
 
 
 with FITS_IO; use FITS_IO;
---with FITS_IO.Init; use FITS_IO.Init;
 
 
 generic
@@ -15,13 +14,10 @@ with function To_BITPIX (V   : in T) return Integer is <>;
 package FITS_IO.Data_Unit is
 
    type T_Arr is array (Positive_Count range <>) of T;
-   subtype Buffer is T_Arr;
-
 
   procedure Read
      (File : File_Type;
       DU   : Data_Unit_Type;
-      --Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count);
 
@@ -29,7 +25,6 @@ package FITS_IO.Data_Unit is
   procedure Write
      (File : File_Type;
       DU   : Data_Unit_Type;
-      --Scaling : Access_Rec;
       Item : T_Arr);
 
 

@@ -219,6 +219,8 @@ package body Init is
       Aall, Ball : Float;
    begin
 
+      TIO.Put_Line("Init_Writes");
+
       -- calc [A,B]
 
       DU_Type_To_BITPIX(DUType, BITPIX, Aui);
@@ -236,6 +238,8 @@ package body Init is
          DU_Access);
 
       DU_Access.BITPIX := BITPIX;
+
+      Put_Access_Rec(DU_Access);
 
    end Init_Writes;
 

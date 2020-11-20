@@ -20,8 +20,9 @@ package body Image is
     begin
         Im.NAXISn           := NAXISn;
         Im.Undefined_Valid  := False;
-        Im.Undefined_Value  := Dummy_Undef_Val;
+--        Im.Undefined_Value  := Dummy_Undef_Val;
         Im.Valued_Keys      := Valued_Keys;
+        Im.BITPIX := T_To_BITPIX;
         return Im;
     end Metadata;
 
@@ -37,7 +38,7 @@ is
     Cards : FITS_IO.Card_Array(1 .. (2 + Im.NAXISn'Length + Im.Valued_Keys'Length) );
     Ix : Positive_Count;
 begin
-    Cards(1) := Header.Create_Mandatory_Card("BITPIX",  Header.To_Value_String(Im.Target_BITPIX));
+    Cards(1) := Header.Create_Mandatory_Card("BITPIX",  Header.To_Value_String(Im.BITPIX));
     Cards(2) := Header.Create_Mandatory_Card("NAXIS",   Header.To_Value_String(Im.NAXIS));
     Cards(3 .. (3 + Im.NAXISn'Length) - 1) := Header.Create_NAXIS_Card_Arr(Im.NAXISn);
     -- here write Valued_Keys.. FIXME
@@ -103,7 +104,7 @@ end To_Cards;
          Im : Image_Rec(Mand.NAXISn'Length, 0);
         begin
             Im.NAXISn := Mand.NAXISn;
-            Im.Target_BITPIX := Mand.BITPIX;
+            Im.BITPIX := Mand.BITPIX;
             return Im;
         end;
     end Image_Input;

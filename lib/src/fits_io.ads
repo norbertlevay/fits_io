@@ -89,7 +89,7 @@ package FITS_IO is
 
    procedure Close
       (DU : in out Data_Unit_Type;
-      File : in File_Type);
+      FFile : in File_Type);
 
 
 

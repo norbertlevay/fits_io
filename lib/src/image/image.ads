@@ -47,7 +47,6 @@ with Optional;  -- Card_Arr needed
 
 generic
  type T is private;
- Dummy_Undef_Val : T; -- FIXME hm... only for init: Valid is False
 package Image is
 
     package SIO renames Ada.Streams.Stream_IO;
@@ -60,7 +59,7 @@ package Image is
             Undefined_Valid : Boolean;
             Undefined_Value : T;
             Valued_Keys     : Valued_Key_Record_Arr(0 .. Key_Count);
-            Target_BITPIX   : Integer; -- FIXME not here: not Metadata but transfer-param
+            BITPIX   : Integer; -- FIXME not here: not Metadata but transfer-param
         end record;
 
     function Metadata

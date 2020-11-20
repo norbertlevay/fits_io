@@ -64,12 +64,13 @@ with Numeric_Type;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 
-
+with Ada.Text_IO;
 
 
 package body FITS_IO.Data_Unit is
 
    package SIO renames Ada.Streams.Stream_IO;
+   package TIO renames Ada.Text_IO;
 
    type Float_Arr is array (Positive_Count range <>) of Float;
    type I16_Arr   is array (Positive_Count range <>) of Short_Integer;
@@ -136,7 +137,6 @@ package body FITS_IO.Data_Unit is
    procedure Read
      (File    : File_Type;
       DU : Data_Unit_Type;
-      --Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count)
    is
@@ -174,7 +174,6 @@ package body FITS_IO.Data_Unit is
   procedure Write
      (File    : File_Type;
       DU : Data_Unit_Type;
-      --Scaling : Access_Rec;
       Item : T_Arr)
    is
       Scaling : Access_Rec := DU.Scaling;
