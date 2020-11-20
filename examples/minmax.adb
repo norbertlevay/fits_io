@@ -47,7 +47,8 @@ procedure minmax is
     Max         : Float := Float'First;
     Undef_Count : FITS_IO.Count := 0;
 
-        Scaling : Init.Access_Rec;
+--        Scaling : Init.Access_Rec;
+    DU : FITS_IO.Data_Unit_Type;
 begin
 
     -- Open file as a Stream
@@ -107,12 +108,13 @@ begin
                 end if;
             end loop;
         end if;
- 
-        Init.Init_Reads(DUType => Init.F32, Array_Keys => ArrKeys, DU_Access => Scaling);
-        Scaling.BITPIX := 16; --F32_Image.Target_BITPIX;
-        Scaling.Undef_Used := Is_BLANK_In_Header;
-        Scaling.Undef_Raw  := -100.0;--Float'Value(Optional.BS70.To_String(BLANK_Value));
-        Scaling.Undef_Phys := F_NaN;
+
+       FITS_IO.Open(DU, In_File, FITS_IO.F32);
+--        Init.Init_Reads(DUType => Init.F32, Array_Keys => ArrKeys, DU_Access => Scaling);
+--        Scaling.BITPIX := 16; --F32_Image.Target_BITPIX;
+--        Scaling.Undef_Used := Is_BLANK_In_Header;
+--        Scaling.Undef_Raw  := -100.0;--Float'Value(Optional.BS70.To_String(BLANK_Value));
+--        Scaling.Undef_Phys := F_NaN;
    end;
 
 
@@ -166,18 +168,19 @@ begin
 
          for I in 1 .. RowLength
          loop
-             F32_Data.Read(In_File, Scaling, Current_F32Column, Last);
-             Analyze_Data(I,Current_F32Column, Scaling.Undef_Used, Scaling.Undef_Phys);
+             F32_Data.Read(In_File, DU, Current_F32Column, Last);
+             Analyze_Data(I,Current_F32Column, True, 0.0);
+                  --Scaling.Undef_Used, Scaling.Undef_Phys);
          end loop;
 
         -- print results
 
          New_Line;
-         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Scaling.Undef_Used));
-         if(Scaling.Undef_Used)
-         then
-             TIO.Put_Line("Undef_Value            : " & Float'Image(Scaling.Undef_Phys));
-         end if;
+--         TIO.Put_Line("Undef_Valid            : " & Boolean'Image(Scaling.Undef_Used));
+--         if(Scaling.Undef_Used)
+--         then
+--             TIO.Put_Line("Undef_Value            : " & Float'Image(Scaling.Undef_Phys));
+--         end if;
          TIO.Put_Line("Undef_Count (NaN)      : " & FITS_IO.Count'Image(Undef_Count));
          TIO.Put_Line("Min                    : " & Float'Image(Min));
          TIO.Put_Line("Max                    : " & Float'Image(Max));
