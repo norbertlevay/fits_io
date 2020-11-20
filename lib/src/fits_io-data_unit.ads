@@ -1,6 +1,7 @@
 
 
-with Init; use Init;
+with FITS_IO; use FITS_IO;
+--with FITS_IO.Init; use FITS_IO.Init;
 
 
 generic
@@ -18,15 +19,17 @@ package FITS_IO.Data_Unit is
 
 
   procedure Read
-     (File    : File_Type;
-      Scaling : Access_Rec;
+     (File : File_Type;
+      DU   : Data_Unit_Type;
+      --Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count);
 
 
   procedure Write
-     (File    : File_Type;
-      Scaling : Access_Rec;
+     (File : File_Type;
+      DU   : Data_Unit_Type;
+      --Scaling : Access_Rec;
       Item : T_Arr);
 
 

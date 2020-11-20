@@ -135,10 +135,12 @@ package body FITS_IO.Data_Unit is
 
    procedure Read
      (File    : File_Type;
-      Scaling : Access_Rec;
+      DU : Data_Unit_Type;
+      --Scaling : Access_Rec;
       Item : out T_Arr;
       Last : out Count)
    is
+      Scaling : Access_Rec := DU.Scaling;
    begin
 
    -- Set Undefined value
@@ -171,9 +173,11 @@ package body FITS_IO.Data_Unit is
 
   procedure Write
      (File    : File_Type;
-      Scaling : Access_Rec;
+      DU : Data_Unit_Type;
+      --Scaling : Access_Rec;
       Item : T_Arr)
    is
+      Scaling : Access_Rec := DU.Scaling;
    begin
 
    -- Set Undefined value

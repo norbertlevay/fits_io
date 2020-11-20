@@ -8,6 +8,8 @@ with Header;    -- Valued_Key_Record_Arr needed
 
 with Ada.Streams.Stream_IO;
 
+with Init;
+
 package body FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
@@ -26,6 +28,18 @@ package body FITS_IO is
          when Append_File => return SIO.Append_File;
          end case;
    end To_SIO_Mode;
+
+   function To_FIO_Mode(Mode : SIO.File_Mode) return File_Mode
+   is
+   begin
+      case(Mode) is
+         when SIO.In_File => return In_File;
+         when SIO.Out_File => return Out_File;
+         when SIO.Append_File => return Append_File;
+         end case;
+   end To_FIO_Mode;
+
+
 
    procedure Create
      (File : in out File_Type;
@@ -53,6 +67,12 @@ package body FITS_IO is
       SIO.Close(File.SIO_File);
    end Close;
 
+   function Mode(File : File_Type) return File_Mode
+   is
+   begin
+      return To_FIO_Mode(SIO.Mode(File.SIO_File));
+   end Mode;
+
    function End_Of_File (File : File_Type) return Boolean
    is
    begin
@@ -73,6 +93,8 @@ package body FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
+   -- Cards
+
    procedure Read
      (File : File_Type;
       Item : out Card_Array;
@@ -90,7 +112,65 @@ package body FITS_IO is
       Card_Array'Write(Stream(File), Item);
    end Write;
 
+   -- Header
 
+   -- Data
+
+
+   procedure Create
+      (DU : in out Data_Unit_Type;
+      File : in File_Type;
+      DUType : in DU_Type)
+   is
+      ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
+      FMode : File_Mode := Mode(File);
+   begin
+      case(FMode) is
+         when Append_File =>
+            Init.Init_Writes
+               (DUType => DUType,
+               Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
+               Undef_Phys        => 0.0, -- FIXME must param to Open/Create
+               DU_Access => DU.Scaling);
+         when others => null; -- error : invalid op in this Mode FIXME
+      end case;
+   end Create;
+
+
+   procedure Open
+      (DU : in out Data_Unit_Type;
+      File : in File_Type;
+      DUType : in DU_Type)
+   is
+      ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
+      FMode : File_Mode := Mode(File);
+   begin
+      case(FMode) is
+         when In_File =>
+            Init.Init_Reads(DUType => DUType, Array_Keys => ArrKeys, DU_Access => DU.Scaling);
+         when Out_File =>
+            Init.Init_Writes
+               (DUType => DUType,
+               Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
+               Undef_Phys        => 0.0, -- FIXME must param to Open/Create
+               DU_Access => DU.Scaling);
+         when others => null; -- error : invalid op in this Mode FIXME
+      end case;
+   end Open;
+
+   procedure Close
+      (DU : in out Data_Unit_Type;
+      File : in File_Type)
+   is
+      FMode : File_Mode := Mode(File);
+   begin
+      case(FMode) is
+         when In_File =>
+            null;-- reset Data_Unit_Type
+         when Out_File | Append_File =>
+            null; -- append Padding
+      end case;
+   end Close;
 
 
    ----------------------------------------

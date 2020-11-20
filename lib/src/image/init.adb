@@ -1,6 +1,5 @@
 
 with Optional;
-with FITS_IO;
 
 with Ada.Text_IO;
 
@@ -284,7 +283,7 @@ package body Init is
 
 
    -- utils
-   procedure Put_Access_Rec(AccRec : Init.Access_Rec)
+   procedure Put_Access_Rec(AccRec : Access_Rec)
    is  
      sBITPIX : String := Integer'Image(AccRec.BITPIX);
      sA : String := Float'Image(AccRec.A);

@@ -86,7 +86,7 @@ is
 
     -- Inputs for Write
 
-    In_File_DUType : Init.DU_Type := Init.Int16;
+    In_File_DUType : FITS_IO.DU_Type := FITS_IO.Int16;
     --In_File_BITPIX : Integer := Short_Integer'Size; -- needed only for Image'Write
     In_A : Float := 0.0;
     In_B : Float := 1.0;
@@ -118,8 +118,8 @@ is
 
 
    package F32_Data is new FITS_IO.Data_Unit(MD_Tm);
-   DUAccess : Init.Access_Rec;
-
+--   DUAccess : Init.Access_Rec;
+   DU : Data_Unit_Type;
 
 
     -- simulate some data
@@ -156,26 +156,27 @@ begin
  Create (Out_File, FITS_IO.Out_File, Temp_File_Name);
  Out_Stream := FITS_IO.Stream(Out_File);
 
+ Create(DU, Out_File, In_File_DUType);
 
- Init.Init_Writes
-         (DUType           => In_File_DUType,
-         Undef_Phys_Used   => MD_Undef_Valid,
-         Undef_Phys        => MD_Undef_Value,
-         Undef_Raw_Valid   => MD_Undef_Valid,
-         Undef_Raw         => -100.0,
-         DU_Access         => DUAccess);
+-- Init.Init_Writes
+--         (DUType           => In_File_DUType,
+--         Undef_Phys_Used   => MD_Undef_Valid,
+--         Undef_Phys        => MD_Undef_Value,
+--         Undef_Raw_Valid   => MD_Undef_Valid,
+--         Undef_Raw         => -100.0,
+--         DU_Access         => DUAccess);
 
- Init.Put_Access_Rec(DUAccess);
- declare
-    ArrKeys : Header.Valued_Key_Record_Arr := Init.To_Array_Keys(DUAccess);
- begin
-    Init.Put_Array_Keys(ArrKeys);
- end;
+-- Init.Put_Access_Rec(DUAccess);
+-- declare
+--    ArrKeys : Header.Valued_Key_Record_Arr := Init.To_Array_Keys(DUAccess);
+-- begin
+--    Init.Put_Array_Keys(ArrKeys);
+-- end;
 
 
  TIO.Put_Line("Writing: " & Temp_File_Name); 
 
- F32_Image.Target_BITPIX := DUAccess.BITPIX;
+ F32_Image.Target_BITPIX := 16; -- FIXME DUAccess.BITPIX;
 
  -- write Header
 
@@ -188,7 +189,7 @@ begin
  loop
      Current_F32Column := Generate_Data(I, ColLength,
                             MD_Undef_Valid, MD_Undef_Value);
-     F32_Data.Write(Out_File, DUAccess, Current_F32Column);
+     F32_Data.Write(Out_File, DU, Current_F32Column);
  end loop;
  File.Misc.Write_Padding(Out_File, Index(Out_File), File.Misc.DataPadValue);
 
