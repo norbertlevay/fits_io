@@ -2,6 +2,7 @@
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 
+
 package FITS_IO is
 
    type File_Type is limited private;
@@ -58,15 +59,26 @@ package FITS_IO is
 
    -- Header
 
+   subtype NAXIS_Index is Integer range 1 .. 999;
+   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+
+
+   type Image_Rec(NAXIS : NAXIS_Index; Key_Count : Count) is
+       record
+            BITPIX     : Integer;
+            NAXISn     : NAXIS_Array(1 .. NAXIS);
+            Array_Keys : Card_Array(1 .. Key_Count);
+        end record;
+
+   function  Read_Header(File : File_Type) return Image_Rec;
+   procedure Write_Header(File : File_Type; Image : Image_Rec) is null;
+
    -- read/write Mandatory-record
    -- read/append Optional-cards (read may return null array) in: Key_Array   out: Card_Array
    -- always read/write all header, up to END_Card (incl padding: skip at read; append at write)
 
 
    -- Data
-
-   subtype NAXIS_Index is Integer range 1 .. 999;
-   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
 

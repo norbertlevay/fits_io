@@ -117,6 +117,12 @@ package body FITS_IO is
    -- Header
 
 
+   function  Read_Header(File : File_Type) return Image_Rec
+   is
+      Im : Image_Rec(1,1);
+   begin
+      return Im;
+   end Read_Header;
 
 
 
