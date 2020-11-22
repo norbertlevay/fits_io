@@ -269,10 +269,10 @@ begin
     return Vstr;
 end To_Value_String;
 
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return Card_Array
+function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return String_80_Array
 is
    -- FIXME explicit conversion
-    Cards : Card_Array(1 .. Positive_Count(NAXISn'Last));
+    Cards : String_80_Array(1 .. Positive_Count(NAXISn'Last));
     use Ada.Strings.Fixed;
 begin
     for I in NAXISn'Range

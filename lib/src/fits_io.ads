@@ -1,7 +1,7 @@
 
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
-
+with Ada.Strings.Bounded;
 
 package FITS_IO is
 
@@ -46,36 +46,51 @@ package FITS_IO is
    ENDCard   : constant String_80 := ('E','N','D', others => ' ');
    EmptyCard : constant String_80 := (others => ' ');
 
-  type Card_Array is array (Positive_Count range <>) of String_80;
+  type String_80_Array is array (Positive_Count range <>) of String_80;
 
    procedure Read
      (File : File_Type;
-      Item : out Card_Array;
+      Item : out String_80_Array;
       Last : out Count);
 
    procedure Write
      (File : File_Type;
-      Item : Card_Array);
+      Item : String_80_Array);
+  -- FIXME actually this Write can be used to write Optional-cards in Header-API below:
+  -- no need for separate Write_Header_Optional() ?
+
+   package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
+   package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
+
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80;
 
    -- Header
+
+   -- RULE Header is read sequentially (because size unknown, must read until END-card)
+   -- RULE Data-unit read/write is random access (because size known from the header)
+
+   -- RULE Read_Header funcs (unlike Read_/Write_Cards):
+   -- * always reads all header, up to END_Card (incl padding: skip at read)
 
    subtype NAXIS_Index is Integer range 1 .. 999;
    type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
+   procedure Write_Image(File : File_Type; BITPIX : Integer; NAXISn : NAXIS_Array);
+   procedure Write_End(File : File_Type);
 
    type Image_Rec(NAXIS : NAXIS_Index; Key_Count : Count) is
        record
             BITPIX     : Integer;
             NAXISn     : NAXIS_Array(1 .. NAXIS);
-            Array_Keys : Card_Array(1 .. Key_Count);
+            Array_Keys : String_80_Array(1 .. Key_Count);
         end record;
 
-   function  Read_Header(File : File_Type) return Image_Rec;
-   procedure Write_Header(File : File_Type; Image : Image_Rec) is null;
+   type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
 
-   -- read/write Mandatory-record
-   -- read/append Optional-cards (read may return null array) in: Key_Array   out: Card_Array
-   -- always read/write all header, up to END_Card (incl padding: skip at read; append at write)
+   function  Read_Header(File : File_Type; Keys : BS_8_Array) return Image_Rec;
+   --procedure Write_Header(File : File_Type; Image : Image_Rec) is null;
+
+
 
 
    -- Data

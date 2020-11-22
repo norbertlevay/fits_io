@@ -89,7 +89,7 @@ package Image is
 
 
    -- FIXME temporarly
-   function To_Cards( Im : in Image_Rec ) return FITS_IO.Card_Array;
+   function To_Cards( Im : in Image_Rec ) return FITS_IO.String_80_Array;
 
 end Image;
 

@@ -99,31 +99,62 @@ package body FITS_IO is
 
    procedure Read
      (File : File_Type;
-      Item : out Card_Array;
+      Item : out String_80_Array;
       Last : out Count)
    is
    begin
-      Card_Array'Read(Stream(File), Item);
+      String_80_Array'Read(Stream(File), Item);
+      -- FIXME updated Access_Rec
    end Read;
 
    procedure Write
      (File : File_Type;
-      Item : Card_Array)
+      Item : String_80_Array)
    is
    begin
-      Card_Array'Write(Stream(File), Item);
+      String_80_Array'Write(Stream(File), Item);
+      -- FIXME updated Access_Rec
    end Write;
+
+
+
+
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+   is
+   begin
+      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+   end Valued_Card;
+
 
    -- Header
 
 
-   function  Read_Header(File : File_Type) return Image_Rec
+   function  Read_Header(File : File_Type; Keys : BS_8_Array) return Image_Rec
    is
-      Im : Image_Rec(1,1);
    begin
-      return Im;
+      -- FIXME updated Access_Rec
+      return Image_Rec'Input(Stream(File));
    end Read_Header;
 
+
+
+   procedure Write_Image(File : File_Type; BITPIX : Integer; NAXISn : NAXIS_Array)
+   is
+      Cards1 : String_80_Array := (
+         Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
+         Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length)) );
+      Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);
+   begin
+      Write(File, Cards);
+      -- FIXME update Access_Rec
+   end Write_Image;
+
+   procedure Write_End(File : File_Type)
+   is
+   begin
+      Header.Close(File);
+      -- FIXME update Access_Rec
+   end Write_End;
 
 
    -- Data

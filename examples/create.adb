@@ -33,20 +33,21 @@ is
     MD_Undef_Valid : Boolean   := False;
     MD_Undef_Value : Float     := F_NaN;
 
+    MD_BITPIX : Integer := Short_Integer'Size;
+
     -- set-up image Header
 
-    First_Card  : Card_Array(1 .. 1) := 
+    HDU_Type_Card  : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
 
-    package I16_Header is new Image(Short_Integer);
     use Optional.BS70;
-    I16_Image : I16_Header.Image_Rec := I16_Header.Metadata(MD_NAXISn,
-                ((BZERO,    1*    "0.0"),
-                 (BSCALE,   1*    "1.0"),
-                 (BLANK,    1*    "255"),
-                 (DATAMIN,  1*    "0.0"),
-                 (DATAMAX,  1*  "255.0")));
-
+    Array_Cards : String_80_Array :=
+               (Valued_Card(BZERO,    1*    "0.0"),
+                Valued_Card(BSCALE,   1*    "1.0"),
+                Valued_Card(BLANK,    1*    "255"),
+                Valued_Card(DATAMIN,  1*    "0.0"),
+                Valued_Card(DATAMAX,  1*  "255.0"));
+    -- FIXME above cards must have calculated value
 
    -- simulate some data
 
@@ -77,14 +78,18 @@ is
 
    Buffer : F32_Data.T_Arr(1 .. ColLength);
 
+
 begin
 
  Create (Out_File, FITS_IO.Append_File, File_Name);
 
  -- write Header
 
- Write(Out_File, First_Card & I16_Header.To_Cards(I16_Image));
- Header.Close(Out_File);
+ Write(Out_File, HDU_Type_Card);
+
+ Write_Image(Out_File, MD_BITPIX, MD_NAXISn);
+ Write(Out_File, Array_Cards);
+ Write_End(Out_File);
 
 -- write Data Unit
 

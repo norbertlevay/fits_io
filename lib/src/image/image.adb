@@ -33,9 +33,9 @@ package body Image is
 
 -- new for FITS_IO API
 
-function To_Cards( Im : in Image_Rec ) return FITS_IO.Card_Array
+function To_Cards( Im : in Image_Rec ) return FITS_IO.String_80_Array
 is
-    Cards : FITS_IO.Card_Array(1 .. (2 + Im.NAXISn'Length + Im.Valued_Keys'Length) );
+    Cards : FITS_IO.String_80_Array(1 .. (2 + Im.NAXISn'Length + Im.Valued_Keys'Length) );
     Ix : Positive_Count;
 begin
     Cards(1) := Header.Create_Mandatory_Card("BITPIX",  Header.To_Value_String(Im.BITPIX));
