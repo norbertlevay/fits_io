@@ -4,6 +4,7 @@ with Ada.Strings; -- Trim needed
 use Ada.Strings; -- Left needed for Trim
 
 with Mandatory; -- Result_rec needed
+with Optional; -- ReadOtional needed
 with Header;    -- Valued_Key_Record_Arr needed
 
 with Ada.Streams.Stream_IO;
@@ -129,11 +130,30 @@ package body FITS_IO is
    -- Header
 
 
-   function  Read_Header(File : File_Type; Keys : BS_8_Array) return Image_Rec
+
+
+
+
+   function  Read_Header(FFile : File_Type; Keys : BS_8_Array) return Image_Rec
    is
+      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile);
+      -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
       -- FIXME updated Access_Rec
-      return Image_Rec'Input(Stream(File));
+
+       File.Set_File_Block_Index(FFile, 1);
+      -- FIXME update parser to avoid 2 reads
+
+      declare
+         Cards : Optional.Card_Arr := Header.Read_Optional(FFile, Keys);
+         Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
+      begin
+         Image.BITPIX := Mand.BITPIX;
+         Image.NAXISn := Mand.NAXISn;
+         Image.Array_Keys := Cards;
+         return Image;
+      end;
+
    end Read_Header;
 
 

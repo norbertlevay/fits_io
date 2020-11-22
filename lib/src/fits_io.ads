@@ -87,7 +87,7 @@ package FITS_IO is
 
    type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
 
-   function  Read_Header(File : File_Type; Keys : BS_8_Array) return Image_Rec;
+   function  Read_Header(FFile : File_Type; Keys : BS_8_Array) return Image_Rec;
    --procedure Write_Header(File : File_Type; Image : Image_Rec) is null;
 
 

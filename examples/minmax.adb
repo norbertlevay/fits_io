@@ -17,7 +17,7 @@ with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Image;
 
-with FITS_IO;
+with FITS_IO; use FITS_IO;
 with FITS_IO.Data_Unit;
 
 with Init;
@@ -31,11 +31,10 @@ procedure minmax is
     F_NaN   : constant Float := 0.0/Zero;
 
     In_File   : FITS_IO.File_Type;
-    In_Stream : SIO.Stream_Access;
 
     -- values passed from Header to Data Read-Buffer
     Is_BLANK_In_Header  : Boolean := False;
-    BLANK_Value         : Optional.BS70.Bounded_String;
+    BLANK_Value         : String(1..20);--Optional.BS70.Bounded_String;
     BITPIX_Value        : Integer;
     ColLength : FITS_IO.Positive_Count;
     RowLength : FITS_IO.Positive_Count;
@@ -45,78 +44,55 @@ procedure minmax is
     Max         : Float := Float'First;
     Undef_Count : FITS_IO.Count := 0;
 
---        Scaling : Init.Access_Rec;
+    --        Scaling : Init.Access_Rec;
     DU : FITS_IO.Data_Unit_Type;
+
 begin
 
-    -- Open file as a Stream
+   -- Open file
 
-    if(Argument_Count /= 1 ) 
-    then 
+   if(Argument_Count /= 1 ) 
+   then 
       TIO.Put_Line("Usage  " & Command_Name & " <file name>");
       return;
-    else
+   else
       FITS_IO.Open(In_File, FITS_IO.In_File, (Argument(1)));
-      In_Stream := FITS_IO.Stream(In_File);
-    end if;
+   end if;
 
 
-    -- Read Mandatory Cards
+   -- Read Header
 
-    declare
-        package F32 is new Image(Float);
-        F32_Image : F32.Image_Rec := F32.Image_Rec'Input(In_Stream);
-    begin
-        BITPIX_Value := F32_Image.BITPIX;
-        New_Line;
-        Put_Line("BITPIX: " & Integer'Image(F32_Image.BITPIX) );
-        Put_Line("NAXIS        : " & Integer'Image(F32_Image.NAXISn'Last) );
-        ColLength := F32_Image.NAXISn(1);
-        if(F32_Image.NAXISn'Last > 1)
+   declare
+      Image : FITS_IO.Image_Rec := Read_Header(In_File, Optional.Reserved.Array_Keys);
+   begin
+      BITPIX_Value := Image.BITPIX;
+      New_Line;
+      Put_Line("BITPIX : " & Integer'Image(Image.BITPIX) );
+      Put_Line("NAXIS  : " & Integer'Image(Image.NAXISn'Last) );
+
+      for I in Image.Array_Keys'Range
+      loop
+         Put_Line(">"&Image.Array_Keys(I)&"<");
+         if(Image.Array_Keys(I)(1..5) = "BLANK")
+         then
+            Is_BLANK_In_Header := True;
+            BLANK_Value := Image.Array_Keys(I)(11..30);
+         end if;
+        end loop;
+
+        ColLength := Image.NAXISn(1);
+        if(Image.NAXISn'Last > 1)
         then
-            RowLength := F32_Image.NAXISn(2);
+            RowLength := Image.NAXISn(2);
         else
             RowLength := 1;
         end if;
     end;
 
-
-    -- Read Reserved Cards
-
-    File.Set_File_Block_Index(In_File, 1);
-
-    declare
-        ResKeys : Optional.Reserved.Reserved_Key_Arr :=
-            Optional.Reserved.Reserved_Key_Arr'Input(In_Stream);
-        ArrKeys : Header.Valued_Key_Record_Arr(1..0);
-    begin
-
-        New_Line;
-        Put_Line("ResKeys#: " & FITS_IO.Positive_Count'Image(ResKeys'Length));
-        if(ResKeys'Length > 0)
-        then
-            for I in ResKeys'Range
-            loop
-                Put_Line(Optional.BS_8.To_String(ResKeys(I).Key) &" "& 
-                                    Optional.BS70.To_String(ResKeys(I).Value));
-                if(Optional.BS_8.To_String(ResKeys(I).Key) = "BLANK")
-                then
-                    BLANK_Value := ResKeys(I).Value;
-                    Is_BLANK_In_Header := True;
-                end if;
-            end loop;
-        end if;
-
-       FITS_IO.Open(DU, In_File, FITS_IO.Int16);
---        Init.Init_Reads(DUType => Init.F32, Array_Keys => ArrKeys, DU_Access => Scaling);
---        Scaling.BITPIX := 16; --F32_Image.Target_BITPIX;
---        Scaling.Undef_Used := Is_BLANK_In_Header;
---        Scaling.Undef_Raw  := -100.0;--Float'Value(Optional.BS70.To_String(BLANK_Value));
---        Scaling.Undef_Phys := F_NaN;
-   end;
-
-
     -- Set-up data read buffer
+
+    FITS_IO.Open(DU, In_File, FITS_IO.Int16);
+    -- FIXME Int16 param not needed REVIEW
 
     declare
 
@@ -141,18 +117,8 @@ begin
                 then
                         Undef_Count := Undef_Count + 1;
                 else
-                        if(V < Min)
-                        then
-                           Min := V;
-                           TIO.Put("i" & FITS_IO.Count'Image(R) & "X"&FITS_IO.Count'Image(I));
-                           TIO.Put( " " & Float'Image(V));
-                        end if;
-                        if(V > Max)
-                        then
-                           Max := V;
-                           TIO.Put("x" & FITS_IO.Count'Image(R) &"X" &FITS_IO.Count'Image(I));
-                           TIO.Put(" " & Float'Image(V));
-                        end if;
+                        if(V < Min) then Min := V; end if;
+                        if(V > Max) then Max := V; end if;
                 end if;
             end loop;
         end Analyze_Data;
@@ -168,7 +134,6 @@ begin
          loop
              F32_Data.Read(In_File, DU, Current_F32Column, Last);
              Analyze_Data(I,Current_F32Column, True, 0.0);
-                  --Scaling.Undef_Used, Scaling.Undef_Phys);
          end loop;
 
         -- print results
@@ -185,6 +150,7 @@ begin
 
      end;
 
+    FITS_IO.Close(DU,In_File);
     FITS_IO.Close(In_File);
 
 
