@@ -96,6 +96,12 @@ package body FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
+   -- RULE Header is read sequentially (because size unknown, must read until END-card)
+   -- RULE Data-unit read/write is random access (because size known from the header)
+
+   -- RULE Read_Header funcs (unlike Read_/Write_Cards):
+   -- * always reads all header, up to END_Card (incl padding: skip at read)
+
    -- Cards
 
    procedure Read
@@ -241,6 +247,10 @@ package body FITS_IO is
    is
       FMode : File_Mode := Mode(FFile);
    begin
+      -- FIXME this approach works only if sequential access (write) allowed
+      -- for random access the File.Index could point anywhere within DU
+      -- for squential access it is assumed caller calls Close only when all data written
+      -- and in that case File.Index points correctly
       case(FMode) is
          when In_File =>
             null;-- reset Data_Unit_Type

@@ -60,9 +60,9 @@ to calulate Data Unit size.
 
 2 Rules:
 
-\textbf{Raw-side/type} is defined by Header in BOTH cases Read/Write
+\textbf{RULE} \textbf{Raw-side/type} is defined by Header in BOTH cases Read/Write
 
-Each invocation of DataUnit.Read/Write modifies File.Index only, as it shifts through the Data\_Unit sequentially
+\textbf{RULE} Each invocation of DataUnit.Read/Write modifies File.Index only, as it shifts through the Data\_Unit sequentially (e.g. implements \textbf{sequential access}, no state variable needed).
 
 \textit{NOTE: ergo, there needs to be a Data\_Unit.Init/Open... func AFTER Header is ready and T is known (Data\_Unit instantiated), but BEFORE repeated calls to DU Read/Write start.}
 
@@ -70,13 +70,26 @@ Each invocation of DataUnit.Read/Write modifies File.Index only, as it shifts th
 
 additional 2 Rules:
 
-Header is DU-Type independent (Strings,?Floats?)
+\textbf{RULE} Header is DU-Type independent (Strings,?Floats?)
 
-Data\_Unit package is generic by T and so defines \textbf{Physical-side/type}
+\textbf{RULE} Data\_Unit package is generic by T and so defines \textbf{Physical-side/type}
 
-\textit{NOTE: the Header is \textbf{metadata} by its character, and as such it merely DESCRIBES the Raw-data.
-Whereas the Data\_Unit contains the data itself and as such it IMPLEMENTS the data and so defines
-the Physical-side/type.}
+\textit{NOTE: the Header is METADATA by its character, and as such it merely DESCRIBES
+the Raw-data. Whereas the Data\_Unit contains the data itself and as such it IMPLEMENTS
+the data and so defines the Physical-side/type.}
+
+additional 3 rules decribing relation between Header-Data:
+
+\textbf{RULE} Header is read sequentially (because size unknown, must read until END-card)
+
+\textbf{RULE} Data-unit read/write is \textbf{random access} (because size known from the header)
+
+\textbf{RULE} Read\_Header() funcs (unlike Read\_/Write\_Cards):
+always reads all header, up to END\_Card (incl padding: skip at read), (after access
+File.Index points to first data in the data-unit).
+
+
+
 
 
 \subsection{Header read write}
