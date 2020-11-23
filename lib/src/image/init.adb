@@ -149,16 +149,16 @@ package body Init is
 
 
    procedure Init_Reads
-      (Raw_Type : in DU_Type;
-      Array_Keys : in Header.Valued_Key_Record_Arr;
+      (BITPIX : in Integer;
+      Array_Keys : in String_80_Array;
       A           : in Float := 0.0;
       B           : in Float := 1.0;
       Undef_Phys_Valid : in Boolean := False;
       Undef_Phys       : in Float   := 0.0;
       DU_Access   : out Access_Rec)
    is
-      BITPIX : Integer;
-      Aui : Float; -- Tab11 UInt-Int conversion shift
+--      BITPIX : Integer;
+--      Aui : Float; -- Tab11 UInt-Int conversion shift
       Ah : Float := 0.0; -- A,B from Header BZERO BSCALE
       Bh : Float := 1.0; -- A,B from Header BZERO BSCALE
       use Optional.BS_8;
@@ -171,22 +171,22 @@ package body Init is
 
       for I in Array_Keys'Range
       loop
-         if(Array_Keys(I).Key    = "BZERO   ")
+         if(Array_Keys(I)(1 .. 5) = "BZERO")
          then
-            Ah := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
-         elsif(Array_Keys(I).Key = "BSCALE  ")
+            Ah := Float'Value(Array_Keys(I)(11 .. 30));
+         elsif(Array_Keys(I)(1 .. 6) = "BSCALE")
          then
-            Bh := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
-         elsif(Array_Keys(I).Key = "BLANK   ")
+            Bh := Float'Value(Array_Keys(I)(11 .. 30));
+         elsif(Array_Keys(I)(1 .. 5) = "BLANK")
          then
             Undef_Raw_Used := True;
-            Undef_Raw := Float'Value(Optional.BS70.To_String(Array_Keys(I).Value));
+            Undef_Raw := Float'Value(Array_Keys(I)(11 .. 30));
         end if;
       end loop;
 
-      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
+--      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
-      Aall := A + Ah + Aui;
+      Aall := A + Ah;-- + Aui;
       Ball := B * Bh;
 
       -- calc Undef
@@ -205,7 +205,7 @@ package body Init is
 
 
    procedure Init_Writes
-      (Raw_Type         : in DU_Type;
+      (BITPIX: in Integer;
       Undef_Phys_Used : in Boolean;
       Undef_Phys      : in Float;
       A               : in Float := 0.0;
@@ -214,16 +214,16 @@ package body Init is
       Undef_Raw       : in Float   := 0.0;
       DU_Access       : out Access_Rec)
    is
-      BITPIX : Integer;
-      Aui    : Float; -- Tab11 UInt-Int conversion shift
+--      BITPIX : Integer;
+--      Aui    : Float; -- Tab11 UInt-Int conversion shift
       Aall, Ball : Float;
    begin
 
       -- calc [A,B]
 
-      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
+--      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
-      Aall := A + Aui;
+      Aall := A;-- + Aui;
       Ball := B;
 
       -- calc Undef

@@ -30,6 +30,8 @@ package FITS_IO is
 
    procedure Close  (File : in out File_Type);
 
+   procedure Reset  (File : in out File_Type; Mode : File_Mode);
+
    function Mode    (File : File_Type) return File_Mode;
 
    function End_Of_File (File : File_Type) return Boolean;
@@ -64,12 +66,17 @@ package FITS_IO is
 
    -- Header
 
+   type DU_Type is (
+       Int8, UInt16, UInt32, UInt64,
+      UInt8,  Int16,  Int32,  Int64,
+      F32, F64);
+
    subtype NAXIS_Index is Integer range 1 .. 999;
    type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    type Image_Rec(NAXIS : NAXIS_Index; Key_Count : Count) is
        record
-            BITPIX     : Integer;
+            Data_Type  : DU_Type;
             NAXISn     : NAXIS_Array(1 .. NAXIS);
             Array_Keys : String_80_Array(1 .. Key_Count);
         end record;
@@ -78,7 +85,8 @@ package FITS_IO is
 
    function  Read_Header(FFile : File_Type; Keys : BS_8_Array) return Image_Rec;
 
-   procedure Write_Image(File : File_Type; BITPIX : Integer; NAXISn : NAXIS_Array);
+   function  Write_Image(File : File_Type; DType : DU_Type;
+            NAXISn : NAXIS_Array; Array_Keys : String_80_Array) return Image_Rec;
    procedure Write_End(File : File_Type);
 
 
@@ -88,24 +96,28 @@ package FITS_IO is
 
    type Data_Unit_Type is limited private;
 
-   type DU_Type is (
-       Int8, UInt16, UInt32, UInt64,
-      UInt8,  Int16,  Int32,  Int64,
-      F32, F64);
-
    procedure Create
       (Data_Unit : in out Data_Unit_Type;
-      File     : in File_Type;
-      Raw_Type : in DU_Type);
-
+      File       : File_Type;
+      Image      : Image_Rec;
+      Phys_Used  : Boolean := False;
+      Phys_Value : Float := 0.0;
+      A : Float := 0.0;
+      B : Float := 1.0);
+ 
    procedure Open
       (Data_Unit : in out Data_Unit_Type;
-      File     : in File_Type;
-      Raw_Type : in DU_Type);
+      File       : File_Type;
+      Image      : Image_Rec;
+      Phys_Used  : Boolean := False;
+      Phys_Value : Float := 0.0;
+      A : Float := 0.0;
+      B : Float := 1.0);
+
 
    procedure Close
       (Data_Unit : in out Data_Unit_Type;
-      FFile : in File_Type);
+      FFile : File_Type);
 
 
 

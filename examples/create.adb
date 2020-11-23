@@ -30,14 +30,11 @@ is
     RowLength : constant Positive_Count := 456;
 
     MD_NAXISn      : NAXIS_Array := (ColLength, RowLength);
-    MD_Undef_Valid : Boolean   := False;
+    MD_Undef_Valid : Boolean   := True;
     MD_Undef_Value : Float     := F_NaN;
+    MD_Raw_Type    : DU_Type := FITS_IO.Int16;
 
-    MD_BITPIX : Integer := Short_Integer'Size;
-
-    -- set-up image Header
-
-    HDU_Type_Card  : String_80_Array(1 .. 1) := 
+    HDU_First_Card : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
 
     use Optional.BS70;
@@ -68,32 +65,26 @@ is
        return Col;
    end Generate_Data;
 
-
-    -- FITS-file name
-
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
-
-   -- Data write buffer
+   In_File  : FITS_IO.File_Type;
 
    Buffer : F32_Data.T_Arr(1 .. ColLength);
-
-
+   -- Data write-buffer
 begin
 
  Create (Out_File, FITS_IO.Append_File, File_Name);
 
- -- write Header
+ -- write Header and Data unit
 
- Write(Out_File, HDU_Type_Card);
+ Write(Out_File, HDU_First_Card);
 
- Write_Image(Out_File, MD_BITPIX, MD_NAXISn);
- Write(Out_File, Array_Cards);
- Write_End(Out_File);
-
--- write Data Unit
-
- Create(DU, Out_File, FITS_IO.Int16);
+ declare
+   Img : Image_Rec := Write_Image(Out_File, MD_Raw_Type, MD_NAXISn, Array_Cards);
+ begin
+   Write_End(Out_File);
+   Create(DU, Out_File, Img, MD_Undef_Valid, MD_Undef_Value);
+ end;
 
  for I in 1 .. RowLength
  loop
@@ -103,9 +94,9 @@ begin
     F32_Data.Write(Out_File, DU, Buffer);
  end loop;
 
+ -- Close Data-unit and Close Fits-file
+
  FITS_IO.Close(DU, Out_File);
-
-
  FITS_IO.Close(Out_File);
 
 

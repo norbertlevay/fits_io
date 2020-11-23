@@ -49,8 +49,8 @@ package Init is
 
    -- triple [DU_Type, A,B] allows to view any of DU_Type as T
    procedure Init_Reads
-      (Raw_Type  : in DU_Type;
-      Array_Keys : in Header.Valued_Key_Record_Arr;
+      (BITPIX  : in Integer;
+      Array_Keys : in String_80_Array;
       A          : in Float := 0.0;
       B          : in Float := 1.0;
       Undef_Phys_Valid : in Boolean := False;
@@ -59,7 +59,7 @@ package Init is
 
    -- triple [DU_Type, A,B] allows to store type T to any of DU_Types
    procedure Init_Writes
-      (Raw_Type : in DU_Type;
+      (BITPIX : in Integer;
       Undef_Phys_Used : in Boolean;
       Undef_Phys      : in Float;
       A               : in Float := 0.0;

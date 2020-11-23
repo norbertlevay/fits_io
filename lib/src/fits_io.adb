@@ -70,6 +70,12 @@ package body FITS_IO is
       SIO.Close(File.SIO_File);
    end Close;
 
+   procedure Reset  (File : in out File_Type; Mode : File_Mode)
+   is
+   begin
+      SIO.Reset(File.SIO_File, To_SIO_Mode(Mode));
+   end Reset;
+
    function Mode(File : File_Type) return File_Mode
    is
    begin
@@ -136,7 +142,19 @@ package body FITS_IO is
    -- Header
 
 
-
+   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
+   is
+   begin
+      case(BITPIX) is
+         when  8 => return UInt8;
+         when 16 => return Int16;
+         when 32 => return Int32;
+         when 64 => return Int64;
+         when -32 => return F32;
+         when -64 => return F64;
+         when others => return Uint8; -- FIXME Error invalid BITPIX
+      end case;
+   end BITPIX_To_DU_Type;
 
 
 
@@ -154,7 +172,7 @@ package body FITS_IO is
          Cards : Optional.Card_Arr := Header.Read_Optional(FFile, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
-         Image.BITPIX := Mand.BITPIX;
+         Image.Data_TYpe := BITPIX_To_DU_Type(Mand.BITPIX);
          Image.NAXISn := Mand.NAXISn;
          Image.Array_Keys := Cards;
          return Image;
@@ -164,15 +182,28 @@ package body FITS_IO is
 
 
 
-   procedure Write_Image(File : File_Type; BITPIX : Integer; NAXISn : NAXIS_Array)
+   function Write_Image(File : File_Type; DType : DU_Type; NAXISn : NAXIS_Array;
+      Array_Keys : String_80_Array)
+      return Image_Rec
    is
-      Cards1 : String_80_Array := (
-         Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
-         Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length)) );
-      Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);
+      BITPIX : Integer;
+      Aui : Float;
    begin
-      Write(File, Cards);
+      Init.DU_Type_To_BITPIX(DType, BITPIX, Aui);
       -- FIXME update Access_Rec
+      declare
+         Cards1 : String_80_Array := (
+            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
+            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length)) );
+         Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn) & Array_Keys;
+         Img : Image_Rec(NAXISn'Last, Array_Keys'Last);
+      begin
+         Img.Data_Type := DType;
+         Img.NAXISn := NAXISn;
+         Img.Array_Keys := Array_Keys;
+         Write(File, Cards);
+         return Img;
+      end;
    end Write_Image;
 
    procedure Write_End(File : File_Type)
@@ -188,22 +219,47 @@ package body FITS_IO is
 
    procedure Create
       (Data_Unit : in out Data_Unit_Type;
-      File : in File_Type;
-      Raw_Type : in DU_Type)
+      File       : File_Type;
+      Image      : Image_Rec;
+      Phys_Used  : Boolean := False;
+      Phys_Value : Float := 0.0;
+      A : Float := 0.0;
+      B : Float := 1.0)
    is
-      ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
       FMode : File_Mode := Mode(File);
+      BITPIX : Integer;
+      Aui : Float;
+      Raw_Valid : Boolean := False;
+      Raw_Value : Float;
    begin
       case(FMode) is
          when Append_File =>
 
+            -- parse BLANK -> Undef_Raw...
+            for I in Image.Array_Keys'Range
+            loop
+               if( Image.Array_Keys(I)(1..5) = "BLANK")
+               then
+                  Raw_Value := Float'Value(Image.Array_Keys(I)(11..30));
+                  Raw_Valid := True;
+               end if;
+            end loop;
+
+            Init.DU_Type_To_BITPIX(Image.Data_Type, BITPIX, Aui);
+
             Init.Init_Writes
-               (Raw_Type => Raw_Type,
-               Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
-               Undef_Phys        => 0.0, -- FIXME must param to Open/Create
+               (BITPIX => BITPIX,
+               Undef_Phys_Used => Phys_Used,
+               Undef_Phys      => Phys_Value,
+               A => A + Aui,
+               B => B,
+               Undef_Raw_Valid => Raw_Valid,
+               Undef_Raw       => Raw_Value,
                DU_Access => Data_Unit.Scaling);
 
-         when others => null; -- error : invalid op in this Mode FIXME
+            Init.Put_Access_Rec(Data_Unit.Scaling);
+
+         when others => null; -- error : Create invalid in this Mode FIXME
       end case;
    end Create;
 
@@ -212,29 +268,49 @@ package body FITS_IO is
 
    procedure Open
       (Data_Unit : in out Data_Unit_Type;
-      File : in File_Type;
-      Raw_Type : in DU_Type)
+      File       : File_Type;
+      Image      : Image_Rec;
+      Phys_Used  : Boolean := False;
+      Phys_Value : Float := 0.0;
+      A : Float := 0.0;
+      B : Float := 1.0)
    is
-      ArrKeys :  Header.Valued_Key_Record_Arr(1 .. 0);
-      FMode : File_Mode := Mode(File);
+      FMode   : File_Mode := Mode(File);
+      BITPIX : Integer;
+      Aui : Float;
    begin
+
+      Init.DU_Type_To_BITPIX(Image.Data_Type, BITPIX, Aui);
+
       case(FMode) is
          when In_File =>
 
             Init.Init_Reads
-               (Raw_Type => Raw_Type,
-               Array_Keys => ArrKeys,
+               (BITPIX => BITPIX,
+               Array_Keys => Image.Array_Keys,
+               A => A + Aui,
+               B => B,
+               Undef_Phys_Valid => Phys_Used,
+               Undef_Phys       => Phys_Value,
                DU_Access => Data_Unit.Scaling);
+
+            Init.Put_Access_Rec(Data_Unit.Scaling);
 
          when Out_File =>
 
+            -- from Image.Array_Keys parse BLANK -> Undef_Raw...
+
             Init.Init_Writes
-               (Raw_Type => Raw_Type,
-               Undef_Phys_Used   => False, -- FIXME must be para to Open/Create
-               Undef_Phys        => 0.0, -- FIXME must param to Open/Create
+               (BITPIX => BITPIX,
+               Undef_Phys_Used => Phys_Used,
+               Undef_Phys      => Phys_Value,
+               A => A + Aui,
+               B => B,
+               Undef_Raw_Valid => False,
+               Undef_Raw       => 0.0,
                DU_Access => Data_Unit.Scaling);
 
-         when others => null; -- error : invalid op in this Mode FIXME
+         when others => null; -- error : Open invalid in this Mode FIXME
       end case;
    end Open;
 
@@ -243,7 +319,7 @@ package body FITS_IO is
 
    procedure Close
       (Data_Unit : in out Data_Unit_Type;
-      FFile : in File_Type)
+      FFile : File_Type)
    is
       FMode : File_Mode := Mode(FFile);
    begin
