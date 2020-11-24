@@ -17,14 +17,12 @@ package FITS_IO.Data_Unit is
 
   procedure Read
      (File : File_Type;
-      DU   : Data_Unit_Type;
       Item : out T_Arr;
       Last : out Count);
 
 
   procedure Write
      (File : File_Type;
-      DU   : Data_Unit_Type;
       Item : T_Arr);
 
 

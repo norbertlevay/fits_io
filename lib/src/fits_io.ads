@@ -29,11 +29,8 @@ package FITS_IO is
       Form : String := "");
 
    procedure Close  (File : in out File_Type);
-
    procedure Reset  (File : in out File_Type; Mode : File_Mode);
-
    function Mode    (File : File_Type) return File_Mode;
-
    function End_Of_File (File : File_Type) return Boolean;
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
@@ -66,59 +63,46 @@ package FITS_IO is
 
    -- Header
 
-   type DU_Type is (
-       Int8, UInt16, UInt32, UInt64,
+   type DU_Type is
+      (Int8, UInt16, UInt32, UInt64,
       UInt8,  Int16,  Int32,  Int64,
       F32, F64);
 
    subtype NAXIS_Index is Integer range 1 .. 999;
    type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
-   type Image_Rec(NAXIS : NAXIS_Index; Key_Count : Count) is
+   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
        record
-            Data_Type  : DU_Type;
-            NAXISn     : NAXIS_Array(1 .. NAXIS);
-            Array_Keys : String_80_Array(1 .. Key_Count);
+            Data_Type   : DU_Type;
+            NAXISn      : NAXIS_Array(1 .. NAXIS);
+            Image_Cards : String_80_Array(1 .. Card_Count);
         end record;
 
    type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
 
-   function  Read_Header(FFile : File_Type; Keys : BS_8_Array) return Image_Rec;
+   function  Read_Header
+      (FFile : in out File_Type;
+      Keys   : BS_8_Array;
+      Undef_Phys_Valid : Boolean := False;
+      Undef_Phys       : Float := 0.0)
+      return Image_Rec;
 
-   function  Write_Image(File : File_Type; DType : DU_Type;
-            NAXISn : NAXIS_Array; Array_Keys : String_80_Array) return Image_Rec;
-   procedure Write_End(File : File_Type);
+   procedure Write_Image
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
+      Undef_Phys_Used : Boolean := False;
+      Undef_Phys      : Float := 0.0;
+      Image_Cards : String_80_Array);
+
+   procedure Write_End_Card(File : File_Type);
 
 
    -- Data
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
 
-   type Data_Unit_Type is limited private;
-
-   procedure Create
-      (Data_Unit : in out Data_Unit_Type;
-      File       : File_Type;
-      Image      : Image_Rec;
-      Phys_Used  : Boolean := False;
-      Phys_Value : Float := 0.0;
-      A : Float := 0.0;
-      B : Float := 1.0);
- 
-   procedure Open
-      (Data_Unit : in out Data_Unit_Type;
-      File       : File_Type;
-      Image      : Image_Rec;
-      Phys_Used  : Boolean := False;
-      Phys_Value : Float := 0.0;
-      A : Float := 0.0;
-      B : Float := 1.0);
-
-
-   procedure Close
-      (Data_Unit : in out Data_Unit_Type;
-      FFile : File_Type);
-
+   procedure Write_Data_Padding(FFile : File_Type);
 
 
    -- FIXME hide this
@@ -139,7 +123,7 @@ package FITS_IO is
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
    procedure Set_Undefined_Values(File : in out File_Type; Undef_Raw, Undef_Phys : Float);
 
-   function Get(File : File_Type) return Access_Rec;
+   procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only - later Access_Rec to be hidden
 
    ----------------------------------------

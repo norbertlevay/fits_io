@@ -150,7 +150,7 @@ package body Init is
 
    procedure Init_Reads
       (BITPIX : in Integer;
-      Array_Keys : in String_80_Array;
+      Image_Cards : in String_80_Array;
       A           : in Float := 0.0;
       B           : in Float := 1.0;
       Undef_Phys_Valid : in Boolean := False;
@@ -169,18 +169,18 @@ package body Init is
 
       -- calc [A,B]
 
-      for I in Array_Keys'Range
+      for I in Image_Cards'Range
       loop
-         if(Array_Keys(I)(1 .. 5) = "BZERO")
+         if(Image_Cards(I)(1 .. 5) = "BZERO")
          then
-            Ah := Float'Value(Array_Keys(I)(11 .. 30));
-         elsif(Array_Keys(I)(1 .. 6) = "BSCALE")
+            Ah := Float'Value(Image_Cards(I)(11 .. 30));
+         elsif(Image_Cards(I)(1 .. 6) = "BSCALE")
          then
-            Bh := Float'Value(Array_Keys(I)(11 .. 30));
-         elsif(Array_Keys(I)(1 .. 5) = "BLANK")
+            Bh := Float'Value(Image_Cards(I)(11 .. 30));
+         elsif(Image_Cards(I)(1 .. 5) = "BLANK")
          then
             Undef_Raw_Used := True;
-            Undef_Raw := Float'Value(Array_Keys(I)(11 .. 30));
+            Undef_Raw := Float'Value(Image_Cards(I)(11 .. 30));
         end if;
       end loop;
 
@@ -206,25 +206,43 @@ package body Init is
 
    procedure Init_Writes
       (BITPIX: in Integer;
+      Image_Cards : in String_80_Array;
       Undef_Phys_Used : in Boolean;
       Undef_Phys      : in Float;
       A               : in Float := 0.0;
       B               : in Float := 1.0;
-      Undef_Raw_Valid : in Boolean := False;
-      Undef_Raw       : in Float   := 0.0;
       DU_Access       : out Access_Rec)
    is
 --      BITPIX : Integer;
 --      Aui    : Float; -- Tab11 UInt-Int conversion shift
+      Undef_Raw_Valid : Boolean := False;
+      Undef_Raw       : Float   := 0.0;
       Aall, Ball : Float;
+      Ah, Bh : Float;
    begin
 
       -- calc [A,B]
 
+      for I in Image_Cards'Range
+      loop
+         if(Image_Cards(I)(1 .. 5) = "BZERO")
+         then
+            Ah := Float'Value(Image_Cards(I)(11 .. 30));
+         elsif(Image_Cards(I)(1 .. 6) = "BSCALE")
+         then
+            Bh := Float'Value(Image_Cards(I)(11 .. 30));
+         elsif(Image_Cards(I)(1 .. 5) = "BLANK")
+         then
+            Undef_Raw_Valid := True;
+            Undef_Raw := Float'Value(Image_Cards(I)(11 .. 30));
+        end if;
+      end loop;
+
+
 --      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
-      Aall := A;-- + Aui;
-      Ball := B;
+      Aall := Ah + A;-- + Aui;
+      Ball := Bh * B;
 
       -- calc Undef
 
@@ -283,7 +301,7 @@ package body Init is
 
 
    -- utils
-   procedure Put_Access_Rec(AccRec : Access_Rec)
+   procedure Put_Access_Rec(AccRec : Access_Rec; Prefix : String := "")
    is  
      sBITPIX : String := Integer'Image(AccRec.BITPIX);
      sA : String := Float'Image(AccRec.A);
@@ -293,24 +311,24 @@ package body Init is
      sUndef_Phys : String := Float'Image(AccRec.Undef_Phys);
   begin
 
-   TIO.Put_Line("BITPIX = " & sBITPIX);
-   TIO.Put_Line("[A,B]  = " & sA & " " & sB);
+   TIO.Put_Line(Prefix & "BITPIX = " & sBITPIX);
+   TIO.Put_Line(Prefix & "[A,B]  = " & sA & " " & sB);
    if(AccRec.Undef_Used)
    then
-      TIO.Put_Line("Undef_Raw  = " & sUndef_Raw);
-      TIO.Put_Line("Undef_Phys = " & sUndef_Phys);
+      TIO.Put_Line(Prefix & "Undef_Raw  = " & sUndef_Raw);
+      TIO.Put_Line(Prefix & "Undef_Phys = " & sUndef_Phys);
    end if;
 
   end Put_Access_Rec;
 
-  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr)
+  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
   is  
      use Optional.BS_8;
      use Optional.BS70;
   begin
      for I in Keys'Range
       loop
-         TIO.Put_Line(To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
+         TIO.Put_Line(Prefix & To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
       end loop;
   end Put_Array_Keys;
 

@@ -49,8 +49,8 @@ is
    -- simulate some data
 
    package F32_Data is new FITS_IO.Data_Unit(Float);
-   DU : Data_Unit_Type;
 
+   UCnt : Natural := 0;
 
    function Generate_Data
       (ColLength : FITS_IO.Positive_Count;
@@ -61,16 +61,19 @@ is
        Col : F32_Data.T_Arr(1 .. ColLength);
    begin
        for I in Col'Range loop Col(I) := Float(I) - 1.0; end loop;
-       if (Undef_Valid) then Col(ColLength/2) := Undef_Value; end if;
+       if (Undef_Valid)
+       then
+          Col(ColLength/2) := Undef_Value;
+          UCnt := UCnt + 1;
+       end if;
        return Col;
    end Generate_Data;
 
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
-   In_File  : FITS_IO.File_Type;
 
    Buffer : F32_Data.T_Arr(1 .. ColLength);
-   -- Data write-buffer
+   -- Data write buffer
 begin
 
  Create (Out_File, FITS_IO.Append_File, File_Name);
@@ -79,25 +82,23 @@ begin
 
  Write(Out_File, HDU_First_Card);
 
- declare
-   Img : Image_Rec := Write_Image(Out_File, MD_Raw_Type, MD_NAXISn, Array_Cards);
- begin
-   Write_End(Out_File);
-   Create(DU, Out_File, Img, MD_Undef_Valid, MD_Undef_Value);
- end;
+ Write_Image(Out_File, MD_Raw_Type, MD_NAXISn, MD_Undef_Valid, MD_Undef_Value, Array_Cards);
+ Write_End_Card(Out_File);
+
+ FITS_IO.Put_File_Type(Out_File,"DBG> ");
 
  for I in 1 .. RowLength
  loop
-    Buffer := Generate_Data(ColLength,
-                  MD_Undef_Valid,
-                  MD_Undef_Value);
-    F32_Data.Write(Out_File, DU, Buffer);
+    Buffer := Generate_Data(ColLength, MD_Undef_Valid,MD_Undef_Value);
+    for I in Buffer'Range loop TIO.Put(" "&Float'Image(Buffer(I))); end loop;
+    F32_Data.Write(Out_File, Buffer);
  end loop;
 
- -- Close Data-unit and Close Fits-file
+ Write_Data_Padding(Out_File);
 
- FITS_IO.Close(DU, Out_File);
- FITS_IO.Close(Out_File);
+ Close(Out_File);
+
+   TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
 
 
 exception

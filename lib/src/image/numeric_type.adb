@@ -1,4 +1,6 @@
 
+with Ada.Text_IO;
+
 package body Numeric_Type is
 
 function Bit_Count return Positive
@@ -88,7 +90,8 @@ end BITPIX;
 
               if(Is_Undef(Vn,Undef))-- = Undef)
               then
-                  return Dummy; -- Error: "Vout is Undef but Vin was not" (V would be NaN)
+                  Ada.Text_IO.Put_Line("Error To_Numeric() : Vout is Undef but Vin was not");
+                  return Vn; -- Dummy Error: "Vout is Undef but Vin was not" (V would be NaN)
               else
                   return Vn;
               end if;

@@ -35,6 +35,8 @@ procedure minmax is
     -- values passed from Header to Data Read-Buffer
     Is_BLANK_In_Header  : Boolean := False;
     BLANK_Value         : String(1..20);
+    -- in case Header has BLANK use this Undef for Phys:
+    Undef_Phys_Valid    : Boolean := True;
     Undef_Phys : constant Float := F_NaN;
 
     ColLength : FITS_IO.Positive_Count;
@@ -45,9 +47,6 @@ procedure minmax is
     Max         : Float := Float'First;
     Undef_Count : FITS_IO.Count := 0;
 
-    --        Scaling : Init.Access_Rec;
-    DU : FITS_IO.Data_Unit_Type;
-
 begin
 
    -- Open file
@@ -57,26 +56,30 @@ begin
       TIO.Put_Line("Usage  " & Command_Name & " <file name>");
       return;
    else
-      FITS_IO.Open(In_File, FITS_IO.In_File, (Argument(1)));
+      Open(In_File, FITS_IO.In_File, (Argument(1)));
    end if;
 
 
    -- Read Header
 
    declare
-      Image : FITS_IO.Image_Rec := Read_Header(In_File, Optional.Reserved.Array_Keys);
+      Image : FITS_IO.Image_Rec := Read_Header(In_File, Optional.Reserved.Array_Keys,
+                                         Undef_Phys_Valid, Undef_Phys);
    begin
+      New_Line;
+      FITS_IO.Put_File_Type(In_File, "DBG> ");
       New_Line;
       Put_Line("DU_Type : " & FITS_IO.DU_Type'Image(Image.Data_Type) );
       Put_Line("NAXIS   : " & Integer'Image(Image.NAXISn'Last) );
 
-      for I in Image.Array_Keys'Range
+      for I in Image.Image_Cards'Range
       loop
-         Put_Line(">"&Image.Array_Keys(I)&"<");
-         if(Image.Array_Keys(I)(1..5) = "BLANK")
+         Put_Line(">"&Image.Image_Cards(I)&"<");
+         if(Image.Image_Cards(I)(1..5) = "BLANK")
          then
             Is_BLANK_In_Header := True;
-            BLANK_Value := Image.Array_Keys(I)(11..30);
+            BLANK_Value := Image.Image_Cards(I)(11..30);
+            --Set_Undefined_Values(In_File,Float'Value(BLANK_Value), Undef_Phys);
          end if;
         end loop;
 
@@ -88,7 +91,8 @@ begin
             RowLength := 1;
         end if;
 
-        FITS_IO.Open(DU, In_File, Image, Is_BLANK_In_Header, Undef_Phys);
+      New_Line;
+      FITS_IO.Put_File_Type(In_File, "DBG> ");
     end;
 
     -- Set-up data read buffer
@@ -122,17 +126,23 @@ begin
             end loop;
         end Analyze_Data;
 
-        Current_F32Column : F32_Data.T_Arr(1..ColLength);
+        Curr_Col : F32_Data.T_Arr(1..ColLength);
         Last : FITS_IO.Count;
      begin
-
 
          -- read all Data Unit
 
          for I in 1 .. RowLength
          loop
-             F32_Data.Read(In_File, DU, Current_F32Column, Last);
-             Analyze_Data(I,Current_F32Column, Is_BLANK_In_Header, Undef_Phys);
+             F32_Data.Read(In_File, Curr_Col, Last);
+
+--             TIO.New_Line;
+--             TIO.New_Line;
+--             for I in Curr_Col'Range loop TIO.Put(" "&Float'Image(Curr_Col(I))); end loop;
+--            New_Line;
+--            FITS_IO.Put_File_Type(In_File, "DBG> ");
+ 
+             Analyze_Data(I,Curr_Col, Is_BLANK_In_Header, Undef_Phys);
          end loop;
 
         -- print results
@@ -149,8 +159,7 @@ begin
 
      end;
 
-    FITS_IO.Close(DU,In_File);
-    FITS_IO.Close(In_File);
+    Close(In_File);
 
 
 exception
