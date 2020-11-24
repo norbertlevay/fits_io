@@ -26,7 +26,10 @@
 
 \section{FITS library}
 
-FITS-file is an efficient data container:
+FITS-file stores data and associated metadata. Optionally, it can mark undefined
+data values with a special value.
+
+FITS-file is an \textit{efficient} data container:
 it can store data in different type then the one in which the data is available.
 The FITS\_IO.File\_Type automatically converts and scales tha data and if data
 contains undefined values, it substitutes undefined value mark for the one in the new type.
