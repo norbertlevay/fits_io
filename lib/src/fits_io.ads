@@ -105,19 +105,9 @@ package FITS_IO is
    procedure Write_Data_Padding(FFile : File_Type);
 
 
-   -- FIXME hide this
-   type Access_Rec is record
-      BITPIX : Integer;
-      A,B : Float;
-      Undef_Used : Boolean;
-      Undef_Raw  : Float;
-      Undef_Phys : Float;
-   end record;
-   -- FIXME must be visible for init.ads - resolve later
-
-   ----------------------------------------------
-   -- Converions, Scaling and Undefined Values --
-   ----------------------------------------------
+   -----------------------------------------------
+   -- Conversions, Scaling and Undefined Values --
+   -----------------------------------------------
 
    procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type);
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
@@ -142,19 +132,22 @@ package FITS_IO is
 
    End_Error    : exception renames Ada.IO_Exceptions.End_Error;
 
+
+
    private
+
+   type Access_Rec is record
+      BITPIX : Integer;
+      A,B : Float;
+      Undef_Used : Boolean;
+      Undef_Raw  : Float;
+      Undef_Phys : Float;
+   end record;
 
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       Scaling  : Access_Rec;
    end record;
-
-
-   type Data_Unit_Type is record
-      Scaling : Access_Rec;
-   end record;
-
-
 
 end FITS_IO;
 

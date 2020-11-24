@@ -90,7 +90,7 @@ begin
  for I in 1 .. RowLength
  loop
     Buffer := Generate_Data(ColLength, MD_Undef_Valid,MD_Undef_Value);
-    for I in Buffer'Range loop TIO.Put(" "&Float'Image(Buffer(I))); end loop;
+--    for I in Buffer'Range loop TIO.Put(" "&Float'Image(Buffer(I))); end loop;
     F32_Data.Write(Out_File, Buffer);
  end loop;
 
