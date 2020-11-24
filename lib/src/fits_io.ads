@@ -95,7 +95,7 @@ package FITS_IO is
       Undef_Phys      : Float := 0.0;
       Image_Cards : String_80_Array);
 
-   procedure Write_End_Card(File : File_Type);
+   procedure Write_End_Card(File : in out File_Type);
 
 
    -- Data
@@ -111,7 +111,7 @@ package FITS_IO is
 
    procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type);
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
-   procedure Set_Undefined_Values(File : in out File_Type; Undef_Raw, Undef_Phys : Float);
+   procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only - later Access_Rec to be hidden
@@ -144,9 +144,18 @@ package FITS_IO is
       Undef_Phys : Float;
    end record;
 
+   -- RULE all Raw related params load from Write_Header/Write_Cards functions
+   -- all Physical related params loaded by API funcs called by user (incl T_Arr generic T)
+   -- Raw:  User -> Header   -> set Raw-value
+   -- Phys: User -> API-call -> set Phys value
+
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
-      Scaling  : Access_Rec;
+      Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
+      Physical_Undef_Valid : Boolean;-- set from Set_Undefined_Physical()
+      Physical_Undef_Value : Float;
+      Raw_Undef_Valid : Boolean;-- set from Header-BLANK
+      Raw_Undef_Value : Float;
    end record;
 
 end FITS_IO;

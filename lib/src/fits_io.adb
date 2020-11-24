@@ -322,6 +322,7 @@ package body FITS_IO is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       File.Scaling := Null_Access_Rec;
+      File.Physical_Undef_Valid := False;
    end Create;
 
    procedure Open
@@ -333,6 +334,7 @@ package body FITS_IO is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       File.Scaling := Null_Access_Rec;
+      File.Physical_Undef_Valid := False;
    end Open;
 
    procedure Close  (File : in out File_Type)
@@ -340,6 +342,7 @@ package body FITS_IO is
    begin
       SIO.Close(File.SIO_File);
       File.Scaling := Null_Access_Rec;
+      File.Physical_Undef_Valid := False;
    end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
@@ -429,6 +432,43 @@ package body FITS_IO is
    end BITPIX_To_DU_Type;
 
 
+   procedure Load_Undef_Vals_At_Write(File: in out File_Type)
+   is
+   begin
+      -- Write: Phys -> Raw
+      File.Scaling.Undef_Used := File.Physical_Undef_Valid;
+      if(File.Scaling.Undef_Used)
+      then
+         File.Scaling.Undef_Phys := File.Physical_Undef_Value;
+         if(File.Raw_Undef_Valid)
+         then
+            File.Scaling.Undef_Raw := File.Raw_Undef_Value;
+         else
+            File.Scaling.Undef_Raw := (File.Raw_Undef_Value - File.Scaling.A) / File.Scaling.B;
+         end if;
+      end if;
+   end Load_Undef_Vals_At_Write;
+
+
+
+   procedure Load_Undef_Vals_At_Read(File: in out File_Type)
+   is
+   begin
+      -- Read: Raw -> Phys
+      File.Scaling.Undef_Used := File.Raw_Undef_Valid;
+      if(File.Scaling.Undef_Used)
+      then
+         File.Scaling.Undef_Raw := File.Raw_Undef_Value;
+         if(File.Physical_Undef_Valid)
+         then
+            File.Scaling.Undef_Phys := File.Physical_Undef_Value;
+         else
+            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Raw_Undef_Value;
+         end if;
+      end if;
+   end Load_Undef_Vals_At_Read;
+
+
 
    function  Read_Header
       (FFile   : in out File_Type;
@@ -451,6 +491,7 @@ package body FITS_IO is
          Image.NAXISn      := Mand.NAXISn;
          Image.Image_Cards  := Cards;
 
+         -- FIXME remove OR use to init only A,B
          Init_Reads
             (BITPIX => Mand.BITPIX,
             Image_Cards => Image.Image_Cards,
@@ -459,6 +500,8 @@ package body FITS_IO is
             Undef_Phys_Valid => Undef_Phys_Valid,
             Undef_Phys       => Undef_Phys,
             DU_Access => FFile.Scaling);
+
+             Load_Undef_Vals_At_Read(FFile);
 
          return Image;
       end;
@@ -498,6 +541,7 @@ package body FITS_IO is
 
          Write(File, Cards);
 
+         -- FIXME remove OR use to init only A,B and move it to Write_End_Card
          Init_Writes
             (BITPIX => BITPIX,
             Image_Cards => Img.Image_Cards,
@@ -513,11 +557,11 @@ package body FITS_IO is
 
 
 
-   procedure Write_End_Card(File : File_Type)
+   procedure Write_End_Card(File : in out File_Type)
    is
    begin
       Header.Close(File);
-      -- FIXME update Access_Rec
+      Load_Undef_Vals_At_Read(File);
    end Write_End_Card;
 
 
@@ -590,13 +634,12 @@ package body FITS_IO is
    end Set_Linear_Scaling;
 
 
-   procedure Set_Undefined_Values(File : in out File_Type; Undef_Raw, Undef_Phys : Float)
+   procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float)
    is
    begin
-      File.Scaling.Undef_Used := True;
-      File.Scaling.Undef_Raw  := Undef_Raw;
-      File.Scaling.Undef_Phys := Undef_Phys;
-   end Set_Undefined_Values;
+      File.Physical_Undef_Valid := True;
+      File.Physical_Undef_Value := Undef_Phys;
+   end Set_Undefined_Physical;
 
 
    procedure Put_File_Type(File : File_Type; Prefix : String := "")
