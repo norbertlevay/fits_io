@@ -26,15 +26,22 @@
 
 \section{FITS library}
 
-FITS-file serves as a container to store data and metada. It is capable of storing data
-in differemt type then avaialable. FITS\_IO.File\_Type is capable of
+FITS-file is an efficient data container:
+it can store data in different type then the one in which the data is available.
+The FITS\_IO.File\_Type automatically converts and scales tha data and if data
+contains undefined values, it substitutes undefined value mark for the one in the new type.
 
-* converting data to other type
 
-* scaling the values (to fit the range)
+That is, FITS\_IO.File\_Type is capable of
 
-* and if needed, allows to mark undefined values and automatically replces them during conversion.
+* converting data to other type : Set\_Raw\_Type(File\_Type, Raw\_Type : Data\_Unit\_Type)
 
+* linearely scaling the values : Set\_Linear\_Scaling\_Coefficients(File\_Type, A, B : Float)
+
+and if needed
+
+* allows to mark undefined values and automatically replaces them during conversion
+: Set\_Undefined\_Values(File\_Type, Undefned\_Physical, Undefined\_Raw : Float)
 
 
 
