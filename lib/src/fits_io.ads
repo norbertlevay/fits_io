@@ -131,6 +131,16 @@ package FITS_IO is
    end record;
    -- FIXME must be visible for init.ads - resolve later
 
+   ----------------------------------------------
+   -- Converions, Scaling and Undefined Values --
+   ----------------------------------------------
+
+   procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type);
+   procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
+   procedure Set_Undefined_Values(File : in out File_Type; Undef_Raw, Undef_Phys : Float);
+
+   function Get(File : File_Type) return Access_Rec;
+   -- FIXME for debug only - later Access_Rec to be hidden
 
    ----------------------------------------
    -- Operations on Position within File --
@@ -152,6 +162,7 @@ package FITS_IO is
 
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
+      Scaling  : Access_Rec;
    end record;
 
 

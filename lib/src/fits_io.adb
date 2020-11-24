@@ -42,7 +42,9 @@ package body FITS_IO is
          end case;
    end To_FIO_Mode;
 
-
+   Null_Access_Rec : constant Access_Rec
+      := (BITPIX => 0, A => 0.0, B => 1.0,
+      Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
 
    procedure Create
      (File : in out File_Type;
@@ -52,6 +54,7 @@ package body FITS_IO is
    is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
+      File.Scaling := Null_Access_Rec;
    end Create;
 
    procedure Open
@@ -62,12 +65,14 @@ package body FITS_IO is
    is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
+      File.Scaling := Null_Access_Rec;
    end Open;
 
    procedure Close  (File : in out File_Type)
    is
    begin
       SIO.Close(File.SIO_File);
+      File.Scaling := Null_Access_Rec;
    end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
@@ -372,6 +377,42 @@ package body FITS_IO is
       return Data_Cnt;
    end Data_Element_Count;
 
+   ----------------------------------------------
+   -- Converions, Scaling and Undefined Values --
+   ----------------------------------------------
+
+   procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type)
+   is
+      BITPIX : Integer;
+      Aui : Float;
+   begin
+      Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
+      File.Scaling.BITPIX := BITPIX;
+      File.Scaling.A := File.Scaling.A + Aui;
+   end Set_Raw_Type;
+
+   procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float)
+   is
+   begin
+      File.Scaling.A := File.Scaling.A + A;
+      File.Scaling.B := File.Scaling.B * B;
+      -- FIXME overwrite or combine as above ??
+   end Set_Linear_Scaling;
+
+   procedure Set_Undefined_Values(File : in out File_Type; Undef_Raw, Undef_Phys : Float)
+   is
+   begin
+      File.Scaling.Undef_Used := True;
+      File.Scaling.Undef_Raw := Undef_Raw;
+      File.Scaling.Undef_Raw := Undef_Phys;
+   end Set_Undefined_Values;
+
+
+   function Get(File : File_Type) return Access_Rec
+   is
+   begin
+      return File.Scaling;
+   end Get;
 
 end FITS_IO;
 
