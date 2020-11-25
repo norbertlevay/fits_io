@@ -162,6 +162,18 @@ package FITS_IO is
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
 
+      -- Cache
+
+      -- cached values are loaded to Scaling when Header is completed
+      -- (without properly initialized Scaling Data_Unit Read Write will not work)
+
+      -- Below: cache of values filled in during manipulating the Header (reading or creating it)
+      -- and by User API calls Set_*(File : in out File_Type, <param to set>)
+      -- Cache is initialized at Create/Open and reset at Close.
+
+      -- FIXME make is explicit: type Cache is record ...
+      -- with ops: Init Reset Load_To_Scaling
+
       BITPIX : Integer; -- from Header BITPIX
       Aui, Ah, Bh, Au, Bu : Float;
       -- Aui - Tab11 shift Int-UInt conversions
