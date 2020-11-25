@@ -46,6 +46,23 @@ and if needed
 * allows to mark undefined values and automatically replaces them during conversion
 : Set\_Undefined\_Values(File\_Type, Undefned\_Physical, Undefined\_Raw : Float)
 
+API rules:
+
+\textbf{RULE} all Raw-related params load from Read/Write\_Header, Read/Write\_Cards functions
+
+\textbf{RULE} all Physical-related params loaded by API funcs called by user (incl generic T\_Arr)
+
+E.g. for Raw values user manipulates Header functions, Raw-values are set by lib
+in the background. And exist specific API calls for User to set Physical values in the lib
+(Set\_Undefined\_Value, Set\_Scaling, generic T\_Arr,...)
+
+
+* Raw:  User - Header - set Raw-value
+
+* Phys: User - API-call - set Phys-value
+
+\textbf{RULE} File.Scaling loaded/inited only when END-Card and Padding read/written;
+without that \textbf{Read/Write from/to Data Unit will fail} (BITPIX = 0?)
 
 
 \section{Algorithms}
