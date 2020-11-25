@@ -30,7 +30,7 @@ is
     RowLength : constant Positive_Count := 456;
 
     MD_NAXISn      : NAXIS_Array := (ColLength, RowLength);
-    MD_Undef_Valid : Boolean   := True;
+    Simulate_Undef : Boolean   := True;
     MD_Undef_Value : Float     := F_NaN;
     MD_Raw_Type    : DU_Type := FITS_IO.Int16;
 
@@ -73,7 +73,7 @@ is
    Out_File  : FITS_IO.File_Type;
 
    Buffer : F32_Data.T_Arr(1 .. ColLength);
-   -- Data write buffer
+
 begin
 
  Create (Out_File, FITS_IO.Append_File, File_Name);
@@ -82,14 +82,14 @@ begin
 
  Write(Out_File, HDU_First_Card);
 
- Write_Image(Out_File, MD_Raw_Type, MD_NAXISn, MD_Undef_Valid, MD_Undef_Value, Array_Cards);
- Write_End_Card(Out_File);
+ Set_Undefined_Physical(Out_File, MD_Undef_Value);
+ Write_Header(Out_File, MD_Raw_Type, MD_NAXISn, Array_Cards);
 
  FITS_IO.Put_File_Type(Out_File,"DBG> ");
 
  for I in 1 .. RowLength
  loop
-    Buffer := Generate_Data(ColLength, MD_Undef_Valid,MD_Undef_Value);
+    Buffer := Generate_Data(ColLength, Simulate_Undef,MD_Undef_Value);
 --    for I in Buffer'Range loop TIO.Put(" "&Float'Image(Buffer(I))); end loop;
     F32_Data.Write(Out_File, Buffer);
  end loop;

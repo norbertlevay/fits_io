@@ -59,12 +59,13 @@ begin
       Open(In_File, FITS_IO.In_File, (Argument(1)));
    end if;
 
+   Set_Undefined_Physical(In_File, Undef_Phys);
+   -- we expect undef values in Data and want to use own Undef
 
    -- Read Header
 
    declare
-      Image : FITS_IO.Image_Rec := Read_Header(In_File, Optional.Reserved.Array_Keys,
-                                         Undef_Phys_Valid, Undef_Phys);
+      Image : FITS_IO.Image_Rec := Read_Header(In_File, Optional.Reserved.Array_Keys);
    begin
       New_Line;
       FITS_IO.Put_File_Type(In_File, "DBG> ");

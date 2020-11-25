@@ -39,6 +39,7 @@ package FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
+
    -- Cards
 
    subtype String_80 is String(1 .. 80);
@@ -53,15 +54,16 @@ package FITS_IO is
    type String_80_Array is array (Positive_Count range <>) of String_80;
 
    procedure Read
-     (File : File_Type;
+     (File : in out File_Type;
       Item : out String_80_Array;
       Last : out Count);
 
    procedure Write
-     (File : File_Type;
+     (File : in out File_Type;
       Item : String_80_Array);
 
-   -- Header
+
+   -- Image
 
    type DU_Type is
       (Int8, UInt16, UInt32, UInt64,
@@ -70,6 +72,17 @@ package FITS_IO is
 
    subtype NAXIS_Index is Integer range 1 .. 999;
    type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+
+   procedure Write_Image
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
+      Image_Cards : String_80_Array);
+
+   procedure Write_End(File : in out File_Type);
+
+
+   -- Header
 
    type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
        record
@@ -82,20 +95,14 @@ package FITS_IO is
 
    function  Read_Header
       (FFile : in out File_Type;
-      Keys   : BS_8_Array;
-      Undef_Phys_Valid : Boolean := False;
-      Undef_Phys       : Float := 0.0)
+      Keys   : BS_8_Array)
       return Image_Rec;
 
-   procedure Write_Image
+   procedure Write_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
-      Undef_Phys_Used : Boolean := False;
-      Undef_Phys      : Float := 0.0;
       Image_Cards : String_80_Array);
-
-   procedure Write_End_Card(File : in out File_Type);
 
 
    -- Data
@@ -149,13 +156,24 @@ package FITS_IO is
    -- Raw:  User -> Header   -> set Raw-value
    -- Phys: User -> API-call -> set Phys value
 
+   -- RULE File.Scaling loaded/inited only when END-Card & Padding read/written
+   -- without that Read/Write to Data Unit will fail (BITPIX = 0?)
+
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
+
+      BITPIX : Integer; -- from Header BITPIX
+      Aui, Ah, Bh, Au, Bu : Float;
+      -- Aui - Tab11 shift Int-UInt conversions
+      -- Ah Bh - values from Header BZERO BSCALE
+      -- Au Bu - values from user calling Set_Linear_Scaling()
+
       Physical_Undef_Valid : Boolean;-- set from Set_Undefined_Physical()
       Physical_Undef_Value : Float;
       Raw_Undef_Valid : Boolean;-- set from Header-BLANK
       Raw_Undef_Value : Float;
+
    end record;
 
 end FITS_IO;
