@@ -19,196 +19,12 @@ package body FITS_IO is
    package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
 
-   ----------------------------------
-   -- BEGIN was image/init.ads.adb --
-   ----------------------------------
 
-   -- FIXME replace with one implementation
-   -- Undef_Init(A,B, Undef_1_Used, Undef_1, Undef_2_Valid, Undef_2, Undef_Rec out)
-   -- and swap Undef_1 <-> Undef_2 for Read Write
-   -- and for write: A => -A/B  B => 1/B
-
-   procedure Undef_Init_For_Reads
-      (A, B : in Float;
-      Undef_Raw_Used   : in Boolean;
-      Undef_Raw        : in Float;
-      Undef_Phys_Valid : in Boolean := False;
-      Undef_Phys       : in Float   := 0.0;
-      DU_Access : out Access_Rec)
-  is
-  begin
-
-      DU_Access.Undef_Used := Undef_Raw_Used;
-
-      if(DU_Access.Undef_Used)
-      then
-
-         DU_Access.Undef_Raw := Undef_Raw;
-
-         if(Undef_Phys_Valid)
-         then
-            DU_Access.Undef_Phys := Undef_Phys;
-         else
-            DU_Access.Undef_Phys := A + B * DU_Access.Undef_Raw;
-         end if;
-
-      end if;
-
-      DU_Access.A := A;
-      DU_Access.B := B;
-
-   end Undef_Init_For_Reads;
-
-
-
-
-
-
-  procedure Undef_Init_For_Writes
-      (A, B : in Float; -- B /= 0
-      Undef_Phys_Used : in Boolean;
-      Undef_Phys      : in Float;
-      Undef_Raw_Valid : in Boolean := False;
-      Undef_Raw       : in Float   := 0.0;
-      DU_Access : out Access_Rec)
-   is  
-   begin
-
-      DU_Access.Undef_Used := Undef_Phys_Used;
-
-      if(DU_Access.Undef_Used)
-      then
-
-         DU_Access.Undef_Phys := Undef_Phys;
-
-         if(Undef_Raw_Valid)
-         then
-            DU_Access.Undef_Raw := Undef_Raw;
-         else
-            DU_Access.Undef_Raw := (DU_Access.Undef_Phys - A) / B;
-         end if;
-
-      end if;
-
-      DU_Access.A := A;
-      DU_Access.B := B;
-
-   end Undef_Init_For_Writes;
-
-
-
-
-
-   procedure Init_Reads
-      (BITPIX : in Integer;
-      Image_Cards : in String_80_Array;
-      A           : in Float := 0.0;
-      B           : in Float := 1.0;
-      Undef_Phys_Valid : in Boolean := False;
-      Undef_Phys       : in Float   := 0.0;
-      DU_Access   : out Access_Rec)
-   is  
---      BITPIX : Integer;
---      Aui : Float; -- Tab11 UInt-Int conversion shift
-      Ah : Float := 0.0; -- A,B from Header BZERO BSCALE
-      Bh : Float := 1.0; -- A,B from Header BZERO BSCALE
-      use Optional.BS_8;
-      Undef_Raw_Used : Boolean := False;
-      Undef_Raw : Float;
-      Aall, Ball : Float;
-   begin
-
-      -- calc [A,B]
-
-      for I in Image_Cards'Range
-      loop
-         if(Image_Cards(I)(1 .. 5) = "BZERO")
-         then
-            Ah := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 6) = "BSCALE")
-         then
-            Bh := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 5) = "BLANK")
-         then
-            Undef_Raw_Used := True;
-            Undef_Raw := Float'Value(Image_Cards(I)(11 .. 30));
-        end if;
-      end loop;
-
---      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-
-      Aall := A + Ah;-- + Aui;
-      Ball := B * Bh; 
-
-      -- calc Undef
-
-      Undef_Init_For_Reads(Aall, Ball,
-            Undef_Raw_Used,
-            Undef_Raw,
-            Undef_Phys_Valid,
-            Undef_Phys,
-            DU_Access);
-
-      DU_Access.BITPIX := BITPIX;
-
-   end Init_Reads;
-
-   procedure Init_Writes
-      (BITPIX: in Integer;
-      Image_Cards : in String_80_Array;
-      Undef_Phys_Used : in Boolean;
-      Undef_Phys      : in Float;
-      A               : in Float := 0.0;
-      B               : in Float := 1.0;
-      DU_Access       : out Access_Rec)
-   is
---      BITPIX : Integer;
---      Aui    : Float; -- Tab11 UInt-Int conversion shift
-      Undef_Raw_Valid : Boolean := False;
-      Undef_Raw       : Float   := 0.0;
-      Aall, Ball : Float;
-      Ah, Bh : Float;
-   begin
-
-      -- calc [A,B]
-
-      for I in Image_Cards'Range
-      loop
-         if(Image_Cards(I)(1 .. 5) = "BZERO")
-         then
-            Ah := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 6) = "BSCALE")
-         then
-            Bh := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 5) = "BLANK")
-         then
-            Undef_Raw_Valid := True;
-            Undef_Raw := Float'Value(Image_Cards(I)(11 .. 30));
-        end if;
-      end loop;
-
-
---      DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-
-      Aall := Ah + A;-- + Aui;
-      Ball := Bh * B;
-
-      -- calc Undef
-
-      Undef_Init_For_Writes(Aall, Ball,
-         Undef_Phys_Used,
-         Undef_Phys,
-         Undef_Raw_Valid,
-         Undef_Raw,
-         DU_Access);
-
-      DU_Access.BITPIX := BITPIX;
-
-   end Init_Writes;
-
+   -----------------
+   -- BEGIN utils --
+   -----------------
 
    -- convert Access_Rec - Reserved.Array_Keys cards
-
    function To_Array_Keys(DU_Access : Access_Rec) return Header.Valued_Key_Record_Arr
    is  
       Ncards : Natural := 0;
@@ -246,7 +62,18 @@ package body FITS_IO is
    end To_Array_Keys;
 
 
-   -- utils
+  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
+  is
+     use Optional.BS_8;
+     use Optional.BS70;
+  begin
+     for I in Keys'Range
+      loop
+         TIO.Put_Line(Prefix & To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
+      end loop;
+  end Put_Array_Keys;
+
+
    procedure Put_Access_Rec(AccRec : Access_Rec; Prefix : String := "") 
    is
      sBITPIX : String := Integer'Image(AccRec.BITPIX);
@@ -267,21 +94,9 @@ package body FITS_IO is
 
   end Put_Access_Rec;
 
-  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
-  is
-     use Optional.BS_8;
-     use Optional.BS70;
-  begin
-     for I in Keys'Range
-      loop
-         TIO.Put_Line(Prefix & To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
-      end loop;
-  end Put_Array_Keys;
-
-
-   --------------------------------
-   -- END was image/init.ads.adb --
-   --------------------------------
+   ---------------
+   -- END utils --
+   ---------------
 
 
 
@@ -400,6 +215,14 @@ package body FITS_IO is
    -----------------------------
    -- Input-Output Operations --
    -----------------------------
+
+   -- RULE Header is read sequentially (because size unknown, must read until END-card)
+   -- RULE Data-unit read/write is random access (because size known from the header)
+
+   -- RULE Read_Header funcs (unlike Read_/Write_Cards):
+   -- * always reads all header, up to END_Card (incl padding: skip at read)
+
+
    procedure Parse_Image_Cards
       (Image_Cards : in String_80_Array;
       A : out Float;
@@ -426,7 +249,6 @@ package body FITS_IO is
          end if;
       end loop;
    end Parse_Image_Cards;
-
 
 
    -- Load File_Type.Access_Rec when Header ready
@@ -464,7 +286,6 @@ package body FITS_IO is
    end Load_Undef_Vals_At_Write;
 
 
-
    procedure Load_Undef_Vals_At_Read(File: in out File_Type)
    is
    begin
@@ -483,12 +304,6 @@ package body FITS_IO is
          end if;
       end if;
    end Load_Undef_Vals_At_Read;
-
-   -- RULE Header is read sequentially (because size unknown, must read until END-card)
-   -- RULE Data-unit read/write is random access (because size known from the header)
-
-   -- RULE Read_Header funcs (unlike Read_/Write_Cards):
-   -- * always reads all header, up to END_Card (incl padding: skip at read)
 
 
    -- Cards
@@ -523,6 +338,7 @@ package body FITS_IO is
       return Found;
    end Has_END_Card;
 
+
    procedure Read
      (File : in out File_Type;
       Item : out String_80_Array;
@@ -552,6 +368,7 @@ package body FITS_IO is
       end if;
    end Read;
 
+
    procedure Write
      (File : in out File_Type;
       Item : String_80_Array)
@@ -565,8 +382,6 @@ package body FITS_IO is
        Undef_Raw_Valid => File.Raw_Undef_Valid,
        Undef_Raw_Value => File.Raw_Undef_Value);
    end Write;
-
-
 
 
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
@@ -592,8 +407,6 @@ package body FITS_IO is
          when others => return Uint8; -- FIXME Error invalid BITPIX
       end case;
    end BITPIX_To_DU_Type;
-
-
 
 
    function  Read_Header
@@ -635,7 +448,6 @@ package body FITS_IO is
       end;
 
    end Read_Header;
-
 
 
    procedure Write_Image
@@ -794,7 +606,6 @@ package body FITS_IO is
    begin
       Put_Access_Rec(File.Scaling,Prefix);
    end Put_File_Type;
-
 
 
 end FITS_IO;

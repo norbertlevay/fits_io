@@ -30,8 +30,8 @@ package FITS_IO is
 
    procedure Close  (File : in out File_Type);
    procedure Reset  (File : in out File_Type; Mode : File_Mode);
-   function Mode    (File : File_Type) return File_Mode;
-   function End_Of_File (File : File_Type) return Boolean;
+   function  Mode    (File : File_Type) return File_Mode;
+   function  End_Of_File (File : File_Type) return Boolean;
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
 
@@ -116,7 +116,6 @@ package FITS_IO is
    -- Conversions, Scaling and Undefined Values --
    -----------------------------------------------
 
-   procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type);
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
