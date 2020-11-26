@@ -1,6 +1,5 @@
 
--- create BITPIX=16 file from Float_32 data
-
+-- creat from User_Type data a FITS-file with MD_Raw_Type data
 
 with Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -24,7 +23,10 @@ is
 
     package TIO renames Ada.Text_IO;
 
-    -- Metadata
+    subtype User_Type is Float;
+    MD_Raw_Type : DU_Type := FITS_IO.Int32;
+
+   -- Metadata
 
     ColLength : constant Positive_Count := 256;
     RowLength : constant Positive_Count := 456;
@@ -32,7 +34,6 @@ is
     MD_NAXISn      : NAXIS_Array := (ColLength, RowLength);
     Simulate_Undef : Boolean   := True;
     MD_Undef_Value : Float     := F_NaN;
-    MD_Raw_Type    : DU_Type := FITS_IO.Int32;
 
     HDU_First_Card : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
@@ -49,7 +50,6 @@ is
    -- simulate some data
 
     -- FIXME works only for Float, for Ints raises overflow excpetion at conv ABFloat->Int
-   subtype User_Type is Float;
    package User_Data is new FITS_IO.Data_Unit(User_Type);
 
    UCnt : Natural := 0;
