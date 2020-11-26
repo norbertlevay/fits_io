@@ -4,6 +4,7 @@
 with Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 
 with FITS_IO;           use FITS_IO;
 with FITS_IO.Data_Unit;
@@ -23,17 +24,17 @@ is
 
     package TIO renames Ada.Text_IO;
 
-    subtype User_Type is Float;
-    MD_Raw_Type : DU_Type := FITS_IO.Int32;
+    subtype User_Type is Short_Short_Integer;
+    MD_Raw_Type : DU_Type := FITS_IO.UInt8;
 
    -- Metadata
 
-    ColLength : constant Positive_Count := 256;
+    ColLength : constant Positive_Count := 127;
     RowLength : constant Positive_Count := 456;
 
     MD_NAXISn      : NAXIS_Array := (ColLength, RowLength);
     Simulate_Undef : Boolean   := True;
-    MD_Undef_Value : Float     := F_NaN;
+    MD_Undef_Value : Float     := Float(User_Type'Last);--F_NaN;
 
     HDU_First_Card : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
@@ -42,9 +43,9 @@ is
     Array_Cards : String_80_Array :=
                (Valued_Card(BZERO,    1*    "0.0"),
                 Valued_Card(BSCALE,   1*    "1.0"),
-                Valued_Card(BLANK,    1*    "255"),
+                Valued_Card(BLANK,    1*     Integer'Image(Integer(MD_Undef_Value))),
                 Valued_Card(DATAMIN,  1*    "0.0"),
-                Valued_Card(DATAMAX,  1*  "255.0"));
+                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
 
    -- simulate some data
@@ -105,6 +106,10 @@ begin
 
 exception
   when Except_ID :
-     others => TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
+     others =>
+      TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
+      TIO.Put_Line(GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
+      -- for Tracenack buil with:
+      -- gnatmake -Pexamples create -bargs -E
 end create;
 
