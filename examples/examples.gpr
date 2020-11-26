@@ -26,6 +26,11 @@ project examples is
       for Default_Switches ("ada") use ("-L../lib/lib -lfits_io");
    end Linker;
 
+   package Binder is
+      for Default_Switches ("ada") use ("-E");
+      -- for symbolic Traceback
+   end Binder;
+
    package Builder is
       for Default_Switches ("ada") use ("-g","-s", "-gnatQ");
    end Builder;

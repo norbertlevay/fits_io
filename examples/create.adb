@@ -108,8 +108,6 @@ exception
   when Except_ID :
      others =>
       TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
-      TIO.Put_Line(GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
-      -- for Tracenack buil with:
-      -- gnatmake -Pexamples create -bargs -E
+      TIO.Put_Line(TIO.Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
 end create;
 
