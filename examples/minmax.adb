@@ -102,11 +102,11 @@ begin
 
     declare
 
-        package F32_Data is new FITS_IO.Data_Unit(Phys_Type);
+        package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
 
         -- example of data elaboration: find min max and count undef values
 
-        subtype ColBuffer is F32_Data.T_Arr(1..ColLength);
+        subtype ColBuffer is Phys_Data.T_Arr(1..ColLength);
 
         procedure Analyze_Data
             (R : FITS_IO.Positive_Count;
@@ -129,7 +129,7 @@ begin
             end loop;
         end Analyze_Data;
 
-        Curr_Col : F32_Data.T_Arr(1..ColLength);
+        Curr_Col : Phys_Data.T_Arr(1..ColLength);
         Last : FITS_IO.Count;
      begin
 
@@ -137,7 +137,7 @@ begin
 
          for I in 1 .. RowLength
          loop
-             F32_Data.Read(In_File, Curr_Col, Last);
+             Phys_Data.Read(In_File, Curr_Col, Last);
 
 --             TIO.New_Line;
 --             TIO.New_Line;
