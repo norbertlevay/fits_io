@@ -128,6 +128,20 @@ package body FITS_IO is
       := (BITPIX => 0, A => 0.0, B => 1.0,
       Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
 
+   F_Zero : Float := 0.0;
+   F_NaN : constant Float := 0.0/F_Zero;
+   -- FIXME NaN for Floats in Ada -> how?
+
+   Null_Cache_Rec : constant Cache_Rec
+      := (BITPIX => 0,
+      Aui => 0.0,
+      Ah => 0.0, Bh => 1.0,
+      Au => 0.0, Bu => 1.0,
+      Physical_Undef_Valid => False,
+      Physical_Undef_Value => F_NaN,
+      Raw_Undef_Valid => False,
+      Raw_Undef_Value => F_NaN);
+
    procedure Create
      (File : in out File_Type;
       Mode : File_Mode := Out_File;
@@ -138,14 +152,7 @@ package body FITS_IO is
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
       File.Scaling := Null_Access_Rec;
-      File.BITPIX := 0;
-      File.Aui := 0.0;
-      File.Ah := 0.0;
-      File.Bh := 1.0;
-      File.Au := 0.0;
-      File.Bu := 1.0;
-      File.Raw_Undef_Valid := False;
-      File.Physical_Undef_Valid := False;
+      File.Cache   := Null_Cache_Rec;
    end Create;
 
    procedure Open
@@ -158,14 +165,7 @@ package body FITS_IO is
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
       File.Scaling := Null_Access_Rec;
-      File.BITPIX := 0;
-      File.Aui := 0.0;
-      File.Ah := 0.0;
-      File.Bh := 1.0;
-      File.Au := 0.0;
-      File.Bu := 1.0;
-      File.Raw_Undef_Valid := False;
-      File.Physical_Undef_Valid := False;
+      File.Cache   := Null_Cache_Rec;
    end Open;
 
    procedure Close  (File : in out File_Type)
@@ -174,14 +174,7 @@ package body FITS_IO is
       SIO.Close(File.SIO_File);
       -- Reset File_Type state
       File.Scaling := Null_Access_Rec;
-      File.BITPIX := 0;
-      File.Aui := 0.0;
-      File.Ah := 0.0;
-      File.Bh := 1.0;
-      File.Au := 0.0;
-      File.Bu := 1.0;
-      File.Raw_Undef_Valid := False;
-      File.Physical_Undef_Valid := False;
+      File.Cache   := Null_Cache_Rec;
    end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
@@ -259,10 +252,10 @@ package body FITS_IO is
       -- A,B interpreted always in Read-direction: Phys = A + B * Raw
       -- inverted values [-A/B , 1/B] used in Write for Undef calc and data scaling
       -- direct values [A,B] used in Read
-      File.Scaling.A := File.Ah + File.Au + File.Aui;
-      File.Scaling.B := File.Bh * File.Bu;
+      File.Scaling.A := File.Cache.Ah + File.Cache.Au + File.Cache.Aui;
+      File.Scaling.B := File.Cache.Bh * File.Cache.Bu;
 
-      File.Scaling.BITPIX := File.BITPIX;
+      File.Scaling.BITPIX := File.Cache.BITPIX;
    end Load_BITPIX_And_Scaling_AB;
 
 
@@ -270,17 +263,17 @@ package body FITS_IO is
    is
    begin
       -- Write: Phys -> Raw
-      File.Scaling.Undef_Used := File.Physical_Undef_Valid;
+      File.Scaling.Undef_Used := File.Cache.Physical_Undef_Valid;
       if(File.Scaling.Undef_Used)
       then
-         File.Scaling.Undef_Phys := File.Physical_Undef_Value;
-         if(File.Raw_Undef_Valid)
+         File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
+         if(File.Cache.Raw_Undef_Valid)
          then
-            File.Scaling.Undef_Raw := File.Raw_Undef_Value;
+            File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
          else
             -- FIXME Undef calc is type dependent: if Float Undef is NaN
             -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Raw := (File.Raw_Undef_Value - File.Scaling.A) / File.Scaling.B;
+            File.Scaling.Undef_Raw := (File.Cache.Raw_Undef_Value - File.Scaling.A) / File.Scaling.B;
          end if;
       end if;
    end Load_Undef_Vals_At_Write;
@@ -290,17 +283,17 @@ package body FITS_IO is
    is
    begin
       -- Read: Raw -> Phys
-      File.Scaling.Undef_Used := File.Raw_Undef_Valid;
+      File.Scaling.Undef_Used := File.Cache.Raw_Undef_Valid;
       if(File.Scaling.Undef_Used)
       then
-         File.Scaling.Undef_Raw := File.Raw_Undef_Value;
-         if(File.Physical_Undef_Valid)
+         File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
+         if(File.Cache.Physical_Undef_Valid)
          then
-            File.Scaling.Undef_Phys := File.Physical_Undef_Value;
+            File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
          else
             -- FIXME Undef calc is type dependent: if Float Undef is NaN
             -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Raw_Undef_Value;
+            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Cache.Raw_Undef_Value;
          end if;
       end if;
    end Load_Undef_Vals_At_Read;
@@ -350,14 +343,14 @@ package body FITS_IO is
       -- any further Reads should not move File.Index
       String_80_Array'Read(Stream(File), Item);
 
-      Parse_BITPIX(Item, File.BITPIX);
+      Parse_BITPIX(Item, File.Cache.BITPIX);
 
       Parse_Image_Cards
        (Image_Cards => Item,
-       A => File.Ah,
-       B => File.Bh,
-       Undef_Raw_Valid => File.Raw_Undef_Valid,
-       Undef_Raw_Value => File.Raw_Undef_Value);
+       A => File.Cache.Ah,
+       B => File.Cache.Bh,
+       Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+       Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
       if(Has_END_Card(Item,Last))
       then
@@ -377,10 +370,10 @@ package body FITS_IO is
       String_80_Array'Write(Stream(File), Item);
       Parse_Image_Cards
        (Image_Cards => Item,
-       A => File.Ah,
-       B => File.Bh,
-       Undef_Raw_Valid => File.Raw_Undef_Valid,
-       Undef_Raw_Value => File.Raw_Undef_Value);
+       A => File.Cache.Ah,
+       B => File.Cache.Bh,
+       Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+       Undef_Raw_Value => File.Cache.Raw_Undef_Value);
    end Write;
 
 
@@ -431,14 +424,14 @@ package body FITS_IO is
 
          -- cache DU-access data
 
-         FFile.BITPIX := Mand.BITPIX;
+         FFile.Cache.BITPIX := Mand.BITPIX;
 
          Parse_Image_Cards
             (Image_Cards => Cards,
-            A => FFile.Ah,
-            B => FFile.Bh,
-            Undef_Raw_Valid => FFile.Raw_Undef_Valid,
-            Undef_Raw_Value => FFile.Raw_Undef_Value);
+            A => FFile.Cache.Ah,
+            B => FFile.Cache.Bh,
+            Undef_Raw_Valid => FFile.Cache.Raw_Undef_Valid,
+            Undef_Raw_Value => FFile.Cache.Raw_Undef_Value);
 
          -- init data unit Access_Rec
          Load_BITPIX_And_Scaling_AB(FFile);
@@ -481,15 +474,15 @@ package body FITS_IO is
 
          -- cache DU-access data
 
-         File.BITPIX := BITPIX;
-         File.Aui := Aui;
+         File.Cache.BITPIX := BITPIX;
+         File.Cache.Aui := Aui;
 
          Parse_Image_Cards
             (Image_Cards => Cards,
-            A => File.Ah,
-            B => File.Bh,
-            Undef_Raw_Valid => File.Raw_Undef_Valid,
-            Undef_Raw_Value => File.Raw_Undef_Value);
+            A => File.Cache.Ah,
+            B => File.Cache.Bh,
+            Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+            Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
       end;
 
@@ -580,24 +573,24 @@ package body FITS_IO is
       Aui      : Float;
    begin
       Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-      File.BITPIX := BITPIX;
-      File.Aui    := Aui;
+      File.Cache.BITPIX := BITPIX;
+      File.Cache.Aui    := Aui;
    end Set_Raw_Type;
 
 
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float)
    is
    begin
-      File.Au := A;
-      File.Bu := B;
+      File.Cache.Au := A;
+      File.Cache.Bu := B;
    end Set_Linear_Scaling;
 
 
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float)
    is
    begin
-      File.Physical_Undef_Valid := True;
-      File.Physical_Undef_Value := Undef_Phys;
+      File.Cache.Physical_Undef_Valid := True;
+      File.Cache.Physical_Undef_Value := Undef_Phys;
    end Set_Undefined_Physical;
 
 

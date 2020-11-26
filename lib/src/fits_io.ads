@@ -142,14 +142,6 @@ package FITS_IO is
 
    private
 
-   type Access_Rec is record
-      BITPIX : Integer;
-      A,B : Float;
-      Undef_Used : Boolean;
-      Undef_Raw  : Float;
-      Undef_Phys : Float;
-   end record;
-
    -- RULE all Raw related params load from Write_Header/Write_Cards functions
    -- all Physical related params loaded by API funcs called by user (incl T_Arr generic T)
    -- Raw:  User -> Header   -> set Raw-value
@@ -158,33 +150,44 @@ package FITS_IO is
    -- RULE File.Scaling loaded/inited only when END-Card & Padding read/written
    -- without that Read/Write to Data Unit will fail (BITPIX = 0?)
 
+
+   -- Access Data Unit
+
+   type Access_Rec is record
+      BITPIX : Integer;
+      A,B : Float;
+      Undef_Used : Boolean;
+      Undef_Raw  : Float;
+      Undef_Phys : Float;
+   end record;
+   -- used by Data_Unit.Read/Write
+   -- if not initialized, DU access not possible
+   -- it is initialized from Cache after Header is completed (created or read)
+
+   -- Cache
+
+   -- cache of values filled in during manipulating the Header (reading or creating it)
+   -- and by User API calls Set_*(File : in out File_Type, <param to set>)
+   -- Cache is initialized at Create/Open and reset at Close.
+
+   type Cache_Rec is
+      record
+         BITPIX : Integer; -- from Header BITPIX
+         Aui, Ah, Bh, Au, Bu : Float;
+         -- Aui - Tab11 shift Int-UInt conversions
+         -- Ah Bh - values from Header BZERO BSCALE
+         -- Au Bu - values from User calling Set_Linear_Scaling()
+         Physical_Undef_Valid : Boolean;-- set from Set_Undefined_Physical()
+         Physical_Undef_Value : Float;
+         Raw_Undef_Valid : Boolean;-- set from Header-BLANK
+         Raw_Undef_Value : Float;
+      end record;
+
+
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
-
-      -- Cache
-
-      -- cached values are loaded to Scaling when Header is completed
-      -- (without properly initialized Scaling Data_Unit Read Write will not work)
-
-      -- Below: cache of values filled in during manipulating the Header (reading or creating it)
-      -- and by User API calls Set_*(File : in out File_Type, <param to set>)
-      -- Cache is initialized at Create/Open and reset at Close.
-
-      -- FIXME make is explicit: type Cache is record ...
-      -- with ops: Init Reset Load_To_Scaling
-
-      BITPIX : Integer; -- from Header BITPIX
-      Aui, Ah, Bh, Au, Bu : Float;
-      -- Aui - Tab11 shift Int-UInt conversions
-      -- Ah Bh - values from Header BZERO BSCALE
-      -- Au Bu - values from user calling Set_Linear_Scaling()
-
-      Physical_Undef_Valid : Boolean;-- set from Set_Undefined_Physical()
-      Physical_Undef_Value : Float;
-      Raw_Undef_Valid : Boolean;-- set from Header-BLANK
-      Raw_Undef_Value : Float;
-
+      Cache    : Cache_Rec;
    end record;
 
 end FITS_IO;
