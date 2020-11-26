@@ -27,6 +27,8 @@ procedure minmax is
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
 
+   subtype Phys_Type is Long_Long_Float;
+
     Zero    : Float := 0.0;
     F_NaN   : constant Float := 0.0/Zero;
 
@@ -43,8 +45,8 @@ procedure minmax is
     RowLength : FITS_IO.Positive_Count;
 
     -- vars for 'Data Analyzes' example
-    Min         : Float := Float'Last;
-    Max         : Float := Float'First;
+    Min         : Phys_Type := Phys_Type'Last;
+    Max         : Phys_Type := Phys_Type'First;
     Undef_Count : FITS_IO.Count := 0;
 
 begin
@@ -100,7 +102,7 @@ begin
 
     declare
 
-        package F32_Data is new FITS_IO.Data_Unit(Float);
+        package F32_Data is new FITS_IO.Data_Unit(Phys_Type);
 
         -- example of data elaboration: find min max and count undef values
 
@@ -111,7 +113,7 @@ begin
             CurF32Col: ColBuffer;
             UValid : Boolean; UValue : Float)
         is
-            V : Float;
+            V : Phys_Type;
             use FITS_IO;
         begin
             for I in CurF32Col'Range
@@ -155,8 +157,8 @@ begin
              TIO.Put_Line("Undef_Phys             : " & Float'Image(Undef_Phys));
          end if;
          TIO.Put_Line("Undef_Count (NaN)      : " & FITS_IO.Count'Image(Undef_Count));
-         TIO.Put_Line("Min                    : " & Float'Image(Min));
-         TIO.Put_Line("Max                    : " & Float'Image(Max));
+         TIO.Put_Line("Min                    : " & Phys_Type'Image(Min));
+         TIO.Put_Line("Max                    : " & Phys_Type'Image(Max));
 
      end;
 

@@ -32,7 +32,7 @@ is
     MD_NAXISn      : NAXIS_Array := (ColLength, RowLength);
     Simulate_Undef : Boolean   := True;
     MD_Undef_Value : Float     := F_NaN;
-    MD_Raw_Type    : DU_Type := FITS_IO.Int16;
+    MD_Raw_Type    : DU_Type := FITS_IO.Int32;
 
     HDU_First_Card : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
@@ -48,7 +48,9 @@ is
 
    -- simulate some data
 
-   package F32_Data is new FITS_IO.Data_Unit(Float);
+    -- FIXME works only for Float, for Ints raises overflow excpetion at conv ABFloat->Int
+   subtype User_Type is Float;
+   package User_Data is new FITS_IO.Data_Unit(User_Type);
 
    UCnt : Natural := 0;
 
@@ -56,14 +58,14 @@ is
       (ColLength : FITS_IO.Positive_Count;
       Undef_Valid : Boolean;
       Undef_Value : Float)
-      return F32_Data.T_Arr
+      return User_Data.T_Arr
    is
-       Col : F32_Data.T_Arr(1 .. ColLength);
+       Col : User_Data.T_Arr(1 .. ColLength);
    begin
-       for I in Col'Range loop Col(I) := Float(I) - 1.0; end loop;
+       for I in Col'Range loop Col(I) := User_Type(I - 1); end loop;
        if (Undef_Valid)
        then
-          Col(ColLength/2) := Undef_Value;
+          Col(ColLength/2) := User_Type(Undef_Value);
           UCnt := UCnt + 1;
        end if;
        return Col;
@@ -72,7 +74,7 @@ is
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
 
-   Buffer : F32_Data.T_Arr(1 .. ColLength);
+   Buffer : User_Data.T_Arr(1 .. ColLength);
 
 begin
 
@@ -91,7 +93,7 @@ begin
  loop
     Buffer := Generate_Data(ColLength, Simulate_Undef,MD_Undef_Value);
 --    for I in Buffer'Range loop TIO.Put(" "&Float'Image(Buffer(I))); end loop;
-    F32_Data.Write(Out_File, Buffer);
+    User_Data.Write(Out_File, Buffer);
  end loop;
 
  Write_Data_Padding(Out_File);
