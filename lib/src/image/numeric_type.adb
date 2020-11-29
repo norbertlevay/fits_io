@@ -1,6 +1,8 @@
 
 with Ada.Text_IO;
 
+with Ada.Exceptions; use Ada.Exceptions;
+
 package body Numeric_Type is
 
 function Bit_Count return Positive
@@ -88,10 +90,11 @@ end BITPIX;
 
               Vn := +V; 
 
-              if(Is_Undef(Vn,Undef))-- = Undef)
+              if(Is_Undef(Vn,Undef))
               then
-                  Ada.Text_IO.Put_Line("Error To_Numeric() : Vout is Undef but Vin was not");
-                  return Vn; -- Dummy Error: "Vout is Undef but Vin was not" (V would be NaN)
+                  Raise_Exception
+                     (Programming_Error'Identity,
+                     "To_Numeric : Vout is Undef but Vin ("&Float'Image(V)&") was not");
               else
                   return Vn;
               end if;
@@ -124,7 +127,6 @@ end BITPIX;
  function To_Numeric(Af : in Float_Arr) return Numeric_Arr
  is
      An : Numeric_Arr(Af'Range);
-    Dummy : Numeric; -- FIXME replace with exceoption
  begin
 
      if(Undef_Valid)
@@ -143,7 +145,9 @@ end BITPIX;
 
                 if(Is_Undef(An(I),Undef))
                 then
-                    An(I) := Dummy; -- Error: "Vout is Undef but Vin was not" (Af(I) is not Undef)
+                   Raise_Exception
+                     (Programming_Error'Identity,
+                     "To_Numeric(Float_Arr): Vout is Undef but Vin ("&Float'Image(Af(I))&") was not");
                 end if;
 
             end if;

@@ -34,6 +34,8 @@ package Numeric_Type is
     function To_Float  (An : in Numeric_Arr) return Float_Arr;
     -- used in Data Unit values conversion and scaling (array of values)
 
+   Programming_Error : exception;
+
 end Numeric_Type;
 
 

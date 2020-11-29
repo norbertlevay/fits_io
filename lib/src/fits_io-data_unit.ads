@@ -25,6 +25,7 @@ package FITS_IO.Data_Unit is
      (File : File_Type;
       Item : T_Arr);
 
+  Programming_Error : exception;
 
 end FITS_IO.Data_Unit;
 

@@ -58,7 +58,7 @@
 
 
 
-
+with Ada.Exceptions; use Ada.Exceptions;
 
 with Numeric_Type;
 with V3_Types; use V3_Types;
@@ -175,7 +175,8 @@ package body FITS_IO.Data_Unit is
              when  64=> I64Raw.Set_Undefined(I64Raw.To_Numeric(+Scaling.Undef_Raw));
              when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
              when -64=> F64Raw.Set_Undefined(F64Raw.To_Numeric(+Scaling.Undef_Raw));
-             when others => null;
+             when others =>
+             Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
         end case;
 
     end if;
@@ -189,7 +190,8 @@ package body FITS_IO.Data_Unit is
         when  64 => I64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
         when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
         when -64 => F64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when others => null;
+        when others =>
+         Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
     end case;
 
    end Read;
@@ -216,7 +218,8 @@ package body FITS_IO.Data_Unit is
              when  64=> I64Raw.Set_Undefined(I64Raw.To_Numeric(+Scaling.Undef_Raw));
              when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
              when -64=> F64Raw.Set_Undefined(F64Raw.To_Numeric(+Scaling.Undef_Raw));
-             when others => null;--Simulate_Exception("DU Write Set_Undef");
+             when others =>
+            Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
         end case;
 
     end if;
@@ -230,7 +233,8 @@ package body FITS_IO.Data_Unit is
         when  64 => I64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
         when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
         when -64 => F64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when others => null;--Simulate_Exception("DU Write AIO");
+        when others =>
+          Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
     end case;
 
    end Write;

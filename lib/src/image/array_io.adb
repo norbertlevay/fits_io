@@ -78,8 +78,6 @@ begin
         if(Not Raw.Is_Undefined_Valid)
         then
             Raw.Set_Undefined(Raw."+"(A + B * Phys."+"(Phys.Get_Undefined)));
-        else
-            null; -- error: "Undef out must be set ????"
         end if;
     end if;
 
