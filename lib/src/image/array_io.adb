@@ -77,7 +77,7 @@ begin
     then
         if(Not Raw.Is_Undefined_Valid)
         then
-            Raw.Set_Undefined(Raw."+"(A + B * Phys."+"(Phys.Get_Undefined)));
+            Raw.Set_Undefined(Raw."+"( (Phys."+"(Phys.Get_Undefined) - A) / B) );
         end if;
     end if;
 

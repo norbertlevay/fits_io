@@ -5,12 +5,16 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 package body Numeric_Type is
 
+
+
 function Bit_Count return Positive
 is
 V : Numeric := To_Numeric(0.0);
 begin
     return V'Size;
 end Bit_Count;
+
+
 
 function BITPIX return Integer
 is
@@ -30,19 +34,15 @@ end BITPIX;
     NaN  : Float := 0.0 / Zero; -- FIXME see alternatives to encode NaN
 
 
+
  procedure Set_Undefined(U : in Numeric)
  is
  begin
-     -- set only if not set yet
-     -- API caller might set it
-     -- and must set it when source data is Float
-     -- and requests conversion to (U)Int
---     if(Not Undef_Valid)
---     then
         Undef       := U;
         Undef_Valid := True;
---     end if;
  end Set_Undefined;
+
+
 
  function  Is_Undefined_Valid return Boolean
  is
@@ -51,13 +51,16 @@ end BITPIX;
  end Is_Undefined_Valid;
 
 
+
  function  Get_Undefined return Numeric
  is
-     Dummy : Numeric;
  begin
      if(Undef_Valid)
      then return Undef;
-     else return Dummy; -- Error: "Undef is not valid"
+     else 
+        Raise_Exception
+           (Programming_Error'Identity,
+           "Get_Undefined : undefined not in use. Call Is_Undefined_Valid() first.");
      end if;
  end Get_Undefined;
 
@@ -65,16 +68,17 @@ end BITPIX;
 
   -- conversions to/from Float
 
- function Is_Undef_Float(F : Float) return Boolean
+ function Is_Undef_F(F : Float) return Boolean
  is
  begin
      return (Not (F = F));
- end Is_Undef_Float;
+ end Is_Undef_F;
+
+
 
 
   function To_Numeric(V : in Float) return Numeric
   is
-      Dummy : Numeric; -- replace with Exception
       Vn : Numeric;
   begin
 
@@ -83,7 +87,7 @@ end BITPIX;
 
         -- Undefined values in use
 
-          if(Is_Undef_Float(V))
+          if(Is_Undef_F(V))
           then
               return Undef;
           else
@@ -137,7 +141,7 @@ end BITPIX;
         for I in Af'Range
         loop
 
-            if(Is_Undef_Float(Af(I)))
+            if(Is_Undef_F(Af(I)))
             then
                 An(I) := Undef;
             else

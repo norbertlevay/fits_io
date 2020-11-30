@@ -169,12 +169,12 @@ package body FITS_IO.Data_Unit is
         Physical.Set_Undefined(+Scaling.Undef_Phys);
 
         case(Scaling.BITPIX) is
-             when   8=> U8Raw.Set_Undefined(U8Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  32=> I32Raw.Set_Undefined(I32Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  64=> I64Raw.Set_Undefined(I64Raw.To_Numeric(+Scaling.Undef_Raw));
-             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
-             when -64=> F64Raw.Set_Undefined(F64Raw.To_Numeric(+Scaling.Undef_Raw));
+             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
              when others =>
              Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
         end case;
@@ -212,12 +212,12 @@ package body FITS_IO.Data_Unit is
         Physical.Set_Undefined(+Scaling.Undef_Phys);
 
         case(Scaling.BITPIX) is
-             when   8=> U8Raw.Set_Undefined(U8Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  16=> I16Raw.Set_Undefined(I16Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  32=> I32Raw.Set_Undefined(I32Raw.To_Numeric(+Scaling.Undef_Raw));
-             when  64=> I64Raw.Set_Undefined(I64Raw.To_Numeric(+Scaling.Undef_Raw));
-             when -32=> F32Raw.Set_Undefined(F32Raw.To_Numeric(+Scaling.Undef_Raw));
-             when -64=> F64Raw.Set_Undefined(F64Raw.To_Numeric(+Scaling.Undef_Raw));
+             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
              when others =>
             Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
         end case;
