@@ -2,6 +2,7 @@
 -- creat from User_Type data a FITS-file with MD_Raw_Type data
 
 with Ada.Text_IO;
+with Ada.Float_Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
@@ -19,50 +20,51 @@ with Image;
 
 procedure create
 is
+   Zero  :  Float := 0.0;
+   F_NaN : constant Float := 0.0/Zero;
 
-    Zero  :  Float := 0.0;
-    F_NaN : constant Float := 0.0/Zero;
+   package TIO renames Ada.Text_IO;
+   package TIOF renames Ada.Float_Text_IO;
 
-    package TIO renames Ada.Text_IO;
+   -- define Physical data -- Float example
+
+--   subtype Phys_Type is Float;
+--   Phys_Undef_Used  : Boolean     := True;
+--   Phys_Undef_Value : Phys_Type   := F_NaN;
+
+   -- define Physical data -- Short_Integer example
+   -- note: 32.bit Integer has 9 digits, but 16bit.Float has only 8-bit precision
+   -- Undef value Int -> Float -> Int conversion chain will fail!
+   -- FIXME avoid conversions!!!
+
+   subtype Phys_Type is Short_Integer;
+   Phys_Undef_Used  : constant Boolean   := True;
+   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
 
 
-    subtype Phys_Type is Float;
+   -- describe Raw data in FITS-file
 
-    Raw_Type  : DU_Type := FITS_IO.UInt8;
-    Raw_Undef : constant Integer_8 := 127;
-    Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
-
-   -- Metadata
-
-    ColLength : constant Positive_Count := 127;
-    RowLength : constant Positive_Count := 456;
-
-    NAXISn           : NAXIS_Array := (ColLength, RowLength);
-    Phys_Undef_Used  : Boolean     := True;
-    Phys_Undef_Value : Phys_Type   := F_NaN;--Phys_Type'Last;
-
-    HDU_First_Card : String_80_Array(1 .. 1) := 
-      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
-
-    use Optional.BS70;
-    Array_Cards : String_80_Array :=
-               (Valued_Card(BZERO,    1*    "0.0"),
-                Valued_Card(BSCALE,   1*    "1.0"),
-                Valued_Card(BLANK,    1*    Raw_Undef_Str),
-                Valued_Card(DATAMIN,  1*    "0.0"),
-                Valued_Card(DATAMAX,  1*  "126.0"));
-    -- FIXME above cards must have calculated value
+   Raw_Type      : DU_Type := FITS_IO.UInt8;
+   Raw_Undef     : constant Integer_8 := 127;
+   Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
 
    -- simulate some data
 
+   ColLength : constant Positive_Count := 127;
+   RowLength : constant Positive_Count := 456;
+
+   NAXISn : NAXIS_Array := (ColLength, RowLength);
+
    package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
+   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
 
    UCnt : Natural := 0;
 
    function Generate_Data
       (ColLength : FITS_IO.Positive_Count;
       Phys_Undef_Valid : Boolean;
-      Phys_Undef_Value : Phys_Type)
+      Phys_Undef_Value : Phys_Type;
+      UCnt : in out Natural)
       return Phys_Data.T_Arr
    is
        Col : Phys_Data.T_Arr(1 .. ColLength);
@@ -76,18 +78,38 @@ is
        return Col;
    end Generate_Data;
 
+
+    -- build Header
+
+    HDU_First_Card : String_80_Array(1 .. 1) := 
+      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+
+    use Optional.BS70;
+    Array_Cards : String_80_Array :=
+               (Valued_Card(BZERO,    1*    "0.0"),
+                Valued_Card(BSCALE,   1*    "1.0"),
+                Valued_Card(BLANK,    1*    Raw_Undef_Str));
+--                Valued_Card(DATAMIN,  1*    "0.0"),
+--                Valued_Card(DATAMAX,  1*  "126.0"));
+    -- FIXME above cards must have calculated value
+
+
+
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
 
-   Buffer : Phys_Data.T_Arr(1 .. ColLength);
-
 begin
+
+   TIO.Put_Line("DBG  i> "&Phys_Type'Image(Phys_Undef_Value));
+   TIO.Put     ("DBG fi> "); TIOF.Put(Float(Phys_Undef_Value), 3, 10, 2);TIO.New_Line;
+   TIO.Put_Line("DBGifi> "&Integer'Image(Integer(Float(Phys_Undef_Value))));
 
  Create (Out_File, FITS_IO.Append_File, File_Name);
 
  -- write Header and Data unit
 
  Write(Out_File, HDU_First_Card);
+
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
  Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
@@ -96,15 +118,15 @@ begin
 
  for I in 1 .. RowLength
  loop
-    Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value);
-    Phys_Data.Write(Out_File, Buffer);
+    Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
+    Phys_Data.Write(Out_File, Write_Buffer);
  end loop;
 
  Write_Data_Padding(Out_File);
 
  Close(Out_File);
 
-   TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
+ TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
 
 
 exception
