@@ -273,7 +273,9 @@ package body FITS_IO is
          else
             -- FIXME Undef calc is type dependent: if Float Undef is NaN
             -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Raw := (File.Cache.Raw_Undef_Value - File.Scaling.A) / File.Scaling.B;
+            File.Scaling.Undef_Raw :=
+               (File.Cache.Physical_Undef_Value - File.Scaling.A) / File.Scaling.B;
+            File.Cache.Raw_Undef_Valid := True;
          end if;
       end if;
    end Load_Undef_Vals_At_Write;
@@ -294,6 +296,7 @@ package body FITS_IO is
             -- FIXME Undef calc is type dependent: if Float Undef is NaN
             -- can be calc'd by Scaling only for (U)Int's
             File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Cache.Raw_Undef_Value;
+            File.Cache.Raw_Undef_Valid := True;
          end if;
       end if;
    end Load_Undef_Vals_At_Read;
@@ -597,6 +600,7 @@ package body FITS_IO is
    procedure Put_File_Type(File : File_Type; Prefix : String := "")
    is
    begin
+      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.Cache.Aui));
       Put_Access_Rec(File.Scaling,Prefix);
    end Put_File_Type;
 

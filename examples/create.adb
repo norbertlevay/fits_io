@@ -115,8 +115,8 @@ is
     use Optional.BS70;
     Array_Cards : String_80_Array :=
                (Valued_Card(BZERO,    1*    "0.0"),
-                Valued_Card(BSCALE,   1*    "1.0"),
-                Valued_Card(BLANK,    1*    Raw_Undef_Str));-- FIXME why need off if string ""
+                Valued_Card(BSCALE,   1*    "1.0"));
+--                Valued_Card(BLANK,    1*    Raw_Undef_Str));-- FIXME why need off if string ""
 --                Valued_Card(DATAMIN,  1*    "0.0"),
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
