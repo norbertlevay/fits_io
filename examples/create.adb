@@ -26,27 +26,55 @@ is
    package TIO renames Ada.Text_IO;
    package TIOF renames Ada.Float_Text_IO;
 
-   -- define Physical data -- Float example
-
---   subtype Phys_Type is Float;
---   Phys_Undef_Used  : Boolean     := True;
---   Phys_Undef_Value : Phys_Type   := F_NaN;
-
+   -- NOTE
    -- define Physical data -- Short_Integer example
    -- note: 32.bit Integer has 9 digits, but 16bit.Float has only 8-bit precision
    -- Undef value Int -> Float -> Int conversion chain will fail!
    -- FIXME avoid conversions!!!
 
-   subtype Phys_Type is Short_Integer;
+  -- define Physical data -- Float example
+
+   -- Float
+
+--   subtype Phys_Type is Float;
+--   Phys_Undef_Used  : Boolean     := True;
+--   Phys_Undef_Value : Phys_Type   := F_NaN;
+
+   -- Integer
+
+--   subtype Phys_Type is Short_Integer;
+--   Phys_Undef_Used  : constant Boolean   := True;
+--   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
+
+   -- Unsigned
+
+   subtype Phys_Type is Unsigned_16;
    Phys_Undef_Used  : constant Boolean   := True;
    Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
 
 
+
    -- describe Raw data in FITS-file
 
-   Raw_Type      : DU_Type := FITS_IO.UInt8;
-   Raw_Undef     : constant Integer_8 := 127;
-   Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
+   -- Unsigned 8
+
+--   Raw_Type      : DU_Type := FITS_IO.UInt8;
+--   Raw_Undef     : constant Integer_8 := 127;
+--   Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
+
+   -- Signed 16
+
+   Raw_Type      : DU_Type := FITS_IO.Int16;
+   Raw_Undef     : constant Integer_16 := 127;
+   Raw_Undef_Str : constant String := Integer_16'Image(Raw_Undef);
+
+
+   -- Float
+
+--   Raw_Type      : DU_Type := FITS_IO.F32;
+--   Raw_Undef     : constant Float_32 := F32NaN;
+--   Raw_Undef_Str : constant String := "0";-- FIXME here with empty string fails (1* operator ??)
+
 
    -- simulate some data
 
@@ -88,7 +116,7 @@ is
     Array_Cards : String_80_Array :=
                (Valued_Card(BZERO,    1*    "0.0"),
                 Valued_Card(BSCALE,   1*    "1.0"),
-                Valued_Card(BLANK,    1*    Raw_Undef_Str));
+                Valued_Card(BLANK,    1*    Raw_Undef_Str));-- FIXME why need off if string ""
 --                Valued_Card(DATAMIN,  1*    "0.0"),
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value

@@ -24,7 +24,7 @@ function "+"(V : in Long_Long_Float)   return ABFloat is begin return ABFloat(V)
 
 function "+"(R : ABFloat) return Float_64 is begin return Float_64(R); end "+";
 function "+"(R : ABFloat) return Float_32 is begin return Float_32(R); end "+";
-function "+"(R : ABFloat) return Integer_64 is begin Put(" "&ABFloat'Image(R));  return Integer_64(R); end "+";
+function "+"(R : ABFloat) return Integer_64 is begin return Integer_64(R); end "+";
 function "+"(R : ABFloat) return Integer_32 is begin return Integer_32(R); end "+";
 function "+"(R : ABFloat) return Integer_16 is begin return Integer_16(R); end "+";
 function "+"(R : ABFloat) return Unsigned_8 is begin return Unsigned_8(R); end "+";
@@ -35,6 +35,19 @@ function "+"(R : Integer_64) return ABFloat is begin return ABFloat(R); end "+";
 function "+"(R : Integer_32) return ABFloat is begin return ABFloat(R); end "+";
 function "+"(R : Integer_16) return ABFloat is begin return ABFloat(R); end "+";
 function "+"(R : Unsigned_8) return ABFloat is begin return ABFloat(R); end "+";
+
+
+-- complementary types
+
+function "+"(R : ABFloat) return Unsigned_64 is begin return Unsigned_64(R); end "+";
+function "+"(R : ABFloat) return Unsigned_32 is begin return Unsigned_32(R); end "+";
+function "+"(R : ABFloat) return Unsigned_16 is begin return Unsigned_16(R); end "+";
+function "+"(R : ABFloat) return Integer_8 is begin return Integer_8(R); end "+";
+
+function "+"(R : Unsigned_64) return ABFloat is begin return ABFloat(R); end "+";
+function "+"(R : Unsigned_32) return ABFloat is begin return ABFloat(R); end "+";
+function "+"(R : Unsigned_16) return ABFloat is begin return ABFloat(R); end "+";
+function "+"(R : Integer_8) return ABFloat is begin return ABFloat(R); end "+";
 
 
 
@@ -48,13 +61,6 @@ function Is_Undef(V,U : in Float)      return Boolean is begin return (not (V = 
 function Is_Undef(V,U : in Long_Float) return Boolean is begin return (not (V = V)); end Is_Undef;
 function Is_Undef(V,U : in Long_Long_Float) return Boolean is begin return (not (V = V)); end Is_Undef;
 
-function Is_Undef(V,U : in Unsigned_8) return Boolean is begin return (V = U); end Is_Undef;
-function Is_Undef(V,U : in Integer_16) return Boolean is begin return (V = U); end Is_Undef;
-function Is_Undef(V,U : in Integer_32) return Boolean is begin return (V = U); end Is_Undef;
-function Is_Undef(V,U : in Integer_64) return Boolean is begin return (V = U); end Is_Undef;
-function Is_Undef(V,U : in Float_32)   return Boolean is begin return (not (V = V)); end Is_Undef;
-function Is_Undef(V,U : in Float_64)   return Boolean is begin return (not (V = V)); end Is_Undef;
-
 
 function To_BITPIX(V : in Short_Short_Integer) return Integer is begin return  V'Size; end To_BITPIX;
 function To_BITPIX(V : in Short_Integer) return Integer is begin return  V'Size; end To_BITPIX;
@@ -64,6 +70,14 @@ function To_BITPIX(V : in Long_Float) return Integer is begin return -V'Size; en
 function To_BITPIX(V : in Long_Long_Float) return Integer is begin return -V'Size; end To_BITPIX;
 
 
+function Is_Undef(V,U : in Unsigned_8) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Integer_16) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Integer_32) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Integer_64) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Float_32)   return Boolean is begin return (not (V = V)); end Is_Undef;
+function Is_Undef(V,U : in Float_64)   return Boolean is begin return (not (V = V)); end Is_Undef;
+
+
 function To_BITPIX(V : in Unsigned_8) return Integer is begin return  V'Size; end To_BITPIX;
 function To_BITPIX(V : in Integer_16) return Integer is begin return  V'Size; end To_BITPIX;
 function To_BITPIX(V : in Integer_32) return Integer is begin return  V'Size; end To_BITPIX;
@@ -71,6 +85,18 @@ function To_BITPIX(V : in Integer_64) return Integer is begin return  V'Size; en
 function To_BITPIX(V : in Float_32)   return Integer is begin return  -V'Size; end To_BITPIX;
 function To_BITPIX(V : in Float_64)   return Integer is begin return  -V'Size; end To_BITPIX;
 
+-- complementary types
+
+function Is_Undef(V,U : in Integer_8) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Unsigned_16) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Unsigned_32) return Boolean is begin return (V = U); end Is_Undef;
+function Is_Undef(V,U : in Unsigned_64) return Boolean is begin return (V = U); end Is_Undef;
+
+
+function To_BITPIX(V : in Integer_8) return Integer is begin return  V'Size; end To_BITPIX;
+function To_BITPIX(V : in Unsigned_16) return Integer is begin return  V'Size; end To_BITPIX;
+function To_BITPIX(V : in Unsigned_32) return Integer is begin return  V'Size; end To_BITPIX;
+function To_BITPIX(V : in Unsigned_64) return Integer is begin return  V'Size; end To_BITPIX;
 
 
 
