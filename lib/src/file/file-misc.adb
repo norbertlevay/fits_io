@@ -1,19 +1,16 @@
 
 -- high level block/HDU copying
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
--- with Ada.Unchecked_Conversion;
+
+with Ada.Streams.Stream_IO;
 with Interfaces;
 
 with Header; use Header;
---with V3_Types;
 
-with Keyword_Record; use Keyword_Record;-- String_80 needed
+--with Keyword_Record; use Keyword_Record;-- String_80 needed
+with FITS_IO; -- String_80 needed
 
 package body File.Misc is
-
- --  type UInt8_Arr   is array ( Positive_Count range <> ) of V3_Types.Unsigned_8;
-	-- use to write Padding
 
    StreamElemSize_bits : Positive_Count := Ada.Streams.Stream_Element'Size;
     -- FIXME [GNAT somwhere says it is 8bits]
@@ -47,14 +44,14 @@ package body File.Misc is
                            From     : in SIO.Positive_Count;
                            PadValue : in Interfaces.Unsigned_8)
    is  
-
+    use SIO;
     FillCnt   : constant Natural :=
        Natural( From rem SIO.Positive_Count(BlockSize_bytes) );
     PadLength : constant Natural :=
        Natural(BlockSize_bytes) - FillCnt + 1;
 
     type UInt8_PadArr is array (SIO.Positive_Count range <>) of Interfaces.Unsigned_8;
-    PadArr    : constant UInt8_PadArr(1 .. Positive_Count(PadLength)) := (others => PadValue);
+    PadArr    : constant UInt8_PadArr(1 .. SIO.Positive_Count(PadLength)) := (others => PadValue);
     -- FIXME full of explicit casts!! review!!
    begin
     SIO.Set_Index(FitsFile,From);
@@ -65,13 +62,13 @@ package body File.Misc is
    -- Write Data by coordinates
 
    procedure To_Coords (Offset    : in  Positive_Count;
-                        MaxCoords : in  Mandatory.NAXIS_Arr;
-                        Coords    : out Mandatory.NAXIS_Arr)
+                        MaxCoords : in  NAXIS_Array;
+                        Coords    : out NAXIS_Array)
    is
         use Mandatory;
-      Sizes : Mandatory.NAXIS_Arr := MaxCoords;
-      Divs :  Mandatory.NAXIS_Arr := MaxCoords;
-      Rems :  Mandatory.NAXIS_Arr := MaxCoords;
+      Sizes : NAXIS_Array := MaxCoords;
+      Divs :  NAXIS_Array := MaxCoords;
+      Rems :  NAXIS_Array := MaxCoords;
       -- FIXME these inits are needed only to eliminate Ada error
       -- find other solution
    begin
@@ -121,7 +118,7 @@ package body File.Misc is
 
 
 -- these two replace size calc funcs in .Misc subpackage Copy_HDU()
-   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return SIO.Count
+   function  DU_Size_blocks (FitsFile : in SIO.File_Type) return Count
    is  
         PSize : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
    begin

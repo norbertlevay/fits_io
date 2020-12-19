@@ -1,15 +1,14 @@
 
-with Mandatory; use Mandatory;-- NAXIS_Arr needed
 
 package body Raw_Funcs is
 
 
- function To_DU_Index (Coords    : in  NAXIS_Arr;
-                     MaxCoords : in  NAXIS_Arr)
+ function To_DU_Index (Coords    : in  NAXIS_Array;
+                     MaxCoords : in  NAXIS_Array)
    return Positive_Count
  is
   DUIndex : Positive_Count;
-  Sizes  : NAXIS_Arr := MaxCoords;
+  Sizes  : NAXIS_Array := MaxCoords;
  begin
   if Coords'Length /= MaxCoords'Length
   then
@@ -46,12 +45,12 @@ package body Raw_Funcs is
 
 
  procedure To_Coords (Offset    : in  Positive_Count;
-                      MaxCoords : in  NAXIS_Arr;
-                      Coords    : out NAXIS_Arr)
+                      MaxCoords : in  NAXIS_Array;
+                      Coords    : out NAXIS_Array)
  is
-    Sizes : NAXIS_Arr := MaxCoords;
-    Divs :  NAXIS_Arr := MaxCoords;
-    Rems :  NAXIS_Arr := MaxCoords;
+    Sizes : NAXIS_Array := MaxCoords;
+    Divs :  NAXIS_Array := MaxCoords;
+    Rems :  NAXIS_Array := MaxCoords;
     -- FIXME these inits are needed only to eliminate Ada error
     -- find other solution
  begin
@@ -74,7 +73,8 @@ package body Raw_Funcs is
   -- calc divisions and fractions
   --
   declare
-    PrevRem : Count := Offset - 1;
+    PrevRem : Positive_Count := Offset - 1;
+    -- FIXME what if Offset = 1 -> Constraint_Error on PrevRem PosCount
   begin
     for I in reverse MaxCoords'First .. MaxCoords'Last
     loop
@@ -97,7 +97,7 @@ package body Raw_Funcs is
 
 
   function Plane_Length
-    (Plane : in NAXIS_Arr) return Positive_Count
+    (Plane : in NAXIS_Array) return Positive_Count
   is
     PlaneLen : Positive_Count := 1;
   begin
@@ -110,8 +110,8 @@ package body Raw_Funcs is
 
 
   function Volume_Length
-    (First : in NAXIS_Arr;
-    Last   : in NAXIS_Arr) return Positive_Count
+    (First : in NAXIS_Array;
+    Last   : in NAXIS_Array) return Positive_Count
   is
     L : Positive_Count := 1;
   begin

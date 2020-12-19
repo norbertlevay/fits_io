@@ -54,6 +54,8 @@ testminmax:
 	./bin/minmax ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0005.fits
 	./bin/minmax ../data/www.cv.nrao.edu/fits/data/tests/pg93/tst0006.fits
 
-
+runcreate:
+	rm -f bin/create.fits
+	bin/create
 
 

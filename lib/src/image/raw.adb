@@ -11,19 +11,17 @@
 
 with Ada.Text_IO;
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Conversion;
 with Interfaces;
 
-with Mandatory;     use Mandatory; -- NAXIS_Arr needed
-with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
-with Raw_Funcs;-- use Raw_Funcs;
+with Raw_Funcs;
 with File_Funcs;
 
 
 package body Raw is
 
-  use SIO;
+  --use SIO;
 
   package TIO renames Ada.Text_IO;
 
@@ -106,16 +104,17 @@ package body Raw is
   procedure Read_Raw_Line
     (F : SIO.File_Type;
     DUStart : in Positive_Count; -- block count
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
     AValues : in out T_Arr)
   is
     -- StreamElem count (File_Index) from File begining:
-    DUStart_SE : SIO.Positive_Count := 1 + (DUStart-1) * 2880;
-    DUIndex : Positive_Count := Raw_Funcs.To_DU_Index(First, NAXISn);
+    DUStart_SE  : Positive_Count := 1 + (DUStart-1) * 2880;
+    DUIndex     : Positive_Count := Raw_Funcs.To_DU_Index(First, NAXISn);
     --procedure ReadArray is new Read_Array(T,T_Arr);
  begin
-    SIO.Set_Index(F, DUStart_SE + (DUIndex-1)*T'Size/8);-- FIXME use Stream_Elemen'Size
+    SIO.Set_Index(F, SIO.Count(DUStart_SE + (DUIndex-1)*T'Size/8));
+    -- FIXME use Stream_Elemen'Size AND cast to SIO.Count !!
     Read_Array(F, AValues);
   end Read_Raw_Line;
 
@@ -124,10 +123,10 @@ package body Raw is
   procedure Read_Volume
     (File : SIO.File_Type;
     DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
-    --Last    : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array; -- organization of data in Volume
+    --Last    : in NAXIS_Array;
     Volume  : out T_Arr) -- FIXME  later make T_Arr private
   is
 --    procedure Read_One_Line is new Read_Raw_Line(T,T_Arr);
@@ -137,16 +136,16 @@ package body Raw is
     --LineLength : Positive_Count := 1 + (Last(1) - First(1));
     --Line: T_Arr(1 .. LineLength);
 
-      Last : NAXIS_Arr := VolumeSize;
+      Last : NAXIS_Array := VolumeSize;
 
     -- generate coords vars
-    Winit : FIndex := 2;
-    W : FIndex;
-    C  : NAXIS_Arr := First;  -- Current coords in source Data Unit
-    CV : NAXIS_Arr := First;  -- Current coords in target Volume
+    Winit : NAXIS_Index := 2;
+    W : NAXIS_Index;
+    C  : NAXIS_Array := First;  -- Current coords in source Data Unit
+    CV : NAXIS_Array := First;  -- Current coords in target Volume
     Vf, Vl : Positive_Count;
-    Unity : constant NAXIS_Arr(First'Range) := (others => 1);
-    VolNAXISn : NAXIS_Arr(First'Range);
+    Unity : constant NAXIS_Array(First'Range) := (others => 1);
+    VolNAXISn : NAXIS_Array(First'Range);
   begin
 
       -- convert VoilumeSize -> Last
@@ -210,17 +209,17 @@ package body Raw is
  procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count; -- count in Blocks
-    NAXISn  : in NAXIS_Arr;    -- organization of data in DU
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr; -- organization of data in Volume
+    NAXISn  : in NAXIS_Array;    -- organization of data in DU
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array; -- organization of data in Volume
     Volume     : in T_Arr)
  is
    LineLength : Positive_Count := VolumeSize(1);
    Line       : T_Arr(1 .. LineLength);
    LineFirst  : Positive_Count;
    LineLast   : Positive_Count := LineLength;
-   C     : NAXIS_Arr(First'First .. First'Last);
-   DestC : NAXIS_Arr(First'First .. First'Last);
+   C     : NAXIS_Array(First'First .. First'Last);
+   DestC : NAXIS_Array(First'First .. First'Last);
    DestDUIndex : Positive_Count;
    SIOFileIndex : SIO.Positive_Count;
 --   procedure Write_One_Line is new Write_Array(T, T_Arr);
@@ -244,7 +243,8 @@ package body Raw is
         end loop;
 
         DestDUIndex  := Raw_Funcs.To_DU_Index(DestC, NAXISn);
-        SIOFileIndex := DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880;
+        SIOFileIndex := SIO.Count(DestDUIndex*(T'Size/8) + (DUStart - 1) * 2880);
+        -- FIXME cast SIO.Count !!
         SIO.Set_Index(File, SIOFileIndex);
         Write_Array(File, Line);
       end loop;

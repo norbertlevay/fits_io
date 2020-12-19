@@ -11,28 +11,27 @@
 
 with Ada.Text_IO;
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Unchecked_Conversion;
 with Interfaces;
 
-with Mandatory;     use Mandatory; -- NAXIS_Arr needed
-with Keyword_Record; use Keyword_Record; -- FIndex needed in NAXIS_Arr
-with Raw_Funcs;-- use Raw_Funcs;
+with FITS_IO; use FITS_IO;
+
+with Raw_Funcs;
 with File_Funcs;
+
 
 
 package body Raw.Data_Unit is
 
-  use SIO;
+--  use SIO;
   package TIO renames Ada.Text_IO;
-
 
  --  all Data Unit read/write
 
 
-function DU_Length_blks(BITPIX : in Natural; NAXISn : in NAXIS_Arr) return Positive_Count
+function DU_Length_blks(BITPIX : in Natural; NAXISn : in NAXIS_Array) return Positive_Count
 is
-  Size_bits : SIO.Count;
+  Size_bits : Positive_Count;
   BitsPerBlock : constant Positive_Count := (2880*8);
 begin
    Size_bits := File_Funcs.PrimaryImage_DataSize_Bits(BITPIX, NAXISn);
@@ -41,7 +40,7 @@ end DU_Length_blks;
 
 
 
-function DU_Data_Count(NAXISn : in NAXIS_Arr) return Positive_Count
+function DU_Data_Count(NAXISn : in NAXIS_Array) return Positive_Count
 is
   Acc : Positive_Count := 1;
 begin
@@ -57,11 +56,11 @@ end DU_Data_Count;
 
 procedure Read_Data_Unit
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
-  First : NAXIS_Arr := NAXISn;
+  First : NAXIS_Array := NAXISn;
   Block : T_Data_Block;
 begin
 
@@ -79,13 +78,13 @@ end Read_Data_Unit;
 
 procedure Write_Data_Unit
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
   DULength : Positive_Count := DU_Data_Count(NAXISn);
   DULength_blks : Positive_Count := DU_Length_blks(T'Size, NAXISn);
   DataLast, PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME T'Size instead of BITPIX ok?
-  First : NAXIS_Arr := NAXISn; -- FIXME we don't need values only size
+  First : NAXIS_Array := NAXISn; -- FIXME we don't need values only size
   Block : T_Data_Block;
 begin
 
@@ -124,11 +123,11 @@ end Write_Data_Unit;
 
 procedure Read_Data_Unit_By_Element
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
-  First : NAXIS_Arr := NAXISn;
+  First : NAXIS_Array := NAXISn;
   Block : T_Data_Block;
 begin
 -- FIXME the same cycles raised Exception in Write: running over in length by 1
@@ -148,13 +147,13 @@ end Read_Data_Unit_By_Element;
 
 procedure Write_Data_Unit_By_Element
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr)
+  NAXISn : in NAXIS_Array)
 is
   DULength_blks : Positive_Count := DU_Length_blks(T'Size,NAXISn);
   DULength : Positive_Count := DU_Data_Count(NAXISn);
   DataLast, PaddingFirst, PaddingLast : Positive_Count;
   -- FIXME crosscheck use of T'Size instead of BITPIX, ok?
-  First : NAXIS_Arr := NAXISn;
+  First : NAXIS_Array := NAXISn;
   Block : T_Data_Block;
 --    Elem : T_Arr(1..1);
 begin

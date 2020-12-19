@@ -1,8 +1,8 @@
 
 with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Count needed
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
+with Ada.Streams.Stream_IO;
+with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Text_IO;
 
 with Keyword_Record; -- String_80 needed
 
@@ -11,6 +11,9 @@ with Keyword_Record; -- String_80 needed
 --
 
 package body Mandatory is
+
+    package US renames Ada.Strings.Unbounded;
+
 
 package KW renames Keyword_Record;
 
@@ -57,13 +60,13 @@ type XT_Type is
 
 type State_Type is
         record
-    PrevPos : SIO.Count;
+    PrevPos : Count;
 
         Name            : State_Name;
         XTENSION_Val    : XT_Type;
-        NAXIS_Val       : Natural;--KW.FIndex; FIXME 
-        NAXIS1_Val  : SIO.Count;
-        TFIELDS_Val     : Natural;--KW.FIndex; FIXME
+        NAXIS_Val       : Natural;--NAXIS_Index; FIXME 
+        NAXIS1_Val  : Count;
+        TFIELDS_Val     : Natural;--NAXIS_Index; FIXME
 
     -- Mandatory
         SIMPLE   : CardValue(20);
@@ -81,7 +84,7 @@ type State_Type is
     -- other cards not recognized by this FA
         OtherCount : Natural;
 
-        ENDCardPos : SIO.Count;
+        ENDCardPos : Count;
         ENDCardSet : Boolean;
         end record;
 
@@ -179,9 +182,9 @@ end Is_Primary;
 
 
 
-    function In_READ_FIXED_POSITION_CARDS(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Positive_Count
+    function In_READ_FIXED_POSITION_CARDS(Pos : Positive_Count; Card : KW.String_80) return Positive_Count
     is
-        Idx : KW.FIndex;
+        Idx : NAXIS_Index;
     begin
         if(Pos = 1)
         then
@@ -216,7 +219,7 @@ end Is_Primary;
         then
             Set(State.NAXIS, Card);
 
-            State.NAXIS_Val := KW.To_FIndex(State.NAXIS.Value);
+            State.NAXIS_Val := KW.To_NAXIS_Index(State.NAXIS.Value);
 
             -- from Primary
 
@@ -231,7 +234,7 @@ end Is_Primary;
         then
             Idx := KW.Take_Index("NAXIS", Card);
 
-            if(Pos = SIO.Positive_Count(3 + Idx))-- FIXME upconversion
+            if(Pos = Positive_Count(3 + Idx))-- FIXME upconversion
             then
                 Set(State.NAXISn(Idx), Card);
             else
@@ -257,11 +260,11 @@ end Is_Primary;
             end if;
 
     
-        elsif ( KW.Match_Key("PCOUNT", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 1)))-- FIXME upconversion
+        elsif ( KW.Match_Key("PCOUNT", Card) AND (Pos = Positive_Count(3 + State.NAXIS_Val + 1)))-- FIXME upconversion
         then
             Set(State.PCOUNT, Card);
 
-        elsif ( KW.Match_Key("GCOUNT", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 2)))-- FIXME upconversion
+        elsif ( KW.Match_Key("GCOUNT", Card) AND (Pos = Positive_Count(3 + State.NAXIS_Val + 2)))-- FIXME upconversion
         then
             Set(State.GCOUNT, Card);
 
@@ -271,11 +274,11 @@ end Is_Primary;
                 when others => State.Name := WAIT_END;
             end case;
 
-        elsif ( KW.Match_Key("TFIELDS", Card) AND (Pos = SIO.Positive_Count(3 + State.NAXIS_Val + 3)) )-- FIXME upconversion
+        elsif ( KW.Match_Key("TFIELDS", Card) AND (Pos = Positive_Count(3 + State.NAXIS_Val + 3)) )-- FIXME upconversion
         then
             Set(State.TFIELDS, Card);
 
-            State.TFIELDS_Val := KW.To_FIndex(State.TFIELDS.Value);
+            State.TFIELDS_Val := KW.To_NAXIS_Index(State.TFIELDS.Value);
 
             case(State.XTENSION_Val) is
                 when ASCII_TABLE | BIN_TABLE =>
@@ -312,10 +315,10 @@ end Is_Primary;
         end Is_Valid;
 
 
-    function In_WAIT_END(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Count
+    function In_WAIT_END(Pos : Positive_Count; Card : KW.String_80) return Count
     is
     begin
-        if( KW.ENDCard = Card )
+        if( ENDCard = Card )
         then
             State.ENDCardPos := Pos;
             State.ENDCardSet := True;
@@ -395,8 +398,8 @@ end Is_Primary;
 
 
         function In_DATA_NOT_IMAGE
-                (Pos  : in SIO.Positive_Count;
-                 Card : in KW.String_80) return SIO.Count
+                (Pos  : in Positive_Count;
+                 Card : in KW.String_80) return Count
         is
         begin
 
@@ -435,7 +438,7 @@ end Is_Primary;
                         end if;
 
 
-                elsif (Card = KW.ENDCard)
+                elsif (Card = ENDCard)
                 then
                         State.ENDCardPos := Pos;
                         State.ENDCardSet := True;
@@ -504,7 +507,7 @@ end Is_Primary;
 
 
 
-    function In_COLLECT_TABLE_ARRAYS(Pos : SIO.Positive_Count; Card : KW.String_80) return SIO.Count
+    function In_COLLECT_TABLE_ARRAYS(Pos : Positive_Count; Card : KW.String_80) return Count
     is
         Idx : Positive := 1;
     begin
@@ -539,7 +542,7 @@ end Is_Primary;
             end if;
 
 
-        elsif( Card = KW.ENDCard )
+        elsif( Card = ENDCard )
         then
             State.ENDCardPos := Pos;
             State.ENDCardSet := True;
@@ -590,10 +593,10 @@ end Is_Primary;
     -- FA interface
     --
     function Next
-        (Pos : SIO.Positive_Count;
-        Card : KW.String_80) return SIO.Count
+        (Pos : Positive_Count;
+        Card : KW.String_80) return Count
     is
-        NextCardPos : SIO.Count;
+        NextCardPos : Count;
         InState : State_Name := State.Name;
     begin
                 -- this FA-algorithm requires that cards are sequentially
@@ -602,7 +605,7 @@ end Is_Primary;
                 then
                          Raise_Exception(Programming_Error'Identity,
                            "Card in position returned from previous Next()-call must be supplied."
-                           &" However: "&SIO.Count'Image(Pos) &" prev: "&SIO.Count'Image(State.PrevPos));
+                           &" However: "&Count'Image(Pos) &" prev: "&Count'Image(State.PrevPos));
                 else
                         State.PrevPos := Pos;
                 end if;
@@ -676,7 +679,7 @@ end Is_Primary;
         loop
             if( State.TFORMn(I).Read )
             then 
-                Arr(I) := To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
+                Arr(I) := US.To_Unbounded_String(Keyword_Record.To_String(State.TFORMn(I).Value));
             else
                 null; -- FIXME what if some value missing ?
             end if;
@@ -692,9 +695,9 @@ end Is_Primary;
 
 
 
-    function Get_TBCOLn return Mandatory.NAXIS_Arr
+    function Get_TBCOLn return NAXIS_Array
     is
-        Arr : Mandatory.NAXIS_Arr(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
+        Arr : NAXIS_Array(1 .. State.TFIELDS_Val);-- FIXME use 'First Last !!!!
     begin
         for I in 1 .. State.TFIELDS_Val
         loop

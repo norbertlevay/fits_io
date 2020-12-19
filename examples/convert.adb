@@ -25,7 +25,13 @@ with Mandatory; use Mandatory; -- NAXIS_Arr needed
 -- new Data interface
 with V3_Types; use V3_Types;
 with Header; -- Create_Card needed
-with Raw.Data_Unit;
+--with Raw.Data_Unit;
+
+with Numeric_Type;
+with Scaling;
+with Scaling.Streams;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+
 
 procedure convert
 is
@@ -98,52 +104,34 @@ begin
  begin
   BITPIX := HDUInfo.BITPIX;
   DUSize := Data_Unit_Size_elems (HDUInfo.NAXISn);
--- end;
 
- -- Read Write sequentially by Blocks
 
  declare
---  type F32_Arr is array (SIO.Positive_Count range <>) of Float_32;
---  type I16_Arr is array (SIO.Positive_Count range <>) of Integer_16;
-  package F32_Raw is new Raw(Float_32);--,   F32_Arr);
-  package I16_Raw is new Raw(Integer_16);--, I16_Arr);
-  package I16_Raw_DU is new I16_Raw.Data_Unit;
 
-  K : SIO.Positive_Count := 1 + 2880/4;
-  InBlock  : F32_Raw.T_Arr(1 .. 2880/4);
-  --OutBlock : I16_Arr(1 .. 2880/2);
-  --FIXME consider: buffer/block size define inside Raw.Write_Data_Unit !?
+  package F32 is new Numeric_Type(Float);--Float_32);
+  package I16 is new Numeric_Type(Short_Integer);--Integer_16);
+
+  package I16F32_Scaling is new Scaling(F32,I16);
+  package I16F32 is new I16F32_Scaling.Streams;
+
+-- for write:
+  package I16I16_Scaling is new Scaling(I16,I16);
+  package I16I16 is new I16I16_Scaling.Streams;
+
 
   BSCALE : constant V3_Types.Float_32 :=   0.003891051;
   BZERO  : constant V3_Types.Float_32 := 127.501945525;
 
 
-  procedure ConvertData(Block : out I16_Raw.T_Arr)
+  procedure ConvertData(I16Value : out I16.Numeric)
   is
-    F32Value : Float_32;
-    I16Value : Integer_16;
+      I16A : I16.Numeric_Arr(1..1);
   begin
-    for I in Block'Range
-    loop
-
-      if(K > 2880/4)
-      then
-        F32_Raw.Read_Array(InFile, InBlock);
-        K := 1;
-      end if;
-      F32Value := InBlock(K);
-      K := K + 1;
-
-      -- scale and convert
-      if(F32Value > 255.0) then F32Value := 255.0; end if;
---      F32Value  := (F32Value - BZERO) / BSCALE; -- FIXME why this ??
-      I16Value := Integer_16(F32Value);
-
-      Block(I) := I16Value;
-    end loop;
+    I16F32.Linear(SIO.Stream(InFile),I16A);--Read
+    I16Value := I16A(1);
   end ConvertData;
 
-  procedure I16_Write_DU is new I16_Raw_DU.Write_Data_Unit(0,ConvertData);
+  procedure I16_Write_DU is new I16I16.Write_Data_Unit(ConvertData);
 
 
  begin

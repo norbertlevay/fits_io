@@ -26,6 +26,44 @@
 
 \section{FITS library}
 
+FITS-file stores data and associated metadata. Optionally, it can mark undefined
+data values with a special value.
+
+FITS-file is an \textit{efficient} data container:
+it can store data in different type then the one in which the data is available.
+The FITS\_IO.File\_Type automatically converts and scales tha data and if data
+contains undefined values, it substitutes undefined value mark for the one in the new type.
+
+
+That is, FITS\_IO.File\_Type is capable of
+
+* converting data to other type : Set\_Raw\_Type(File\_Type, Raw\_Type : Data\_Unit\_Type)
+
+* linearely scaling the values : Set\_Linear\_Scaling\_Coefficients(File\_Type, A, B : Float)
+
+and if needed
+
+* allows to mark undefined values and automatically replaces them during conversion
+: Set\_Undefined\_Values(File\_Type, Undefned\_Physical, Undefined\_Raw : Float)
+
+API rules:
+
+\textbf{RULE} all Raw-related params load from Read/Write\_Header, Read/Write\_Cards functions
+
+\textbf{RULE} all Physical-related params loaded by API funcs called by user (incl generic T\_Arr)
+
+E.g. for Raw values user manipulates Header functions, Raw-values are set by lib
+in the background. And exist specific API calls for User to set Physical values in the lib
+(Set\_Undefined\_Value, Set\_Scaling, generic T\_Arr,...)
+
+
+* Raw:  User - Header - set Raw-value
+
+* Phys: User - API-call - set Phys-value
+
+\textbf{RULE} File.Scaling loaded/inited only when END-Card and Padding read/written;
+without that \textbf{Read/Write from/to Data Unit will fail} (BITPIX = 0?)
+
 
 \section{Algorithms}
 
@@ -46,11 +84,49 @@ Functionality:
 
 
 \subsection{File}
-It is based on Stream\_IO ...
+It implements FITS\_IO which is based on streams (in case of GNAT C-Streams FILE*) similarly to Streams\_IO implementation.
+
+
+
 \subsubsection{Positioning to HDU}
 
 To reach a HDU given by HDUNum first parse header's mandatory keywords and use Eq(X)
 to calulate Data Unit size. 
+
+
+\subsubsection{Header and Data access Rules}
+
+2 Rules:
+
+\textbf{RULE} \textbf{Raw-side/type} is defined by Header in BOTH cases Read/Write
+
+\textbf{RULE} Each invocation of DataUnit.Read/Write modifies File.Index only, as it shifts through the Data\_Unit sequentially (e.g. implements \textbf{sequential access}, no state variable needed).
+
+\textit{NOTE: ergo, there needs to be a Data\_Unit.Init/Open... func AFTER Header is ready and T is known (Data\_Unit instantiated), but BEFORE repeated calls to DU Read/Write start.}
+
+.
+
+additional 2 Rules:
+
+\textbf{RULE} Header is DU-Type independent (Strings,?Floats?)
+
+\textbf{RULE} Data\_Unit package is generic by T and so defines \textbf{Physical-side/type}
+
+\textit{NOTE: the Header is METADATA by its character, and as such it merely DESCRIBES
+the Raw-data. Whereas the Data\_Unit contains the data itself and as such it IMPLEMENTS
+the data and so defines the Physical-side/type.}
+
+additional 3 rules decribing relation between Header-Data:
+
+\textbf{RULE} Header is read sequentially (because size unknown, must read until END-card)
+
+\textbf{RULE} Data-unit read/write is \textbf{random access} (because size known from the header)
+
+\textbf{RULE} Read\_Header() funcs (unlike Read\_/Write\_Cards):
+always reads all header, up to END\_Card (incl padding: skip at read), (after access
+File.Index points to first data in the data-unit).
+
+
 
 
 
@@ -140,8 +216,8 @@ package body Linear\_Conv is
 
 \section{Source inserts}
 
-\subsection{Specification fits.ads}
-\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/fits.ads}
+%\subsection{Specification fits.ads}
+%\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/fits.ads}
 
 \subsection{Specification file/file.ads}
 \inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/file/file.ads}
@@ -149,11 +225,11 @@ package body Linear\_Conv is
 \subsection{Specification parser/mandatory.ads}
 \inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/parser/mandatory.ads}
 
-\subsection{Specification image/alt\_4/physical\_read.ads}
-\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/image/alt_4/physical_read.ads}
+%\subsection{Specification image/alt\_4/physical\_read.ads}
+%\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/image/alt_4/physical_read.ads}
 
-\subsection{Specialization for data types as of FITS ver 3 (api/alt\_4/v3\_image\_read.ads)}
-\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/api/alt_4/v3_image_read.ads}
+%\subsection{Specialization for data types as of FITS ver 3 (api/alt\_4/v3\_image\_read.ads)}
+%\inputminted[linenos, fontsize=\footnotesize]{ada}{../lib/src/api/alt_4/v3_image_read.ads}
 
 \end{document}
 

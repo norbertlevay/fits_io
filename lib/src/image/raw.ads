@@ -18,12 +18,12 @@
 
 -- FIXME what Indexes should T_Arr have ?  (1..max or 'First .. 'Last)
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Mandatory; use Mandatory; -- NAXIS_Arr needed
+with FITS_IO; use FITS_IO;
+
+with Ada.Streams.Stream_IO;
 
 generic
   type T is private;
---  type T_Arr is array (Positive_Count range <>) of T;
 package Raw is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -51,19 +51,19 @@ package Raw is
  procedure Read_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr;
-    --Last    : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array;
+    --Last    : in NAXIS_Array;
     Volume  : out T_Arr);
 
 
  procedure Write_Volume
    (File : SIO.File_Type;
     DUStart : in Positive_Count;
-    NAXISn  : in NAXIS_Arr;
-    First   : in NAXIS_Arr;
-    VolumeSize : in NAXIS_Arr;
+    NAXISn  : in NAXIS_Array;
+    First   : in NAXIS_Array;
+    VolumeSize : in NAXIS_Array;
     Volume     : in T_Arr);
 
 

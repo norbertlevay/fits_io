@@ -18,12 +18,9 @@
 
 -- FIXME what Indexes should T_Arr have ?  (1..max or 'First .. 'Last)
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Mandatory; use Mandatory; -- NAXIS_Arr needed
+with Ada.Streams.Stream_IO;
 
 generic
---  type T is private;
---  type T_Arr is array (Positive_Count range <>) of T;
 package Raw.Data_Unit is
 
  package SIO renames Ada.Streams.Stream_IO;
@@ -42,7 +39,7 @@ generic
   with procedure Data(Block : in T_Data_Block);
 procedure Read_Data_Unit
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 generic
@@ -50,14 +47,14 @@ generic
   with procedure Data(Block : out T_Data_Block);
 procedure Write_Data_Unit
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 generic
   with procedure Data_Elem(E : in T);
 procedure Read_Data_Unit_By_Element
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 generic
@@ -65,7 +62,7 @@ generic
   with procedure Data_Elem(E : out T);
 procedure Write_Data_Unit_By_Element
   (File : SIO.File_Type;
-  NAXISn : in NAXIS_Arr);
+  NAXISn : in NAXIS_Array);
 
 
 

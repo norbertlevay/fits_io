@@ -11,11 +11,12 @@ project examples is
        "../lib/src/header","../lib/src/image","../lib/src/v3");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
-   for Main use ("create.adb", "convert.adb",
-       "minmax.adb", --"minmax_v3.adb",
+   for Main use ("init_test.adb","create2.adb", "convert.adb",
+       "minmax.adb","minmax_all_types.adb", --"minmax_v3.adb",
        "list.adb", "reserved_keys.adb",
        --"cutout.adb",
-       "undefvals.adb", "scopium");
+       "undefvals.adb", "scopium", 
+       "testnum.adb");
 
    package Compiler is
       for Default_Switches ("ada") use ("-gnat12");
@@ -24,6 +25,11 @@ project examples is
    package Linker is
       for Default_Switches ("ada") use ("-L../lib/lib -lfits_io");
    end Linker;
+
+   package Binder is
+      for Default_Switches ("ada") use ("-E");
+      -- for symbolic Traceback
+   end Binder;
 
    package Builder is
       for Default_Switches ("ada") use ("-g","-s", "-gnatQ");
