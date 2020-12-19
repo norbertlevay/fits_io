@@ -122,9 +122,12 @@ package FITS_IO is
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only - later Access_Rec to be hidden
 
-   ----------------------------------------
-   -- Operations on Position within File --
-   ----------------------------------------
+   ---------------------------------------------
+   -- Operations on Position within Data Unit --
+   ---------------------------------------------
+
+   -- FIXME random access only in DataUnit by data-element type index
+   -- (Header access sequential only)
 
    procedure Set_Index (File : File_Type; To : Positive_Count);
 
