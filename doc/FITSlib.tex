@@ -46,6 +46,11 @@ and if needed
 * allows to mark undefined values and automatically replaces them during conversion
 : Set\_Undefined\_Values(File\_Type, Undefned\_Physical, Undefined\_Raw : Float)
 
+FITS-file is represented by FITS\_IO.File\_Type and the operations on it. 
+File\_Type store attributes related to data conversion, scaling and undefined value handling.
+These are applied during Read and Write from/to Data Unit.
+
+
 API rules:
 
 \textbf{RULE} all Raw-related params load from Read/Write\_Header, Read/Write\_Cards functions
