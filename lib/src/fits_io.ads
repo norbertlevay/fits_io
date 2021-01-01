@@ -12,6 +12,39 @@ package FITS_IO is
    type     Count          is new Ada.Streams.Stream_IO.Count;
    subtype  Positive_Count is Count range 1 .. Count'Last;
 
+   -- Metadata is stored in Cards
+
+   subtype String_80 is String(1 .. 80);
+   ENDCard   : constant String_80 := ('E','N','D', others => ' ');
+   EmptyCard : constant String_80 := (others => ' ');
+
+   package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
+   package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
+
+   type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
+
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80;
+
+   type String_80_Array is array (Positive_Count range <>) of String_80;
+
+   -- Data: Image
+
+   type DU_Type is
+      (Int8, UInt16, UInt32, UInt64,
+      UInt8,  Int16,  Int32,  Int64,
+      F32, F64);
+
+   subtype NAXIS_Index is Integer range 1 .. 999;
+   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+
+   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
+       record
+            Data_Type   : DU_Type;
+            NAXISn      : NAXIS_Array(1 .. NAXIS);
+            Image_Cards : String_80_Array(1 .. Card_Count);
+        end record;
+
+
    ---------------------
    -- File Management --
    ---------------------
@@ -28,6 +61,9 @@ package FITS_IO is
       Name : String;
       Form : String := "");
 
+   procedure Set_Extension_Number (File : File_Type; To : Positive_Count) is null;
+   -- 1 = first extension, 2 = second extension, etc...
+
    procedure Close  (File : in out File_Type);
    procedure Reset  (File : in out File_Type; Mode : File_Mode);
    function  Mode    (File : File_Type) return File_Mode;
@@ -35,103 +71,57 @@ package FITS_IO is
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
 
-   -----------------------------
-   -- Input-Output Operations --
-   -----------------------------
 
+   -------------------------
+   -- Metadata Operations --
+   -------------------------
 
-   -- Cards
-
-   subtype String_80 is String(1 .. 80);
-   ENDCard   : constant String_80 := ('E','N','D', others => ' ');
-   EmptyCard : constant String_80 := (others => ' ');
-
-   package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
-   package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
-
-   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80;
-
-   type String_80_Array is array (Positive_Count range <>) of String_80;
-
-   procedure Read
-     (File : in out File_Type;
-      Item : out String_80_Array;
-      Last : out Count);
-
-   procedure Write
-     (File : in out File_Type;
-      Item : String_80_Array);
-
-
-   -- Image
-
-   type DU_Type is
-      (Int8, UInt16, UInt32, UInt64,
-      UInt8,  Int16,  Int32,  Int64,
-      F32, F64);
-
-   subtype NAXIS_Index is Integer range 1 .. 999;
-   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
-
-   procedure Write_Image
-      (File       : in out File_Type;
-      Raw_Type    : DU_Type;
-      NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array);
-
-   procedure Write_End(File : in out File_Type);
-
-
-   -- Header
-
-   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
-       record
-            Data_Type   : DU_Type;
-            NAXISn      : NAXIS_Array(1 .. NAXIS);
-            Image_Cards : String_80_Array(1 .. Card_Count);
-        end record;
-
-   type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
-
-   function  Read_Header
+   function  Read_Header   -- Parse_Image_Header
       (FFile : in out File_Type;
       Keys   : BS_8_Array)
       return Image_Rec;
 
-   procedure Write_Header
+   procedure  Read_Cards   -- Parse_Cards
+      (FFile : in out File_Type;
+      Keys   : BS_8_Array;
+      Cards  : out String_80_Array) is null;
+
+
+   procedure Write_Header  -- Generate_Image_Header 
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Image_Cards : String_80_Array);
 
+   procedure Write_Cards  -- Add_Cards
+      (File       : in out File_Type;
+      Image_Cards : String_80_Array) is null;
 
-   -- Data
-
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
-
-   procedure Write_Data_Padding(FFile : File_Type);
-
-
-   -----------------------------------------------
-   -- Conversions, Scaling and Undefined Values --
-   -----------------------------------------------
+   -- Conversions, Scaling and Undefined Values
 
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
+
+   -- FIXME end of API ------------------------------------------------
+   -- below should be private or hidden in body
+
+
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only - later Access_Rec to be hidden
+
+
 
    ---------------------------------------------
    -- Operations on Position within Data Unit --
    ---------------------------------------------
 
-   -- FIXME random access only in DataUnit by data-element type index
-   -- (Header access sequential only)
+   -- FIXME hide behind private: no random access, do only sequential access
+   -- to avoid creating inconsistent HDUs FIXME how about DU-Read then ?
 
    procedure Set_Index (File : File_Type; To : Positive_Count);
-
    function Index (File : File_Type) return Positive_Count;
+
    function Size  (File : File_Type) return Count;
 
 
@@ -142,8 +132,37 @@ package FITS_IO is
    End_Error    : exception renames Ada.IO_Exceptions.End_Error;
 
 
+   -- Data FIXME internals hide behind private
+
+   function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
+   procedure Write_Data_Padding(FFile : File_Type);
+
+
+
+   -- to be removed (Write() used to write first-card in header,
+   -- which should be done insode Create/Open no need in API)
+
+   procedure Write
+     (File : in out File_Type;
+      Item : String_80_Array);
+
 
    private
+
+   procedure Read
+     (File : in out File_Type;
+      Item : out String_80_Array;
+      Last : out Count);
+
+   procedure Write_Image
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
+      Image_Cards : String_80_Array);
+
+   procedure Write_End(File : in out File_Type);
+
+
 
    -- RULE all Raw related params load from Write_Header/Write_Cards functions
    -- all Physical related params loaded by API funcs called by user (incl T_Arr generic T)

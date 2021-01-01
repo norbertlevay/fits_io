@@ -42,15 +42,15 @@ is
 
    -- Integer
 
---   subtype Phys_Type is Short_Integer;
---   Phys_Undef_Used  : constant Boolean   := True;
---   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
+   subtype Phys_Type is Short_Integer;
+   Phys_Undef_Used  : constant Boolean   := True;
+   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
 
    -- Unsigned
 
-   subtype Phys_Type is Unsigned_16;
-   Phys_Undef_Used  : constant Boolean   := True;
-   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
+--   subtype Phys_Type is Unsigned_16;
+--   Phys_Undef_Used  : constant Boolean   := True;
+--   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
 
 
 
@@ -111,6 +111,9 @@ is
 
     HDU_First_Card : String_80_Array(1 .. 1) := 
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+    Ext_First_Card : String_80_Array(1 .. 1) := 
+      (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
+
 
     use Optional.BS70;
     Array_Cards : String_80_Array :=
@@ -120,6 +123,14 @@ is
 --                Valued_Card(DATAMIN,  1*    "0.0"),
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
+
+    Ext_Cards : String_80_Array :=
+               (
+                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
+                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1"),
+                  Valued_Card(BZERO,    1*    "0.0"),
+                  Valued_Card(BSCALE,   1*    "1.0")
+                 );
 
 
 
@@ -155,6 +166,31 @@ begin
  Close(Out_File);
 
  TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
+
+
+ -- Add extension
+
+ Open (Out_File, FITS_IO.Append_File, File_Name);
+
+ -- write Header and Data unit
+
+ Write(Out_File, Ext_First_Card);
+
+
+ Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
+ Write_Header(Out_File, Raw_Type, NAXISn, Ext_Cards);
+
+ FITS_IO.Put_File_Type(Out_File,"DBG> ");
+
+ for I in 1 .. RowLength
+ loop
+    Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
+    Phys_Data.Write(Out_File, Write_Buffer);
+ end loop;
+
+ Write_Data_Padding(Out_File);
+
+ Close(Out_File);
 
 
 exception
