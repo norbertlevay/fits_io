@@ -92,6 +92,12 @@ package FITS_IO is
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Image_Cards : String_80_Array);
+   -- FIXME two things differ when writing image to Primary or extension:
+   -- * first card: SIMPLE_T vs XTENSION='IMAGE'
+   -- * additional cards PCOUNT GCOUNT in extension
+   -- FIXME none of these two concerns user, but the lib shouéd do it:
+   -- TODO implement it in Write_Header and remove from examples/create.adb
+
 
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
