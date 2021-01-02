@@ -109,10 +109,10 @@ is
 
     -- build Header
 
-    HDU_First_Card : String_80_Array(1 .. 1) := 
-      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
-    Ext_First_Card : String_80_Array(1 .. 1) := 
-      (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
+--    HDU_First_Card : String_80_Array(1 .. 1) := 
+--      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+--    Ext_First_Card : String_80_Array(1 .. 1) := 
+--     (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
 
 
     use Optional.BS70;
@@ -147,7 +147,7 @@ begin
 
  -- write Header and Data unit
 
- Write(Out_File, HDU_First_Card);
+-- Write(Out_File, HDU_First_Card);
 
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
@@ -174,7 +174,7 @@ begin
 
  -- write Header and Data unit
 
- Write(Out_File, Ext_First_Card);
+-- Write(Out_File, Ext_First_Card);
 
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));

@@ -145,6 +145,8 @@ package FITS_IO is
 
 
 
+   private
+
    -- to be removed (Write() used to write first-card in header,
    -- which should be done insode Create/Open no need in API)
 
@@ -153,7 +155,6 @@ package FITS_IO is
       Item : String_80_Array);
 
 
-   private
 
    procedure Read
      (File : in out File_Type;

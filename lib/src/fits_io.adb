@@ -505,6 +505,22 @@ package body FITS_IO is
    end Write_End;
 
 
+   procedure Write_First_Image_Card(Out_File : in out File_Type)
+   is
+    HDU_First_Card : String_80_Array(1 .. 1) :=  
+      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+    Ext_First_Card : String_80_Array(1 .. 1) :=  
+      (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
+    use Ada.Streams.Stream_IO;
+    Is_Primary : Boolean := (1 = SIO.Index(Out_File.SIO_File));
+   begin
+      if(Is_Primary)
+      then
+         Write(Out_File, HDU_First_Card);
+      else
+         Write(Out_File, Ext_First_Card);
+      end if;
+   end Write_First_Image_Card;
 
 
    procedure Write_Header
@@ -514,6 +530,7 @@ package body FITS_IO is
       Image_Cards : String_80_Array)
    is
    begin
+      Write_First_Image_Card(File);
       Write_Image(File, Raw_Type, NAXISn, Image_Cards);
       Write_End(File);
    end Write_Header;
