@@ -109,12 +109,6 @@ is
 
     -- build Header
 
---    HDU_First_Card : String_80_Array(1 .. 1) := 
---      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
---    Ext_First_Card : String_80_Array(1 .. 1) := 
---     (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
-
-
     use Optional.BS70;
     Array_Cards : String_80_Array :=
                (Valued_Card(BZERO,    1*    "0.0"),
@@ -123,15 +117,6 @@ is
 --                Valued_Card(DATAMIN,  1*    "0.0"),
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
-
---    Ext_Cards : String_80_Array :=
---               (
---                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
---                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1"),
---                  Valued_Card(BZERO,    1*    "0.0"),
---                  Valued_Card(BSCALE,   1*    "1.0")
---                 );
-
 
 
    File_Name : constant String := Command_Name & ".fits";
@@ -143,12 +128,10 @@ begin
    TIO.Put     ("DBG fi> "); TIOF.Put(Float(Phys_Undef_Value), 3, 10, 2);TIO.New_Line;
    TIO.Put_Line("DBGifi> "&Integer'Image(Integer(Float(Phys_Undef_Value))));
 
+
+   -- Write Primary HDU
+
  Create (Out_File, FITS_IO.Append_File, File_Name);
-
- -- write Header and Data unit
-
--- Write(Out_File, HDU_First_Card);
-
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
  Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
@@ -168,14 +151,9 @@ begin
  TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
 
 
- -- Add extension
+   -- Add extension
 
  Open (Out_File, FITS_IO.Append_File, File_Name);
-
- -- write Header and Data unit
-
--- Write(Out_File, Ext_First_Card);
-
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
  Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
