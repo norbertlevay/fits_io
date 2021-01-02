@@ -161,11 +161,11 @@ package FITS_IO is
       Item : out String_80_Array;
       Last : out Count);
 
-   procedure Write_Image
-      (File       : in out File_Type;
-      Raw_Type    : DU_Type;
-      NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array);
+--   procedure Write_Image
+--      (File       : in out File_Type;
+--      Raw_Type    : DU_Type;
+--      NAXISn      : NAXIS_Array;
+--      Image_Cards : String_80_Array);
 
    procedure Write_End(File : in out File_Type);
 

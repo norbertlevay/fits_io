@@ -450,7 +450,8 @@ package body FITS_IO is
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array)
+      Image_Cards : String_80_Array;
+      Is_Primary  : Boolean)-- := True)
    is
       BITPIX : Integer;
       Aui : Float;
@@ -464,16 +465,29 @@ package body FITS_IO is
             Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
             Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length)) );
 
-         Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn) & Image_Cards;
+         Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);-- & Image_Cards;
 
          Img : Image_Rec(NAXISn'Last, Image_Cards'Last);
 
+         use Optional.BS70;
+          Ext_Cards : String_80_Array :=
+               (
+                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
+                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1")
+               );
+          use Ada.Streams.Stream_IO;
+          Is_Extension : Boolean := Not Is_Primary;
       begin
          Img.Data_Type  := Raw_Type;
          Img.NAXISn     := NAXISn;
          Img.Image_Cards := Image_Cards;
 
          Write(File, Cards);
+         if(Is_Extension)
+         then
+            Write(File, Ext_Cards);
+         end if;
+         Write(File, Image_Cards);
 
          -- cache DU-access data
 
@@ -505,14 +519,13 @@ package body FITS_IO is
    end Write_End;
 
 
-   procedure Write_First_Image_Card(Out_File : in out File_Type)
+   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
     HDU_First_Card : String_80_Array(1 .. 1) :=  
       (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
     Ext_First_Card : String_80_Array(1 .. 1) :=  
       (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
     use Ada.Streams.Stream_IO;
-    Is_Primary : Boolean := (1 = SIO.Index(Out_File.SIO_File));
    begin
       if(Is_Primary)
       then
@@ -529,9 +542,11 @@ package body FITS_IO is
       NAXISn      : NAXIS_Array;
       Image_Cards : String_80_Array)
    is
+      use Ada.Streams.Stream_IO;
+    Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
    begin
-      Write_First_Image_Card(File);
-      Write_Image(File, Raw_Type, NAXISn, Image_Cards);
+      Write_First_Image_Card(File, Is_Primary);
+      Write_Image(File, Raw_Type, NAXISn, Image_Cards, Is_Primary);
       Write_End(File);
    end Write_Header;
 

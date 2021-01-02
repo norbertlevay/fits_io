@@ -124,13 +124,13 @@ is
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
 
-    Ext_Cards : String_80_Array :=
-               (
-                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
-                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1"),
-                  Valued_Card(BZERO,    1*    "0.0"),
-                  Valued_Card(BSCALE,   1*    "1.0")
-                 );
+--    Ext_Cards : String_80_Array :=
+--               (
+--                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
+--                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1"),
+--                  Valued_Card(BZERO,    1*    "0.0"),
+--                  Valued_Card(BSCALE,   1*    "1.0")
+--                 );
 
 
 
@@ -178,7 +178,7 @@ begin
 
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
- Write_Header(Out_File, Raw_Type, NAXISn, Ext_Cards);
+ Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
 
  FITS_IO.Put_File_Type(Out_File,"DBG> ");
 
