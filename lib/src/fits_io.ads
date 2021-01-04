@@ -81,10 +81,10 @@ package FITS_IO is
       Keys   : BS_8_Array)
       return Image_Rec;
 
-   procedure  Read_Cards   -- Parse_Cards
+   function  Read_Cards -- Parse_Cards
       (FFile : in out File_Type;
-      Keys   : BS_8_Array;
-      Cards  : out String_80_Array) is null;
+      Keys   : BS_8_Array)
+      return  String_80_Array;
 
 
    procedure Write_Header  -- Generate_Image_Header 
@@ -95,7 +95,7 @@ package FITS_IO is
 
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
-      Image_Cards : String_80_Array) is null;
+      Cards : String_80_Array);
 
    -- Conversions, Scaling and Undefined Values
 
@@ -161,8 +161,7 @@ package FITS_IO is
 --      NAXISn      : NAXIS_Array;
 --      Image_Cards : String_80_Array);
 
-   procedure Write_End(File : in out File_Type);
-
+   procedure Write_End(FFile : in out File_Type);
 
 
    -- RULE all Raw related params load from Write_Header/Write_Cards functions
@@ -209,6 +208,7 @@ package FITS_IO is
 
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
+      ENDCard_Pos : Ada.Streams.Stream_IO.Positive_Count;-- keep track where is END-card
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
       Cache    : Cache_Rec;
    end record;

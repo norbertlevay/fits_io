@@ -48,9 +48,9 @@ is
 
    -- Unsigned
 
---   subtype Phys_Type is Unsigned_16;
---   Phys_Undef_Used  : constant Boolean   := True;
---   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
+   -- subtype Phys_Type is Unsigned_16;
+   -- Phys_Undef_Used  : constant Boolean   := True;
+   -- Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
 
 
 
@@ -58,22 +58,22 @@ is
 
    -- Unsigned 8
 
---   Raw_Type      : DU_Type := FITS_IO.UInt8;
---   Raw_Undef     : constant Integer_8 := 127;
---   Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
+   -- Raw_Type      : DU_Type := FITS_IO.UInt8;
+   -- Raw_Undef     : constant Integer_8 := 127;
+   -- Raw_Undef_Str : constant String := Integer_8'Image(Raw_Undef);
 
    -- Signed 16
 
-   Raw_Type      : DU_Type := FITS_IO.Int16;
-   Raw_Undef     : constant Integer_16 := 127;
-   Raw_Undef_Str : constant String := Integer_16'Image(Raw_Undef);
+   -- Raw_Type      : DU_Type := FITS_IO.Int16;
+   -- Raw_Undef     : constant Integer_16 := 127;
+   -- Raw_Undef_Str : constant String := Integer_16'Image(Raw_Undef);
 
 
    -- Float
 
---   Raw_Type      : DU_Type := FITS_IO.F32;
---   Raw_Undef     : constant Float_32 := F32NaN;
---   Raw_Undef_Str : constant String := "0";-- FIXME here with empty string fails (1* operator ??)
+   Raw_Type      : DU_Type := FITS_IO.F32;
+   Raw_Undef     : constant Float_32 := F32NaN;
+   Raw_Undef_Str : constant String := "0";-- FIXME here with empty string fails (1* operator ??)
 
 
    -- simulate some data
@@ -118,6 +118,10 @@ is
 --                Valued_Card(DATAMAX,  1*  "126.0"));
     -- FIXME above cards must have calculated value
 
+    More_Cards : String_80_Array :=
+                (Valued_Card(DATAMIN,  1*    "0.0"),
+                 Valued_Card(DATAMAX,  1*  "126.0"));
+
 
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
@@ -157,6 +161,7 @@ begin
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
  Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
+ Write_Cards(Out_File, More_Cards);
 
  FITS_IO.Put_File_Type(Out_File,"DBG> ");
 

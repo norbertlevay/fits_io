@@ -6,7 +6,7 @@ use Ada.Strings; -- Left needed for Trim
 with Mandatory; -- Result_rec needed
 with Optional; -- ReadOtional needed
 with Header;    -- Valued_Key_Record_Arr needed
-
+with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
 with Ada.Streams.Stream_IO;
 with Ada.Text_IO;
 
@@ -387,6 +387,37 @@ package body FITS_IO is
    end Valued_Card;
 
 
+   -- new API adds cards overwriting current END and adding new END
+ 
+   procedure Write_Cards  -- Add_Cards
+      (File       : in out File_Type;
+      Cards : String_80_Array)
+   is
+      Ix : SIO.Positive_Count := 1;
+   begin
+      -- position File-Index to END card in File header
+      SIO.Set_Index(File.SIO_File,File.ENDCard_Pos);
+      -- start writing Image_Cards
+      String_80_Array'Write(Stream(File), Cards);
+      -- add new END card
+      Write_End(File); -- writes END-card and padding
+   end Write_Cards;
+
+   function  Read_Cards
+      (FFile : in out File_Type;
+       Keys   : BS_8_Array)
+       return  String_80_Array
+   is
+      LKeys  : Optional.Bounded_String_8_Arr := Keys;
+      LCards : Card_Arr := Header.Read_Optional(FFile, LKeys);
+      Cards  : String_80_Array := LCards;
+  begin
+      return Cards;
+   end Read_Cards;
+
+
+
+
    -- Header
 
 
@@ -509,13 +540,17 @@ package body FITS_IO is
    -- writes END-card$
    -- writes Padding$
    -- Loads data-unit access params to File.Scaling$
-   procedure Write_End(File : in out File_Type)
+   procedure Write_End(FFile : in out File_Type)
    is
    begin
-      Header.Close(File);
+      --Header.Close(File);
+      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
+      File.Misc.Write_Padding(FFile,Index(FFile),File.Misc.HeaderPadValue);
+
       -- init data unit Access_Rec
-      Load_BITPIX_And_Scaling_AB(File);
-      Load_Undef_Vals_At_Write(File);
+      Load_BITPIX_And_Scaling_AB(FFile);
+      Load_Undef_Vals_At_Write(FFile);
    end Write_End;
 
 
