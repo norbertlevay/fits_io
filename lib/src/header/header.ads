@@ -13,7 +13,8 @@ with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed
 
 package Header is
 
-   package SIO renames FITS_IO;
+--   package SIO renames FITS_IO;
+   package SIO renames Ada.Streams.Stream_IO;
 
    type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
     -- FIXME temp used in Init.Init_Reads
@@ -37,7 +38,7 @@ package Header is
    procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr);
    -- adds cards after last written; call several times until header completed
 
-   procedure Close(F : in SIO.File_Type);
+   --procedure Close(F : in FITS_IO.File_Type);
    -- writes last END-card and padding
 
 

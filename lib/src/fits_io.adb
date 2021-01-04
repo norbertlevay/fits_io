@@ -389,6 +389,23 @@ package body FITS_IO is
 
    -- new API adds cards overwriting current END and adding new END
  
+   -- writes END-card$
+   -- writes Padding$
+   -- Loads data-unit access params to File.Scaling$
+   procedure Write_End(FFile : in out File_Type)
+   is
+   begin
+      --Header.Close(File);
+      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
+      File.Misc.Write_Padding(FFile.SIO_File,SIO.Index(FFile.SIO_File),File.Misc.HeaderPadValue);
+
+      -- init data unit Access_Rec
+      Load_BITPIX_And_Scaling_AB(FFile);
+      Load_Undef_Vals_At_Write(FFile);
+   end Write_End;
+
+
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
       Cards : String_80_Array)
@@ -396,7 +413,7 @@ package body FITS_IO is
       Ix : SIO.Positive_Count := 1;
    begin
       -- position File-Index to END card in File header
-      SIO.Set_Index(File.SIO_File,File.ENDCard_Pos);
+      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos);
       -- start writing Image_Cards
       String_80_Array'Write(Stream(File), Cards);
       -- add new END card
@@ -409,7 +426,7 @@ package body FITS_IO is
        return  String_80_Array
    is
       LKeys  : Optional.Bounded_String_8_Arr := Keys;
-      LCards : Card_Arr := Header.Read_Optional(FFile, LKeys);
+      LCards : Card_Arr := Header.Read_Optional(FFile.SIO_File, LKeys);
       Cards  : String_80_Array := LCards;
   begin
       return Cards;
@@ -441,15 +458,15 @@ package body FITS_IO is
       Keys     : BS_8_Array)  return Image_Rec
    is
       -- FIXME set File.Index to HDUStart (=1)
-      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile);
+      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
 
-       File.Set_File_Block_Index(FFile, 1);
+       File.Set_File_Block_Index(FFile.SIO_File, 1);
       -- FIXME update parser to avoid 2 reads
 
       declare
-         Cards : Optional.Card_Arr := Header.Read_Optional(FFile, Keys);
+         Cards : Optional.Card_Arr := Header.Read_Optional(FFile.SIO_File, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
          Image.Data_Type   := BITPIX_To_DU_Type(Mand.BITPIX);
@@ -537,22 +554,6 @@ package body FITS_IO is
    end Write_Image;
 
 
-   -- writes END-card$
-   -- writes Padding$
-   -- Loads data-unit access params to File.Scaling$
-   procedure Write_End(FFile : in out File_Type)
-   is
-   begin
-      --Header.Close(File);
-      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
-      File.Misc.Write_Padding(FFile,Index(FFile),File.Misc.HeaderPadValue);
-
-      -- init data unit Access_Rec
-      Load_BITPIX_And_Scaling_AB(FFile);
-      Load_Undef_Vals_At_Write(FFile);
-   end Write_End;
-
 
    procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
@@ -593,7 +594,7 @@ package body FITS_IO is
    procedure Write_Data_Padding(FFile : File_Type)
    is
    begin
-            File.Misc.Write_Padding(FFile, Index(FFile), File.Misc.DataPadValue);
+            File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
    end Write_Data_Padding;
 
 

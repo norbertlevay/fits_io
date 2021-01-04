@@ -10,8 +10,8 @@ use Optional; -- Card_Arr used elsewhere then Optional
 
 package File is
 
-   --package SIO renames Ada.Streams.Stream_IO;
-   package SIO renames FITS_IO;
+ package SIO renames Ada.Streams.Stream_IO;
+--   package SIO renames FITS_IO;
 
    -----------------------
    -- FITS file content --

@@ -317,12 +317,12 @@ end Write_Cards;
 
 
 -- writes last END-card and padding
-procedure Close(F : in SIO.File_Type)
-is
-begin
-    String_80'Write(SIO.Stream(F), ENDCard);
-    File.Misc.Write_Padding(F,SIO.Index(F),File.Misc.HeaderPadValue);
-end Close;
+--procedure Close(F : in FITS_IO.File_Type)
+--is
+--begin
+--    String_80'Write(SIO.Stream(F.SIO_File), ENDCard);
+--    File.Misc.Write_Padding(F,SIO.Index(F.SIO_File),File.Misc.HeaderPadValue);
+--end Close;
 
 
 

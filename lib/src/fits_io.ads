@@ -103,28 +103,6 @@ package FITS_IO is
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
 
-   -- FIXME end of API ------------------------------------------------
-   -- below should be private or hidden in body
-
-
-   procedure Put_File_Type(File : File_Type; Prefix : String := "");
-   -- FIXME for debug only - later Access_Rec to be hidden
-
-
-
-   ---------------------------------------------
-   -- Operations on Position within Data Unit --
-   ---------------------------------------------
-
-   -- FIXME hide behind private: no random access, do only sequential access
-   -- to avoid creating inconsistent HDUs FIXME how about DU-Read then ?
-
-   procedure Set_Index (File : File_Type; To : Positive_Count);
-   function Index (File : File_Type) return Positive_Count;
-
-   function Size  (File : File_Type) return Count;
-
-
   ----------------
   -- Exceptions --
   ----------------
@@ -132,36 +110,18 @@ package FITS_IO is
    End_Error    : exception renames Ada.IO_Exceptions.End_Error;
 
 
-   -- Data FIXME internals hide behind private
 
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count;
+   -- FIXME end of API ------------------------------------------------
+   -- below should be private or hidden in body
+   procedure Put_File_Type(File : File_Type; Prefix : String := "");
+   -- FIXME for debug only - later Access_Rec to be hidden
    procedure Write_Data_Padding(FFile : File_Type);
+   -- FIXME take out of API - needed because Data-padding in Data_Unit not implemented yet
 
 
 
    private
 
-   -- to be removed (Write() used to write first-card in header,
-   -- which should be done insode Create/Open no need in API)
-
-   procedure Write
-     (File : in out File_Type;
-      Item : String_80_Array);
-
-
-
-   procedure Read
-     (File : in out File_Type;
-      Item : out String_80_Array;
-      Last : out Count);
-
---   procedure Write_Image
---      (File       : in out File_Type;
---      Raw_Type    : DU_Type;
---      NAXISn      : NAXIS_Array;
---      Image_Cards : String_80_Array);
-
-   procedure Write_End(FFile : in out File_Type);
 
 
    -- RULE all Raw related params load from Write_Header/Write_Cards functions
