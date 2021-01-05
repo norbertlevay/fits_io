@@ -8,7 +8,7 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
 
 with FITS_IO;           use FITS_IO;
-with FITS_IO.Data_Unit;
+--with FITS_IO.Data_Unit;
 with V3_Types; use V3_Types;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
@@ -83,8 +83,12 @@ is
 
    NAXISn : NAXIS_Array := (ColLength, RowLength);
 
-   package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
-   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
+--   package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
+--   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
+   type Phys_Type_Arr is array (Positive_Count range <>) of Phys_Type;
+   procedure DU_Write is new FITS_IO.Write(Phys_Type, Phys_Type_Arr);
+   Write_Buffer : Phys_Type_Arr(1 .. ColLength);
+
 
    UCnt : Natural := 0;
 
@@ -93,9 +97,11 @@ is
       Phys_Undef_Valid : Boolean;
       Phys_Undef_Value : Phys_Type;
       UCnt : in out Natural)
-      return Phys_Data.T_Arr
+      --return Phys_Data.T_Arr
+      return Phys_Type_Arr
    is
-       Col : Phys_Data.T_Arr(1 .. ColLength);
+       --Col : Phys_Data.T_Arr(1 .. ColLength);
+       Col : Phys_Type_Arr(1 .. ColLength);
    begin
        for I in Col'Range loop Col(I) := Phys_Type(I - 1); end loop;
        if (Phys_Undef_Valid)
@@ -145,7 +151,8 @@ begin
  for I in 1 .. RowLength
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
-    Phys_Data.Write(Out_File, Write_Buffer);
+    --Phys_Data.Write(Out_File, Write_Buffer);
+    DU_Write(Out_File, Write_Buffer);
  end loop;
 
  Write_Data_Padding(Out_File);
@@ -168,7 +175,8 @@ begin
  for I in 1 .. RowLength
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
-    Phys_Data.Write(Out_File, Write_Buffer);
+    --Phys_Data.Write(Out_File, Write_Buffer);
+    DU_Write(Out_File, Write_Buffer);
  end loop;
 
  Write_Data_Padding(Out_File);

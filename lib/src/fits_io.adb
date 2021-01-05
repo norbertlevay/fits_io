@@ -14,6 +14,15 @@ with Init;
 
 with File.Misc; -- Padding needed
 
+-- for DataUnit Read/Write:
+with Numeric_Type;
+with V3_Types; use V3_Types;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+with Array_IO;
+with Ada.Exceptions; use Ada.Exceptions;
+with FITS_IO.V3_Types_For_DU;
+
+
 package body FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
@@ -335,7 +344,7 @@ package body FITS_IO is
    end Has_END_Card;
 
 
-   procedure Read
+   procedure Read_Card_Arr
      (File : in out File_Type;
       Item : out String_80_Array;
       Last : out Count)
@@ -362,10 +371,10 @@ package body FITS_IO is
          Load_BITPIX_And_Scaling_AB(File);
          Load_Undef_Vals_At_Read(File);
       end if;
-   end Read;
+   end Read_Card_Arr;
 
 
-   procedure Write
+   procedure Write_Card_Arr
      (File : in out File_Type;
       Item : String_80_Array)
    is
@@ -377,7 +386,7 @@ package body FITS_IO is
        B => File.Cache.Bh,
        Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
        Undef_Raw_Value => File.Cache.Raw_Undef_Value);
-   end Write;
+   end Write_Card_Arr;
 
 
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
@@ -530,12 +539,12 @@ package body FITS_IO is
          Img.NAXISn     := NAXISn;
          Img.Image_Cards := Image_Cards;
 
-         Write(File, Cards);
+         Write_Card_Arr(File, Cards);
          if(Is_Extension)
          then
-            Write(File, Ext_Cards);
+            Write_Card_Arr(File, Ext_Cards);
          end if;
-         Write(File, Image_Cards);
+         Write_Card_Arr(File, Image_Cards);
 
          -- cache DU-access data
 
@@ -565,9 +574,9 @@ package body FITS_IO is
    begin
       if(Is_Primary)
       then
-         Write(Out_File, HDU_First_Card);
+         Write_Card_Arr(Out_File, HDU_First_Card);
       else
-         Write(Out_File, Ext_First_Card);
+         Write_Card_Arr(Out_File, Ext_First_Card);
       end if;
    end Write_First_Image_Card;
 
@@ -671,6 +680,127 @@ package body FITS_IO is
       TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.Cache.Aui));
       Put_Access_Rec(File.Scaling,Prefix);
    end Put_File_Type;
+
+
+
+   -- Data Unit
+
+
+   procedure Read
+     (File    : File_Type;
+      Item : out T_Arr;
+      Last : out Count)
+   is
+       type Float_Arr is array (Positive_Count range <>) of Float;
+       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
+    -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
+    -- and also one of FITS V3-types$
+    -- Raw can be _only_ FITS V3-type$
+   use FITS_IO.V3_Types_For_DU;
+   package U8_AIO is new Array_IO(U8Raw, Physical);
+   package I16_AIO is new Array_IO(I16Raw, Physical);
+   package I32_AIO is new Array_IO(I32Raw, Physical);
+   package I64_AIO is new Array_IO(I64Raw, Physical);
+   package F32_AIO is new Array_IO(F32Raw, Physical);
+   package F64_AIO is new Array_IO(F64Raw, Physical);
+
+      Scaling : Access_Rec := File.Scaling;
+   begin
+
+   -- Set Undefined value
+
+    if(Scaling.Undef_Used)
+    then
+
+        Physical.Set_Undefined(+Scaling.Undef_Phys);
+
+        case(Scaling.BITPIX) is
+             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when others =>
+             Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
+        end case;
+
+    end if;
+
+    -- Scaling
+
+    case(Scaling.BITPIX) is
+        when   8 => U8_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when  16 => I16_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when  32 => I32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when  64 => I64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when -64 => F64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
+        when others =>
+         Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
+    end case;
+
+   end Read;
+
+
+
+
+
+
+  procedure Write
+     (File    : File_Type;
+      Item : T_Arr)
+   is
+      type Float_Arr is array (Positive_Count range <>) of Float;
+      package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
+    -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
+    -- and also one of FITS V3-types$
+    -- Raw can be _only_ FITS V3-type$
+   use FITS_IO.V3_Types_For_DU;
+   package U8_AIO is new Array_IO(U8Raw, Physical);
+   package I16_AIO is new Array_IO(I16Raw, Physical);
+   package I32_AIO is new Array_IO(I32Raw, Physical);
+   package I64_AIO is new Array_IO(I64Raw, Physical);
+   package F32_AIO is new Array_IO(F32Raw, Physical);
+   package F64_AIO is new Array_IO(F64Raw, Physical);
+
+      Scaling : Access_Rec := File.Scaling;
+  begin
+
+   -- Set Undefined value
+
+    if(Scaling.Undef_Used)
+    then
+
+        Physical.Set_Undefined(+Scaling.Undef_Phys);
+
+        case(Scaling.BITPIX) is
+             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
+             when others =>
+            Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
+        end case;
+
+    end if;
+
+    -- Scaling
+
+    case(Scaling.BITPIX) is
+        when   8 =>  U8_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when  16 => I16_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when  32 => I32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when  64 => I64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when -64 => F64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
+        when others =>
+          Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
+    end case;
+
+   end Write;
 
 
 end FITS_IO;
