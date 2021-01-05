@@ -100,7 +100,9 @@ package FITS_IO is
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
 
-   -- Data Unit access
+   ---------------------------------
+   -- Data Unit sequential access --
+   ---------------------------------
 
    generic
    type T is private;
