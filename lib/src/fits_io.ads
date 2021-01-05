@@ -125,7 +125,7 @@ package FITS_IO is
    with function To_BITPIX (V   : in T) return Integer is <>; 
    procedure Write
       (File : File_Type;
-            Item : T_Arr);
+       Item : T_Arr);
 
 
 
