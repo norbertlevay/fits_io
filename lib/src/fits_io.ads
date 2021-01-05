@@ -1,4 +1,20 @@
 
+-- API approach question: what does FITS_IO.File_Type represent ?
+--
+-- a, file of concatinated HDU's (then internally stores HDU sizes positions)
+-- b, one HDU (then internally stores Metadata/attributes of the opened HDU)
+--
+-- b, case: Open Create... refer HDU and after Open we have acces to DataUnit directly
+-- (file name uses extended syntax: someFitsFile.fits[4] opens 4th HDU
+--
+-- a, case: after Open we should see array of HDUs and Set_HDU_Number should move
+-- to "current HDU"
+--
+-- NOTE seems cfitsio took 'mixed' approach, the FitsFile-handle represents both, an HDU
+-- and also array of concatinated HDUs - cfitsio's API has operations for both on
+-- the same FitsFile type
+
+
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
