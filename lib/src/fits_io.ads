@@ -85,10 +85,10 @@ package FITS_IO is
 
 
    procedure Write_Header  -- Generate_Image_Header 
-         (File       : in out File_Type;
-         Raw_Type    : DU_Type;
-         NAXISn      : NAXIS_Array;
-         Image_Cards : String_80_Array);
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
+      Image_Cards : String_80_Array);
 
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
@@ -168,13 +168,14 @@ package FITS_IO is
 
    -- Access Data Unit
 
-   type Access_Rec is record
-      BITPIX : Integer;
-      A,B : Float;
-      Undef_Used : Boolean;
-      Undef_Raw  : Float;
-      Undef_Phys : Float;
-   end record;
+   type Access_Rec is
+      record
+         BITPIX : Integer;
+         A,B : Float;
+         Undef_Used : Boolean;
+         Undef_Raw  : Float;
+         Undef_Phys : Float;
+      end record;
    -- used by Data_Unit.Read/Write
    -- if not initialized, DU access not possible
    -- it is initialized from Cache after Header is completed (created or read)
