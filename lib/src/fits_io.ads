@@ -36,20 +36,31 @@ package FITS_IO is
    EmptyCard : constant String_80 := (others => ' ');
 
    package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
+   package BS20 is new Ada.Strings.Bounded.Generic_Bounded_Length(20);
    package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
 
    type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
    type String_80_Array is array (Positive_Count range <>) of String_80;
 
-   -- Data: Image
+   -- Data is stored in HDU
+
+   subtype NAXIS_Index is Integer range 1 .. 999;
+   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+
+   type HDU_Info_Type(NAXIS : Positive) is
+      record
+         XTENSION : BS20.Bounded_String;
+         CardsCnt : Positive_Count;
+         BITPIX   : Integer;
+         NAXISn   : NAXIS_Array(1..NAXIS);
+      end record;
+
+   -- Image
 
    type DU_Type is
       (Int8, UInt16, UInt32, UInt64,
       UInt8,  Int16,  Int32,  Int64,
       F32, F64);
-
-   subtype NAXIS_Index is Integer range 1 .. 999;
-   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
       record
@@ -75,15 +86,22 @@ package FITS_IO is
       Name : String;
       Form : String := "");
 
-   procedure Set_Extension_Number (File : File_Type; To : Positive_Count) is null;
-   -- 1 = first extension, 2 = second extension, etc...
-
    procedure Close  (File : in out File_Type);
    procedure Reset  (File : in out File_Type; Mode : File_Mode);
    function  Mode    (File : File_Type) return File_Mode;
    function  End_Of_File (File : File_Type) return Boolean;
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
+
+
+   -----------------------
+   -- FITS File content --
+   -----------------------
+
+   procedure Set_Extension_Number (File : File_Type; To : Positive_Count) is null;
+   -- 1 = first extension, 2 = second extension, etc...
+
+   function Read_Content (FFile : File_Type) return HDU_Info_Type;
 
 
    -------------------------

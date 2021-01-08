@@ -16,15 +16,15 @@ package File is
    -----------------------
    -- FITS file content --
    -----------------------
-   package Max20 is
-        new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
+--   package Max20 is
+--        new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 20);
 
-   type HDU_Info_Type(NAXIS : Positive) is record
-      XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
-      CardsCnt : Positive_Count;       -- number of cards in this Header
-      BITPIX   : Integer;             -- data type
-      NAXISn   : NAXIS_Array(1..NAXIS); -- data dimensions
-   end record;
+--   type HDU_Info_Type(NAXIS : Positive) is record
+--      XTENSION : Max20.Bounded_String;   -- XTENSION string or empty
+--      CardsCnt : Positive_Count;       -- number of cards in this Header
+--      BITPIX   : Integer;             -- data type
+--      NAXISn   : NAXIS_Array(1..NAXIS); -- data dimensions
+--   end record;
 
    function Read_Header (FitsFile : in  SIO.File_Type)
       return HDU_Info_Type;

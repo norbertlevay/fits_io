@@ -35,6 +35,11 @@ package body FITS_IO is
    package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
 
+   function Read_Content (FFile : in File_Type) return HDU_Info_Type
+   is
+   begin
+      return File.Read_Header(FFile.SIO_File);
+   end Read_Content;
 
    -----------------
    -- BEGIN utils --

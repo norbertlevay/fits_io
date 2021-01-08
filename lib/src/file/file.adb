@@ -30,7 +30,7 @@ package body File is
     PSize   : Mandatory.Result_Rec := Read_Mandatory(FitsFile);
     HDUInfo : HDU_Info_Type(PSize.NAXIS_Last);
    begin
-    HDUInfo.XTENSION := Max20.To_Bounded_String(
+    HDUInfo.XTENSION := BS20.To_Bounded_String(
                     Mandatory.HDU_Type'Image(Psize.HDU));
                     -- FIXME PSize.HSU is enum: 20 length might not be enough
                     -- find other solution then Bounded_String??
