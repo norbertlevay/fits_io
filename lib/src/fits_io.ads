@@ -29,7 +29,7 @@ package FITS_IO is
    type     Count          is new Ada.Streams.Stream_IO.Count;
    subtype  Positive_Count is Count range 1 .. Count'Last;
 
-   -- Metadata is stored in Cards
+   -- Card
 
    subtype String_80 is String(1 .. 80);
    ENDCard   : constant String_80 := ('E','N','D', others => ' ');
@@ -42,7 +42,7 @@ package FITS_IO is
    type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
    type String_80_Array is array (Positive_Count range <>) of String_80;
 
-   -- Data is stored in HDU
+   -- Header
 
    subtype NAXIS_Index is Integer range 1 .. 999;
    type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
@@ -55,7 +55,7 @@ package FITS_IO is
          NAXISn   : NAXIS_Array(1..NAXIS);
       end record;
 
-   -- Image
+   -- Image metadata
 
    type DU_Type is
       (Int8, UInt16, UInt32, UInt64,
