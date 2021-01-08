@@ -164,8 +164,6 @@ package FITS_IO is
    -- below should be private or hidden in body
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only - later Access_Rec to be hidden
-   procedure Write_Data_Padding(FFile : File_Type);
-   -- FIXME take out of API - needed because Data-padding in Data_Unit not implemented yet
 
 
 
@@ -219,9 +217,16 @@ package FITS_IO is
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       ENDCard_Pos : Ada.Streams.Stream_IO.Positive_Count;-- keep track where is END-card
+      DU_First  : Ada.Streams.Stream_IO.Positive_Count; -- start of the DataUnit
+      DU_Length : Positive_Count;
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
       Cache    : Cache_Rec;
    end record;
+   -- FIXME divide private section to two Records:
+   -- * File_Type: FITS-File related (HDUStart, HDU Site, etc...) and
+   -- * HDU_Type: AccessRec, Cache_Rec, attributes (Header card keys)...
+   -- for now keep HDU_Type part of File_Type. Consider: should HDU_Type have its
+   -- own operations ? (Creat(HDU,..) Open(HDU,..) Close(HDU) etc)
 
 end FITS_IO;
 

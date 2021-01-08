@@ -151,11 +151,8 @@ begin
  for I in 1 .. RowLength
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
-    --Phys_Data.Write(Out_File, Write_Buffer);
     DU_Write(Out_File, Write_Buffer);
  end loop;
-
- Write_Data_Padding(Out_File);
 
  Close(Out_File);
 
@@ -175,11 +172,8 @@ begin
  for I in 1 .. RowLength
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
-    --Phys_Data.Write(Out_File, Write_Buffer);
     DU_Write(Out_File, Write_Buffer);
  end loop;
-
- Write_Data_Padding(Out_File);
 
  Close(Out_File);
 

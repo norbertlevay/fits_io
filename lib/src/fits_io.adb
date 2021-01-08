@@ -22,6 +22,13 @@ with Array_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with FITS_IO.V3_Types_For_DU;
 
+-- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
+-- and also one of FITS V3-types$
+-- Raw can be _only_ FITS V3-type$
+-- How to solve Read / Write in case(BITPIX) ... ?
+-- Need sizes for native type and do case(T_Bits)...
+-- for all: native Types and also FITS-types
+
 
 package body FITS_IO is
 
@@ -71,37 +78,37 @@ package body FITS_IO is
    end To_Array_Keys;
 
 
-  procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
-  is
-     use Optional.BS_8;
-     use Optional.BS70;
-  begin
-     for I in Keys'Range
+   procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
+   is
+      use Optional.BS_8;
+      use Optional.BS70;
+   begin
+      for I in Keys'Range
       loop
          TIO.Put_Line(Prefix & To_String(Keys(I).Key) & " " & To_String(Keys(I).Value));
       end loop;
-  end Put_Array_Keys;
+   end Put_Array_Keys;
 
 
    procedure Put_Access_Rec(AccRec : Access_Rec; Prefix : String := "") 
    is
-     sBITPIX : String := Integer'Image(AccRec.BITPIX);
-     sA : String := Float'Image(AccRec.A);
-     sB : String := Float'Image(AccRec.B);
-     sUndef_Used : String := Boolean'Image(AccRec.Undef_Used);
-     sUndef_Raw  : String := Float'Image(AccRec.Undef_Raw);
-     sUndef_Phys : String := Float'Image(AccRec.Undef_Phys);
-  begin
+      sBITPIX : String := Integer'Image(AccRec.BITPIX);
+      sA : String := Float'Image(AccRec.A);
+      sB : String := Float'Image(AccRec.B);
+      sUndef_Used : String := Boolean'Image(AccRec.Undef_Used);
+      sUndef_Raw  : String := Float'Image(AccRec.Undef_Raw);
+      sUndef_Phys : String := Float'Image(AccRec.Undef_Phys);
+   begin
 
-   TIO.Put_Line(Prefix & "BITPIX = " & sBITPIX);
-   TIO.Put_Line(Prefix & "[A,B]  = " & sA & " " & sB);
-   if(AccRec.Undef_Used)
-   then
-      TIO.Put_Line(Prefix & "Undef_Raw  = " & sUndef_Raw);
-      TIO.Put_Line(Prefix & "Undef_Phys = " & sUndef_Phys);
-   end if;
+      TIO.Put_Line(Prefix & "BITPIX = " & sBITPIX);
+      TIO.Put_Line(Prefix & "[A,B]  = " & sA & " " & sB);
+      if(AccRec.Undef_Used)
+      then
+         TIO.Put_Line(Prefix & "Undef_Raw  = " & sUndef_Raw);
+         TIO.Put_Line(Prefix & "Undef_Phys = " & sUndef_Phys);
+      end if;
 
-  end Put_Access_Rec;
+   end Put_Access_Rec;
 
    ---------------
    -- END utils --
@@ -120,7 +127,7 @@ package body FITS_IO is
          when In_File => return SIO.In_File;
          when Out_File => return SIO.Out_File;
          when Append_File => return SIO.Append_File;
-         end case;
+      end case;
    end To_SIO_Mode;
 
    function To_FIO_Mode(Mode : SIO.File_Mode) return File_Mode
@@ -130,29 +137,29 @@ package body FITS_IO is
          when SIO.In_File => return In_File;
          when SIO.Out_File => return Out_File;
          when SIO.Append_File => return Append_File;
-         end case;
+      end case;
    end To_FIO_Mode;
 
    Null_Access_Rec : constant Access_Rec
-      := (BITPIX => 0, A => 0.0, B => 1.0,
-      Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
+   := (BITPIX => 0, A => 0.0, B => 1.0,
+   Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
 
    F_Zero : Float := 0.0;
    F_NaN : constant Float := 0.0/F_Zero;
    -- FIXME NaN for Floats in Ada -> how?
 
    Null_Cache_Rec : constant Cache_Rec
-      := (BITPIX => 0,
-      Aui => 0.0,
-      Ah => 0.0, Bh => 1.0,
-      Au => 0.0, Bu => 1.0,
-      Physical_Undef_Valid => False,
-      Physical_Undef_Value => F_NaN,
-      Raw_Undef_Valid => False,
-      Raw_Undef_Value => F_NaN);
+   := (BITPIX => 0,
+   Aui => 0.0,
+   Ah => 0.0, Bh => 1.0,
+   Au => 0.0, Bu => 1.0,
+   Physical_Undef_Valid => False,
+   Physical_Undef_Value => F_NaN,
+   Raw_Undef_Valid => False,
+   Raw_Undef_Value => F_NaN);
 
    procedure Create
-     (File : in out File_Type;
+      (File : in out File_Type;
       Mode : File_Mode := Out_File;
       Name : String := ""; 
       Form : String := "")
@@ -165,7 +172,7 @@ package body FITS_IO is
    end Create;
 
    procedure Open
-     (File : in out File_Type;
+      (File : in out File_Type;
       Mode : File_Mode;
       Name : String;
       Form : String := "")
@@ -284,7 +291,7 @@ package body FITS_IO is
             -- can be calc'd by Scaling only for (U)Int's
             File.Scaling.Undef_Raw :=
                (File.Cache.Physical_Undef_Value - File.Scaling.A) / File.Scaling.B;
-            File.Cache.Raw_Undef_Valid := True;
+               File.Cache.Raw_Undef_Valid := True;
          end if;
       end if;
    end Load_Undef_Vals_At_Write;
@@ -345,7 +352,7 @@ package body FITS_IO is
 
 
    procedure Read_Card_Arr
-     (File : in out File_Type;
+      (File : in out File_Type;
       Item : out String_80_Array;
       Last : out Count)
    is
@@ -358,11 +365,11 @@ package body FITS_IO is
       Parse_BITPIX(Item, File.Cache.BITPIX);
 
       Parse_Image_Cards
-       (Image_Cards => Item,
-       A => File.Cache.Ah,
-       B => File.Cache.Bh,
-       Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-       Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+         (Image_Cards => Item,
+         A => File.Cache.Ah,
+         B => File.Cache.Bh,
+         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
       if(Has_END_Card(Item,Last))
       then
@@ -375,17 +382,17 @@ package body FITS_IO is
 
 
    procedure Write_Card_Arr
-     (File : in out File_Type;
+      (File : in out File_Type;
       Item : String_80_Array)
    is
    begin
       String_80_Array'Write(Stream(File), Item);
       Parse_Image_Cards
-       (Image_Cards => Item,
-       A => File.Cache.Ah,
-       B => File.Cache.Bh,
-       Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-       Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+         (Image_Cards => Item,
+         A => File.Cache.Ah,
+         B => File.Cache.Bh,
+         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
    end Write_Card_Arr;
 
 
@@ -397,7 +404,19 @@ package body FITS_IO is
 
 
    -- new API adds cards overwriting current END and adding new END
- 
+
+   function Data_Element_Count(NAXISn : NAXIS_Array) return Count
+   is
+      Data_Cnt : Count := 1;
+   begin
+      for I in NAXISn'Range
+      loop
+         Data_Cnt := Data_Cnt * NAXISn(I);
+      end loop;
+      return Data_Cnt;
+   end Data_Element_Count;
+
+
    -- writes END-card$
    -- writes Padding$
    -- Loads data-unit access params to File.Scaling$
@@ -408,6 +427,8 @@ package body FITS_IO is
       FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
       String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
       File.Misc.Write_Padding(FFile.SIO_File,SIO.Index(FFile.SIO_File),File.Misc.HeaderPadValue);
+
+      FFile.DU_First := SIO.Index(FFile.SIO_File);
 
       -- init data unit Access_Rec
       Load_BITPIX_And_Scaling_AB(FFile);
@@ -431,13 +452,13 @@ package body FITS_IO is
 
    function  Read_Cards
       (FFile : in out File_Type;
-       Keys   : BS_8_Array)
-       return  String_80_Array
+      Keys   : BS_8_Array)
+      return  String_80_Array
    is
       LKeys  : Optional.Bounded_String_8_Arr := Keys;
       LCards : Card_Arr := Header.Read_Optional(FFile.SIO_File, LKeys);
       Cards  : String_80_Array := LCards;
-  begin
+   begin
       return Cards;
    end Read_Cards;
 
@@ -466,12 +487,16 @@ package body FITS_IO is
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
-      -- FIXME set File.Index to HDUStart (=1)
+      HDUFirst : SIO.Positive_Count := SIO.Index(FFile.SIO_File);
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
 
-       File.Set_File_Block_Index(FFile.SIO_File, 1);
+      -- store begining of DU for DU Read/Write DU_End-guard and padding write
+      FFile.DU_First := SIO.Index(FFile.SIO_File);
+
+      --File.Set_File_Block_Index(FFile.SIO_File, 1);
+      SIO.Set_Index(FFile.SIO_File, HDUFirst);
       -- FIXME update parser to avoid 2 reads
 
       declare
@@ -496,6 +521,8 @@ package body FITS_IO is
          -- init data unit Access_Rec
          Load_BITPIX_And_Scaling_AB(FFile);
          Load_Undef_Vals_At_Read(FFile);
+
+         FFile.DU_Length := Data_Element_Count(Image.NAXISn);
 
          return Image;
       end;
@@ -527,13 +554,13 @@ package body FITS_IO is
          Img : Image_Rec(NAXISn'Last, Image_Cards'Last);
 
          use Optional.BS70;
-          Ext_Cards : String_80_Array :=
-               (
-                  Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
-                  Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1")
+         Ext_Cards : String_80_Array :=
+            (
+               Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
+               Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1")
                );
-          use Ada.Streams.Stream_IO;
-          Is_Extension : Boolean := Not Is_Primary;
+         use Ada.Streams.Stream_IO;
+         Is_Extension : Boolean := Not Is_Primary;
       begin
          Img.Data_Type  := Raw_Type;
          Img.NAXISn     := NAXISn;
@@ -558,6 +585,8 @@ package body FITS_IO is
             Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
             Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
+         File.DU_Length := Data_Element_Count(Img.NAXISn);
+
       end;
 
    end Write_Image;
@@ -566,11 +595,11 @@ package body FITS_IO is
 
    procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
-    HDU_First_Card : String_80_Array(1 .. 1) :=  
-      (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
-    Ext_First_Card : String_80_Array(1 .. 1) :=  
-      (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
-    use Ada.Streams.Stream_IO;
+      HDU_First_Card : String_80_Array(1 .. 1) :=  
+         (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+      Ext_First_Card : String_80_Array(1 .. 1) :=  
+         (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
+      use Ada.Streams.Stream_IO;
    begin
       if(Is_Primary)
       then
@@ -588,7 +617,7 @@ package body FITS_IO is
       Image_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-    Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
+      Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
    begin
       Write_First_Image_Card(File, Is_Primary);
       Write_Image(File, Raw_Type, NAXISn, Image_Cards, Is_Primary);
@@ -603,7 +632,7 @@ package body FITS_IO is
    procedure Write_Data_Padding(FFile : File_Type)
    is
    begin
-            File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+      File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
    end Write_Data_Padding;
 
 
@@ -631,17 +660,6 @@ package body FITS_IO is
 
 
    -- FITS specific
-
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count
-   is
-      Data_Cnt : Count := 1;
-   begin
-      for I in NAXISn'Range
-      loop
-         Data_Cnt := Data_Cnt * NAXISn(I);
-      end loop;
-      return Data_Cnt;
-   end Data_Element_Count;
 
    ----------------------------------------------
    -- Converions, Scaling and Undefined Values --
@@ -686,119 +704,215 @@ package body FITS_IO is
    -- Data Unit
 
 
+   function Calc_Chunk_Pos
+      (F : SIO.File_Type;
+      DU_First  : SIO.Positive_Count;
+      DU_Length : Positive_Count;
+      BITPIX    : Integer; -- bits
+      T_Arr_Len : Positive_Count)
+      return Count
+   is
+      N_First : FITS_IO.Positive_Count;
+      DU_Current : SIO.Positive_Count := SIO.Index(F);
+      SE_Size    : SIO.Positive_Count := Ada.Streams.Stream_Element'Size; -- bits
+      use Ada.Streams.Stream_IO;
+      T_Size_seu : SIO.Positive_Count := SIO.Positive_Count(abs BITPIX) / SE_Size;
+      -- FIXME always divisable ?? -> platform param - seperate out to other ads
+   begin
+      N_First := FITS_IO.Positive_Count (1 + (DU_Current - DU_First) / T_Size_seu);
+      return N_First;
+   end Calc_Chunk_Pos;
+
+
+
+
    procedure Read
-     (File    : File_Type;
+      (File    : File_Type;
       Item : out T_Arr;
       Last : out Count)
    is
-       type Float_Arr is array (Positive_Count range <>) of Float;
-       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-    -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
-    -- and also one of FITS V3-types$
-    -- Raw can be _only_ FITS V3-type$
-   use FITS_IO.V3_Types_For_DU;
-   package U8_AIO is new Array_IO(U8Raw, Physical);
-   package I16_AIO is new Array_IO(I16Raw, Physical);
-   package I32_AIO is new Array_IO(I32Raw, Physical);
-   package I64_AIO is new Array_IO(I64Raw, Physical);
-   package F32_AIO is new Array_IO(F32Raw, Physical);
-   package F64_AIO is new Array_IO(F64Raw, Physical);
+      type Float_Arr is array (Positive_Count range <>) of Float;
+      package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
+      use FITS_IO.V3_Types_For_DU;
+      package U8_AIO is new Array_IO(U8Raw, Physical);
+      package I16_AIO is new Array_IO(I16Raw, Physical);
+      package I32_AIO is new Array_IO(I32Raw, Physical);
+      package I64_AIO is new Array_IO(I64Raw, Physical);
+      package F32_AIO is new Array_IO(F32Raw, Physical);
+      package F64_AIO is new Array_IO(F64Raw, Physical);
 
       Scaling : Access_Rec := File.Scaling;
+
+      -- for padding & detect End_Of_Data_Unit
+      Chunk_First : Positive_Count;
+      Chunk_Last  : Positive_Count;
+      DU_Last     : Positive_Count := File.DU_Length;
+      Chunk_Length : Positive_Count;
+      Item_Last : Positive_Count;
    begin
 
-   -- Set Undefined value
+      Chunk_First :=Calc_Chunk_Pos(File.SIO_File,File.DU_First,File.DU_Length,abs Scaling.BITPIX,Item'Length);
+      Chunk_Last  := Chunk_First + Item'Length - 1;
 
-    if(Scaling.Undef_Used)
-    then
+      -- dont read beyond data unit end
+      if(Chunk_First > DU_Last)
+      then
+         Last := 0;
+         return;
+      end if;
 
-        Physical.Set_Undefined(+Scaling.Undef_Phys);
+      -- last chunk hits data unit end -> read only up to end
+      -- Chunk_First <= DU_Last
+      if(Chunk_Last > DU_Last)
+      then
+         Chunk_Length := 1 + DU_Last - Chunk_First;
+         Item_Last := Item'First + Chunk_Length - 1;
+      else
+         Item_Last := Item'Last;
+      end if;
 
-        case(Scaling.BITPIX) is
-             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when others =>
-             Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
-        end case;
+      Last := Item_Last;
 
-    end if;
 
-    -- Scaling
+      -- Set Undefined value
 
-    case(Scaling.BITPIX) is
-        when   8 => U8_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when  16 => I16_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when  32 => I32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when  64 => I64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when -64 => F64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Item);
-        when others =>
-         Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
-    end case;
+      if(Scaling.Undef_Used)
+      then
+
+         Physical.Set_Undefined(+Scaling.Undef_Phys);
+
+         case(Scaling.BITPIX) is
+            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when others =>
+               Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
+         end case;
+
+      end if;
+
+
+      declare
+         Loc_Item : T_Arr(Item'First .. Item_Last);
+      begin
+
+         -- Scaling
+
+         case(Scaling.BITPIX) is
+            when   8 => U8_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when others =>
+               Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
+         end case;
+
+         Item(Item'First .. Item_Last) := Loc_Item;
+
+      end;
 
    end Read;
 
 
 
-
-
-
-  procedure Write
-     (File    : File_Type;
+   procedure Write
+      (File : File_Type;
       Item : T_Arr)
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-    -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
-    -- and also one of FITS V3-types$
-    -- Raw can be _only_ FITS V3-type$
-   use FITS_IO.V3_Types_For_DU;
-   package U8_AIO is new Array_IO(U8Raw, Physical);
-   package I16_AIO is new Array_IO(I16Raw, Physical);
-   package I32_AIO is new Array_IO(I32Raw, Physical);
-   package I64_AIO is new Array_IO(I64Raw, Physical);
-   package F32_AIO is new Array_IO(F32Raw, Physical);
-   package F64_AIO is new Array_IO(F64Raw, Physical);
+      use FITS_IO.V3_Types_For_DU;
+      package U8_AIO is new Array_IO(U8Raw, Physical);
+      package I16_AIO is new Array_IO(I16Raw, Physical);
+      package I32_AIO is new Array_IO(I32Raw, Physical);
+      package I64_AIO is new Array_IO(I64Raw, Physical);
+      package F32_AIO is new Array_IO(F32Raw, Physical);
+      package F64_AIO is new Array_IO(F64Raw, Physical);
 
       Scaling : Access_Rec := File.Scaling;
-  begin
 
-   -- Set Undefined value
+      -- for padding & detect End_Of_Data_Unit
+      Chunk_First : Positive_Count;
+      Chunk_Last  : Positive_Count;
+      DU_Last     : Positive_Count := File.DU_Length;
+      Chunk_Length : Positive_Count;
+      Item_Last : Positive_Count;
+   begin
 
-    if(Scaling.Undef_Used)
-    then
+      -- dont Write beyond end of Data Unit
 
-        Physical.Set_Undefined(+Scaling.Undef_Phys);
+      Chunk_First := Calc_Chunk_Pos(File.SIO_File,File.DU_First,File.DU_Length,abs Scaling.BITPIX,Item'Length);
+      Chunk_Last  := Chunk_First + Item'Length - 1;
 
-        case(Scaling.BITPIX) is
-             when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-             when others =>
-            Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
-        end case;
+      if(Chunk_First <= DU_Last)
+      then
 
-    end if;
+         -- last chunk hits data unit end -> write only up to end
+         -- Chunk_First <= DU_Last
+         if(Chunk_Last > DU_Last)
+         then
+            Chunk_Length := 1 + DU_Last - Chunk_First;
+            Item_Last := Item'First + Chunk_Length - 1;
+         else
+            Item_Last := Item'Last;
+         end if;
 
-    -- Scaling
 
-    case(Scaling.BITPIX) is
-        when   8 =>  U8_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when  16 => I16_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when  32 => I32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when  64 => I64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when -64 => F64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Item);
-        when others =>
-          Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
-    end case;
+         -- Set Undefined value
+
+         if(Scaling.Undef_Used)
+         then
+
+            Physical.Set_Undefined(+Scaling.Undef_Phys);
+
+            case(Scaling.BITPIX) is
+               when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
+               when others =>
+                  Raise_Exception(Programming_Error'Identity,
+                  "BITPIX: "&Integer'Image(Scaling.BITPIX));
+            end case;
+
+         end if;
+
+
+         declare
+            Loc_Item : T_Arr := Item(Item'First .. Item_Last);
+         begin
+
+            -- Scaling
+
+            case(Scaling.BITPIX) is
+               when   8 =>  U8_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when  16 => I16_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when  32 => I32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when  64 => I64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when -64 => F64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when others =>
+                  Raise_Exception(Programming_Error'Identity,
+                  "BITPIX: "&Integer'Image(Scaling.BITPIX));
+            end case;
+
+         end;
+
+         -- add padding if wrote last data in Data Unit
+
+         if(Chunk_Last >= DU_Last)
+         then
+            Write_Data_Padding(File);
+         end if;
+
+      end if;
 
    end Write;
 
