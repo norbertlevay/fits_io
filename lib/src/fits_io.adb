@@ -396,12 +396,6 @@ package body FITS_IO is
    end Write_Card_Arr;
 
 
-   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
-   is
-   begin
-      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
-   end Valued_Card;
-
 
    -- new API adds cards overwriting current END and adding new END
 
@@ -528,6 +522,12 @@ package body FITS_IO is
       end;
 
    end Read_Header;
+
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+   is
+   begin
+      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+   end Valued_Card;
 
 
    procedure Write_Image

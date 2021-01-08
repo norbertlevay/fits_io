@@ -110,6 +110,7 @@ package FITS_IO is
       (File       : in out File_Type;
       Cards : String_80_Array);
 
+
    -- Conversions, Scaling and Undefined Values
 
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float);
@@ -132,6 +133,7 @@ package FITS_IO is
       Item : out T_Arr;
       Last : out Count);
 
+
    generic
    type T is private;
    type T_Arr is array (Positive_Count range <>) of T;
@@ -144,28 +146,18 @@ package FITS_IO is
        Item : T_Arr);
 
 
-
    ----------------
    -- Exceptions --
    ----------------
 
-   End_Error    : exception renames Ada.IO_Exceptions.End_Error;
+   End_Error         : exception renames Ada.IO_Exceptions.End_Error;
    Programming_Error : exception;
 
 
 
-   ------------
-   -- FIXME's :
 
-   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80;
-   -- FIXME move to some other package which deals with Cards
-
-   -- FIXME end of API ------------------------------------------------
-   -- below should be private or hidden in body
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
-   -- FIXME for debug only - later Access_Rec to be hidden
-
-
+   -- FIXME for debug only
 
    private
 

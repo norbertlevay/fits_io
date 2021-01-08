@@ -115,6 +115,12 @@ is
 
     -- build Header
 
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+   is  
+   begin
+      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+   end Valued_Card;
+
     use Optional.BS70;
     Array_Cards : String_80_Array :=
                (Valued_Card(BZERO,    1*    "0.0"),
