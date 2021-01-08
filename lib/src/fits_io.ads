@@ -14,6 +14,7 @@
 -- and also array of concatinated HDUs - cfitsio's API has operations for both on
 -- the same FitsFile type
 
+-- FIXME Tcalc in Scaling should be generic (now it is Float)
 
 with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
