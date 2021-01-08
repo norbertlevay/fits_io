@@ -356,35 +356,6 @@ package body FITS_IO is
    end Has_END_Card;
 
 
-   procedure Read_Card_Arr
-      (File : in out File_Type;
-      Item : out String_80_Array;
-      Last : out Count)
-   is
-   begin
-      -- FIXME should read by one-card and immediately
-      -- check for END-card and skip padding
-      -- any further Reads should not move File.Index
-      String_80_Array'Read(Stream(File), Item);
-
-      Parse_BITPIX(Item, File.Cache.BITPIX);
-
-      Parse_Image_Cards
-         (Image_Cards => Item,
-         A => File.Cache.Ah,
-         B => File.Cache.Bh,
-         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
-
-      if(Has_END_Card(Item,Last))
-      then
-         -- FIXME skip Padding (File.Index points to DU)
-         -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(File);
-         Load_Undef_Vals_At_Read(File);
-      end if;
-   end Read_Card_Arr;
-
 
    procedure Write_Card_Arr
       (File : in out File_Type;
@@ -920,6 +891,38 @@ package body FITS_IO is
       end if;
 
    end Write;
+
+
+-- OBSOLETE
+
+   procedure OFF_Read_Card_Arr
+      (File : in out File_Type;
+      Item : out String_80_Array;
+      Last : out Count)
+   is
+   begin
+      -- FIXME should read by one-card and immediately
+      -- check for END-card and skip padding
+      -- any further Reads should not move File.Index
+      String_80_Array'Read(Stream(File), Item);
+
+      Parse_BITPIX(Item, File.Cache.BITPIX);
+
+      Parse_Image_Cards
+         (Image_Cards => Item,
+         A => File.Cache.Ah,
+         B => File.Cache.Bh,
+         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+
+      if(Has_END_Card(Item,Last))
+      then
+         -- FIXME skip Padding (File.Index points to DU)
+         -- init data unit Access_Rec
+         Load_BITPIX_And_Scaling_AB(File);
+         Load_Undef_Vals_At_Read(File);
+      end if;
+   end OFF_Read_Card_Arr;
 
 
 end FITS_IO;
