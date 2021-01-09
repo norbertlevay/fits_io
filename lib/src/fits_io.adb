@@ -41,9 +41,50 @@ package body FITS_IO is
       return File.Read_Header(FFile.SIO_File);
    end Read_Content;
 
-   -----------------
-   -- BEGIN utils --
-   -----------------
+   -----------
+   -- Utils --
+   -----------
+
+
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+   is
+   begin
+      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+   end Valued_Card;
+
+
+   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
+   is
+   begin
+      case(BITPIX) is
+         when  8 => return UInt8;
+         when 16 => return Int16;
+         when 32 => return Int32;
+         when 64 => return Int64;
+         when -32 => return F32;
+         when -64 => return F64;
+         when others => return Uint8; -- FIXME Error invalid BITPIX
+      end case;
+   end BITPIX_To_DU_Type;
+
+
+   function Data_Element_Count(NAXISn : NAXIS_Array) return Count
+   is
+      Data_Cnt : Count := 1;
+   begin
+      for I in NAXISn'Range
+      loop
+         Data_Cnt := Data_Cnt * NAXISn(I);
+      end loop;
+      return Data_Cnt;
+   end Data_Element_Count;
+
+
+
+   -------------------------------------------------
+   -- Load File_Type.Access_Rec when Header ready --
+   -------------------------------------------------
+
 
    -- convert Access_Rec - Reserved.Array_Keys cards
    function To_Array_Keys(DU_Access : Access_Rec) return Header.Valued_Key_Record_Arr
@@ -115,9 +156,62 @@ package body FITS_IO is
 
    end Put_Access_Rec;
 
-   ---------------
-   -- END utils --
-   ---------------
+
+   procedure Load_BITPIX_And_Scaling_AB(File: in out File_Type)
+   is
+   begin
+      -- A,B interpreted always in Read-direction: Phys = A + B * Raw
+      -- inverted values [-A/B , 1/B] used in Write for Undef calc and data scaling
+      -- direct values [A,B] used in Read
+      File.Scaling.A := File.Cache.Ah + File.Cache.Au + File.Cache.Aui;
+      File.Scaling.B := File.Cache.Bh * File.Cache.Bu;
+
+      File.Scaling.BITPIX := File.Cache.BITPIX;
+   end Load_BITPIX_And_Scaling_AB;
+
+
+   procedure Load_Undef_Vals_At_Write(File: in out File_Type)
+   is
+   begin
+      -- Write: Phys -> Raw
+      File.Scaling.Undef_Used := File.Cache.Physical_Undef_Valid;
+      if(File.Scaling.Undef_Used)
+      then
+         File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
+         if(File.Cache.Raw_Undef_Valid)
+         then
+            File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
+         else
+            -- FIXME Undef calc is type dependent: if Float Undef is NaN
+            -- can be calc'd by Scaling only for (U)Int's
+            File.Scaling.Undef_Raw :=
+               (File.Cache.Physical_Undef_Value - File.Scaling.A) / File.Scaling.B;
+               File.Cache.Raw_Undef_Valid := True;
+         end if;
+      end if;
+   end Load_Undef_Vals_At_Write;
+
+
+   procedure Load_Undef_Vals_At_Read(File: in out File_Type)
+   is
+   begin
+      -- Read: Raw -> Phys
+      File.Scaling.Undef_Used := File.Cache.Raw_Undef_Valid;
+      if(File.Scaling.Undef_Used)
+      then
+         File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
+         if(File.Cache.Physical_Undef_Valid)
+         then
+            File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
+         else
+            -- FIXME Undef calc is type dependent: if Float Undef is NaN
+            -- can be calc'd by Scaling only for (U)Int's
+            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Cache.Raw_Undef_Value;
+            File.Cache.Raw_Undef_Valid := True;
+         end if;
+      end if;
+   end Load_Undef_Vals_At_Read;
+
 
 
 
@@ -236,6 +330,11 @@ package body FITS_IO is
    -- RULE Read_Header funcs (unlike Read_/Write_Cards):
    -- * always reads all header, up to END_Card (incl padding: skip at read)
 
+   -- new API adds cards overwriting current END and adding new END
+
+
+
+   -- Read Header
 
    procedure Parse_Image_Cards
       (Image_Cards : in String_80_Array;
@@ -265,194 +364,7 @@ package body FITS_IO is
    end Parse_Image_Cards;
 
 
-   -- Load File_Type.Access_Rec when Header ready
-
-   procedure Load_BITPIX_And_Scaling_AB(File: in out File_Type)
-   is
-   begin
-      -- A,B interpreted always in Read-direction: Phys = A + B * Raw
-      -- inverted values [-A/B , 1/B] used in Write for Undef calc and data scaling
-      -- direct values [A,B] used in Read
-      File.Scaling.A := File.Cache.Ah + File.Cache.Au + File.Cache.Aui;
-      File.Scaling.B := File.Cache.Bh * File.Cache.Bu;
-
-      File.Scaling.BITPIX := File.Cache.BITPIX;
-   end Load_BITPIX_And_Scaling_AB;
-
-
-   procedure Load_Undef_Vals_At_Write(File: in out File_Type)
-   is
-   begin
-      -- Write: Phys -> Raw
-      File.Scaling.Undef_Used := File.Cache.Physical_Undef_Valid;
-      if(File.Scaling.Undef_Used)
-      then
-         File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
-         if(File.Cache.Raw_Undef_Valid)
-         then
-            File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
-         else
-            -- FIXME Undef calc is type dependent: if Float Undef is NaN
-            -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Raw :=
-               (File.Cache.Physical_Undef_Value - File.Scaling.A) / File.Scaling.B;
-               File.Cache.Raw_Undef_Valid := True;
-         end if;
-      end if;
-   end Load_Undef_Vals_At_Write;
-
-
-   procedure Load_Undef_Vals_At_Read(File: in out File_Type)
-   is
-   begin
-      -- Read: Raw -> Phys
-      File.Scaling.Undef_Used := File.Cache.Raw_Undef_Valid;
-      if(File.Scaling.Undef_Used)
-      then
-         File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
-         if(File.Cache.Physical_Undef_Valid)
-         then
-            File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
-         else
-            -- FIXME Undef calc is type dependent: if Float Undef is NaN
-            -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Cache.Raw_Undef_Value;
-            File.Cache.Raw_Undef_Valid := True;
-         end if;
-      end if;
-   end Load_Undef_Vals_At_Read;
-
-
-   -- Cards
-
-   procedure Parse_BITPIX(Cards : String_80_Array; BITPIX : out Integer)
-   is
-      Found : Boolean := False;
-   begin
-      for I in Cards'Range
-      loop
-         Found := (Cards(I)(1..6) = "BITPIX");
-         if(Found)
-         then
-            BITPIX := Integer'Value(Cards(I)(11..30));
-         end if;
-         exit when Found;
-      end loop;
-   end Parse_BITPIX;
-
-
-   function Has_END_Card(Cards : String_80_Array; Pos : out Count) return Boolean
-   is
-      Found : Boolean := False;
-   begin
-      Pos := 0;
-      for I in Cards'Range
-      loop
-         Found := (Cards(I) = ENDCard);
-         Pos := I;
-         exit when Found;
-      end loop;
-      return Found;
-   end Has_END_Card;
-
-
-
-   procedure Write_Card_Arr
-      (File : in out File_Type;
-      Item : String_80_Array)
-   is
-   begin
-      String_80_Array'Write(Stream(File), Item);
-      Parse_Image_Cards
-         (Image_Cards => Item,
-         A => File.Cache.Ah,
-         B => File.Cache.Bh,
-         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
-   end Write_Card_Arr;
-
-
-
-   -- new API adds cards overwriting current END and adding new END
-
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count
-   is
-      Data_Cnt : Count := 1;
-   begin
-      for I in NAXISn'Range
-      loop
-         Data_Cnt := Data_Cnt * NAXISn(I);
-      end loop;
-      return Data_Cnt;
-   end Data_Element_Count;
-
-
-   -- writes END-card$
-   -- writes Padding$
-   -- Loads data-unit access params to File.Scaling$
-   procedure Write_End(FFile : in out File_Type)
-   is
-   begin
-      --Header.Close(File);
-      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
-      File.Misc.Write_Padding(FFile.SIO_File,SIO.Index(FFile.SIO_File),File.Misc.HeaderPadValue);
-
-      FFile.DU_First := SIO.Index(FFile.SIO_File);
-
-      -- init data unit Access_Rec
-      Load_BITPIX_And_Scaling_AB(FFile);
-      Load_Undef_Vals_At_Write(FFile);
-   end Write_End;
-
-
-   procedure Write_Cards  -- Add_Cards
-      (File       : in out File_Type;
-      Cards : String_80_Array)
-   is
-      Ix : SIO.Positive_Count := 1;
-   begin
-      -- position File-Index to END card in File header
-      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos);
-      -- start writing Image_Cards
-      String_80_Array'Write(Stream(File), Cards);
-      -- add new END card
-      Write_End(File); -- writes END-card and padding
-   end Write_Cards;
-
-   function  Read_Cards
-      (FFile : in out File_Type;
-      Keys   : BS_8_Array)
-      return  String_80_Array
-   is
-      LKeys  : Optional.Bounded_String_8_Arr := Keys;
-      LCards : Card_Arr := Header.Read_Optional(FFile.SIO_File, LKeys);
-      Cards  : String_80_Array := LCards;
-   begin
-      return Cards;
-   end Read_Cards;
-
-
-
-
-   -- Header
-
-
-   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
-   is
-   begin
-      case(BITPIX) is
-         when  8 => return UInt8;
-         when 16 => return Int16;
-         when 32 => return Int32;
-         when 64 => return Int64;
-         when -32 => return F32;
-         when -64 => return F64;
-         when others => return Uint8; -- FIXME Error invalid BITPIX
-      end case;
-   end BITPIX_To_DU_Type;
-
-
+   -- API
    function  Read_Header
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
@@ -499,11 +411,60 @@ package body FITS_IO is
 
    end Read_Header;
 
-   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+
+   -- API
+   function  Read_Cards
+      (FFile : in out File_Type;
+      Keys   : BS_8_Array)
+      return  String_80_Array
+   is
+      LKeys  : Optional.Bounded_String_8_Arr := Keys;
+      LCards : Card_Arr := Header.Read_Optional(FFile.SIO_File, LKeys);
+      Cards  : String_80_Array := LCards;
+   begin
+      return Cards;
+   end Read_Cards;
+
+
+
+
+
+   -- Write Header
+
+
+
+   -- writes END-card$
+   -- writes Padding$
+   -- Loads data-unit access params to File.Scaling$
+   procedure Write_End(FFile : in out File_Type)
    is
    begin
-      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
-   end Valued_Card;
+      --Header.Close(File);
+      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
+      File.Misc.Write_Padding(FFile.SIO_File,SIO.Index(FFile.SIO_File),File.Misc.HeaderPadValue);
+
+      FFile.DU_First := SIO.Index(FFile.SIO_File);
+
+      -- init data unit Access_Rec
+      Load_BITPIX_And_Scaling_AB(FFile);
+      Load_Undef_Vals_At_Write(FFile);
+   end Write_End;
+
+
+   procedure Write_Card_Arr
+      (File : in out File_Type;
+      Item : String_80_Array)
+   is
+   begin
+      String_80_Array'Write(Stream(File), Item);
+      Parse_Image_Cards
+         (Image_Cards => Item,
+         A => File.Cache.Ah,
+         B => File.Cache.Bh,
+         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
+         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+   end Write_Card_Arr;
 
 
    procedure Write_Image
@@ -586,6 +547,7 @@ package body FITS_IO is
    end Write_First_Image_Card;
 
 
+   -- API
    procedure Write_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
@@ -599,6 +561,21 @@ package body FITS_IO is
       Write_Image(File, Raw_Type, NAXISn, Image_Cards, Is_Primary);
       Write_End(File);
    end Write_Header;
+
+   -- API
+   procedure Write_Cards  -- Add_Cards
+      (File       : in out File_Type;
+      Cards : String_80_Array)
+   is
+      Ix : SIO.Positive_Count := 1;
+   begin
+      -- position File-Index to END card in File header
+      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos);
+      -- start writing Image_Cards
+      String_80_Array'Write(Stream(File), Cards);
+      -- add new END card
+      Write_End(File); -- writes END-card and padding
+   end Write_Cards;
 
 
 
@@ -894,6 +871,40 @@ package body FITS_IO is
 
 
 -- OBSOLETE
+
+   -- Cards
+
+   procedure Parse_BITPIX(Cards : String_80_Array; BITPIX : out Integer)
+   is
+      Found : Boolean := False;
+   begin
+      for I in Cards'Range
+      loop
+         Found := (Cards(I)(1..6) = "BITPIX");
+         if(Found)
+         then
+            BITPIX := Integer'Value(Cards(I)(11..30));
+         end if;
+         exit when Found;
+      end loop;
+   end Parse_BITPIX;
+
+
+
+   function Has_END_Card(Cards : String_80_Array; Pos : out Count) return Boolean
+   is
+      Found : Boolean := False;
+   begin
+      Pos := 0;
+      for I in Cards'Range
+      loop
+         Found := (Cards(I) = ENDCard);
+         Pos := I;
+         exit when Found;
+      end loop;
+      return Found;
+   end Has_END_Card;
+
 
    procedure OFF_Read_Card_Arr
       (File : in out File_Type;
