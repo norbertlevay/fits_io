@@ -582,12 +582,6 @@ package body FITS_IO is
 
    -- Data
 
-   procedure Write_Data_Padding(FFile : File_Type)
-   is
-   begin
-      File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-   end Write_Data_Padding;
-
 
    ----------------------------------------
    -- Operations on Position within File --
@@ -774,7 +768,7 @@ package body FITS_IO is
 
 
    procedure Write
-      (File : File_Type;
+      (FFile : File_Type;
       Item : T_Arr)
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
@@ -787,19 +781,19 @@ package body FITS_IO is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := File.Scaling;
+      Scaling : Access_Rec := FFile.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
       Chunk_First : Positive_Count;
       Chunk_Last  : Positive_Count;
-      DU_Last     : Positive_Count := File.DU_Length;
+      DU_Last     : Positive_Count := FFile.DU_Length;
       Chunk_Length : Positive_Count;
       Item_Last : Positive_Count;
    begin
 
       -- dont Write beyond end of Data Unit
 
-      Chunk_First := Calc_Chunk_Pos(File.SIO_File,File.DU_First,File.DU_Length,abs Scaling.BITPIX,Item'Length);
+      Chunk_First := Calc_Chunk_Pos(FFile.SIO_File,FFile.DU_First,FFile.DU_Length,abs Scaling.BITPIX,Item'Length);
       Chunk_Last  := Chunk_First + Item'Length - 1;
 
       if(Chunk_First <= DU_Last)
@@ -845,12 +839,12 @@ package body FITS_IO is
             -- Scaling
 
             case(Scaling.BITPIX) is
-               when   8 =>  U8_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-               when  16 => I16_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-               when  32 => I32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-               when  64 => I64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-               when -32 => F32_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-               when -64 => F64_AIO.Write(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+               when   8 =>  U8_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+               when  16 => I16_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+               when  32 => I32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+               when  64 => I64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+               when -32 => F32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+               when -64 => F64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
                when others =>
                   Raise_Exception(Programming_Error'Identity,
                   "BITPIX: "&Integer'Image(Scaling.BITPIX));
@@ -862,7 +856,8 @@ package body FITS_IO is
 
          if(Chunk_Last >= DU_Last)
          then
-            Write_Data_Padding(File);
+            -- Write_Data_Padding(FFile);
+            File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
          end if;
 
       end if;
@@ -934,6 +929,13 @@ package body FITS_IO is
          Load_Undef_Vals_At_Read(File);
       end if;
    end OFF_Read_Card_Arr;
+
+   procedure OFF_Write_Data_Padding(FFile : File_Type)
+   is
+   begin
+      File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+   end OFF_Write_Data_Padding;
+
 
 
 end FITS_IO;

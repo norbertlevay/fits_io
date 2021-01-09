@@ -161,7 +161,7 @@ package FITS_IO is
    with function Is_Undef  (V,U : in T) return Boolean is <>; 
    with function To_BITPIX (V   : in T) return Integer is <>; 
    procedure Write
-      (File : File_Type;
+      (FFile : File_Type;
        Item : T_Arr);
 
 
