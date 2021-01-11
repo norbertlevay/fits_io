@@ -19,6 +19,25 @@ package Header is
    type Valued_Key_Record_Arr is array (Natural range <>) of Optional.Valued_Key_Record;
     -- FIXME temp used in Init.Init_Reads
 
+   -- OO API begin
+
+   type Primary(NAXIS : NAXIS_Index) is tagged
+      record
+         BITPIX : Integer;
+         NAXISn : NAXIS_Array(1..NAXIS);
+      end record;
+
+   type Conforming_Extension is new Primary with
+      record
+         PCOUNT : Count;
+         GCOUNT : Count;
+      end record;
+
+   function Generate_Primary(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array;
+   function Generate_Conforming_Extension(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array;
+
+   -- OO API end
+
 
    -- API read Header
 

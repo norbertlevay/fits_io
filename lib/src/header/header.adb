@@ -63,7 +63,35 @@ package body Header is
     -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed
     -- OR do we need to guarantee at all ?
 
+   -- OO API begin
 
+   -- FIXME what to do with SIMPLE / XTENSION first-card ?
+
+    function Generate_Primary(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array
+    is
+       Cards1 : String_80_Array := (
+            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
+            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length))
+            );
+       Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);
+    begin
+       return Cards;
+    end Generate_Primary;
+
+
+
+    function Generate_Conforming_Extension
+       (BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array
+    is
+       Ext_Cards : String_80_Array := (
+               Header.Create_Card("PCOUNT", "0"),
+               Header.Create_Card("GCOUNT", "1")
+               );
+    begin
+       return (Generate_Primary(BITPIX, NAXISn) & Ext_Cards);
+    end Generate_Conforming_Extension;
+ 
+    -- OO API end
 
 
 
