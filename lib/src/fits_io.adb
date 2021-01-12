@@ -488,8 +488,6 @@ package body FITS_IO is
 
          Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);-- & Image_Cards;
 
-         Img : Image_Rec(NAXISn'Last, Image_Cards'Last);
-
          use Optional.BS70;
          Ext_Cards : String_80_Array :=
             (
@@ -499,9 +497,6 @@ package body FITS_IO is
          use Ada.Streams.Stream_IO;
          Is_Extension : Boolean := Not Is_Primary;
       begin
-         Img.Data_Type  := Raw_Type;
-         Img.NAXISn     := NAXISn;
-         Img.Image_Cards := Image_Cards;
 
          Write_Card_Arr(File, Cards);
          if(Is_Extension)
@@ -522,7 +517,7 @@ package body FITS_IO is
             Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
             Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
-         File.DU_Length := Data_Element_Count(Img.NAXISn);
+         File.DU_Length := Data_Element_Count(NAXISn);
 
       end;
 
