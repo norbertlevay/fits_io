@@ -471,7 +471,7 @@ package body FITS_IO is
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array;
+      Optional_Cards : String_80_Array;
       Is_Primary  : Boolean)-- := True)
    is
       BITPIX : Integer;
@@ -481,29 +481,17 @@ package body FITS_IO is
       Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
       declare
-
-         Cards1 : String_80_Array := (
-            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
-            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length)) );
-
-         Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);-- & Image_Cards;
-
-         use Optional.BS70;
-         Ext_Cards : String_80_Array :=
-            (
-               Valued_Card(Optional.BS_8.To_Bounded_String("PCOUNT"),   1*    "0"),
-               Valued_Card(Optional.BS_8.To_Bounded_String("GCOUNT"),   1*    "1")
-               );
-         use Ada.Streams.Stream_IO;
-         Is_Extension : Boolean := Not Is_Primary;
+         Image_Cards_Prim : String_80_Array :=Header.Generate_Primary(BITPIX, NAXISn);
+         Image_Cards_Ext  : String_80_Array :=Header.Generate_Conforming_Extension(BITPIX,NAXISn);
       begin
 
-         Write_Card_Arr(File, Cards);
-         if(Is_Extension)
+         if(Is_Primary)
          then
-            Write_Card_Arr(File, Ext_Cards);
+            Write_Card_Arr(File, Image_Cards_Prim);
+         else
+            Write_Card_Arr(File, Image_Cards_Ext);
          end if;
-         Write_Card_Arr(File, Image_Cards);
+         Write_Card_Arr(File, Optional_Cards);
 
          -- cache DU-access data
 
@@ -511,7 +499,7 @@ package body FITS_IO is
          File.Cache.Aui := Aui;
 
          Parse_Image_Cards
-            (Image_Cards => Cards,
+            (Image_Cards => Image_Cards_Prim, -- FIXME not consequent: Prim or Ext ?
             A => File.Cache.Ah,
             B => File.Cache.Bh,
             Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
