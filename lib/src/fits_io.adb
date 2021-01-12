@@ -481,8 +481,10 @@ package body FITS_IO is
       Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
       declare
-         Image_Cards_Prim : String_80_Array :=Header.Generate_Primary(BITPIX, NAXISn);
-         Image_Cards_Ext  : String_80_Array :=Header.Generate_Conforming_Extension(BITPIX,NAXISn);
+         Im_Prim : Header.Primary              := (NAXISn'Last, BITPIX, NAXISn);
+         Im_Ext  : Header.Conforming_Extension := (NAXISn'Last, BITPIX, NAXISn, 0, 1);
+         Image_Cards_Prim : String_80_Array := Header.Generate_Cards(Im_Prim);
+         Image_Cards_Ext  : String_80_Array := Header.Generate_Cards(Im_Ext);
       begin
 
          if(Is_Primary)
@@ -512,7 +514,10 @@ package body FITS_IO is
    end Write_Image;
 
 
-
+   -- FIXME mixing two concepts ?
+   -- 1: container which can be Primary or Extension (diff first cards, and Ext has P/GCOUNT)
+   -- 2: content of the container: Primary has always image (zero image allowed),
+   -- Extension has non-zero Image OR Table OR BinTable OR others...
    procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
       HDU_First_Card : String_80_Array(1 .. 1) :=  

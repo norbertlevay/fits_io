@@ -27,14 +27,15 @@ package Header is
          NAXISn : NAXIS_Array(1..NAXIS);
       end record;
 
+   function Generate_Cards(Image : Primary) return String_80_Array;
+
    type Conforming_Extension is new Primary with
       record
          PCOUNT : Count;
          GCOUNT : Count;
       end record;
 
-   function Generate_Primary(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array;
-   function Generate_Conforming_Extension(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array;
+   function Generate_Cards(Image : Conforming_Extension) return String_80_Array;
 
    -- OO API end
 

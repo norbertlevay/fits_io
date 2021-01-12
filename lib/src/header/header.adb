@@ -67,30 +67,31 @@ package body Header is
 
    -- FIXME what to do with SIMPLE / XTENSION first-card ?
 
-    function Generate_Primary(BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array
+
+    function Generate_Cards(Image : Primary) return String_80_Array
     is
        Cards1 : String_80_Array := (
-            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(BITPIX)),
-            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(NAXISn'Length))
+            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(Image.BITPIX)),
+            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(Image.NAXISn'Length))
             );
-       Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(NAXISn);
+       Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(Image.NAXISn);
     begin
        return Cards;
-    end Generate_Primary;
+    end Generate_Cards;
 
-
-
-    function Generate_Conforming_Extension
-       (BITPIX : Integer; NAXISn : NAXIS_Array) return String_80_Array
+    function Generate_Cards(Image : Conforming_Extension) return String_80_Array
     is
-       Ext_Cards : String_80_Array := (
-               Header.Create_Card("PCOUNT", "0"),
-               Header.Create_Card("GCOUNT", "1")
+        Ext_Cards : String_80_Array := (
+               Header.Create_Card("PCOUNT", Count'Image(Image.PCOUNT)),
+               Header.Create_Card("GCOUNT", Count'Image(Image.GCOUNT))
                );
     begin
-       return (Generate_Primary(BITPIX, NAXISn) & Ext_Cards);
-    end Generate_Conforming_Extension;
- 
+       return (Generate_Cards(Primary(Image)) & Ext_Cards);
+       -- FIXME how to call parent and avoid cast to Primary ?
+    end Generate_Cards;
+
+
+
     -- OO API end
 
 
