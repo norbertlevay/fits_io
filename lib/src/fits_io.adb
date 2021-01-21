@@ -593,7 +593,6 @@ package body FITS_IO is
    function Calc_Chunk_Pos -- alg
       (F : SIO.File_Type;
       DU_First  : SIO.Positive_Count;
-      DU_Length : Positive_Count;
       BITPIX    : Integer; -- bits
       T_Arr_Len : Positive_Count)
       return Count
@@ -637,7 +636,7 @@ package body FITS_IO is
       Item_Last : Positive_Count;
    begin
 
-      Chunk_First :=Calc_Chunk_Pos(File.SIO_File,File.DU_First,File.DU_Length,abs Scaling.BITPIX,Item'Length);
+      Chunk_First :=Calc_Chunk_Pos(File.SIO_File,File.DU_First,abs Scaling.BITPIX,Item'Length);
       Chunk_Last  := Chunk_First + Item'Length - 1;
 
       -- dont read beyond data unit end
@@ -732,7 +731,7 @@ package body FITS_IO is
 
       -- dont Write beyond end of Data Unit
 
-      Chunk_First := Calc_Chunk_Pos(FFile.SIO_File,FFile.DU_First,FFile.DU_Length,abs Scaling.BITPIX,Item'Length);
+      Chunk_First := Calc_Chunk_Pos(FFile.SIO_File,FFile.DU_First,abs Scaling.BITPIX,Item'Length);
       Chunk_Last  := Chunk_First + Item'Length - 1;
 
       if(Chunk_First <= DU_Last)
