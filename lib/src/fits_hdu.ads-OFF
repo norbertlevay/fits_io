@@ -1,6 +1,33 @@
 
 package HDU is
 
+   -- !! see: https://cs.calvin.edu/courses/cs/214/adams/labs/10/ada/
+
+??   package FITS_Streams is
+
+      type Data_Stream_Type is new Root_Stream_Type with
+         record
+            HDU_Start : Positive_Count;
+            DU_Start, DU_Length : Positive_Count;
+            A,B : Float;
+            URaw,UPhys : Float;
+         end record;
+
+      -- primitive ops
+
+      procedure Read (Stream : in out Data_Stream_Type; Item .. Last...) is null;
+      procedure Write(Stream : in out Data_Stream_Type; Item...) is null;
+
+      procedure Set_Data_Size
+         (Stream : in out Data_Stream_Type;
+         DU_Start : in Positive_Count;
+         DU_Length : in Positive_Count) is null;
+
+??   end FITS_Streams;
+
+
+   type Data_Stream_Access is access all Data_Stream_Type'Class;
+
    type HDU_Type is limited  private;
    -- HDU_Type plays the role of File_Type in functional-API
    --e.g. represents the stream

@@ -91,7 +91,25 @@ Functionality:
 \subsection{File}
 It implements FITS\_IO which is based on streams (in case of GNAT C-Streams FILE*) similarly to Streams\_IO implementation.
 
+Base:
+Ada.Streams.Root\_Stream\_Type PUBLIC
 
+System.File\_Control\_Block: PUBLIC GNAT-specific 
+
+type AFCB is abstract new Ada.Streams.Root\_Stream\_Type with record
+FILE* file; from C-streams
+String: filename
+Doubly-linked list of all open files
+
+Ada.Streams.Stream\_IO:
+
+type Stream\_AFCB is new FCB.AFCB with record  PRIVATE
+Index : Count;
+
+type File\_Type is access all Stream\_AFCB;$
+func Stream(File: File\Type) return Stream_Access
+return Stream_Access(File)
+type Stream_Access is access all Root_Stream_Type'Class;
 
 \subsubsection{Positioning to HDU}
 

@@ -22,6 +22,9 @@ with Array_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with FITS_IO.V3_Types_For_DU;
 
+with Ada.Unchecked_Deallocation;
+
+
 -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
 -- and also one of FITS V3-types$
 -- Raw can be _only_ FITS V3-type$
@@ -314,6 +317,16 @@ package body FITS_IO is
    is
    begin
       return SIO.Stream(File.SIO_File);
+   end Stream;
+
+   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access
+   is
+      HDU : HDU_Stream_Access;
+   begin
+      -- position to HDUStart
+      -- fill in ENDCard_Pos, DU_First, DU_Length
+      -- return HDU_Stream
+      return HDU;--SIO.Stream(File.SIO_File);
    end Stream;
 
 
@@ -661,7 +674,7 @@ package body FITS_IO is
 
 
 
-   procedure Read
+   procedure HDU_Read
       (File    : File_Type;
       Item : out T_Arr;
       Last : out Count)
@@ -751,11 +764,11 @@ package body FITS_IO is
 
       end;
 
-   end Read;
+   end HDU_Read;
 
 
 
-   procedure Write
+   procedure HDU_Write
       (FFile : File_Type;
       Item : T_Arr)
    is
@@ -850,7 +863,57 @@ package body FITS_IO is
 
       end if;
 
+   end HDU_Write;
+
+
+   ----------------
+   -- HDU Stream --
+   ----------------
+ function AFCB_Allocate (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr is
+      pragma Warnings (Off, Control_Block);
+   begin
+      return new HDU_Stream_AFCB;
+   end AFCB_Allocate;
+
+ procedure AFCB_Close (File : not null access HDU_Stream_AFCB) is
+      pragma Warnings (Off, File);
+   begin
+      null;
+   end AFCB_Close;
+
+   procedure AFCB_Free (File : not null access HDU_Stream_AFCB) is
+      type FCB_Ptr is access all HDU_Stream_AFCB;
+      FT : FCB_Ptr := FCB_Ptr (File);
+      procedure Free is new Ada.Unchecked_Deallocation (HDU_Stream_AFCB, FCB_Ptr);
+   begin
+      Free (FT);
+   end AFCB_Free;
+
+   --  This version of Read is the primitive operation on the underlying
+   --  Stream type, used when a Stream_IO file is treated as a Stream
+
+   procedure Read
+     (File : in out HDU_Stream_AFCB;
+      Item : out Ada.Streams.Stream_Element_Array;
+      Last : out Ada.Streams.Stream_Element_Offset)
+   is
+   begin
+      null;-- FIXME implement
+      --HDU_Read (File'Unchecked_Access, Item, Last);
+   end Read;
+
+   --  This version of Write is the primitive operation on the underlying
+   --  Stream type, used when a Stream_IO file is treated as a Stream
+
+   procedure Write
+     (File : in out HDU_Stream_AFCB;
+      Item : Ada.Streams.Stream_Element_Array)
+   is
+   begin
+      null; -- FIXME implement
+      --HDU_Write (File'Unchecked_Access, Item);
    end Write;
+
 
 
 -- OBSOLETE

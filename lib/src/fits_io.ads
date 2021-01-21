@@ -20,7 +20,11 @@ with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
+with System.File_Control_Block; -- GNAT specific
+
 package FITS_IO is
+
+   type HDU_Stream_Access is limited private;
 
    type File_Type is limited private;
 
@@ -92,6 +96,7 @@ package FITS_IO is
    function  End_Of_File (File : File_Type) return Boolean;
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
+   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access;
 
 
    -----------------------
@@ -147,7 +152,7 @@ package FITS_IO is
    with function "+"(V : in T)     return Float is <>; 
    with function Is_Undef  (V,U : in T) return Boolean is <>; 
    with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure Read
+   procedure HDU_Read
       (File : File_Type;
       Item : out T_Arr;
       Last : out Count);
@@ -160,7 +165,7 @@ package FITS_IO is
    with function "+"(V : in T)     return Float is <>; 
    with function Is_Undef  (V,U : in T) return Boolean is <>; 
    with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure Write
+   procedure HDU_Write
       (FFile : File_Type;
        Item : T_Arr);
 
@@ -238,6 +243,56 @@ package FITS_IO is
    -- * HDU_Type: AccessRec, Cache_Rec, attributes (Header card keys)...
    -- for now keep HDU_Type part of File_Type. Consider: should HDU_Type have its
    -- own operations ? (Creat(HDU,..) Open(HDU,..) Close(HDU) etc)
+
+   ----------------
+   -- HDU Stream --
+   ----------------
+
+   package FCB renames System.File_Control_Block;
+
+   type HDU_Stream_AFCB is new FCB.AFCB with record
+      Index : Count := 1;
+      --  Current Index value
+
+      -- FITS specific fields
+
+      ENDCard_Pos : Ada.Streams.Stream_IO.Positive_Count;-- keep track where is END-card
+      DU_First  : Ada.Streams.Stream_IO.Positive_Count; -- start of the DataUnit
+      DU_Length : Positive_Count;
+      Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
+      Cache    : Cache_Rec;
+ 
+   end record;
+
+   type HDU_Stream_Access is access all HDU_Stream_AFCB'Class;
+   type HDU_Type is access all HDU_Stream_AFCB;
+
+   overriding function AFCB_Allocate
+     (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr;
+
+   overriding procedure AFCB_Close (File : not null access HDU_Stream_AFCB);
+   overriding procedure AFCB_Free  (File : not null access HDU_Stream_AFCB);
+
+   overriding procedure Read
+     (File : in out HDU_Stream_AFCB;
+      Item : out Ada.Streams.Stream_Element_Array;
+      Last : out Ada.Streams.Stream_Element_Offset);
+   --  Read operation used when Stream_IO file is treated directly as Stream
+
+   overriding procedure Write
+     (File : in out HDU_Stream_AFCB;
+      Item : Ada.Streams.Stream_Element_Array);
+   --  Write operation used when Stream_IO file is treated directly as Stream
+
+   -- FITS Header becomes HDU_Stream attributes: atribute set/get funcs
+   -- corrspong to Read_Cards Write_Cards
+   procedure Set
+     (File : in out HDU_Stream_AFCB;
+      Item : Ada.Streams.Stream_Element_Array) is null;
+   procedure Get
+     (File : in out HDU_Stream_AFCB;
+     Item : out Ada.Streams.Stream_Element_Array) is null;
+
 
 end FITS_IO;
 
