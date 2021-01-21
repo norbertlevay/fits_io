@@ -24,6 +24,7 @@ with FITS_IO.V3_Types_For_DU;
 
 with Ada.Unchecked_Deallocation;
 
+with Data_Value; use Data_Value;
 
 -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
 -- and also one of FITS V3-types$
@@ -71,7 +72,7 @@ package body FITS_IO is
    end BITPIX_To_DU_Type;
 
 
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count
+   function Data_Element_Count(NAXISn : NAXIS_Array) return Count -- alg
    is
       Data_Cnt : Count := 1;
    begin
@@ -88,43 +89,6 @@ package body FITS_IO is
    -- Load File_Type.Access_Rec when Header ready --
    -------------------------------------------------
 
-
-   -- convert Access_Rec - Reserved.Array_Keys cards
-   function To_Array_Keys(DU_Access : Access_Rec) return Header.Valued_Key_Record_Arr
-   is  
-      Ncards : Natural := 0;
-      KeysBuffer : Header.Valued_Key_Record_Arr(1..3);
-      use Optional.BS_8;
-      use Optional.BS70;
-   begin
-
-      if(DU_Access.A /= 0.0)
-      then
-         Ncards := Ncards + 1;
-         KeysBuffer(Ncards).Key   := 1 * "BZERO   ";
-         KeysBuffer(Ncards).Value := 1 * Float'Image(DU_Access.A);
-      end if;
-
-      if(DU_Access.B /= 1.0)
-      then
-         Ncards := Ncards + 1;
-         KeysBuffer(Ncards).Key   := 1 * "BSCALE  ";
-         KeysBuffer(Ncards).Value := 1 * Float'Image(DU_Access.B);
-      end if;
-
-      if(DU_Access.Undef_Used)
-      then
-         Ncards := Ncards + 1;
-         KeysBuffer(Ncards).Key   := 1 * "BLANK   ";
-         KeysBuffer(Ncards).Value := 1 * Float'Image(DU_Access.Undef_Raw);
-      end if;
-
-      declare
-         ArrKeys : Header.Valued_Key_Record_Arr := KeysBuffer(1..Ncards);
-      begin
-         return ArrKeys;
-      end;
-   end To_Array_Keys;
 
 
    procedure Put_Array_Keys(Keys : Header.Valued_Key_Record_Arr; Prefix : String := "")
@@ -160,7 +124,7 @@ package body FITS_IO is
    end Put_Access_Rec;
 
 
-   procedure Load_BITPIX_And_Scaling_AB(File: in out File_Type)
+   procedure Load_BITPIX_And_Scaling_AB(File: in out File_Type) -- alg
    is
    begin
       -- A,B interpreted always in Read-direction: Phys = A + B * Raw
@@ -173,7 +137,7 @@ package body FITS_IO is
    end Load_BITPIX_And_Scaling_AB;
 
 
-   procedure Load_Undef_Vals_At_Write(File: in out File_Type)
+   procedure Load_Undef_Vals_At_Write(File: in out File_Type) -- alg
    is
    begin
       -- Write: Phys -> Raw
@@ -195,7 +159,7 @@ package body FITS_IO is
    end Load_Undef_Vals_At_Write;
 
 
-   procedure Load_Undef_Vals_At_Read(File: in out File_Type)
+   procedure Load_Undef_Vals_At_Read(File: in out File_Type) -- alg
    is
    begin
       -- Read: Raw -> Phys
@@ -319,7 +283,7 @@ package body FITS_IO is
       return SIO.Stream(File.SIO_File);
    end Stream;
 
-   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access
+   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access -- alg
    is
       HDU : HDU_Stream_Access;
    begin
@@ -349,36 +313,9 @@ package body FITS_IO is
 
    -- Read Header
 
-   procedure Parse_Image_Cards
-      (Image_Cards : in String_80_Array;
-      A : out Float;
-      B : out Float;
-      Undef_Raw_Valid : in out Boolean;
-      Undef_Raw_Value : out Float)
-   is
-   begin
-      -- init
-      A := 0.0; B:= 1.0;
-      -- overwrite inited if exists
-      for I in Image_Cards'Range
-      loop
-         if(Image_Cards(I)(1 .. 5) = "BZERO")
-         then
-            A := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 6) = "BSCALE")
-         then
-            B := Float'Value(Image_Cards(I)(11 .. 30));
-         elsif(Image_Cards(I)(1 .. 5) = "BLANK")
-         then
-            Undef_Raw_Valid := True;
-            Undef_Raw_Value := Float'Value(Image_Cards(I)(11 .. 30));
-         end if;
-      end loop;
-   end Parse_Image_Cards;
-
 
    -- API
-   function  Read_Header
+   function  Read_Header -- alg
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
@@ -407,7 +344,7 @@ package body FITS_IO is
          FFile.Cache.BITPIX := Mand.BITPIX;
 
          Parse_Image_Cards
-            (Image_Cards => Cards,
+            (Image_Cards => Data_Value.String_80_Array(Cards), -- FIXME conversion!
             A => FFile.Cache.Ah,
             B => FFile.Cache.Bh,
             Undef_Raw_Valid => FFile.Cache.Raw_Undef_Valid,
@@ -449,7 +386,7 @@ package body FITS_IO is
    -- writes END-card$
    -- writes Padding$
    -- Loads data-unit access params to File.Scaling$
-   procedure Write_End(FFile : in out File_Type)
+   procedure Write_End(FFile : in out File_Type) -- alg
    is
    begin
       --Header.Close(File);
@@ -465,14 +402,14 @@ package body FITS_IO is
    end Write_End;
 
 
-   procedure Write_Card_Arr
+   procedure Write_Card_Arr -- alg
       (File : in out File_Type;
       Item : String_80_Array)
    is
    begin
       String_80_Array'Write(Stream(File), Item);
       Parse_Image_Cards
-         (Image_Cards => Item,
+         (Image_Cards => Data_Value.String_80_Array(Item), -- FIXME conversion!
          A => File.Cache.Ah,
          B => File.Cache.Bh,
          Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
@@ -480,7 +417,7 @@ package body FITS_IO is
    end Write_Card_Arr;
 
 
-   procedure Write_Image
+   procedure Write_Image -- alg
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
@@ -514,7 +451,8 @@ package body FITS_IO is
          File.Cache.Aui := Aui;
 
          Parse_Image_Cards
-            (Image_Cards => Image_Cards_Prim, -- FIXME not consequent: Prim or Ext ?
+            (Image_Cards => Data_Value.String_80_Array(Image_Cards_Prim),
+         -- FIXME not consequent: Prim or Ext ? ANND conversion!!
             A => File.Cache.Ah,
             B => File.Cache.Bh,
             Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
@@ -531,7 +469,7 @@ package body FITS_IO is
    -- 1: container which can be Primary or Extension (diff first cards, and Ext has P/GCOUNT)
    -- 2: content of the container: Primary has always image (zero image allowed),
    -- Extension has non-zero Image OR Table OR BinTable OR others...
-   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
+   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean) -- alg
    is
       HDU_First_Card : String_80_Array(1 .. 1) :=  
          (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
@@ -652,7 +590,7 @@ package body FITS_IO is
    -- Data Unit
 
 
-   function Calc_Chunk_Pos
+   function Calc_Chunk_Pos -- alg
       (F : SIO.File_Type;
       DU_First  : SIO.Positive_Count;
       DU_Length : Positive_Count;
@@ -674,7 +612,7 @@ package body FITS_IO is
 
 
 
-   procedure HDU_Read
+   procedure HDU_Read -- alg
       (File    : File_Type;
       Item : out T_Arr;
       Last : out Count)
@@ -768,7 +706,7 @@ package body FITS_IO is
 
 
 
-   procedure HDU_Write
+   procedure HDU_Write -- alg
       (FFile : File_Type;
       Item : T_Arr)
    is
@@ -966,7 +904,7 @@ package body FITS_IO is
       Parse_BITPIX(Item, File.Cache.BITPIX);
 
       Parse_Image_Cards
-         (Image_Cards => Item,
+         (Image_Cards => Data_Value.String_80_Array(Item), -- FIXME conversion !!
          A => File.Cache.Ah,
          B => File.Cache.Bh,
          Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
