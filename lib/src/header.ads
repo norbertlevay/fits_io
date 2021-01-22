@@ -19,15 +19,13 @@
    -- * RULE ENDCard is last and follwed by padding
 
 with Ada.Streams.Stream_IO;
---with FITS_IO; use FITS_IO; -- NAXIS_Array needed
-with Mandatory;-- Result_Rec needed
---with Ada.Strings.Bounded; use Ada.Strings.Bounded; -- Max20 only FIXME !!
-with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
+
+with Mandatory; -- Result_Rec needed
+with Optional;  -- Bounded_String_8_Arr & Card_Arr needed 
 
 
 package Header is
 
-   -- package SIO renames FITS_IO;
    package SIO renames Ada.Streams.Stream_IO;
 
 
@@ -38,18 +36,12 @@ package Header is
 
    function  Read_Optional
       (FitsFile : in  SIO.File_Type;
-      Keys : in Optional.Bounded_String_8_Arr) return Card_Arr;
+      Keys : in Optional.Bounded_String_8_Arr) return Optional.Card_Arr;
 
 
    -- API constructing Header: use the Composer, supplying Card-groups
 
    procedure Write_ENDCard_With_Padding(FFile : SIO.File_Type);
- 
-   -- procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr);
-      -- adds cards after last written; call several times until header completed
-
-   -- procedure Close(F : in FITS_IO.File_Type);
-      -- writes last END-card and padding
 
 
 end Header;
