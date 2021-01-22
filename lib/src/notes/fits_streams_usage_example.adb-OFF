@@ -1,0 +1,26 @@
+
+
+
+procedure fits_streams_example
+is
+
+   File : FITS_IO.File_Type;
+
+   HDU : HDU_Stream_Access;
+
+begin
+
+FITS_IO.Open(File, "example.fits");
+
+HDU := Stream(File, HDU_Num);
+-- internally sets start and length of Data_Unit
+
+-- set stream properties
+Set_Undef(HDU, Undef_Val);
+Set_Scaling(HDU, A,B);
+
+T_Arr'Write(HDU, Data);
+
+FITS_IO.Close(File);
+
+end fits_streams_example;

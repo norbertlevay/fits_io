@@ -31,6 +31,7 @@ package Data_Value is
       B : out Float;
       Undef_Raw_Valid : in out Boolean;
       Undef_Raw_Value : out Float);
+   -- FIXME this does not really belong to Composer but Parser ???
 
 
    function To_Array_Keys

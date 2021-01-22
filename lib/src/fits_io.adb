@@ -333,7 +333,7 @@ package body FITS_IO is
          Load_BITPIX_And_Scaling_AB(FFile);
          Load_Undef_Vals_At_Read(FFile);
 
-         FFile.DU_Length := Data_Element_Count(Image.NAXISn);
+         FFile.DU_Length := Data_Element_Count(Mand.NAXISn);
 
          return Image;
       end;
