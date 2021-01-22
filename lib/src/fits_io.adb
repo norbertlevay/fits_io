@@ -24,9 +24,11 @@ with FITS_IO.V3_Types_For_DU;
 
 with Ada.Unchecked_Deallocation;
 
-with Data_Value;
+with Data_Value; use Data_Value;
 with Elements;
 with Card;
+with Cache; use Cache;
+
 
 -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
 -- and also one of FITS V3-types$
@@ -80,110 +82,6 @@ package body FITS_IO is
    end Data_Element_Count;
 
 
-
-   procedure Put_Access_Rec(AccRec : Access_Rec; Prefix : String := "") 
-   is
-      sBITPIX : String := Integer'Image(AccRec.BITPIX);
-      sA : String := Float'Image(AccRec.A);
-      sB : String := Float'Image(AccRec.B);
-      sUndef_Used : String := Boolean'Image(AccRec.Undef_Used);
-      sUndef_Raw  : String := Float'Image(AccRec.Undef_Raw);
-      sUndef_Phys : String := Float'Image(AccRec.Undef_Phys);
-   begin
-
-      TIO.Put_Line(Prefix & "BITPIX = " & sBITPIX);
-      TIO.Put_Line(Prefix & "[A,B]  = " & sA & " " & sB);
-      if(AccRec.Undef_Used)
-      then
-         TIO.Put_Line(Prefix & "Undef_Raw  = " & sUndef_Raw);
-         TIO.Put_Line(Prefix & "Undef_Phys = " & sUndef_Phys);
-      end if;
-
-   end Put_Access_Rec;
-
-
-
-   -------------------------------------------------
-   -- Load File_Type.Access_Rec when Header ready --
-   -------------------------------------------------
-
-
-
-   procedure Load_BITPIX_And_Scaling_AB(File: in out File_Type) -- alg
-   is
-   begin
-      -- A,B interpreted always in Read-direction: Phys = A + B * Raw
-      -- inverted values [-A/B , 1/B] used in Write for Undef calc and data scaling
-      -- direct values [A,B] used in Read
-      File.Scaling.A := File.Cache.Ah + File.Cache.Au + File.Cache.Aui;
-      File.Scaling.B := File.Cache.Bh * File.Cache.Bu;
-
-      File.Scaling.BITPIX := File.Cache.BITPIX;
-   end Load_BITPIX_And_Scaling_AB;
-
-
-   procedure Load_Undef_Vals_At_Write(File: in out File_Type) -- alg
-   is
-   begin
-      -- Write: Phys -> Raw
-      File.Scaling.Undef_Used := File.Cache.Physical_Undef_Valid;
-      if(File.Scaling.Undef_Used)
-      then
-         File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
-         if(File.Cache.Raw_Undef_Valid)
-         then
-            File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
-         else
-            -- FIXME Undef calc is type dependent: if Float Undef is NaN
-            -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Raw :=
-               (File.Cache.Physical_Undef_Value - File.Scaling.A) / File.Scaling.B;
-               File.Cache.Raw_Undef_Valid := True;
-         end if;
-      end if;
-   end Load_Undef_Vals_At_Write;
-
-
-   procedure Load_Undef_Vals_At_Read(File: in out File_Type) -- alg
-   is
-   begin
-      -- Read: Raw -> Phys
-      File.Scaling.Undef_Used := File.Cache.Raw_Undef_Valid;
-      if(File.Scaling.Undef_Used)
-      then
-         File.Scaling.Undef_Raw := File.Cache.Raw_Undef_Value;
-         if(File.Cache.Physical_Undef_Valid)
-         then
-            File.Scaling.Undef_Phys := File.Cache.Physical_Undef_Value;
-         else
-            -- FIXME Undef calc is type dependent: if Float Undef is NaN
-            -- can be calc'd by Scaling only for (U)Int's
-            File.Scaling.Undef_Phys := File.Scaling.A + File.Scaling.B * File.Cache.Raw_Undef_Value;
-            File.Cache.Raw_Undef_Valid := True;
-         end if;
-      end if;
-   end Load_Undef_Vals_At_Read;
-
-   Null_Access_Rec : constant Access_Rec:= (
-      BITPIX => 0, A => 0.0, B => 1.0,
-      Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
-
-   F_Zero : Float := 0.0;
-   F_NaN : constant Float := 0.0/F_Zero;
-   -- FIXME NaN for Floats in Ada -> how?
-
-   Null_Cache_Rec : constant Cache_Rec := (
-      BITPIX => 0, Aui => 0.0, Ah => 0.0, Bh => 1.0, Au => 0.0, Bu => 1.0,
-      Physical_Undef_Valid => False, Physical_Undef_Value => F_NaN,
-      Raw_Undef_Valid => False, Raw_Undef_Value => F_NaN);
-
-
-
-
-   ---------------------
-   -- File Management --
-   ---------------------
-
    function To_SIO_Mode(Mode : File_Mode) return SIO.File_Mode
    is
    begin
@@ -203,6 +101,15 @@ package body FITS_IO is
          when SIO.Append_File => return Append_File;
       end case;
    end To_FIO_Mode;
+
+
+
+
+
+
+   ---------------------
+   -- File Management --
+   ---------------------
 
    procedure Create
       (File : in out File_Type;
@@ -316,22 +223,21 @@ package body FITS_IO is
       begin
          Image.Data_Type   := BITPIX_To_DU_Type(Mand.BITPIX);
          Image.NAXISn      := Mand.NAXISn;
-         Image.Image_Cards  := Cards;
+         Image.Image_Cards := Cards;
 
          -- cache DU-access data
 
          FFile.Cache.BITPIX := Mand.BITPIX;
 
          Data_Value.Parse_Image_Cards
-            (Image_Cards => Data_Value.String_80_Array(Cards), -- FIXME conversion!
-         A => FFile.Cache.Ah,
-         B => FFile.Cache.Bh,
-         Undef_Raw_Valid => FFile.Cache.Raw_Undef_Valid,
-         Undef_Raw_Value => FFile.Cache.Raw_Undef_Value);
+            (Data_Value.String_80_Array(Cards), -- FIXME conversion!
+         FFile.Cache.Ah, FFile.Cache.Bh,
+         FFile.Cache.Raw_Undef_Valid,
+         FFile.Cache.Raw_Undef_Value);
 
          -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(FFile);
-         Load_Undef_Vals_At_Read(FFile);
+         Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
+         Load_Undef_Vals_At_Read   (FFile.Scaling, FFile.Cache);
 
          FFile.DU_Length := Data_Element_Count(Mand.NAXISn);
 
@@ -375,8 +281,8 @@ package body FITS_IO is
       FFile.DU_First := SIO.Index(FFile.SIO_File);
 
       -- init data unit Access_Rec
-      Load_BITPIX_And_Scaling_AB(FFile);
-      Load_Undef_Vals_At_Write(FFile);
+      Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
+      Load_Undef_Vals_At_Write  (FFile.Scaling, FFile.Cache);
    end Write_End;
 
 
@@ -387,11 +293,10 @@ package body FITS_IO is
    begin
       String_80_Array'Write(Stream(File), Item);
       Data_Value.Parse_Image_Cards
-         (Image_Cards => Data_Value.String_80_Array(Item), -- FIXME conversion!
-      A => File.Cache.Ah,
-      B => File.Cache.Bh,
-      Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-      Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+         (Data_Value.String_80_Array(Item), -- FIXME conversion!
+      File.Cache.Ah, File.Cache.Bh,
+      File.Cache.Raw_Undef_Valid,
+      File.Cache.Raw_Undef_Value);
    end Write_Card_Arr;
 
 
@@ -417,24 +322,37 @@ package body FITS_IO is
 
          if(Is_Primary)
          then
+
             Write_Card_Arr(File, Image_Cards_Prim);
+            Data_Value.Parse_Image_Cards
+               (Data_Value.String_80_Array(Image_Cards_Prim),
+               File.Cache.Ah, File.Cache.Bh,
+               File.Cache.Raw_Undef_Valid,
+               File.Cache.Raw_Undef_Value);
+
          else
+
             Write_Card_Arr(File, Image_Cards_Ext);
+            Data_Value.Parse_Image_Cards
+               (Data_Value.String_80_Array(Image_Cards_Ext),
+               File.Cache.Ah, File.Cache.Bh,
+               File.Cache.Raw_Undef_Valid,
+               File.Cache.Raw_Undef_Value);
+
          end if;
+
          Write_Card_Arr(File, Optional_Cards);
+         Data_Value.Parse_Image_Cards
+            (Data_Value.String_80_Array(Optional_Cards),
+            File.Cache.Ah, File.Cache.Bh,
+            File.Cache.Raw_Undef_Valid,
+            File.Cache.Raw_Undef_Value);
+
 
          -- cache DU-access data
 
          File.Cache.BITPIX := BITPIX;
          File.Cache.Aui := Aui;
-
-         Data_Value.Parse_Image_Cards
-            (Image_Cards => Data_Value.String_80_Array(Image_Cards_Prim),
-         -- FIXME not consequent: Prim or Ext ? ANND conversion!!
-         A => File.Cache.Ah,
-         B => File.Cache.Bh,
-         Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-         Undef_Raw_Value => File.Cache.Raw_Undef_Value);
 
          File.DU_Length := Data_Element_Count(NAXISn);
 
@@ -484,12 +402,10 @@ package body FITS_IO is
    is
       Ix : SIO.Positive_Count := 1;
    begin
-      -- position File-Index to END card in File header
+      -- position File-Index at END-card
       SIO.Set_Index(File.SIO_File, File.ENDCard_Pos);
-      -- start writing Cards
-      Write_Card_Arr(File, Cards);
-      -- add new END card
-      Write_End(File); -- writes END-card and padding
+      Write_Card_Arr(File, Cards);  -- start writing Cards (overwrites existing ENDCard)
+      Write_End(File);              -- writes new END-card and padding
    end Write_Cards;
 
 
@@ -889,8 +805,8 @@ package body FITS_IO is
       then
          -- FIXME skip Padding (File.Index points to DU)
          -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(File);
-         Load_Undef_Vals_At_Read(File);
+         Load_BITPIX_And_Scaling_AB(File.Scaling, File.Cache);
+         Load_Undef_Vals_At_Read(File.Scaling, File.Cache);
       end if;
    end OFF_Read_Card_Arr;
 

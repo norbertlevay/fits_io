@@ -22,6 +22,9 @@ with Ada.Strings.Bounded;
 
 with System.File_Control_Block; -- GNAT specific
 
+with Data_Value; use Data_Value;-- Access_Rec
+with Cache; use Cache; -- Cache_Rec
+
 
 package FITS_IO is
 
@@ -179,57 +182,10 @@ package FITS_IO is
    Programming_Error : exception;
 
 
-
-
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only
 
    private
-
-
-
-   -- RULE all Raw related params load from Write_Header/Write_Cards functions
-   -- all Physical related params loaded by API funcs called by user (incl T_Arr generic T)
-   -- Raw:  User -> Header   -> set Raw-value
-   -- Phys: User -> API-call -> set Phys value
-
-   -- RULE File.Scaling loaded/inited only when END-Card & Padding read/written
-   -- without that Read/Write to Data Unit will fail (BITPIX = 0?)
-
-
-   -- Access Data Unit
-
-   type Access_Rec is
-      record
-         BITPIX : Integer;
-         A,B : Float;
-         Undef_Used : Boolean;
-         Undef_Raw  : Float;
-         Undef_Phys : Float;
-      end record;
-   -- used by Data_Unit.Read/Write
-   -- if not initialized, DU access not possible
-   -- it is initialized from Cache after Header is completed (created or read)
-
-   -- Cache
-
-   -- cache of values filled in during manipulating the Header (reading or creating it)
-   -- and by User API calls Set_*(File : in out File_Type, <param to set>)
-   -- Cache is initialized at Create/Open and reset at Close.
-
-   type Cache_Rec is
-      record
-         BITPIX : Integer; -- from Header BITPIX
-         Aui, Ah, Bh, Au, Bu : Float;
-         -- Aui - Tab11 shift Int-UInt conversions
-         -- Ah Bh - values from Header BZERO BSCALE
-         -- Au Bu - values from User calling Set_Linear_Scaling()
-         Physical_Undef_Valid : Boolean;-- set from Set_Undefined_Physical()
-         Physical_Undef_Value : Float;
-         Raw_Undef_Valid : Boolean;-- set from Header-BLANK
-         Raw_Undef_Value : Float;
-      end record;
-
 
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
@@ -240,7 +196,7 @@ package FITS_IO is
       Cache    : Cache_Rec;
    end record;
    -- FIXME divide private section to two Records:
-   -- * File_Type: FITS-File related (HDUStart, HDU Site, etc...) and
+   -- * File_Type: FITS-File related (HDUStart, HDU Size, etc...) and
    -- * HDU_Type: AccessRec, Cache_Rec, attributes (Header card keys)...
    -- for now keep HDU_Type part of File_Type. Consider: should HDU_Type have its
    -- own operations ? (Creat(HDU,..) Open(HDU,..) Close(HDU) etc)

@@ -1,11 +1,23 @@
 
+   -- RULE all Raw related params load from Write_Header/Write_Cards functions
+   -- all Physical related params loaded by API funcs called by user (incl T_Arr generic T)
+   -- Raw:  User -> Header   -> set Raw-value
+   -- Phys: User -> API-call -> set Phys value
 
-with Optional;
+   -- RULE File.Scaling loaded/inited only when END-Card & Padding read/written
+   -- without that Read/Write to Data Unit will fail (BITPIX = 0?)
+
+   -- used by Data_Unit.Read/Write
+   -- if not initialized, DU access not possible
+   -- it is initialized from Cache after Header is completed (created or read)
+
+
+--with Optional;
 with Ada.Streams.Stream_IO;
 
 package Data_Value is
 
-   type Access_Rec is -- FIXME also defined in private of FITS_IO.ads
+   type Access_Rec is
       record
          BITPIX : Integer;
          A,B : Float;
@@ -34,9 +46,9 @@ package Data_Value is
    -- FIXME this does not really belong to Composer but Parser ???
 
 
-   function To_Array_Keys
-      (DU_Access : Access_Rec)
-      return Optional.Valued_Key_Record_Arr;
+--   function To_Array_Keys
+--      (DU_Access : Access_Rec)
+--      return Optional.Valued_Key_Record_Arr;
 
 
 end Data_Value;
