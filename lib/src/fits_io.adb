@@ -1,34 +1,4 @@
 
-with Ada.Strings.Fixed;
-with Ada.Strings; -- Trim needed
-use Ada.Strings; -- Left needed for Trim
-
-with Mandatory; -- Result_rec needed
-with Optional; -- ReadOtional needed
-with Header;    -- Write Mandatory and Optional needed
-with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed 
-with Ada.Streams.Stream_IO;
-with Ada.Text_IO;
-
-with DU_Types;
-
-with File.Misc; -- Padding needed
-
--- for DataUnit Read/Write:
-with Numeric_Type;
-with V3_Types; use V3_Types;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
-with Array_IO;
-with Ada.Exceptions; use Ada.Exceptions;
-with FITS_IO.V3_Types_For_DU;
-
-with Ada.Unchecked_Deallocation;
-
-with Elements;
-with Card;
-with Cache; use Cache;
-
-
 -- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
 -- and also one of FITS V3-types$
 -- Raw can be _only_ FITS V3-type$
@@ -37,12 +7,36 @@ with Cache; use Cache;
 -- for all: native Types and also FITS-types
 
 
+with Ada.Streams.Stream_IO;
+with Ada.Text_IO;
+with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Unchecked_Deallocation;-- for HDU Stream
+
+-- for File_Type / Stream
+with Header; -- Read Mandatory / Optional needed
+with Cache;
+
+-- for Header Parse/Compose
+with DU_Types;
+with Mandatory; -- Result_Rec needed
+with Elements;
+
+-- for Data Unit Read/Write
+with Numeric_Type;
+with V3_Types; use V3_Types;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+with Array_IO;
+with FITS_IO.V3_Types_For_DU;
+
+with File.Misc; -- DataPadding needed
+
 
 package body FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
 
+   -- API
    function Read_Content (FFile : in File_Type) return HDU_Info_Type
    is
    begin
@@ -191,12 +185,11 @@ package body FITS_IO is
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
       FFile.DU_First := SIO.Index(FFile.SIO_File);
 
-      --File.Set_File_Block_Index(FFile.SIO_File, 1);
       SIO.Set_Index(FFile.SIO_File, HDUFirst);
       -- FIXME update parser to avoid 2 reads
 
       declare
-         Cards : Optional.Card_Arr := Header.Read_Optional(FFile.SIO_File, Keys);
+         Cards : String_80_Array := Header.Read_Optional(FFile.SIO_File, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
          Image.Data_Type   := DU_Types.BITPIX_To_DU_Type(Mand.BITPIX);
@@ -229,8 +222,8 @@ package body FITS_IO is
       Keys   : BS_8_Array)
       return  String_80_Array
    is
-      LKeys  : Optional.Bounded_String_8_Arr := Keys;
-      LCards : Card_Arr := Header.Read_Optional(FFile.SIO_File, LKeys);
+      LKeys  : BS_8_Array := Keys;
+      LCards : String_80_Array := Header.Read_Optional(FFile.SIO_File, LKeys);
       Cards  : String_80_Array := LCards;
    begin
       return Cards;
@@ -240,7 +233,7 @@ package body FITS_IO is
    -- Write Header
 
 
-   procedure Write_End(FFile : in out File_Type) -- alg
+   procedure Write_End(FFile : in out File_Type)
    is
    begin
 
@@ -256,7 +249,7 @@ package body FITS_IO is
    end Write_End;
 
 
-   procedure Write_Card_Arr -- alg
+   procedure Write_Card_Arr
       (File : in out File_Type;
       Item : String_80_Array)
    is
@@ -268,12 +261,12 @@ package body FITS_IO is
    end Write_Card_Arr;
 
 
-   procedure Write_Image -- alg
+   procedure Write_Image
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array;
-      Is_Primary  : Boolean)-- := True)
+      Is_Primary  : Boolean)
    is
       BITPIX : Integer;
       Aui : Float;
@@ -290,26 +283,12 @@ package body FITS_IO is
 
          if(Is_Primary)
          then
-
             Write_Card_Arr(File, Image_Cards_Prim);
-            Cache.Parse_Image_Cards
-               (File.Cache,
-               Cache.String_80_Array(Image_Cards_Prim)); -- FIXME conversion
-
          else
-
             Write_Card_Arr(File, Image_Cards_Ext);
-            Cache.Parse_Image_Cards
-               (File.Cache,
-               Cache.String_80_Array(Image_Cards_Ext)); -- FIXME conversion
-
          end if;
 
          Write_Card_Arr(File, Optional_Cards);
-         Cache.Parse_Image_Cards
-            (File.Cache,
-            Cache.String_80_Array(Optional_Cards)); -- FIXME conversion,
-
 
          -- cache DU-access data
 
@@ -327,7 +306,7 @@ package body FITS_IO is
    -- 1: container which can be Primary or Extension (diff first cards, and Ext has P/GCOUNT)
    -- 2: content of the container: Primary has always image (zero image allowed),
    -- Extension has non-zero Image OR Table OR BinTable OR others...
-   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean) -- alg
+   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
@@ -343,7 +322,7 @@ package body FITS_IO is
 
 
    -- API
-   procedure Write_Header
+   procedure Write_Header -- Compose_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;

@@ -20,9 +20,9 @@ with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
+with Cache; use Cache; -- Access_Rec & Cache_Rec
 with System.File_Control_Block; -- GNAT specific
 
-with Cache; use Cache; -- Cache_Rec
 
 
 package FITS_IO is
