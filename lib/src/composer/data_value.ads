@@ -13,7 +13,7 @@
 
 
 --with Optional;
-with Ada.Streams.Stream_IO;
+--with Ada.Streams.Stream_IO;
 
 package Data_Value is
 
