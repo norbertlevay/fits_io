@@ -4,6 +4,7 @@ with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
+with Cache;
 
 package FITS_SIO is
 
@@ -14,9 +15,11 @@ package FITS_SIO is
          DU_First    : Count;            -- set by Read_Header/_Cards  Write_Header/_Cards
          DU_Last     : Count;            -- set by Read_/Write_Header
          DU_End_Written : Boolean;       -- True when DU_Last written (Close err: file incomplete)
+         Scaling  : Cache.Access_Rec;
+         HCache   : Cache.Cache_Rec;
       end record;
 
-   Null_HDU : HDU_Type := (1,0,0,0,False);
+   Null_HDU : HDU_Type := (1,0,0,0,False, Cache.Null_Access_Rec, Cache.Null_Cache_Rec);
 
 
    -- Card
