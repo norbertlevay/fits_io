@@ -164,24 +164,14 @@ package body Header is
    end Read_Optional;
 
 
+   -- Compose
 
-
-
-function Has_Card(Cards : Card_Arr; Key : String; Value : out String) return Boolean
-is
-    Found : Boolean := False;
-begin
-    for I in Cards'Range
-    loop
-        if(Cards(I)(1..8) = Key(Key'First .. (Key'First+7)))
-        then
-            Value := Cards(I)(11..30);
-            Found := True;
-        end if;
-    end loop;
-    return Found;
-end Has_Card;
-
+   procedure Write_ENDCard_With_Padding(FFile : SIO.File_Type)
+   is
+   begin
+      String_80'Write(SIO.Stream(FFile), ENDCard);
+      File.Misc.Write_Padding(FFile, SIO.Index(FFile), File.Misc.HeaderPadValue);
+   end Write_ENDCard_With_Padding;
 
 end Header;
 

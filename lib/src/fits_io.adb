@@ -240,21 +240,19 @@ package body FITS_IO is
    -- Write Header
 
 
-   -- writes END-card$
-   -- writes Padding$
-   -- Loads data-unit access params to File.Scaling$
    procedure Write_End(FFile : in out File_Type) -- alg
    is
    begin
-      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      String_80'Write(SIO.Stream(FFile.SIO_File), ENDCard);
-      File.Misc.Write_Padding(FFile.SIO_File,SIO.Index(FFile.SIO_File),File.Misc.HeaderPadValue);
 
+      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      Header.Write_ENDCard_With_Padding(FFile.SIO_File);
       FFile.DU_First := SIO.Index(FFile.SIO_File);
 
       -- init data unit Access_Rec
+
       Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
       Load_Undef_Vals_At_Write  (FFile.Scaling, FFile.Cache);
+
    end Write_End;
 
 
