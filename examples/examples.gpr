@@ -7,7 +7,7 @@ project examples is
 
    for Languages use ("Ada");
    for Source_Dirs use ("."
-       , "../lib/src", "../lib/src/parser", "../lib/src/composer",
+       , "../lib/src", "../lib/src/h_parser", "../lib/src/h_composer",
        "../lib/src/file","../lib/src/image","../lib/src/v3");
    for Object_Dir use "obj";
    for Exec_Dir use "bin";
