@@ -8,6 +8,9 @@ package Init is
 
    subtype DU_Int_Type is DU_Type range Int8 .. Int64;
 
+   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type;
+
+
    -- implements signed-unsigned conversions for integer types as of Tab11
    procedure DU_Type_To_BITPIX
       (DUType : DU_Type;

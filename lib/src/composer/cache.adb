@@ -6,6 +6,8 @@ package body Cache is
 
    package TIO renames Ada.Text_IO;
 
+   -- Access_Rec
+
    procedure Put_Access_Rec(AccRec : Access_Rec; Prefix : String := "")
    is
       sBITPIX : String := Integer'Image(AccRec.BITPIX);
@@ -26,6 +28,36 @@ package body Cache is
 
    end Put_Access_Rec;
 
+
+   procedure Parse_Image_Cards
+     (Cache : in out Cache_Rec;
+     Cards : in String_80_Array)
+   is  
+   begin
+      -- init
+      Cache.Ah := 0.0; Cache.Bh:= 1.0;
+      -- overwrite inited if exists
+      for I in Cards'Range
+      loop
+         if(Cards(I)(1 .. 5) = "BZERO")
+         then
+            Cache.Ah := Float'Value(Cards(I)(11 .. 30));
+         elsif(Cards(I)(1 .. 6) = "BSCALE")
+         then
+            Cache.Bh := Float'Value(Cards(I)(11 .. 30));
+         elsif(Cards(I)(1 .. 5) = "BLANK")
+         then
+            Cache.Raw_Undef_Valid := True;
+            Cache.Raw_Undef_Value := Float'Value(Cards(I)(11 .. 30));
+         end if;
+      end loop;
+   end Parse_Image_Cards;
+
+
+
+
+
+   -- Cache
 
    procedure Load_BITPIX_And_Scaling_AB(Scaling : in out Access_Rec; Cache : Cache_Rec)
    is  

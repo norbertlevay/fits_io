@@ -24,7 +24,6 @@ with FITS_IO.V3_Types_For_DU;
 
 with Ada.Unchecked_Deallocation;
 
-with Data_Value; use Data_Value;
 with Elements;
 with Card;
 with Cache; use Cache;
@@ -54,20 +53,6 @@ package body FITS_IO is
    -- Utils --
    -----------
 
-
-   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
-   is
-   begin
-      case(BITPIX) is
-         when  8 => return UInt8;
-         when 16 => return Int16;
-         when 32 => return Int32;
-         when 64 => return Int64;
-         when -32 => return F32;
-         when -64 => return F64;
-         when others => return Uint8; -- FIXME Error invalid BITPIX
-      end case;
-   end BITPIX_To_DU_Type;
 
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count -- alg
@@ -221,7 +206,7 @@ package body FITS_IO is
          Cards : Optional.Card_Arr := Header.Read_Optional(FFile.SIO_File, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
-         Image.Data_Type   := BITPIX_To_DU_Type(Mand.BITPIX);
+         Image.Data_Type   := Init.BITPIX_To_DU_Type(Mand.BITPIX);
          Image.NAXISn      := Mand.NAXISn;
          Image.Image_Cards := Cards;
 
@@ -229,11 +214,9 @@ package body FITS_IO is
 
          FFile.Cache.BITPIX := Mand.BITPIX;
 
-         Data_Value.Parse_Image_Cards
-            (Data_Value.String_80_Array(Cards), -- FIXME conversion!
-         FFile.Cache.Ah, FFile.Cache.Bh,
-         FFile.Cache.Raw_Undef_Valid,
-         FFile.Cache.Raw_Undef_Value);
+         Cache.Parse_Image_Cards
+            (FFile.Cache,
+            Cache.String_80_Array(Cards)); -- FIXME conversion!
 
          -- init data unit Access_Rec
          Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
@@ -292,11 +275,9 @@ package body FITS_IO is
    is
    begin
       String_80_Array'Write(Stream(File), Item);
-      Data_Value.Parse_Image_Cards
-         (Data_Value.String_80_Array(Item), -- FIXME conversion!
-      File.Cache.Ah, File.Cache.Bh,
-      File.Cache.Raw_Undef_Valid,
-      File.Cache.Raw_Undef_Value);
+      Cache.Parse_Image_Cards
+         (File.Cache,
+         Cache.String_80_Array(Item)); -- FIXME conversion!
    end Write_Card_Arr;
 
 
@@ -324,29 +305,23 @@ package body FITS_IO is
          then
 
             Write_Card_Arr(File, Image_Cards_Prim);
-            Data_Value.Parse_Image_Cards
-               (Data_Value.String_80_Array(Image_Cards_Prim),
-               File.Cache.Ah, File.Cache.Bh,
-               File.Cache.Raw_Undef_Valid,
-               File.Cache.Raw_Undef_Value);
+            Cache.Parse_Image_Cards
+               (File.Cache,
+               Cache.String_80_Array(Image_Cards_Prim)); -- FIXME conversion
 
          else
 
             Write_Card_Arr(File, Image_Cards_Ext);
-            Data_Value.Parse_Image_Cards
-               (Data_Value.String_80_Array(Image_Cards_Ext),
-               File.Cache.Ah, File.Cache.Bh,
-               File.Cache.Raw_Undef_Valid,
-               File.Cache.Raw_Undef_Value);
+            Cache.Parse_Image_Cards
+               (File.Cache,
+               Cache.String_80_Array(Image_Cards_Ext)); -- FIXME conversion
 
          end if;
 
          Write_Card_Arr(File, Optional_Cards);
-         Data_Value.Parse_Image_Cards
-            (Data_Value.String_80_Array(Optional_Cards),
-            File.Cache.Ah, File.Cache.Bh,
-            File.Cache.Raw_Undef_Valid,
-            File.Cache.Raw_Undef_Value);
+         Cache.Parse_Image_Cards
+            (File.Cache,
+            Cache.String_80_Array(Optional_Cards)); -- FIXME conversion,
 
 
          -- cache DU-access data
@@ -749,7 +724,7 @@ package body FITS_IO is
 
    -- Cards
 
-   procedure Parse_BITPIX(Cards : String_80_Array; BITPIX : out Integer)
+   procedure OFF_Parse_BITPIX(Cards : String_80_Array; BITPIX : out Integer)
    is
       Found : Boolean := False;
    begin
@@ -762,11 +737,11 @@ package body FITS_IO is
          end if;
          exit when Found;
       end loop;
-   end Parse_BITPIX;
+   end OFF_Parse_BITPIX;
 
 
 
-   function Has_END_Card(Cards : String_80_Array; Pos : out Count) return Boolean
+   function OFF_Has_END_Card(Cards : String_80_Array; Pos : out Count) return Boolean
    is
       Found : Boolean := False;
    begin
@@ -778,7 +753,7 @@ package body FITS_IO is
          exit when Found;
       end loop;
       return Found;
-   end Has_END_Card;
+   end OFF_Has_END_Card;
 
 
    procedure OFF_Read_Card_Arr
@@ -792,16 +767,13 @@ package body FITS_IO is
       -- any further Reads should not move File.Index
       String_80_Array'Read(Stream(File), Item);
 
-      Parse_BITPIX(Item, File.Cache.BITPIX);
+      OFF_Parse_BITPIX(Item, File.Cache.BITPIX);
 
-      Data_Value.Parse_Image_Cards
-         (Image_Cards => Data_Value.String_80_Array(Item), -- FIXME conversion !!
-      A => File.Cache.Ah,
-      B => File.Cache.Bh,
-      Undef_Raw_Valid => File.Cache.Raw_Undef_Valid,
-      Undef_Raw_Value => File.Cache.Raw_Undef_Value);
+      Cache.Parse_Image_Cards
+         (File.Cache,
+         Cache.String_80_Array(Item)); -- FIXME conversion !!
 
-      if(Has_END_Card(Item,Last))
+      if(OFF_Has_END_Card(Item,Last))
       then
          -- FIXME skip Padding (File.Index points to DU)
          -- init data unit Access_Rec

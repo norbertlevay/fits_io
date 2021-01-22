@@ -11,6 +11,19 @@ package body Init is
 
    package TIO renames Ada.Text_IO;
 
+   function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
+   is  
+   begin
+      case(BITPIX) is
+         when  8 => return UInt8;
+         when 16 => return Int16;
+         when 32 => return Int32;
+         when 64 => return Int64;
+         when -32 => return F32;
+         when -64 => return F64;
+         when others => return Uint8; -- FIXME Error invalid BITPIX
+      end case;
+   end BITPIX_To_DU_Type;
 
 
 

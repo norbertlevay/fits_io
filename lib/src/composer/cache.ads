@@ -1,9 +1,30 @@
 
-
-with Data_Value; use Data_Value;
-
+with Ada.Streams.Stream_IO;
 
 package Cache is
+
+   -- Access_Rec relates metadata in Header to Data_Unit access (Read/Write)
+
+   type Access_Rec is
+      record
+         BITPIX : Integer;
+         A,B : Float;
+         Undef_Used : Boolean;
+         Undef_Raw  : Float;
+         Undef_Phys : Float;
+      end record;
+
+   Null_Access_Rec : constant Access_Rec:= (
+      BITPIX => 0, A => 0.0, B => 1.0,
+      Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
+
+   type     Count          is new Ada.Streams.Stream_IO.Count;
+   subtype  Positive_Count is Count range 1 .. Count'Last;
+
+   subtype String_80 is String(1 .. 80);
+   type String_80_Array is array (Positive_Count range <>) of String_80;
+
+
 
    -- Cache
 
@@ -35,13 +56,18 @@ package Cache is
       Raw_Undef_Valid => False, Raw_Undef_Value => F_NaN);
 
 
-   -- load from Cache -> Scaling : Access_Rec
+   -- place data from header-cards to cache
+
+   procedure Parse_Image_Cards
+      (Cache : in out Cache_Rec;
+      Cards : in String_80_Array);
+
+
+   -- load Access_Rec from Cache
 
    procedure Load_BITPIX_And_Scaling_AB(Scaling : in out Access_Rec; Cache : Cache_Rec);
-
    procedure Load_Undef_Vals_At_Write  (Scaling : in out Access_Rec; Cache : in out Cache_Rec);
    -- UndefRaw  = ( UndefPhys - A ) / B
-
    procedure Load_Undef_Vals_At_Read   (Scaling : in out Access_Rec; Cache : in out Cache_Rec);
    -- UndefPhys = A + B * UndefRaw
 
