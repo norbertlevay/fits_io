@@ -1,6 +1,6 @@
 
 
-with Header;
+--with Header;
 with Optional;
 
 package body Data_Value is
@@ -35,10 +35,10 @@ package body Data_Value is
 
 
 
-   function To_Array_Keys(DU_Access : Access_Rec) return Header.Valued_Key_Record_Arr -- alg
+   function To_Array_Keys(DU_Access : Access_Rec) return Optional.Valued_Key_Record_Arr -- alg
    is
       Ncards : Natural := 0;
-      KeysBuffer : Header.Valued_Key_Record_Arr(1..3);
+      KeysBuffer : Optional.Valued_Key_Record_Arr(1..3);
       use Optional.BS_8;
       use Optional.BS70;
    begin
@@ -65,7 +65,7 @@ package body Data_Value is
       end if;
 
       declare
-         ArrKeys : Header.Valued_Key_Record_Arr := KeysBuffer(1..Ncards);
+         ArrKeys : Optional.Valued_Key_Record_Arr := KeysBuffer(1..Ncards);
       begin
          return ArrKeys;
       end;

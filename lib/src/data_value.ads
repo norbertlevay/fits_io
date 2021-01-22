@@ -1,6 +1,6 @@
 
 
-with Header;
+with Optional;
 with Ada.Streams.Stream_IO;
 
 package Data_Value is
@@ -13,6 +13,10 @@ package Data_Value is
          Undef_Raw  : Float;
          Undef_Phys : Float;
       end record;
+
+   Null_Access_Rec : constant Access_Rec:= ( -- FIXME duplicated in FITS_IO.adb
+      BITPIX => 0, A => 0.0, B => 1.0,
+      Undef_Used => False, Undef_Raw => 0.0, Undef_Phys => 0.0);
 
    type     Count          is new Ada.Streams.Stream_IO.Count;
    subtype  Positive_Count is Count range 1 .. Count'Last;
@@ -31,7 +35,7 @@ package Data_Value is
 
    function To_Array_Keys
       (DU_Access : Access_Rec)
-      return Header.Valued_Key_Record_Arr;
+      return Optional.Valued_Key_Record_Arr;
 
 
 end Data_Value;

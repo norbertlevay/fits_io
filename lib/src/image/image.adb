@@ -3,7 +3,7 @@
 with Mandatory;
 with Optional;  -- Card_Arr needed
 with Header;    -- Image_Rec needed
-
+with Card;
 with FITS_IO; use FITS_IO;
 
 package body Image is
@@ -38,18 +38,18 @@ is
     Cards : FITS_IO.String_80_Array(1 .. (2 + Im.NAXISn'Length + Im.Valued_Keys'Length) );
     Ix : Positive_Count;
 begin
-    Cards(1) := Header.Create_Mandatory_Card("BITPIX",  Header.To_Value_String(Im.BITPIX));
-    Cards(2) := Header.Create_Mandatory_Card("NAXIS",   Header.To_Value_String(Im.NAXIS));
-    Cards(3 .. (3 + Im.NAXISn'Length) - 1) := Header.Create_NAXIS_Card_Arr(Im.NAXISn);
+    Cards(1) := Card.Create_Mandatory_Card("BITPIX",  Card.To_Value_String(Im.BITPIX));
+    Cards(2) := Card.Create_Mandatory_Card("NAXIS",   Card.To_Value_String(Im.NAXIS));
+    Cards(3 .. (3 + Im.NAXISn'Length) - 1) := Card.Create_NAXIS_Card_Arr(Im.NAXISn);
     -- here write Valued_Keys.. FIXME
     Ix := (3 + Im.NAXISn'Length) - 1;
     -- next position
     for I in Im.Valued_Keys'Range
     loop
         Ix := Ix + 1;
-        Cards(Ix) := Header.Create_Mandatory_Card
+        Cards(Ix) := Card.Create_Mandatory_Card
                             (Optional.BS_8.To_String(Im.Valued_Keys(I).Key),
-                             Header.To_Value_String(
+                             Card.To_Value_String(
                                  Optional.BS70.To_String(Im.Valued_Keys(I).Value)));
     end loop;
     return Cards;

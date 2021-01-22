@@ -65,37 +65,6 @@ package body Header is
     -- FIXME does Pack guarantee arr is packed? how to guarantee Arrs are packed
     -- OR do we need to guarantee at all ?
 
-   -- OO API begin
-
-   -- FIXME what to do with SIMPLE / XTENSION first-card ?
-
-
-    function Generate_Cards(Image : Primary) return String_80_Array
-    is
-       Cards1 : String_80_Array := (
-            Card.Create_Mandatory_Card("BITPIX",Card.To_Value_String(Image.BITPIX)),
-            Card.Create_Mandatory_Card("NAXIS", Card.To_Value_String(Image.NAXISn'Length))
-            );
-       Cards : String_80_Array := Cards1 & Card.Create_NAXIS_Card_Arr(Image.NAXISn);
-    begin
-       return Cards;
-    end Generate_Cards;
-
-    function Generate_Cards(Image : Conforming_Extension) return String_80_Array
-    is
-        Ext_Cards : String_80_Array := (
-               Card.Create_Card("PCOUNT", Count'Image(Image.PCOUNT)),
-               Card.Create_Card("GCOUNT", Count'Image(Image.GCOUNT))
-               );
-    begin
-       return (Generate_Cards(Primary(Image)) & Ext_Cards);
-       -- FIXME how to call parent and avoid cast to Primary ?
-    end Generate_Cards;
-
-
-
-    -- OO API end
-
 
 
 
@@ -212,52 +181,6 @@ begin
     end loop;
     return Found;
 end Has_Card;
-
-
-
-
-
-
-
--- new: HDU def:
-
-
-
--- writes first card
-procedure Write_Card_SIMPLE(F : in SIO.File_Type; Value : in Boolean)
-is
-    SIMPLE_Card : String_80 := Card.Create_Mandatory_Card("SIMPLE",  Card.To_Value_String(Value));
-begin
-    String_80'Write(SIO.Stream(F), SIMPLE_Card);
-end Write_Card_SIMPLE;
-
--- writes first card
--- ExtName := "'IMAGE   '"
-procedure Write_Card_XTENSION (F : in SIO.File_Type; Ext_Name : in String)
-is
-    TheCard : String_80 := Card.Create_Mandatory_Card("XTENSION",  Ext_Name);
-begin
-    String_80'Write(SIO.Stream(F), TheCard);
-end Write_Card_XTENSION;
-
--- adds cards after last written; call several times until header completed$
-procedure Write_Cards(F : in SIO.File_Type; Cards : in Card_Arr)
-is
-begin
-   Optional.Card_Arr'Write(SIO.Stream(F), Cards);
-end Write_Cards;
-
-
-
--- writes last END-card and padding
---procedure Close(F : in FITS_IO.File_Type)
---is
---begin
---    String_80'Write(SIO.Stream(F.SIO_File), ENDCard);
---    File.Misc.Write_Padding(F,SIO.Index(F.SIO_File),File.Misc.HeaderPadValue);
---end Close;
-
-
 
 
 end Header;

@@ -44,6 +44,8 @@ function Find_Key(Cards : Optional.Card_Arr; Key : BS_8.Bounded_String) return C
          Value : Value_Type;
      end record;
 
+ type Valued_Key_Record_Arr is array (Natural range <>) of Valued_Key_Record;
+
 
  procedure VKR_Read (
             Stream : not null access Ada.Streams.Root_Stream_Type'Class;

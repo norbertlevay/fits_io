@@ -37,4 +37,24 @@ package Elements is
    function Generate_Cards_Extension(BinTab : BinTable_Rec; GCOUNT : Positive_Count ) return String_80_Array;
 
 
+   -- OO alternative
+
+   type Primary(NAXIS : NAXIS_Index) is tagged
+      record
+         BITPIX : Integer;
+         NAXISn : NAXIS_Array(1..NAXIS);
+      end record;
+
+   function Generate_Cards(Image : Primary) return String_80_Array;
+
+   type Conforming_Extension is new Primary with
+      record
+         PCOUNT : Count;
+         GCOUNT : Count;
+      end record;
+
+   function Generate_Cards(Image : Conforming_Extension) return String_80_Array;
+
+
+
 end Elements;

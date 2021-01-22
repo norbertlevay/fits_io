@@ -70,4 +70,33 @@ package body Elements is
    end Generate_Cards_Extension;
 
 
+
+   -- OO alternative
+
+
+    function Generate_Cards(Image : Primary) return String_80_Array
+    is  
+       Cards1 : String_80_Array := (
+            Card.Create_Mandatory_Card("BITPIX",Card.To_Value_String(Image.BITPIX)),
+            Card.Create_Mandatory_Card("NAXIS", Card.To_Value_String(Image.NAXISn'Length))
+            );
+       Cards : String_80_Array := Cards1 & Card.Create_NAXIS_Card_Arr(Image.NAXISn);
+    begin
+       return Cards;
+    end Generate_Cards;
+
+    function Generate_Cards(Image : Conforming_Extension) return String_80_Array
+    is  
+        Ext_Cards : String_80_Array := (
+               Card.Create_Card("PCOUNT", Count'Image(Image.PCOUNT)),
+               Card.Create_Card("GCOUNT", Count'Image(Image.GCOUNT))
+               );
+    begin
+       return (Generate_Cards(Primary(Image)) & Ext_Cards);
+       -- FIXME how to call parent and avoid cast to Primary ?
+    end Generate_Cards;
+
+
+
+
 end Elements;
