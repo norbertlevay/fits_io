@@ -49,10 +49,10 @@ package body FITS_IO is
       return File.Read_Header(FFile.SIO_File);
    end Read_Content;
 
+
    -----------
    -- Utils --
    -----------
-
 
 
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count -- alg
@@ -86,10 +86,6 @@ package body FITS_IO is
          when SIO.Append_File => return Append_File;
       end case;
    end To_FIO_Mode;
-
-
-
-
 
 
    ---------------------
@@ -166,9 +162,6 @@ package body FITS_IO is
    end Stream;
 
 
-
-
-
    -----------------------------
    -- Input-Output Operations --
    -----------------------------
@@ -186,7 +179,7 @@ package body FITS_IO is
 
 
    -- API
-   function  Read_Header -- alg
+   function  Read_Header
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
@@ -244,11 +237,7 @@ package body FITS_IO is
    end Read_Cards;
 
 
-
-
-
    -- Write Header
-
 
 
    -- writes END-card$
@@ -370,6 +359,7 @@ package body FITS_IO is
       Write_End(File);
    end Write_Header;
 
+
    -- API
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
@@ -453,8 +443,9 @@ package body FITS_IO is
    end Put_File_Type;
 
 
-
-   -- Data Unit
+   ----------------------
+   -- Data Unit access --
+   ----------------------
 
 
    function Calc_Chunk_Pos -- alg
@@ -673,6 +664,7 @@ package body FITS_IO is
    ----------------
    -- HDU Stream --
    ----------------
+
    function AFCB_Allocate (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr is
       pragma Warnings (Off, Control_Block);
    begin
@@ -717,77 +709,6 @@ package body FITS_IO is
       null; -- FIXME implement
       --HDU_Write (File'Unchecked_Access, Item);
    end Write;
-
-
-
-   -- OBSOLETE
-
-   -- Cards
-
-   procedure OFF_Parse_BITPIX(Cards : String_80_Array; BITPIX : out Integer)
-   is
-      Found : Boolean := False;
-   begin
-      for I in Cards'Range
-      loop
-         Found := (Cards(I)(1..6) = "BITPIX");
-         if(Found)
-         then
-            BITPIX := Integer'Value(Cards(I)(11..30));
-         end if;
-         exit when Found;
-      end loop;
-   end OFF_Parse_BITPIX;
-
-
-
-   function OFF_Has_END_Card(Cards : String_80_Array; Pos : out Count) return Boolean
-   is
-      Found : Boolean := False;
-   begin
-      Pos := 0;
-      for I in Cards'Range
-      loop
-         Found := (Cards(I) = ENDCard);
-         Pos := I;
-         exit when Found;
-      end loop;
-      return Found;
-   end OFF_Has_END_Card;
-
-
-   procedure OFF_Read_Card_Arr
-      (File : in out File_Type;
-      Item : out String_80_Array;
-      Last : out Count)
-   is
-   begin
-      -- FIXME should read by one-card and immediately
-      -- check for END-card and skip padding
-      -- any further Reads should not move File.Index
-      String_80_Array'Read(Stream(File), Item);
-
-      OFF_Parse_BITPIX(Item, File.Cache.BITPIX);
-
-      Cache.Parse_Image_Cards
-         (File.Cache,
-         Cache.String_80_Array(Item)); -- FIXME conversion !!
-
-      if(OFF_Has_END_Card(Item,Last))
-      then
-         -- FIXME skip Padding (File.Index points to DU)
-         -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(File.Scaling, File.Cache);
-         Load_Undef_Vals_At_Read(File.Scaling, File.Cache);
-      end if;
-   end OFF_Read_Card_Arr;
-
-   procedure OFF_Write_Data_Padding(FFile : File_Type)
-   is
-   begin
-      File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-   end OFF_Write_Data_Padding;
-
 
 
 end FITS_IO;
