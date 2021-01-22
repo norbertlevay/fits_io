@@ -7,20 +7,12 @@ with Ada.Streams.Stream_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 
 with V3_Types;  use V3_Types;
-
 with File;
-
 with Optional;
 with Optional.Reserved;
---with Header;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
-
---with Image;
-
 with FITS_IO; use FITS_IO;
---with FITS_IO.Data_Unit;
 
-with Init;
 
 procedure minmax is
 

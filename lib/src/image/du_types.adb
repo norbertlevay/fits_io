@@ -1,13 +1,11 @@
 
-with Optional;
-
 with Ada.Text_IO;
-
 with Interfaces; use Interfaces; -- or use V3_Types
-
 with Ada.Strings.Bounded;
 
-package body Init is
+with Optional;
+
+package body DU_Types is
 
    package TIO renames Ada.Text_IO;
 
@@ -90,4 +88,4 @@ package body Init is
    end Linear_Scale;
 
 
-end Init;
+end DU_Types;

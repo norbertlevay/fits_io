@@ -10,7 +10,7 @@ with Optional; use Optional;-- Bounded_String_8_Arr & Card_Arr needed
 with Ada.Streams.Stream_IO;
 with Ada.Text_IO;
 
-with Init;
+with DU_Types;
 
 with File.Misc; -- Padding needed
 
@@ -199,7 +199,7 @@ package body FITS_IO is
          Cards : Optional.Card_Arr := Header.Read_Optional(FFile.SIO_File, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
-         Image.Data_Type   := Init.BITPIX_To_DU_Type(Mand.BITPIX);
+         Image.Data_Type   := DU_Types.BITPIX_To_DU_Type(Mand.BITPIX);
          Image.NAXISn      := Mand.NAXISn;
          Image.Image_Cards := Cards;
 
@@ -281,7 +281,7 @@ package body FITS_IO is
       Aui : Float;
    begin
 
-      Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
+      DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
       declare
          Im_Prim : Elements.Primary              := (NAXISn'Last, BITPIX, NAXISn);
@@ -413,7 +413,7 @@ package body FITS_IO is
       BITPIX   : Integer;
       Aui      : Float;
    begin
-      Init.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
+      DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
       File.Cache.BITPIX := BITPIX;
       File.Cache.Aui    := Aui;
    end Set_Raw_Type;
