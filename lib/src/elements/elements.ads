@@ -1,10 +1,11 @@
 
 -- part of Header subsystem
+with FITS_IO; use FITS_IO;-- String80Arr needed
 
 package Elements is
 
-   subtype NAXIS_Index is Integer range 1 .. 999;
-   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+--   subtype NAXIS_Index is Integer range 1 .. 999;
+--   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
 
    -- Image metadata
 
@@ -30,10 +31,10 @@ package Elements is
    function Create_Card_XTENSION(V : String) return String_80_Array;
    -- FIXME V : String --> V : Bounded_20
 
-   function Generate_Cards_Primary  (Im : Image_Rec) return String_80_Array;
-   function Generate_Cards_Extension(Im : Image_Rec) return String_80_Array;
-   function Generate_Cards_Extension(Tab    : Table_Rec)    return String_80_Array;
-   function Generate_Cards_Extension(BinTab : BinTable_Rec) return String_80_Array;
+   function Generate_Cards_Primary  (Im     : Image_Rec) return String_80_Array;
+   function Generate_Cards_Extension(Im     : Image_Rec; PCOUNT, GCOUNT : Positive_Count) return String_80_Array;
+   function Generate_Cards_Extension(Tab    : Table_Rec) return String_80_Array;
+   function Generate_Cards_Extension(BinTab : BinTable_Rec; GCOUNT : Positive_Count ) return String_80_Array;
 
 
 end Elements;

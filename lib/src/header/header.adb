@@ -49,6 +49,8 @@ with File_Funcs;
 --with Keyword_Record;  use Keyword_Record;
 
 
+with Card;
+
 package body Header is
 
     package TIO renames Ada.Text_IO;
@@ -71,10 +73,10 @@ package body Header is
     function Generate_Cards(Image : Primary) return String_80_Array
     is
        Cards1 : String_80_Array := (
-            Header.Create_Mandatory_Card("BITPIX",Header.To_Value_String(Image.BITPIX)),
-            Header.Create_Mandatory_Card("NAXIS", Header.To_Value_String(Image.NAXISn'Length))
+            Card.Create_Mandatory_Card("BITPIX",Card.To_Value_String(Image.BITPIX)),
+            Card.Create_Mandatory_Card("NAXIS", Card.To_Value_String(Image.NAXISn'Length))
             );
-       Cards : String_80_Array := Cards1 & Header.Create_NAXIS_Card_Arr(Image.NAXISn);
+       Cards : String_80_Array := Cards1 & Card.Create_NAXIS_Card_Arr(Image.NAXISn);
     begin
        return Cards;
     end Generate_Cards;
@@ -82,8 +84,8 @@ package body Header is
     function Generate_Cards(Image : Conforming_Extension) return String_80_Array
     is
         Ext_Cards : String_80_Array := (
-               Header.Create_Card("PCOUNT", Count'Image(Image.PCOUNT)),
-               Header.Create_Card("GCOUNT", Count'Image(Image.GCOUNT))
+               Card.Create_Card("PCOUNT", Count'Image(Image.PCOUNT)),
+               Card.Create_Card("GCOUNT", Count'Image(Image.GCOUNT))
                );
     begin
        return (Generate_Cards(Primary(Image)) & Ext_Cards);
@@ -213,104 +215,6 @@ end Has_Card;
 
 
 
-
-
-   -- from earlier image/image.adb
--- NOTE free-format integer must be right justified ? $
--- Standard ambigous Sect 4.2.3; fitsverify: no complain$
-function Create_Card(Key : in String; Value : in String) return String_80
-is
-    C : String(1 .. 80);
-    Val_Len : Positive := Value'Length;
-    use Ada.Strings.Fixed;
-begin
-    Move(Key,   C(1  .. 8));
-    Move("= ",  C(9  ..10));
- --   Move(Value, C(11 ..(10 + Value'Length)));
-    Move(" ",   C(11 .. 80));
-    Move(Value, C( (1 + 30 - Value'Length) .. 30 ) );
---    Move(" ",   C((11 + Value'Length) .. 80));
-    return C;
-end Create_Card;
-
-
-
-function Create_Mandatory_Card(Key : in String; Value : in String) return String_80
-is
-    C : String(1 .. 80);
-    use Ada.Strings.Fixed;
-begin
-    Move(Key,   C(1 .. 8));
-    Move("= ",  C(9 ..10));
-    Move(Value, C(11..30));
-    Move(" ",   C(31..80));
-    return C;
-end Create_Mandatory_Card;
-
-
-function To_Value_String( V : in String) return String
-is
-    Vstr: String(1 .. 20);
-    use Ada.Strings.Fixed;
-begin
-    Move(V, Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
-
-function To_Value_String( V : in Integer) return String
-is
-    Vstr: String(1 .. 20);
-    use Ada.Strings.Fixed;
-begin
-    Move(Integer'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
-
-
-function To_Value_String( V : in Count) return String
-is
-    Vstr: String(1 .. 20);
-begin
-    Ada.Strings.Fixed.Move(Count'Image(V), Vstr, Error, Right);
-    return Vstr;
-end To_Value_String;
-
---function To_Value_String( V : in Float_32) return String
---is
---    Vstr: String(1 .. 20);
---begin
---    Move(Float_32'Image(V), Vstr, Error, Right);
---    return Vstr;
---end To_Value_String;
-
-function To_Value_String( V : in Boolean) return String
-is
-    Vstr : String(1 .. 20);
-    use Ada.Strings.Fixed;
-begin
-    if(V = True) then
-        Move("T", Vstr, Error, Right);
-    else
-        Move("F", Vstr, Error, Right);
-    end if;
-    return Vstr;
-end To_Value_String;
-
-function Create_NAXIS_Card_Arr(NAXISn : in NAXIS_Array) return String_80_Array
-is
-   -- FIXME explicit conversion
-    Cards : String_80_Array(1 .. Positive_Count(NAXISn'Last));
-    use Ada.Strings.Fixed;
-begin
-    for I in NAXISn'Range
-    loop
-        Cards(Positive_Count(I)) := Create_Mandatory_Card("NAXIS" & Trim(Integer'Image(I),Left),
-                                        To_Value_String(NAXISn(I)));
-    end loop;
-    return Cards;
-end Create_NAXIS_Card_Arr;
 
 
 

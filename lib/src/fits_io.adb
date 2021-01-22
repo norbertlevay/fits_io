@@ -34,6 +34,8 @@ with Data_Value; use Data_Value;
 -- for all: native Types and also FITS-types
 
 
+with Card;
+
 package body FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
@@ -50,11 +52,11 @@ package body FITS_IO is
    -----------
 
 
-   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
-   is
-   begin
-      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
-   end Valued_Card;
+--   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+--   is
+--   begin
+--      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+--   end Valued_Card;
 
 
    function BITPIX_To_DU_Type(BITPIX : Integer) return DU_Type
@@ -472,9 +474,9 @@ package body FITS_IO is
    procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean) -- alg
    is
       HDU_First_Card : String_80_Array(1 .. 1) :=  
-         (1 => Header.Create_Mandatory_Card("SIMPLE", Header.To_Value_String(True)));
+         (1 => Card.Create_Mandatory_Card("SIMPLE", Card.To_Value_String(True)));
       Ext_First_Card : String_80_Array(1 .. 1) :=  
-         (1 => Header.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
+         (1 => Card.Create_Mandatory_Card("XTENSION", "'IMAGE   '"));
       use Ada.Streams.Stream_IO;
    begin
       if(Is_Primary)
