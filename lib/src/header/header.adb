@@ -226,18 +226,18 @@ end Has_Card;
 -- writes first card
 procedure Write_Card_SIMPLE(F : in SIO.File_Type; Value : in Boolean)
 is
-    Card : String_80 := Create_Mandatory_Card("SIMPLE",  To_Value_String(Value));
+    SIMPLE_Card : String_80 := Card.Create_Mandatory_Card("SIMPLE",  Card.To_Value_String(Value));
 begin
-    String_80'Write(SIO.Stream(F), Card);
+    String_80'Write(SIO.Stream(F), SIMPLE_Card);
 end Write_Card_SIMPLE;
 
 -- writes first card
 -- ExtName := "'IMAGE   '"
 procedure Write_Card_XTENSION (F : in SIO.File_Type; Ext_Name : in String)
 is
-    Card : String_80 := Create_Mandatory_Card("XTENSION",  Ext_Name);
+    TheCard : String_80 := Card.Create_Mandatory_Card("XTENSION",  Ext_Name);
 begin
-    String_80'Write(SIO.Stream(F), Card);
+    String_80'Write(SIO.Stream(F), TheCard);
 end Write_Card_XTENSION;
 
 -- adds cards after last written; call several times until header completed$

@@ -13,9 +13,8 @@ with V3_Types; use V3_Types;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Optional.Reserved; use Optional.Reserved;
-with Header;
-with Image;
-
+--with Header;
+with Card;
 
 
 procedure create
@@ -86,7 +85,7 @@ is
 --   package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
 --   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
    type Phys_Type_Arr is array (Positive_Count range <>) of Phys_Type;
-   procedure DU_Write is new FITS_IO.Write(Phys_Type, Phys_Type_Arr);
+   procedure DU_Write is new FITS_IO.HDU_Write(Phys_Type, Phys_Type_Arr);
    Write_Buffer : Phys_Type_Arr(1 .. ColLength);
 
 
@@ -118,7 +117,7 @@ is
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
    is  
    begin
-      return Header.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+      return Card.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
    end Valued_Card;
 
     use Optional.BS70;

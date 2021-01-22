@@ -12,10 +12,10 @@ with File;
 
 with Optional;
 with Optional.Reserved;
-with Header;
+--with Header;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
-with Image;
+--with Image;
 
 with FITS_IO; use FITS_IO;
 --with FITS_IO.Data_Unit;
@@ -104,7 +104,7 @@ begin
 
         --package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
        type Phys_Type_Arr is array (FITS_IO.Positive_Count range <>) of Phys_Type;
-       procedure DU_Read is new FITS_IO.Read(Phys_Type, Phys_Type_Arr);
+       procedure DU_Read is new FITS_IO.HDU_Read(Phys_Type, Phys_Type_Arr);
 
         -- example of data elaboration: find min max and count undef values
 
