@@ -1,6 +1,6 @@
 
 library project fitslib is
-   for Source_Dirs use ("src","src/parser","src/file","src/header",
+   for Source_Dirs use ("src","src/parser","src/composer","src/file",
        "src/image","src/v3");
    for Object_Dir use "obj";
    for Library_Name use "fits_io";
