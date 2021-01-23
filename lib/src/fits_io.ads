@@ -1,18 +1,33 @@
 
--- API approach question: what does FITS_IO.File_Type represent ?
+-- All FitsFile is represented by File_Type and HDU after open is Primary (HDU_First = 1).
+-- Call Set_Exte_Num(File) to position to other HDU. 
+
+-- Then the follwoing rules apply:
+
+   -- HDU_First = 1 for Primary HDU
+   -- Set_Extension_Number(F) : initializes HDU_First to index of the given ExtHDU
+
+   -- Write_Header: always writes at HDU First index and all Header
+   -- Write_Cards : always writes at END_Card position, shifting it behind new cards
+
+   -- Write_Data  : is sequential and each write checks offset,
+   -- a, attempt to write over DU_Last raises End_Of_DU error
+   -- b, not completing all DU will raise 'Ivalid Fits File' error at Close()
+
+   -- Read_Header : parses any of known HDU-types (Image,Table.BinTable) and 
+   --                always reads (parses) all Header starting from HDU_First
+   -- Read_Cards  : as Read_Header but parses any cards given by Keys
+
+   -- any attempt to call Write_Data Read_Data before calling Header read/write
+   -- results in Programmin_Error: DU unknown, must access Header first
+
+-- Rules for File_Mode IN Out In_Out:
+-- Out cuts file at position File.Index
+-- Append after Open positions at end...
+-- Read access anywhere, size does not change
+-- Update (In_Out) not allowed to change size
 --
--- a, file of concatinated HDU's (then internally stores HDU sizes positions)
--- b, one HDU (then internally stores Metadata/attributes of the opened HDU)
---
--- b, case: Open Create... refer HDU and after Open we have acces to DataUnit directly
--- (file name uses extended syntax: someFitsFile.fits[4] opens 4th HDU
---
--- a, case: after Open we should see array of HDUs and Set_HDU_Number should move
--- to "current HDU"
---
--- NOTE seems cfitsio took 'mixed' approach, the FitsFile-handle represents both, an HDU
--- and also array of concatinated HDUs - cfitsio's API has operations for both on
--- the same FitsFile type
+
 
 -- FIXME Tcalc in Scaling should be generic (now it is Float)
 
@@ -136,6 +151,7 @@ package FITS_IO is
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
       Cards : String_80_Array);
+
 
 
    -- Conversions, Scaling and Undefined Values
