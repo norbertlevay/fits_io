@@ -149,7 +149,7 @@ begin
  Create (Out_File, FITS_IO.Append_File, File_Name);
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
- Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
+ Write_Header_Prim(Out_File, Raw_Type, NAXISn, Array_Cards);
 
  FITS_IO.Put_File_Type(Out_File,"DBG> ");
 
@@ -169,7 +169,7 @@ begin
  Open (Out_File, FITS_IO.Append_File, File_Name);
 
  Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
- Write_Header(Out_File, Raw_Type, NAXISn, Array_Cards);
+ Write_Header_Ext(Out_File, Raw_Type, NAXISn, Array_Cards);
  Write_Cards(Out_File, More_Cards);
 
  FITS_IO.Put_File_Type(Out_File,"DBG> ");

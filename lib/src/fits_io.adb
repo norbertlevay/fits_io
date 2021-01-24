@@ -277,15 +277,15 @@ package body FITS_IO is
       declare
          Im_Prim : Elements.Primary              := (NAXISn'Last, BITPIX, NAXISn);
          Im_Ext  : Elements.Conforming_Extension := (NAXISn'Last, BITPIX, NAXISn, 0, 1);
-         Image_Cards_Prim : String_80_Array := Elements.Generate_Cards(Im_Prim);
-         Image_Cards_Ext  : String_80_Array := Elements.Generate_Cards(Im_Ext);
+         Optional_Cards_Prim : String_80_Array := Elements.Generate_Cards(Im_Prim);
+         Optional_Cards_Ext  : String_80_Array := Elements.Generate_Cards(Im_Ext);
       begin
 
          if(Is_Primary)
          then
-            Write_Card_Arr(File, Image_Cards_Prim);
+            Write_Card_Arr(File, Optional_Cards_Prim);
          else
-            Write_Card_Arr(File, Image_Cards_Ext);
+            Write_Card_Arr(File, Optional_Cards_Ext);
          end if;
 
          Write_Card_Arr(File, Optional_Cards);
@@ -306,7 +306,7 @@ package body FITS_IO is
    -- 1: container which can be Primary or Extension (diff first cards, and Ext has P/GCOUNT)
    -- 2: content of the container: Primary has always image (zero image allowed),
    -- Extension has non-zero Image OR Table OR BinTable OR others...
-   procedure Write_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
+   procedure OFFWrite_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
    is
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
@@ -318,23 +318,42 @@ package body FITS_IO is
       else
          Write_Card_Arr(Out_File, Ext_First_Card);
       end if;
-   end Write_First_Image_Card;
+   end OFFWrite_First_Image_Card;
 
 
    -- API
-   procedure Write_Header -- Compose_Header
+   procedure Write_Header_Prim -- Compose_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array)
+      Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
       Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
+      Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
-      Write_First_Image_Card(File, Is_Primary);
-      Write_Image(File, Raw_Type, NAXISn, Image_Cards, Is_Primary);
+      Write_Card_Arr(File, Prim_First_Card);
+      --Write_First_Image_Card(File, Is_Primary);
+      Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
       Write_End(File);
-   end Write_Header;
+   end Write_Header_Prim;
+
+   procedure Write_Header_Ext -- Compose_Header
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
+      Optional_Cards : String_80_Array)
+   is
+      use Ada.Streams.Stream_IO;
+      Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
+      Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
+   begin
+      Write_Card_Arr(File, Ext_First_Card);
+      --Write_First_Image_Card(File, Is_Primary);
+      Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
+      Write_End(File);
+   end Write_Header_Ext;
+
 
 
    -- API

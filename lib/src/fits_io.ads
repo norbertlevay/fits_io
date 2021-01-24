@@ -142,11 +142,18 @@ package FITS_IO is
       return  String_80_Array;
 
 
-   procedure Write_Header  -- Generate_Image_Header 
+   procedure Write_Header_Prim  -- Generate_Prim_Image_Header 
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
-      Image_Cards : String_80_Array);
+      Optional_Cards : String_80_Array);
+
+   procedure Write_Header_Ext  -- Generate_Ext_Image_Header 
+      (File       : in out File_Type;
+      Raw_Type    : DU_Type;     -- 
+      NAXISn      : NAXIS_Array; -- FIXME later do: HDU'Class -> Image_Rec Table_Rec BinTable_Rec
+      Optional_Cards : String_80_Array);
+
 
    procedure Write_Cards  -- Add_Cards
       (File       : in out File_Type;
