@@ -145,16 +145,6 @@ package body FITS_IO is
       return SIO.Stream(File.SIO_File);
    end Stream;
 
-   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access -- alg
-   is
-      HDU : HDU_Stream_Access;
-   begin
-      -- position to HDUStart
-      -- fill in ENDCard_Pos, DU_First, DU_Length
-      -- return HDU_Stream
-      return HDU;--SIO.Stream(File.SIO_File);
-   end Stream;
-
 
    -----------------------------
    -- Input-Output Operations --

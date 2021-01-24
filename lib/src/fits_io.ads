@@ -114,7 +114,6 @@ package FITS_IO is
    function  End_Of_File (File : File_Type) return Boolean;
 
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
-   function Stream (File : File_Type; HDU_Num : Count) return HDU_Stream_Access;
 
 
    -----------------------
