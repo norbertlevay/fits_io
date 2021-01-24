@@ -1,5 +1,10 @@
 
+-- purpose of this module:
+-- * maintain ENDCard position to do Append_Cards (aka Write_Cards)
+-- * maintain DU_Last to recognize when to write Data_Padding
+-- and return Last param in HDU_Read and prevent to write over DU_Last in HDU_Write
 
+-- FIXME DU_First DU_Last must be updated any time when ENDCard_Pos changes !!
 
 generic
 type T is range <>;
