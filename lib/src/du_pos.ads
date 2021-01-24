@@ -1,35 +1,43 @@
 
 
--- implement all logic of checking access Index to be 
--- correct for given HDU
--- and setting / reading various offesets in:
--- Read_Write_Header() Read/Write_Cards() Read/Write_Data() funcs
--- and init and file-complete:
--- Open/Create() HDU_Type=Set_Ext_Numebr(F, i:T) and Close()
-
-
--- instantiate with e.g. SIO.Positive_Count etc...
+with FITS_IO; use FITS_IO;
 
 generic
 type T is range <>;
---with function Index(??) return T;
---with procedure Set_Index(??, To : T);
 package DU_Pos is
 
    type Pos is
       record
-         HDU_First : T;
-         ENDCard_Pos : T;
-         DU_First : T;
-         DU_Last : T;
-         DU_End_Written : Boolean;
+         HDU_First   : T;        -- param
+         BITPIX      : Integer;  -- fixed HDU property
+         Data_Count  : T;        -- fixed HDU property : from NAXISn accumulated;
+
+         Card_Count  : T;              -- state : updated at each Writs_Cards
+         DU_Padding_Written : Boolean; -- state : read by Close
+
+         ENDCard_Pos : T;        -- cached : read at each Add_Cards
+         DU_Last     : T;        -- cached : read at each Write_Data
+
+         DU_First    : T;        -- cached : used locally in computations
       end record;
 
-   procedure At_Header_Start(Ix : T);-- store HDU_First 
-   procedure At_END Card(Ix : T); -- store ENDCard_Pos and add padding and DU_First and calc DU_Last and set DU_End_Written = False
 
-   procedure At_DU_Last_Element_Written; -- set DU_End_Written = True and write padding
-   function Last_DU_Elem_Position(Curr_Ix : T; Chunk_Len : T) return Boolean; -- return True (and caller has to do At_DU_Last_Elem_Written)
-   -- based on Current Index and Chunk Length calc whether this will include/cover also DU_Last position
+   procedure Init(HDU_First : T; BITPIX : Integer; Data_Count : T) is null;
+
+   procedure Init_Cards_Count(NAXIS : NAXIS_Index; N : out T) is null;
+   procedure Set_ENDCard_Pos(P : T) is null;
+   procedure Get_ENDCard_Pos(P : out T) is null;
+
+   procedure Update_Cards_Count(Cards_Appended : Positive_Count; N : out T) is null;
+   -- also recalc DU_First DU_Last
+
+   procedure Calc_DU_Last(DU_First : T;BITPIX : Integer;Data_Length : T; DU_Last : out T) is null;
+   -- from ENDCard_Pos + HPadding + BITPIX Data_Length
+
+   procedure Calc_DU_First(HDU_First : T; END_Card_Pos : T; DU_First : out T) is null;
+   -- DU_First = ENDCard_Pos + HPad_length
+
+   procedure Is_DPadding_Written(Chunk_First : T; Chunk_Len : T ; DPad_Written : Boolean) is null;
+   -- based on :  Chunk_First <= DU_Last <= (Chunk_First + Chunk_Length)
 
 end DU_Pos;
