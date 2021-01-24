@@ -38,6 +38,7 @@ with Ada.Strings.Bounded;
 with Cache; use Cache; -- Access_Rec & Cache_Rec
 with System.File_Control_Block; -- GNAT specific
 
+with DU_Pos;
 
 
 package FITS_IO is
@@ -208,11 +209,14 @@ package FITS_IO is
 
    private
 
+   package SIO_DU_Pos is new DU_Pos(Ada.Streams.Stream_IO.Count);
+
    type File_Type is record
       SIO_File : Ada.Streams.Stream_IO.File_Type;
       ENDCard_Pos : Ada.Streams.Stream_IO.Positive_Count;-- keep track where is END-card
       DU_First  : Ada.Streams.Stream_IO.Positive_Count; -- start of the DataUnit
       DU_Length : Positive_Count;
+      Pos      : SIO_DU_Pos.Pos_Rec;
       Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
       Cache    : Cache_Rec;
    end record;

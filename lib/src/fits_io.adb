@@ -30,6 +30,8 @@ with FITS_IO.V3_Types_For_DU;
 
 with File.Misc; -- DataPadding needed
 
+with DU_Pos;
+
 
 package body FITS_IO is
 
@@ -114,12 +116,18 @@ package body FITS_IO is
 
    procedure Close  (File : in out File_Type)
    is
+      Has_Data_Padding : Boolean := False;
    begin
       SIO.Close(File.SIO_File);
       -- Reset File_Type state
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
-   end Close;
+      SIO_DU_Pos.Is_Data_Padding_Written(Has_Data_Padding);
+      if(not Has_Data_Padding)
+      then
+         null;-- FIXME error: Fits_File invalid, Data Unit incomplete
+      end if;
+      end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
    is
@@ -150,17 +158,6 @@ package body FITS_IO is
    -- Input-Output Operations --
    -----------------------------
 
-   -- RULE Header is read sequentially (because size unknown, must read until END-card)
-   -- RULE Data-unit read/write is random access (because size known from the header)
-
-   -- RULE Read_Header funcs (unlike Read_/Write_Cards):
-   -- * always reads all header, up to END_Card (incl padding: skip at read)
-
-   -- new API adds cards overwriting current END and adding new END
-
-
-   -- Read Header
-
 
    -- API
    function  Read_Header
@@ -173,7 +170,12 @@ package body FITS_IO is
    begin
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
+
+      FFile.Pos.HDU_First := HDUFirst; -- FIXME  should be param to Read_Header not in DU_Pos ??
+      FFile.Pos.DU_First  := SIO.Index(FFile.SIO_File);
+
       FFile.DU_First := SIO.Index(FFile.SIO_File);
+
 
       SIO.Set_Index(FFile.SIO_File, HDUFirst);
       -- FIXME update parser to avoid 2 reads
@@ -213,6 +215,7 @@ package body FITS_IO is
       return  String_80_Array
    is
       LKeys  : BS_8_Array := Keys;
+      -- FIXME Set_Index at FFile.Pos.HDU_First -> Write_Cards does set at ENDCCard
       LCards : String_80_Array := Header.Read_Optional(FFile.SIO_File, LKeys);
       Cards  : String_80_Array := LCards;
    begin
@@ -228,8 +231,10 @@ package body FITS_IO is
    begin
 
       FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      FFile.Pos.ENDCard_Pos := SIO.Index(FFile.SIO_File);
       Header.Write_ENDCard_With_Padding(FFile.SIO_File);
       FFile.DU_First := SIO.Index(FFile.SIO_File);
+      FFile.Pos.DU_First := SIO.Index(FFile.SIO_File);
 
       -- init data unit Access_Rec
 
@@ -292,25 +297,6 @@ package body FITS_IO is
    end Write_Image;
 
 
-   -- FIXME mixing two concepts ?
-   -- 1: container which can be Primary or Extension (diff first cards, and Ext has P/GCOUNT)
-   -- 2: content of the container: Primary has always image (zero image allowed),
-   -- Extension has non-zero Image OR Table OR BinTable OR others...
-   procedure OFFWrite_First_Image_Card(Out_File : in out File_Type; Is_Primary : Boolean)
-   is
-      Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
-      Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
-      use Ada.Streams.Stream_IO;
-   begin
-      if(Is_Primary)
-      then
-         Write_Card_Arr(Out_File, Prim_First_Card);
-      else
-         Write_Card_Arr(Out_File, Ext_First_Card);
-      end if;
-   end OFFWrite_First_Image_Card;
-
-
    -- API
    procedure Write_Header_Prim -- Compose_Header
       (File       : in out File_Type;
@@ -319,15 +305,19 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
+      HDUFirst : SIO.Positive_Count := SIO.Positive_Count(SIO.Index(File.SIO_File));
+      Is_Primary : Boolean := (HDUFirst = 1);
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
+      File.Pos.HDU_First := HDUFirst;
       Write_Card_Arr(File, Prim_First_Card);
-      --Write_First_Image_Card(File, Is_Primary);
       Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
       Write_End(File);
    end Write_Header_Prim;
 
+   -- FIXME should HDUFirst be managed outside of DU_Pos ? Write_Header_*()
+
+   -- API
    procedure Write_Header_Ext -- Compose_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
@@ -335,11 +325,12 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (1 = SIO.Index(File.SIO_File));
+      HDUFirst : SIO.Positive_Count := SIO.Index(File.SIO_File);
+      Is_Primary : Boolean := (HDUFirst = 1);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
+      File.Pos.HDU_First := HDUFirst;
       Write_Card_Arr(File, Ext_First_Card);
-      --Write_First_Image_Card(File, Is_Primary);
       Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
       Write_End(File);
    end Write_Header_Ext;
@@ -354,7 +345,7 @@ package body FITS_IO is
       Ix : SIO.Positive_Count := 1;
    begin
       -- position File-Index at END-card
-      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos);
+      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos); -- FIXME use File.Pos.ENDCard_Pos
       Write_Card_Arr(File, Cards);  -- start writing Cards (overwrites existing ENDCard)
       Write_End(File);              -- writes new END-card and padding
    end Write_Cards;
