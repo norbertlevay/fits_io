@@ -12,27 +12,25 @@ package DU_Pos is
 
    type Pos_Rec is
       record
-         HDU_First   : T;        -- param FIXME should this be out of the package ??
---         BITPIX      : Integer;  -- fixed HDU property
-         Data_Count  : T;        -- fixed HDU property : from NAXISn accumulated;
+         HDU_First   : T;-- param FIXME remove later; HDU_First managed at level of FitsFile
 
-         --Card_Count  : T;              -- state : updated at each Writs_Cards
+         Data_Count  : T;   -- fixed HDU property : from NAXISn accumulated;
+         --Card_Count  : T;  -- state : updated at each Writs_Cards
+
          DU_Padding_Written : Boolean; -- state : read by Close
 
-         ENDCard_Pos : T;        -- cached : read at each Add_Cards -- needed only in Write
-         DU_Last     : T;        -- cached : read at each Write_Data
-
-         DU_First    : T;        -- cached : used locally in computations
+         ENDCard_Pos : T; -- used in Writes
+         DU_First    : T; -- used in Reads (and here used locally in computations)
       end record;
+       -- FIXME DU_First can be calcd from ENDCard_Pos
+       -- both provide equivalent info but one used in Writes otehr in Reads
 
    -- events
 
-   procedure Init(HDU_First : T; Data_Count : T) is null;
-
    procedure Set_HDU_First(P : T) is null;
+   procedure Set_DU_Length(L : T) is null;
    procedure Set_DU_First(P : T) is null;
    procedure Set_ENDCard_Pos(P : T) is null;
-   -- also recalc DU_First DU_Last
 
    -- services
 

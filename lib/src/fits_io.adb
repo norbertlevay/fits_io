@@ -97,6 +97,7 @@ package body FITS_IO is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
+      File.Pos.HDU_First := SIO.Index(File.SIO_File);
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Create;
@@ -110,6 +111,7 @@ package body FITS_IO is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
+      File.Pos.HDU_First := SIO.Index(File.SIO_File);
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Open;
@@ -127,7 +129,7 @@ package body FITS_IO is
       then
          null;-- FIXME error: Fits_File invalid, Data Unit incomplete
       end if;
-      end Close;
+   end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
    is
@@ -159,25 +161,28 @@ package body FITS_IO is
    -----------------------------
 
 
-   -- API
+   -- API but later hide behind Open
    function  Read_Header
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
-      HDUFirst : SIO.Positive_Count := SIO.Index(FFile.SIO_File);
+      DU_Length : SIO.Count := 0;
+      DU_First : SIO.Count := 0;
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
-      FFile.Pos.HDU_First := HDUFirst; -- FIXME  should be param to Read_Header not in DU_Pos ??
-      FFile.Pos.DU_First  := SIO.Index(FFile.SIO_File);
+      -- Read_Mandatory goes by Blocks, so we skip H-Padding - caching DU_First is correct here
+      -- FIXME DU_Length := func(Mand.BITPIX, Mand.NAXISn) FIXME implement missing calc
+      DU_First := SIO.Index(FFile.SIO_File);
+      SIO_DU_Pos.Set_DU_First(DU_First);
+      SIO_DU_Pos.Set_DU_Length(DU_Length); -- FIXME which units: DataCount or SIO.StreamElemSize ?
+      FFile.DU_First := SIO.Index(FFile.SIO_File); -- orig variant; remove FIXME
 
-      FFile.DU_First := SIO.Index(FFile.SIO_File);
 
-
-      SIO.Set_Index(FFile.SIO_File, HDUFirst);
+      SIO.Set_Index(FFile.SIO_File, FFile.Pos.HDU_First);
       -- FIXME update parser to avoid 2 reads
 
       declare
@@ -208,18 +213,30 @@ package body FITS_IO is
    end Read_Header;
 
 
-   -- API
+   -- API on level of Open which calls Set_Index(HDUFirst)
    function  Read_Cards
       (FFile : in out File_Type;
       Keys   : BS_8_Array)
       return  String_80_Array
    is
-      LKeys  : BS_8_Array := Keys;
-      -- FIXME Set_Index at FFile.Pos.HDU_First -> Write_Cards does set at ENDCCard
-      LCards : String_80_Array := Header.Read_Optional(FFile.SIO_File, LKeys);
-      Cards  : String_80_Array := LCards;
+      DU_First : SIO.Positive_Count;
    begin
-      return Cards;
+
+      -- FIXME should init DU_First otherwise DU_Read not possible!
+      -- e.g. need Parse_Mandatory and do as in Read_Header to init DU_Pos
+
+      SIO.Set_Index(FFile.SIO_File, FFile.Pos.HDU_First);
+
+      declare
+         Cards : String_80_Array := Header.Read_Optional(FFile.SIO_File, Keys);
+      begin
+         return Cards;
+      end;
+
+      DU_First := SIO.Index(FFile.SIO_File);
+      SIO_DU_Pos.Set_DU_First(DU_First);
+      FFile.DU_First := SIO.Index(FFile.SIO_File); -- orig variant; remove FIXME
+
    end Read_Cards;
 
 
@@ -232,9 +249,12 @@ package body FITS_IO is
 
       FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
       FFile.Pos.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+
       Header.Write_ENDCard_With_Padding(FFile.SIO_File);
+
       FFile.DU_First := SIO.Index(FFile.SIO_File);
       FFile.Pos.DU_First := SIO.Index(FFile.SIO_File);
+      SIO_DU_Pos.Set_DU_First(SIO.Index(FFile.SIO_File));
 
       -- init data unit Access_Rec
 
@@ -297,7 +317,7 @@ package body FITS_IO is
    end Write_Image;
 
 
-   -- API
+   -- API later hide behind Create / Open(Out_Mode)
    procedure Write_Header_Prim -- Compose_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
@@ -305,19 +325,16 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      HDUFirst : SIO.Positive_Count := SIO.Positive_Count(SIO.Index(File.SIO_File));
-      Is_Primary : Boolean := (HDUFirst = 1);
+      Is_Primary : Boolean := (File.Pos.HDU_First = 1);
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
-      File.Pos.HDU_First := HDUFirst;
       Write_Card_Arr(File, Prim_First_Card);
       Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
       Write_End(File);
    end Write_Header_Prim;
 
-   -- FIXME should HDUFirst be managed outside of DU_Pos ? Write_Header_*()
 
-   -- API
+   -- API later hide behind Open(Append_Mode)
    procedure Write_Header_Ext -- Compose_Header
       (File       : in out File_Type;
       Raw_Type    : DU_Type;
@@ -325,11 +342,9 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      HDUFirst : SIO.Positive_Count := SIO.Index(File.SIO_File);
-      Is_Primary : Boolean := (HDUFirst = 1);
+      Is_Primary : Boolean := (File.Pos.HDU_First = 1);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
-      File.Pos.HDU_First := HDUFirst;
       Write_Card_Arr(File, Ext_First_Card);
       Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
       Write_End(File);
@@ -337,8 +352,8 @@ package body FITS_IO is
 
 
 
-   -- API
-   procedure Write_Cards  -- Add_Cards
+   -- API on level od Open/Create; later rename to Append_Cards
+   procedure Write_Cards
       (File       : in out File_Type;
       Cards : String_80_Array)
    is
