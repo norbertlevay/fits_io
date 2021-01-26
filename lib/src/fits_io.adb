@@ -35,7 +35,7 @@ with DU_Pos;
 
 package body FITS_IO is
 
-   package SIO renames Ada.Streams.Stream_IO;
+   --package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
 
    -- API
@@ -97,7 +97,8 @@ package body FITS_IO is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
-      File.Pos.HDU_First := SIO.Index(File.SIO_File);
+      File.HDU_First := SIO.Index(File.SIO_File);
+      File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Create;
@@ -111,24 +112,26 @@ package body FITS_IO is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
-      File.Pos.HDU_First := SIO.Index(File.SIO_File);
+      File.HDU_First := SIO.Index(File.SIO_File);
+      File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Open;
 
    procedure Close  (File : in out File_Type)
    is
-      Has_Data_Padding : Boolean := False;
+      Has_Data_Padding : Boolean := Is_Data_Padding_Written(File.Pos);
    begin
-      SIO.Close(File.SIO_File);
-      -- Reset File_Type state
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
-      SIO_DU_Pos.Is_Data_Padding_Written(Has_Data_Padding);
       if(not Has_Data_Padding)
       then
+         SIO.Close(File.SIO_File);
          null;-- FIXME error: Fits_File invalid, Data Unit incomplete
       end if;
+      SIO.Close(File.SIO_File);
+      -- Reset File_Type state
+      File.Pos     := Null_Pos_Rec;
+      File.Scaling := Null_Access_Rec;
+      File.Cache   := Null_Cache_Rec;
    end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
@@ -166,23 +169,17 @@ package body FITS_IO is
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
-      DU_Length : SIO.Count := 0;
-      DU_First : SIO.Count := 0;
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
-
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
-      -- Read_Mandatory goes by Blocks, so we skip H-Padding - caching DU_First is correct here
-      -- FIXME DU_Length := func(Mand.BITPIX, Mand.NAXISn) FIXME implement missing calc
-      DU_First := SIO.Index(FFile.SIO_File);
-      SIO_DU_Pos.Set_DU_First(DU_First);
-      SIO_DU_Pos.Set_DU_Length(DU_Length); -- FIXME which units: DataCount or SIO.StreamElemSize ?
-      FFile.DU_First := SIO.Index(FFile.SIO_File); -- orig variant; remove FIXME
+      DU_Pos.Set_DU_Length( FFile.Pos, Mand.BITPIX, SIO.Count(Data_Element_Count(Mand.NAXISn)) );
+      -- FIXME cast
+      DU_Pos.Set_DU_First ( FFile.Pos, SIO.Index(FFile.SIO_File) );
+      -- Read_Mandatory goes by Blocks, so we skip H-Padding -> DU_First is correct here
 
-
-      SIO.Set_Index(FFile.SIO_File, FFile.Pos.HDU_First);
+      SIO.Set_Index(FFile.SIO_File, FFile.HDU_First);
       -- FIXME update parser to avoid 2 reads
 
       declare
@@ -205,8 +202,6 @@ package body FITS_IO is
          Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
          Load_Undef_Vals_At_Read   (FFile.Scaling, FFile.Cache);
 
-         FFile.DU_Length := Data_Element_Count(Mand.NAXISn);
-
          return Image;
       end;
 
@@ -219,23 +214,15 @@ package body FITS_IO is
       Keys   : BS_8_Array)
       return  String_80_Array
    is
-      DU_First : SIO.Positive_Count;
    begin
 
-      -- FIXME should init DU_First otherwise DU_Read not possible!
-      -- e.g. need Parse_Mandatory and do as in Read_Header to init DU_Pos
-
-      SIO.Set_Index(FFile.SIO_File, FFile.Pos.HDU_First);
+      SIO.Set_Index(FFile.SIO_File, FFile.HDU_First);
 
       declare
-         Cards : String_80_Array := Header.Read_Optional(FFile.SIO_File, Keys);
+         Image : Image_Rec := Read_Header(FFile, Keys);
       begin
-         return Cards;
+         return Image.Image_Cards;
       end;
-
-      DU_First := SIO.Index(FFile.SIO_File);
-      SIO_DU_Pos.Set_DU_First(DU_First);
-      FFile.DU_First := SIO.Index(FFile.SIO_File); -- orig variant; remove FIXME
 
    end Read_Cards;
 
@@ -247,14 +234,13 @@ package body FITS_IO is
    is
    begin
 
-      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      FFile.Pos.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+-- origpos      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      DU_Pos.Set_ENDCard_Pos(FFile.Pos, SIO.Index(FFile.SIO_File));
 
       Header.Write_ENDCard_With_Padding(FFile.SIO_File);
 
-      FFile.DU_First := SIO.Index(FFile.SIO_File);
-      FFile.Pos.DU_First := SIO.Index(FFile.SIO_File);
-      SIO_DU_Pos.Set_DU_First(SIO.Index(FFile.SIO_File));
+-- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
+      DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(FFile.SIO_File));
 
       -- init data unit Access_Rec
 
@@ -310,7 +296,7 @@ package body FITS_IO is
          File.Cache.BITPIX := BITPIX;
          File.Cache.Aui := Aui;
 
-         File.DU_Length := Data_Element_Count(NAXISn);
+         DU_Pos.Set_DU_Length(File.Pos, BITPIX, SIO.Count(Data_Element_Count(NAXISn))); -- FIXME nneded here? & cast!!
 
       end;
 
@@ -325,7 +311,7 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.Pos.HDU_First = 1);
+      Is_Primary : Boolean := (File.HDU_First = 1);
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
       Write_Card_Arr(File, Prim_First_Card);
@@ -342,7 +328,7 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.Pos.HDU_First = 1);
+      Is_Primary : Boolean := (File.HDU_First = 1);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
       Write_Card_Arr(File, Ext_First_Card);
@@ -360,7 +346,7 @@ package body FITS_IO is
       Ix : SIO.Positive_Count := 1;
    begin
       -- position File-Index at END-card
-      SIO.Set_Index(File.SIO_File, File.ENDCard_Pos); -- FIXME use File.Pos.ENDCard_Pos
+      SIO.Set_Index(File.SIO_File, DU_Pos.Get_ENDCard_Pos(File.Pos));
       Write_Card_Arr(File, Cards);  -- start writing Cards (overwrites existing ENDCard)
       Write_End(File);              -- writes new END-card and padding
    end Write_Cards;
@@ -440,15 +426,16 @@ package body FITS_IO is
    ----------------------
 
 
-   function Calc_Chunk_Pos -- alg
-      (F : SIO.File_Type;
+   function OFFCalc_Chunk_Pos -- alg
+      (--F : SIO.File_Type;
+      DU_Current : SIO.Positive_Count;-- := SIO.Index(F);
       DU_First  : SIO.Positive_Count;
-      BITPIX    : Integer; -- bits
-      T_Arr_Len : Positive_Count)
+      BITPIX    : Integer) -- bits
+      --T_Arr_Len : Positive_Count)
       return Count
    is
       N_First : FITS_IO.Positive_Count;
-      DU_Current : SIO.Positive_Count := SIO.Index(F);
+--      DU_Current : SIO.Positive_Count := SIO.Index(F);
       SE_Size    : SIO.Positive_Count := Ada.Streams.Stream_Element'Size; -- bits
       use Ada.Streams.Stream_IO;
       T_Size_seu : SIO.Positive_Count := SIO.Positive_Count(abs BITPIX) / SE_Size;
@@ -456,13 +443,18 @@ package body FITS_IO is
    begin
       N_First := FITS_IO.Positive_Count (1 + (DU_Current - DU_First) / T_Size_seu);
       return N_First;
-   end Calc_Chunk_Pos;
+   end OFFCalc_Chunk_Pos;
 
 
+   function Min(A,B : Count) return Count
+   is  
+   begin
+      if (A > B) then return B; else return A; end if;
+   end Min;
 
 
    procedure HDU_Read -- alg
-      (File    : File_Type;
+      (FFile    : in out File_Type;
       Item : out T_Arr;
       Last : out Count)
    is
@@ -476,38 +468,27 @@ package body FITS_IO is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := File.Scaling;
+      Scaling : Access_Rec := FFile.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
-      Chunk_First : Positive_Count;
-      Chunk_Last  : Positive_Count;
-      DU_Last     : Positive_Count := File.DU_Length;
-      Chunk_Length : Positive_Count;
-      Item_Last : Positive_Count;
+
+      -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
+      -- FIXME all casts Pos Count <-> SIO Pos Count
+ 
+      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+      DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
+      DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Item_Last : Positive_Count;
    begin
 
-      Chunk_First :=Calc_Chunk_Pos(File.SIO_File,File.DU_First,abs Scaling.BITPIX,Item'Length);
-      Chunk_Last  := Chunk_First + Item'Length - 1;
+      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
 
-      -- dont read beyond data unit end
-      if(Chunk_First > DU_Last)
-      then
-         Last := 0;
-         return;
-      end if;
+      DU_Item_Last:=Positive_Count(Calc_DU_Item_Last(SIO.Positive_Count(DU_Curr_Ix),Item'Length));
 
-      -- last chunk hits data unit end -> read only up to end
-      -- Chunk_First <= DU_Last
-      if(Chunk_Last > DU_Last)
-      then
-         Chunk_Length := 1 + DU_Last - Chunk_First;
-         Item_Last := Item'First + Chunk_Length - 1;
-      else
-         Item_Last := Item'Last;
-      end if;
+      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
-      Last := Item_Last;
-
+--      Is_Last_Write := (DU_Item_Last >= DU_Last);
 
       -- Set Undefined value
 
@@ -531,23 +512,23 @@ package body FITS_IO is
 
 
       declare
-         Loc_Item : T_Arr(Item'First .. Item_Last);
+         Loc_Item : T_Arr(Item'First .. Last);
       begin
 
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 => U8_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Read(Stream(File), Scaling.A,Scaling.B, Loc_Item);
+            when   8 => U8_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
 
-         Item(Item'First .. Item_Last) := Loc_Item;
+         Item(Item'First .. Last) := Loc_Item;
 
       end;
 
@@ -556,7 +537,7 @@ package body FITS_IO is
 
 
    procedure HDU_Write -- alg
-      (FFile : File_Type;
+      (FFile : in out File_Type;
       Item : T_Arr)
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
@@ -572,30 +553,28 @@ package body FITS_IO is
       Scaling : Access_Rec := FFile.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
-      Chunk_First : Positive_Count;
-      Chunk_Last  : Positive_Count;
-      DU_Last     : Positive_Count := FFile.DU_Length;
-      Chunk_Length : Positive_Count;
-      Item_Last : Positive_Count;
+
+      -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
+      -- FIXME all casts Pos Count <-> SIO Pos Count
+ 
+      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+      DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
+      DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Item_Last : Positive_Count;
+      Is_Last_Write : Boolean := False;
+      Last : Count;
    begin
 
       -- dont Write beyond end of Data Unit
 
-      Chunk_First := Calc_Chunk_Pos(FFile.SIO_File,FFile.DU_First,abs Scaling.BITPIX,Item'Length);
-      Chunk_Last  := Chunk_First + Item'Length - 1;
+      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
 
-      if(Chunk_First <= DU_Last)
-      then
+      DU_Item_Last:=Positive_Count(Calc_DU_Item_Last(SIO.Positive_Count(DU_Curr_Ix),Item'Length));
 
-         -- last chunk hits data unit end -> write only up to end
-         -- Chunk_First <= DU_Last
-         if(Chunk_Last > DU_Last)
-         then
-            Chunk_Length := 1 + DU_Last - Chunk_First;
-            Item_Last := Item'First + Chunk_Length - 1;
-         else
-            Item_Last := Item'Last;
-         end if;
+      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
+
+      Is_Last_Write := (DU_Item_Last >= DU_Last);
 
 
          -- Set Undefined value
@@ -621,7 +600,7 @@ package body FITS_IO is
 
 
          declare
-            Loc_Item : T_Arr := Item(Item'First .. Item_Last);
+            Loc_Item : T_Arr := Item(Item'First .. Last);
          begin
 
             -- Scaling
@@ -642,13 +621,11 @@ package body FITS_IO is
 
          -- add padding if wrote last data in Data Unit
 
-         if(Chunk_Last >= DU_Last)
+         if(Is_Last_Write)
          then
-            -- Write_Data_Padding(FFile);
-            File.Misc.Write_Padding(FFile.SIO_File, SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+            File.Misc.Write_Padding(FFile.SIO_File,
+                        SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
          end if;
-
-      end if;
 
    end HDU_Write;
 

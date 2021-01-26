@@ -6,51 +6,49 @@
 
 -- FIXME DU_First DU_Last must be updated any time when ENDCard_Pos changes !!
 
-generic
-type T is range <>;
+-- NOTE Pos_Rec holds:
+-- end of Header: ENDCard_Pos
+-- end of Data U: DU_Last = DU_First + DU_Length - 1
+-- NOTE actually as DU_Length is known -> DU_First & DU_Last is calculable
+-- FIXME --> enough to store ENDCard_Pos and const DU_Length ?
+
+-- FIXME DU_First can be calcd from ENDCard_Pos
+-- both provide equivalent info but one used in Writes otehr in Reads
+
+
+with Ada.Streams.Stream_IO;
+
 package DU_Pos is
+
+   package SIO renames Ada.Streams.Stream_IO;
+   use SIO;
 
    type Pos_Rec is
       record
-         HDU_First   : T;-- param FIXME remove later; HDU_First managed at level of FitsFile
-
-         Data_Count  : T;   -- fixed HDU property : from NAXISn accumulated;
-         --Card_Count  : T;  -- state : updated at each Writs_Cards
-
+         DU_Length   : Count;
+         ENDCard_Pos : Count; -- state: used in Writes
+         DU_First    : Count; -- calculable: =func(ENDCard_Pos, BlkSite): used in Reads 
          DU_Padding_Written : Boolean; -- state : read by Close
-
-         ENDCard_Pos : T; -- used in Writes
-         DU_First    : T; -- used in Reads (and here used locally in computations)
       end record;
-       -- FIXME DU_First can be calcd from ENDCard_Pos
-       -- both provide equivalent info but one used in Writes otehr in Reads
+
+   Null_Pos_Rec : Pos_Rec := (0,0,0 ,False); -- 0 meaning uninited
 
    -- events
 
-   procedure Set_HDU_First(P : T) is null;
-   procedure Set_DU_Length(L : T) is null;
-   procedure Set_DU_First(P : T) is null;
-   procedure Set_ENDCard_Pos(P : T) is null;
+   procedure Set_DU_Length  (Pos: in out Pos_Rec; BITPIX : Integer; L : Positive_Count) is null;
+   procedure Set_DU_First   (Pos: in out Pos_Rec; P : Positive_Count) is null;
+   procedure Set_ENDCard_Pos(Pos: in out Pos_Rec; P : Positive_Count) is null;
 
    -- services
 
-   -- for Header
-   procedure Get_ENDCard_Pos(P : out T) is null;
-   -- used by Write_Cards a.k.a. Append_Cards
+   function Get_ENDCard_Pos(P : Pos_Rec) return Positive_Count;
+   function Get_DU_Last(P : Pos_Rec) return Positive_Count;
 
-   -- for Data_Unit
+   function Calc_DU_Item_Last
+      (DU_Item_First : Positive_Count;
+      Item_Len : Count) return Positive_Count;
 
-   -- FIXME add here: see Chunk_First Chunk_Last calcs and in HDU_Write -> Padding
+   function Is_Data_Padding_Written(Pos : Pos_Rec) return Boolean;
 
-   procedure Calc_DU_Last(DU_First : T;BITPIX : Integer;Data_Length : T; DU_Last : out T) is null;
-   -- from ENDCard_Pos + HPadding + BITPIX Data_Length
+   end DU_Pos;
 
-   procedure Calc_DU_First(HDU_First : T; END_Card_Pos : T; DU_First : out T) is null;
-   -- DU_First = ENDCard_Pos + HPad_length
-
-   procedure Is_At_DU_Last(Chunk_First : T; Chunk_Len : T ; DPad_Written : Boolean) is null;
-   -- based on :  Chunk_First <= DU_Last <= (Chunk_First + Chunk_Length)
-
-   procedure Is_Data_Padding_Written(DPad_Exist : Boolean) is null;
-
-end DU_Pos;
