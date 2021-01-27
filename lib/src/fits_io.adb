@@ -490,7 +490,7 @@ package body FITS_IO is
 
       if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
 
-      DU_Item_Last:=Positive_Count(Calc_DU_Item_Last(SIO.Positive_Count(DU_Curr_Ix),Item'Length));
+      DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
@@ -573,7 +573,7 @@ package body FITS_IO is
 
       if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
 
-      DU_Item_Last:=Positive_Count(Calc_DU_Item_Last(SIO.Positive_Count(DU_Curr_Ix),Item'Length));
+      DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 

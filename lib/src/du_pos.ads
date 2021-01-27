@@ -49,10 +49,6 @@ package DU_Pos is
    function Get_ENDCard_Pos(P : Pos_Rec) return Positive_Count;
    function Get_DU_Last(P : Pos_Rec) return Positive_Count;
 
-   function Calc_DU_Item_Last
-      (DU_Item_First : Positive_Count;
-      Item_Len : Count) return Positive_Count;
-
    function Is_Data_Padding_Written(Pos : Pos_Rec) return Boolean;
 
    -- util FIXME does this really belong here ?
