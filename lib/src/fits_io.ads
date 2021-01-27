@@ -114,6 +114,8 @@ package FITS_IO is
    function  Mode    (File : File_Type) return File_Mode;
    function  End_Of_File (File : File_Type) return Boolean;
 
+   function Size  (File : File_Type) return Count;
+
    function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
 
 
@@ -167,9 +169,14 @@ package FITS_IO is
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float);
 
 
-   ---------------------------------
-   -- Data Unit sequential access --
-   ---------------------------------
+   -----------------------------
+   -- Data Unit random access --
+   -----------------------------
+
+   function  Index(File : File_Type) return Positive_Count;
+   procedure Set_Index(File : File_Type; Ix : Positive_Count);
+   -- Index range: 1 .. DU_Last
+
 
    generic
    type T is private;

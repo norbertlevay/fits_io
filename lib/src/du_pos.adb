@@ -4,8 +4,43 @@
 package body DU_Pos is
 
 
+   -- index conversions: SE Index -> DU Index -> SE Index
+
+   function DU_Index(SIO_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer) return Positive_Count
+   is
+      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+      DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
+   begin
+      return (DE_Size / SE_Size) * (1 + (SIO_Index - SIO_DU_First));
+   end DU_Index;
+
+
+   procedure Set_DU_Length  (Pos: in out Pos_Rec; L : Positive_Count)
+   is
+   begin
+      Pos.DU_Length := L;
+   end Set_DU_Length;
+
+   procedure Set_DU_First   (Pos: in out Pos_Rec; SIO_P : Positive_Count; BITPIX : Integer)
+   is
+   begin
+      Pos.SIO_DU_First := SIO_P;
+      Pos.DU_First := DU_Index(SIO_P, Pos.SIO_DU_First, BITPIX); 
+   end Set_DU_First;
+
+
+   procedure Set_ENDCard_Pos(Pos: in out Pos_Rec; SIO_P : Positive_Count)
+   is
+   begin
+      Pos.SIO_ENDCard_Pos := SIO_P;
+   end Set_ENDCard_Pos;
+
+
    function Get_ENDCard_Pos(P : Pos_Rec) return Positive_Count
-   is begin return P.ENDCard_Pos; end Get_ENDCard_Pos;
+   is
+   begin
+      return P.SIO_ENDCard_Pos;
+   end Get_ENDCard_Pos;
 
 
 
@@ -55,7 +90,7 @@ package body DU_Pos is
    function Is_Data_Padding_Written(Pos : Pos_Rec) return Boolean
    is
    begin
-      return False;
+      return Pos.DU_Padding_Written;
    end Is_Data_Padding_Written;
 
 

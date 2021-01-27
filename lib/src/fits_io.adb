@@ -122,10 +122,13 @@ package body FITS_IO is
    is
       Has_Data_Padding : Boolean := Is_Data_Padding_Written(File.Pos);
    begin
-      if(not Has_Data_Padding)
+      if(not Has_Data_Padding AND (Mode(File) = Out_File))
       then
          SIO.Close(File.SIO_File);
          null;-- FIXME error: Fits_File invalid, Data Unit incomplete
+         -- FIXME if interface allows In_Out_Mode so that DPadding can be written
+         -- when Header is completed, and then Write_Data will not cut file, this is
+         -- Boolean not necessary !! 
       end if;
       SIO.Close(File.SIO_File);
       -- Reset File_Type state
@@ -174,9 +177,11 @@ package body FITS_IO is
    begin
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
-      DU_Pos.Set_DU_Length( FFile.Pos, Mand.BITPIX, SIO.Count(Data_Element_Count(Mand.NAXISn)) );
+      DU_Pos.Set_DU_Length( FFile.Pos, SIO.Count(Data_Element_Count(Mand.NAXISn)) );
       -- FIXME cast
-      DU_Pos.Set_DU_First ( FFile.Pos, SIO.Index(FFile.SIO_File) );
+      DU_Pos.Set_DU_First ( FFile.Pos, SIO.Index(FFile.SIO_File), Mand.BITPIX );
+      -- FIXME when is BITPIX actually written into File_Type ?? how be consistent on that ?
+      -- Should File.Pos calcs be also Cached first, and set by Load_ callls as AccessRec...
       -- Read_Mandatory goes by Blocks, so we skip H-Padding -> DU_First is correct here
 
       SIO.Set_Index(FFile.SIO_File, FFile.HDU_First);
@@ -240,7 +245,8 @@ package body FITS_IO is
       Header.Write_ENDCard_With_Padding(FFile.SIO_File);
 
 -- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
-      DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(FFile.SIO_File));
+      DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(FFile.SIO_File), FFile.Cache.BITPIX);
+      -- FIXME note had to use Cache.BITPIX !?
 
       -- init data unit Access_Rec
 
@@ -296,7 +302,8 @@ package body FITS_IO is
          File.Cache.BITPIX := BITPIX;
          File.Cache.Aui := Aui;
 
-         DU_Pos.Set_DU_Length(File.Pos, BITPIX, SIO.Count(Data_Element_Count(NAXISn))); -- FIXME nneded here? & cast!!
+         DU_Pos.Set_DU_Length(File.Pos, SIO.Count(Data_Element_Count(NAXISn)));
+         -- FIXME needed here? & cast!!
 
       end;
 
@@ -361,18 +368,6 @@ package body FITS_IO is
    -- Operations on Position within File --
    ----------------------------------------
 
-   procedure Set_Index (File : File_Type; To : Positive_Count)
-   is
-   begin
-      SIO.Set_Index(File.SIO_File, SIO.Positive_Count(To));
-   end Set_Index;
-
-   function Index (File : File_Type) return Positive_Count
-   is
-   begin
-      return Positive_Count(SIO.Index(File.SIO_File));
-   end Index;
-
    function Size  (File : File_Type) return Count
    is
    begin
@@ -426,25 +421,35 @@ package body FITS_IO is
    ----------------------
 
 
-   function OFFCalc_Chunk_Pos -- alg
-      (--F : SIO.File_Type;
-      DU_Current : SIO.Positive_Count;-- := SIO.Index(F);
-      DU_First  : SIO.Positive_Count;
-      BITPIX    : Integer) -- bits
-      --T_Arr_Len : Positive_Count)
-      return Count
-   is
-      N_First : FITS_IO.Positive_Count;
---      DU_Current : SIO.Positive_Count := SIO.Index(F);
-      SE_Size    : SIO.Positive_Count := Ada.Streams.Stream_Element'Size; -- bits
-      use Ada.Streams.Stream_IO;
-      T_Size_seu : SIO.Positive_Count := SIO.Positive_Count(abs BITPIX) / SE_Size;
-      -- FIXME always divisable ?? -> platform param - seperate out to other ads
-   begin
-      N_First := FITS_IO.Positive_Count (1 + (DU_Current - DU_First) / T_Size_seu);
-      return N_First;
-   end OFFCalc_Chunk_Pos;
+   -- Random access Index : 1 .. DU_Last
 
+   -- FIXME stop compile on system where DE_Site SE_Size is not divisible
+   -- or how to avoid DE/SE & SE/DE divisions ?
+
+   function  Index(File : File_Type) return Positive_Count
+   is
+--      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+--      DE_Size : constant Positive_Count := Positive_Count(abs File.Scaling.BITPIX);
+      SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
+   begin
+--      return (DE_Size / SE_Size) * (1 + (SIO_Index - File.Pos.SIO_DU_First));
+      return Positive_Count ( DU_Pos.DU_Index(SIO_Index, File.Pos.SIO_DU_First, File.Scaling.BITPIX) );
+   end Index;
+
+   procedure Set_Index(File : File_Type; Ix : Positive_Count)
+   is
+      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+      DE_Size : constant Positive_Count := Positive_Count(abs File.Scaling.BITPIX);
+      use SIO;
+      SIO_Index : SIO.Positive_Count
+         := File.Pos.SIO_DU_First + SIO.Positive_Count((SE_Size / DE_Size) * Ix - 1);
+  begin
+      SIO.Set_Index(File.SIO_File, SIO_Index);
+   end Set_Index;
+
+
+
+   -- util FIXME get from some lib or dont use
 
    function Min(A,B : Count) return Count
    is  
@@ -452,6 +457,8 @@ package body FITS_IO is
       if (A > B) then return B; else return A; end if;
    end Min;
 
+
+   -- Data access
 
    procedure HDU_Read -- alg
       (FFile    : in out File_Type;
@@ -625,6 +632,7 @@ package body FITS_IO is
          then
             File.Misc.Write_Padding(FFile.SIO_File,
                         SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+            FFile.Pos.DU_Padding_Written := True;
          end if;
 
    end HDU_Write;

@@ -25,19 +25,24 @@ package DU_Pos is
 
    type Pos_Rec is
       record
-         DU_Length   : Count;
-         ENDCard_Pos : Count; -- state: used in Writes
-         DU_First    : Count; -- calculable: =func(ENDCard_Pos, BlkSite): used in Reads 
-         DU_Padding_Written : Boolean; -- state : read by Close
+         -- Header (SIO Indexing from FITS file start)
+         SIO_ENDCard_Pos    : Count; -- state, unit: Stream Index (used in header Writes)
+         SIO_DU_First       : Count; -- unit: Stream Index
+         -- Data (DU Indexing for Current DU)
+         DU_Length          : Count; -- cached HDU property (calc'd from NAXISn)
+         DU_First           : Count; -- unit: DU_Index
+         DU_Padding_Written : Boolean; -- state : read by Close()
       end record;
+   -- SIO_ prefix: value is from all FITS begining in Stream_Elem count
+   -- DU_ prefix : value is index to DU array from DU_First=1 of the current HDU
 
-   Null_Pos_Rec : Pos_Rec := (0,0,0 ,False); -- 0 meaning uninited
+   Null_Pos_Rec : Pos_Rec := (0,0, 0,0 ,False); -- 0 meaning uninited
 
    -- events
 
-   procedure Set_DU_Length  (Pos: in out Pos_Rec; BITPIX : Integer; L : Positive_Count) is null;
-   procedure Set_DU_First   (Pos: in out Pos_Rec; P : Positive_Count) is null;
-   procedure Set_ENDCard_Pos(Pos: in out Pos_Rec; P : Positive_Count) is null;
+   procedure Set_DU_Length  (Pos: in out Pos_Rec; L : Positive_Count);
+   procedure Set_DU_First   (Pos: in out Pos_Rec; SIO_P : Positive_Count; BITPIX : Integer);
+   procedure Set_ENDCard_Pos(Pos: in out Pos_Rec; SIO_P : Positive_Count);
 
    -- services
 
@@ -49,6 +54,11 @@ package DU_Pos is
       Item_Len : Count) return Positive_Count;
 
    function Is_Data_Padding_Written(Pos : Pos_Rec) return Boolean;
+
+   -- util FIXME does this really belong here ?
+
+   function DU_Index(SIO_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer)
+      return Positive_Count;
 
    end DU_Pos;
 
