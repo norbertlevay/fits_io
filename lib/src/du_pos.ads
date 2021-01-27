@@ -43,6 +43,7 @@ package DU_Pos is
    procedure Set_DU_Length  (Pos: in out Pos_Rec; L : Positive_Count);
    procedure Set_DU_First   (Pos: in out Pos_Rec; SIO_P : Positive_Count; BITPIX : Integer);
    procedure Set_ENDCard_Pos(Pos: in out Pos_Rec; SIO_P : Positive_Count);
+   procedure Set_DU_Padding_Written(Pos: in out Pos_Rec; Written : Boolean);
 
    -- services
 

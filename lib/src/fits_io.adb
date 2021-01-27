@@ -632,7 +632,7 @@ package body FITS_IO is
          then
             File.Misc.Write_Padding(FFile.SIO_File,
                         SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-            FFile.Pos.DU_Padding_Written := True;
+            DU_Pos.Set_DU_Padding_Written(FFile.Pos,True);
          end if;
 
    end HDU_Write;

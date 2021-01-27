@@ -35,6 +35,11 @@ package body DU_Pos is
       Pos.SIO_ENDCard_Pos := SIO_P;
    end Set_ENDCard_Pos;
 
+   procedure Set_DU_Padding_Written(Pos: in out Pos_Rec; Written : Boolean)
+   is
+   begin
+      Pos.DU_Padding_Written := Written;
+   end Set_DU_Padding_Written;
 
    function Get_ENDCard_Pos(P : Pos_Rec) return Positive_Count
    is
