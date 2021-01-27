@@ -12,7 +12,7 @@
 -- NOTE actually as DU_Length is known -> DU_First & DU_Last is calculable
 -- FIXME --> enough to store ENDCard_Pos and const DU_Length ?
 
--- FIXME DU_First can be calcd from ENDCard_Pos
+-- FIXME SIO_DU_First can be calcd from SIO_ENDCard_Pos
 -- both provide equivalent info but one used in Writes otehr in Reads
 
 
@@ -26,17 +26,16 @@ package DU_Pos is
    type Pos_Rec is
       record
          -- Header (SIO Indexing from FITS file start)
-         SIO_ENDCard_Pos    : Count; -- state, unit: Stream Index (used in header Writes)
-         SIO_DU_First       : Count; -- unit: Stream Index
-         -- Data (DU Indexing for Current DU)
-         DU_Length          : Count; -- cached HDU property (calc'd from NAXISn)
-         DU_First           : Count; -- unit: DU_Index
-         DU_Padding_Written : Boolean; -- state : read by Close()
+         SIO_ENDCard_Pos    : Count;
+         SIO_DU_First       : Count;
+         -- Data (DU Indexing for Current DU: 1 .. DU_Length)
+         DU_Length          : Count;
+         DU_Padding_Written : Boolean;
       end record;
    -- SIO_ prefix: value is from all FITS begining in Stream_Elem count
    -- DU_ prefix : value is index to DU array from DU_First=1 of the current HDU
 
-   Null_Pos_Rec : Pos_Rec := (0,0, 0,0 ,False); -- 0 meaning uninited
+   Null_Pos_Rec : Pos_Rec := (0,0, 0, False); -- 0 meaning uninited
 
    -- events
 
@@ -59,6 +58,9 @@ package DU_Pos is
    -- util FIXME does this really belong here ?
 
    function DU_Index(SIO_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer)
+      return Positive_Count;
+
+   function SE_Index(DU_Index  : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer)
       return Positive_Count;
 
    end DU_Pos;

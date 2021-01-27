@@ -239,12 +239,12 @@ package body FITS_IO is
    is
    begin
 
--- origpos      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
+      -- origpos      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
       DU_Pos.Set_ENDCard_Pos(FFile.Pos, SIO.Index(FFile.SIO_File));
 
       Header.Write_ENDCard_With_Padding(FFile.SIO_File);
 
--- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
+      -- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
       DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(FFile.SIO_File), FFile.Cache.BITPIX);
       -- FIXME note had to use Cache.BITPIX !?
 
@@ -428,23 +428,27 @@ package body FITS_IO is
 
    function  Index(File : File_Type) return Positive_Count
    is
---      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
---      DE_Size : constant Positive_Count := Positive_Count(abs File.Scaling.BITPIX);
       SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
    begin
---      return (DE_Size / SE_Size) * (1 + (SIO_Index - File.Pos.SIO_DU_First));
-      return Positive_Count ( DU_Pos.DU_Index(SIO_Index, File.Pos.SIO_DU_First, File.Scaling.BITPIX) );
+      return Positive_Count(
+         DU_Pos.DU_Index(SIO_Index, File.Pos.SIO_DU_First, File.Scaling.BITPIX) );
    end Index;
+
 
    procedure Set_Index(File : File_Type; Ix : Positive_Count)
    is
-      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
-      DE_Size : constant Positive_Count := Positive_Count(abs File.Scaling.BITPIX);
+      SIO_Index : SIO.Positive_Count;
       use SIO;
-      SIO_Index : SIO.Positive_Count
-         := File.Pos.SIO_DU_First + SIO.Positive_Count((SE_Size / DE_Size) * Ix - 1);
-  begin
-      SIO.Set_Index(File.SIO_File, SIO_Index);
+      HDU_Inited : Boolean := (File.Pos.SIO_DU_First /= 0) AND (File.Scaling.BITPIX /= 0);
+   begin
+      if(HDU_Inited)
+      then
+         SIO_Index := DU_Pos.SE_Index(SIO.Positive_Count(Ix),
+                                      File.Pos.SIO_DU_First, File.Scaling.BITPIX);
+         SIO.Set_Index(File.SIO_File, SIO_Index);
+      else
+         null; -- FIXME programming error: Set_Index called but HDU is empty
+      end if;
    end Set_Index;
 
 
@@ -481,7 +485,7 @@ package body FITS_IO is
 
       -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
       -- FIXME all casts Pos Count <-> SIO Pos Count
- 
+
       SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
       DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
       DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
@@ -495,7 +499,7 @@ package body FITS_IO is
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
---      Is_Last_Write := (DU_Item_Last >= DU_Last);
+      --      Is_Last_Write := (DU_Item_Last >= DU_Last);
 
       -- Set Undefined value
 
@@ -563,7 +567,7 @@ package body FITS_IO is
 
       -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
       -- FIXME all casts Pos Count <-> SIO Pos Count
- 
+
       SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
       DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
       DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
@@ -584,56 +588,56 @@ package body FITS_IO is
       Is_Last_Write := (DU_Item_Last >= DU_Last);
 
 
-         -- Set Undefined value
+      -- Set Undefined value
 
-         if(Scaling.Undef_Used)
-         then
+      if(Scaling.Undef_Used)
+      then
 
-            Physical.Set_Undefined(+Scaling.Undef_Phys);
+         Physical.Set_Undefined(+Scaling.Undef_Phys);
 
-            case(Scaling.BITPIX) is
-               when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-               when others =>
-                  Raise_Exception(Programming_Error'Identity,
-                  "BITPIX: "&Integer'Image(Scaling.BITPIX));
-            end case;
+         case(Scaling.BITPIX) is
+            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
+            when others =>
+               Raise_Exception(Programming_Error'Identity,
+               "BITPIX: "&Integer'Image(Scaling.BITPIX));
+         end case;
 
-         end if;
+      end if;
 
 
-         declare
-            Loc_Item : T_Arr := Item(Item'First .. Last);
-         begin
+      declare
+         Loc_Item : T_Arr := Item(Item'First .. Last);
+      begin
 
-            -- Scaling
+         -- Scaling
 
-            case(Scaling.BITPIX) is
-               when   8 =>  U8_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when  16 => I16_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when  32 => I32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when  64 => I64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when -32 => F32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when -64 => F64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-               when others =>
-                  Raise_Exception(Programming_Error'Identity,
-                  "BITPIX: "&Integer'Image(Scaling.BITPIX));
-            end case;
+         case(Scaling.BITPIX) is
+            when   8 =>  U8_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when others =>
+               Raise_Exception(Programming_Error'Identity,
+               "BITPIX: "&Integer'Image(Scaling.BITPIX));
+         end case;
 
-         end;
+      end;
 
-         -- add padding if wrote last data in Data Unit
+      -- add padding if wrote last data in Data Unit
 
-         if(Is_Last_Write)
-         then
-            File.Misc.Write_Padding(FFile.SIO_File,
-                        SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-            DU_Pos.Set_DU_Padding_Written(FFile.Pos,True);
-         end if;
+      if(Is_Last_Write)
+      then
+         File.Misc.Write_Padding(FFile.SIO_File,
+         SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+         DU_Pos.Set_DU_Padding_Written(FFile.Pos,True);
+      end if;
 
    end HDU_Write;
 

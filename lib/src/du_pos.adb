@@ -6,7 +6,8 @@ package body DU_Pos is
 
    -- index conversions: SE Index -> DU Index -> SE Index
 
-   function DU_Index(SIO_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer) return Positive_Count
+   function DU_Index(SIO_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer)
+      return Positive_Count
    is
       SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
       DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
@@ -14,6 +15,21 @@ package body DU_Pos is
       return (DE_Size / SE_Size) * (1 + (SIO_Index - SIO_DU_First));
    end DU_Index;
 
+
+   function SE_Index(DU_Index : Positive_Count; SIO_DU_First : Positive_Count; BITPIX : Integer)
+      return Positive_Count
+   is
+      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
+      DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
+      use SIO;
+      SIO_Index : SIO.Positive_Count
+          := SIO_DU_First + SIO.Positive_Count((SE_Size / DE_Size) * DU_Index - 1);
+   begin
+      return SIO_Index;
+   end SE_Index;
+ 
+
+   -- Setters
 
    procedure Set_DU_Length  (Pos: in out Pos_Rec; L : Positive_Count)
    is
@@ -25,7 +41,7 @@ package body DU_Pos is
    is
    begin
       Pos.SIO_DU_First := SIO_P;
-      Pos.DU_First := DU_Index(SIO_P, Pos.SIO_DU_First, BITPIX); 
+--      Pos.DU_First := DU_Index(SIO_P, Pos.SIO_DU_First, BITPIX); 
    end Set_DU_First;
 
 
@@ -67,7 +83,7 @@ package body DU_Pos is
    function Get_DU_Last(P : Pos_Rec) return Positive_Count
    is
    begin
-      return P.DU_First + P.DU_Length - 1;
+      return P.DU_Length;
    end Get_DU_Last;
 
 
