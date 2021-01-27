@@ -483,12 +483,7 @@ package body FITS_IO is
 
       -- for padding & detect End_Of_Data_Unit
 
-      -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
-      -- FIXME all casts Pos Count <-> SIO Pos Count
-
-      SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
-      DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
-      DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
+      DU_Curr_Ix : Positive_Count := Index(FFile);
       DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
       DU_Item_Last : Positive_Count;
    begin
@@ -565,13 +560,9 @@ package body FITS_IO is
 
       -- for padding & detect End_Of_Data_Unit
 
-      -- SE DE_Size must be divisible !! FIXME stop compiling if not divisible or avoid division ?
       -- FIXME all casts Pos Count <-> SIO Pos Count
 
-      --SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
-      --DE_Size : constant Positive_Count := Positive_Count(abs Scaling.BITPIX);
-      --DU_Curr_Ix : Positive_Count := (DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
-      DU_Curr_Ix : Positive_Count := Index(FFile);--(DE_Size/SE_Size)* Positive_Count(SIO.Index(FFile.SIO_File));
+      DU_Curr_Ix : Positive_Count := Index(FFile);
       DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
