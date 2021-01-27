@@ -97,7 +97,7 @@ package body FITS_IO is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
-      File.HDU_First := SIO.Index(File.SIO_File);
+      File.SIO_HDU_First := SIO.Index(File.SIO_File);
       File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
@@ -112,7 +112,7 @@ package body FITS_IO is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       -- Init File_Type state
-      File.HDU_First := SIO.Index(File.SIO_File);
+      File.SIO_HDU_First := SIO.Index(File.SIO_File);
       File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
@@ -184,7 +184,7 @@ package body FITS_IO is
       -- Should File.Pos calcs be also Cached first, and set by Load_ callls as AccessRec...
       -- Read_Mandatory goes by Blocks, so we skip H-Padding -> DU_First is correct here
 
-      SIO.Set_Index(FFile.SIO_File, FFile.HDU_First);
+      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
       -- FIXME update parser to avoid 2 reads
 
       declare
@@ -221,7 +221,7 @@ package body FITS_IO is
    is
    begin
 
-      SIO.Set_Index(FFile.SIO_File, FFile.HDU_First);
+      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
 
       declare
          Image : Image_Rec := Read_Header(FFile, Keys);
@@ -318,7 +318,7 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.HDU_First = 1);
+      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
       Write_Card_Arr(File, Prim_First_Card);
@@ -335,7 +335,7 @@ package body FITS_IO is
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.HDU_First = 1);
+      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
       Write_Card_Arr(File, Ext_First_Card);

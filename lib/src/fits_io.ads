@@ -1,11 +1,11 @@
 
--- All FitsFile is represented by File_Type and HDU after open is Primary (HDU_First = 1).
+-- All FitsFile is represented by File_Type and HDU after open is Primary (SIO_HDU_First = 1).
 -- Call Set_Exte_Num(File) to position to other HDU. 
 
 -- Then the follwoing rules apply:
 
-   -- HDU_First = 1 for Primary HDU
-   -- Set_Extension_Number(F) : initializes HDU_First to index of the given ExtHDU
+   -- SIO_HDU_First = 1 for Primary HDU
+   -- Set_Extension_Number(F) : initializes SIO_HDU_First to index of the given ExtHDU
 
    -- Write_Header: always writes at HDU First index and all Header
    -- Write_Cards : always writes at END_Card position, shifting it behind new cards
@@ -15,7 +15,7 @@
    -- b, not completing all DU will raise 'Ivalid Fits File' error at Close()
 
    -- Read_Header : parses any of known HDU-types (Image,Table.BinTable) and 
-   --                always reads (parses) all Header starting from HDU_First
+   --                always reads (parses) all Header starting from SIO_HDU_First
    -- Read_Cards  : as Read_Header but parses any cards given by Keys
 
    -- any attempt to call Write_Data Read_Data before calling Header read/write
@@ -220,7 +220,7 @@ package FITS_IO is
 
    type File_Type is record
       SIO_File  : SIO.File_Type;
-      HDU_First : SIO.Positive_Count; -- needed or always param only ?? FIXME
+      SIO_HDU_First : SIO.Positive_Count; -- needed or always param only ?? FIXME
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;-- load it at Write_Header_End and Read_Header
       Cache   : Cache_Rec;
