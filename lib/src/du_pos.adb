@@ -12,7 +12,7 @@ package body DU_Pos is
       SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
       DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
    begin
-      return (DE_Size / SE_Size) * (1 + (SIO_Index - SIO_DU_First));
+      return  1 + (SIO_Index - SIO_DU_First) / (DE_Size / SE_Size);
    end DU_Index;
 
 
@@ -23,7 +23,7 @@ package body DU_Pos is
       DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
       use SIO;
       SIO_Index : SIO.Positive_Count
-          := SIO_DU_First + SIO.Positive_Count((SE_Size / DE_Size) * DU_Index - 1);
+          := SIO_DU_First + SIO.Positive_Count( (DE_Size / SE_Size) * (DU_Index - 1));
    begin
       return SIO_Index;
    end SE_Index;
@@ -41,7 +41,6 @@ package body DU_Pos is
    is
    begin
       Pos.SIO_DU_First := SIO_P;
---      Pos.DU_First := DU_Index(SIO_P, Pos.SIO_DU_First, BITPIX); 
    end Set_DU_First;
 
 
