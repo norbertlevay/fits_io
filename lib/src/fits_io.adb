@@ -97,11 +97,8 @@ package body FITS_IO is
    is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init File_Type state
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
+      HDU.Reset(File.PHDU, File.SIO_HDU_First);
    end Create;
 
    procedure Open
@@ -112,30 +109,16 @@ package body FITS_IO is
    is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init File_Type state
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
+      HDU.Reset(File.PHDU, File.SIO_HDU_First);
    end Open;
 
    procedure Close  (File : in out File_Type)
    is
-      Has_Data_Padding : Boolean := Is_Data_Padding_Written(File.Pos);
    begin
-      if(not Has_Data_Padding AND (Mode(File) = Out_File))
-      then
-         SIO.Close(File.SIO_File);
-         null;-- FIXME error: Fits_File invalid, Data Unit incomplete
-         -- FIXME if interface allows In_Out_Mode so that DPadding can be written
-         -- when Header is completed, and then Write_Data will not cut file, this is
-         -- Boolean not necessary !! 
-      end if;
+      HDU.Write_Data_Unit_Padding(File.SIO_File);
       SIO.Close(File.SIO_File);
-      -- Reset File_Type state
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
+      HDU.Reset(File.PHDU, 1);
    end Close;
 
    procedure Reset  (File : in out File_Type; Mode : File_Mode)
@@ -173,44 +156,8 @@ package body FITS_IO is
       (FFile   : in out File_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
-      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
-      -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
-      -- store begining of DU for DU Read/Write DU_End-guard and padding write
-
-      DU_Pos.Set_DU_Length( FFile.Pos, Data_Element_Count(Mand.NAXISn) );
-      -- FIXME cast
-      DU_Pos.Set_DU_First ( FFile.Pos, SIO.Index(FFile.SIO_File), Mand.BITPIX );
-      -- FIXME when is BITPIX actually written into File_Type ?? how be consistent on that ?
-      -- Should File.Pos calcs be also Cached first, and set by Load_ callls as AccessRec...
-      -- Read_Mandatory goes by Blocks, so we skip H-Padding -> DU_First is correct here
-
-      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
-      -- FIXME update parser to avoid 2 reads
-
-      declare
-         Cards : String_80_Array := Header.Read_Optional(FFile.SIO_File, Keys);
-         Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
-      begin
-         Image.Data_Type   := DU_Types.BITPIX_To_DU_Type(Mand.BITPIX);
-         Image.NAXISn      := Mand.NAXISn;
-         Image.Image_Cards := Cards;
-
-         -- cache DU-access data
-
-         FFile.Cache.BITPIX := Mand.BITPIX;
-
-         Cache.Parse_Image_Cards
-            (FFile.Cache,
-            String_80_Array(Cards)); -- FIXME conversion!
-
-         -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
-         Load_Undef_Vals_At_Read   (FFile.Scaling, FFile.Cache);
-
-         return Image;
-      end;
-
+      return HDU.Read_Header(FFile.SIO_File, FFile.PHDU, Keys);
    end Read_Header;
 
 
@@ -221,15 +168,7 @@ package body FITS_IO is
       return  String_80_Array
    is
    begin
-
-      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
-
-      declare
-         Image : Image_Rec := Read_Header(FFile, Keys);
-      begin
-         return Image.Image_Cards;
-      end;
-
+        return HDU.Read_Cards(FFile.SIO_File, FFile.PHDU, Keys);
    end Read_Cards;
 
 

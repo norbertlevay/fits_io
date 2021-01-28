@@ -49,82 +49,27 @@ package body HDU is
    end Data_Element_Count;
 
 
-   function To_SIO_Mode(Mode : DU_Mode) return SIO.File_Mode
-   is
-   begin
-      case(Mode) is
-         when In_Data      => return SIO.In_File;
-         when Out_Data     => return SIO.Out_File;
-         when Append_Data  => return SIO.Append_File;
-      end case;
-   end To_SIO_Mode;
-
-   function To_FIO_Mode(Mode : SIO.File_Mode) return DU_Mode
-   is
-   begin
-      case(Mode) is
-         when SIO.In_File     => return In_Data;
-         when SIO.Out_File    => return Out_Data;
-         when SIO.Append_File => return Append_Data;
-      end case;
-   end To_FIO_Mode;
-
-
    ----------------------
    -- Media Management --
    ----------------------
 
-   procedure Reset(AHDU : in out HDU_Type)
+   procedure Reset
+      (AHDU : in out HDU_Type;
+      SIO_HDU_First : SIO.Positive_Count)
    is
    begin
-      AHDU.Mode := Out_Data;
-      AHDU.SIO_HDU_First := 1;
+      AHDU.SIO_HDU_First := SIO_HDU_First;
       AHDU.Pos       := Null_Pos_Rec;
       AHDU.Scaling   := Null_Access_Rec;
       AHDU.Cache     := Null_Cache_Rec;
    end Reset;
 
 
-   procedure Create
-      (File : in out HDU_Type;
-      Mode : DU_Mode := Out_Data;
-      Name : String := ""; 
-      Form : String := "")
+   procedure Write_Data_Unit_Padding(SIO_F : SIO.File_Type)
    is
    begin
-      Reset(File);
-      SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      File.Mode := Mode;
-      File.SIO_HDU_First := SIO.Index(File.SIO_File);
-   end Create;
-
-   procedure Open
-      (File : in out HDU_Type;
-      Mode : DU_Mode;
-      Name : String;
-      Form : String := "")
-   is
-   begin
-      Reset(File);
-      SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      File.Mode := Mode;
-      File.SIO_HDU_First := SIO.Index(File.SIO_File);
-   end Open;
-
-   procedure Close  (FFile : in out HDU_Type)
-   is
-   begin
-      File.Misc.Write_Padding(FFile.SIO_File,
-          SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-      SIO.Close(FFile.SIO_File);
-      Reset(FFile);
-   end Close;
-
-   function  Mode    (File : HDU_Type) return DU_Mode
-   is
-   begin
-      return File.Mode;
-   end Mode;
+      File.Misc.Write_Padding(SIO_F, SIO.Index(SIO_F), File.Misc.DataPadValue);
+   end Write_Data_Unit_Padding;
 
 
 
@@ -151,10 +96,11 @@ package body HDU is
 
    -- API but later hide behind Open
    function  Read_Header
-      (FFile   : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      FFile   : in out HDU_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
-      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
+      Mand : Mandatory.Result_Rec := Header.Read_Mandatory(SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
 
@@ -164,12 +110,11 @@ package body HDU is
       -- FIXME cast
 
 
-
-      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
+      SIO.Set_Index(SIO_File, FFile.SIO_HDU_First);
       -- FIXME update parser to avoid 2 reads
 
       declare
-         Cards : String_80_Array := Header.Read_Optional(FFile.SIO_File, Keys);
+         Cards : String_80_Array := Header.Read_Optional(SIO_File, Keys);
          Image : Image_Rec(Mand.NAXIS_Last, Cards'Length);
       begin
          Image.Data_Type   := DU_Types.BITPIX_To_DU_Type(Mand.BITPIX);
@@ -196,16 +141,17 @@ package body HDU is
 
    -- API on level of Open which calls Set_Index(HDUFirst)
    function  Read_Cards
-      (FFile : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return  String_80_Array
    is
    begin
 
-      SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
+      SIO.Set_Index(SIO_File, FFile.SIO_HDU_First);
 
       declare
-         Image : Image_Rec := Read_Header(FFile, Keys);
+         Image : Image_Rec := Read_Header(SIO_File, FFile, Keys);
       begin
          return Image.Image_Cards;
       end;

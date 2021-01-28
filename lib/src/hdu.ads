@@ -17,11 +17,9 @@ package HDU is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   type DU_Mode is (In_Data, Out_Data, Append_Data);
 
    type HDU_Type is record
       SIO_File  : SIO.File_Type;
-      Mode    : DU_Mode;
       SIO_HDU_First : SIO.Positive_Count;
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;
@@ -58,20 +56,12 @@ package HDU is
    -- Media Management --
    ----------------------
 
-   procedure Create
-      (File : in out HDU_Type;
-      Mode : DU_Mode := Out_Data;
-      Name : String := ""; 
-      Form : String := "");
+   procedure Reset
+      (AHDU : in out HDU_Type;
+      SIO_HDU_First : SIO.Positive_Count);
 
-   procedure Open
-      (File : in out HDU_Type;
-      Mode : DU_Mode;
-      Name : String;
-      Form : String := "");
+   procedure Write_Data_Unit_Padding(SIO_F : SIO.File_Type);
 
-   procedure Close  (FFile : in out HDU_Type);
-   function  Mode    (File : HDU_Type) return DU_Mode;
    function  End_Of_Data_Unit (File : HDU_Type) return Boolean;
    function  Data_Unit_Size  (File : HDU_Type) return Count;
 
@@ -83,12 +73,14 @@ package HDU is
    -------------------------
 
    function  Read_Header
-      (FFile : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return Image_Rec;
 
    function  Read_Cards
-      (FFile : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return  String_80_Array;
 

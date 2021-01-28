@@ -40,6 +40,7 @@ with DU_Pos; use DU_Pos; -- Pos_Rec
 with System.File_Control_Block; -- GNAT specific
 
 with FITS;
+with HDU;
 
 package FITS_IO is
 
@@ -92,17 +93,8 @@ package FITS_IO is
    -- Image metadata
 
    subtype DU_Type is FITS.DU_Type;
---   type DU_Type is
---      (Int8, UInt16, UInt32, UInt64,
---      UInt8,  Int16,  Int32,  Int64,
---      F32, F64);
 
-   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : FITS.Count) is
-      record
-         Data_Type   : DU_Type;
-         NAXISn      : NAXIS_Array(1 .. NAXIS);
-         Image_Cards : String_80_Array(1 .. Card_Count);
-      end record;
+   subtype Image_Rec is HDU.Image_Rec;
 
 
    ---------------------
@@ -233,6 +225,9 @@ package FITS_IO is
    type File_Type is record
       SIO_File  : SIO.File_Type;
       SIO_HDU_First : SIO.Positive_Count; -- needed or always param only ?? FIXME
+      PHDU : HDU.HDU_Type;
+
+      -- old , remove
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;-- load it at Write_Header_End and Read_Header
       Cache   : Cache_Rec;
