@@ -74,6 +74,17 @@ package body HDU is
    -- Media Management --
    ----------------------
 
+   procedure Reset(AHDU : in out HDU_Type)
+   is
+   begin
+      AHDU.Mode := Out_Data;
+      AHDU.SIO_HDU_First := 1;
+      AHDU.Pos       := Null_Pos_Rec;
+      AHDU.Scaling   := Null_Access_Rec;
+      AHDU.Cache     := Null_Cache_Rec;
+   end Reset;
+
+
    procedure Create
       (File : in out HDU_Type;
       Mode : DU_Mode := Out_Data;
@@ -81,12 +92,10 @@ package body HDU is
       Form : String := "")
    is
    begin
+      Reset(File);
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init HDU_Type state
+      File.Mode := Mode;
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
    end Create;
 
    procedure Open
@@ -96,31 +105,19 @@ package body HDU is
       Form : String := "")
    is
    begin
+      Reset(File);
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init HDU_Type state
+      File.Mode := Mode;
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
    end Open;
 
-   procedure Close  (File : in out HDU_Type)
+   procedure Close  (FFile : in out HDU_Type)
    is
-      Has_Data_Padding : Boolean := Is_Data_Padding_Written(File.Pos);
    begin
-      if(not Has_Data_Padding AND (Mode(File) = Out_Data))
-      then
-         SIO.Close(File.SIO_File);
-         null;-- FIXME error: Fits_File invalid, Data Unit incomplete
-         -- FIXME if interface allows In_Out_Mode so that DPadding can be written
-         -- when Header is completed, and then Write_Data will not cut file, this is
-         -- Boolean not necessary !! 
-      end if;
-      SIO.Close(File.SIO_File);
-      -- Reset HDU_Type state
-      File.Pos     := Null_Pos_Rec;
-      File.Scaling := Null_Access_Rec;
-      File.Cache   := Null_Cache_Rec;
+      File.Misc.Write_Padding(FFile.SIO_File,
+          SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+      SIO.Close(FFile.SIO_File);
+      Reset(FFile);
    end Close;
 
    function  Mode    (File : HDU_Type) return DU_Mode
@@ -404,16 +401,6 @@ package body HDU is
    -- Data Unit access --
    ----------------------
 
-
-
-
-   -- util FIXME get from some lib or dont use
-
-   ----------------------
-   -- Data Unit access --
-   ----------------------
-
-
    -- Random access Index : 1 .. DU_Last
 
    -- FIXME stop compile on system where DE_Site SE_Size is not divisible
@@ -457,7 +444,7 @@ package body HDU is
 
    -- Data access
 
-   procedure HDU_Read -- alg
+   procedure HDU_Read
       (FFile    : in out HDU_Type;
       Item : out T_Arr;
       Last : out Count)

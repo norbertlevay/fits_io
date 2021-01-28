@@ -10,6 +10,9 @@ with DU_Pos; use DU_Pos; -- Pos_Rec
 
 with FITS; use FITS;
 
+
+
+
 package HDU is
 
    package SIO renames Ada.Streams.Stream_IO;
@@ -25,14 +28,8 @@ package HDU is
       Cache   : Cache_Rec;
    end record;
 
-
    subtype  Count is FITS.Count;
    subtype  Positive_Count is FITS.Positive_Count;
---   type     Count          is new SIO.Count;
---   subtype  Positive_Count is Count range 1 .. Count'Last;
-
-
-   -- Card
 
    subtype String_80 is String(1 .. 80);
    ENDCard   : constant String_80 := ('E','N','D', others => ' ');
@@ -42,21 +39,12 @@ package HDU is
    package BS20 is new Ada.Strings.Bounded.Generic_Bounded_Length(20);
    package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
 
---   type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
---   type String_80_Array is array (Positive_Count range <>) of String_80;
-
-   -- Header
-
-   subtype NAXIS_Index is FITS.NAXIS_Index;--Integer range 1 .. 999;
-   subtype NAXIS_Array is FITS.NAXIS_Array;--array (NAXIS_Index range <>) of Positive_Count;
-
-   -- Image metadata
+   subtype NAXIS_Index is FITS.NAXIS_Index;
+   subtype NAXIS_Array is FITS.NAXIS_Array;
 
    subtype DU_Type is FITS.DU_Type;
---   type DU_Type is
---      (Int8, UInt16, UInt32, UInt64,
---      UInt8,  Int16,  Int32,  Int64,
---      F32, F64);
+
+   -- Image Array
 
    type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
       record
@@ -82,7 +70,7 @@ package HDU is
       Name : String;
       Form : String := "");
 
-   procedure Close  (File : in out HDU_Type);
+   procedure Close  (FFile : in out HDU_Type);
    function  Mode    (File : HDU_Type) return DU_Mode;
    function  End_Of_Data_Unit (File : HDU_Type) return Boolean;
    function  Data_Unit_Size  (File : HDU_Type) return Count;
@@ -94,37 +82,35 @@ package HDU is
    -- Metadata Operations --
    -------------------------
 
-   function  Read_Header   -- Parse_Image_Header
+   function  Read_Header
       (FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return Image_Rec;
 
-   function  Read_Cards -- Parse_Cards
+   function  Read_Cards
       (FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return  String_80_Array;
 
 
-   procedure Write_Header_Prim  -- Generate_Prim_Image_Header 
+   procedure Write_Header_Prim
       (File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array);
 
-   procedure Write_Header_Ext  -- Generate_Ext_Image_Header 
+   procedure Write_Header_Ext
       (File       : in out HDU_Type;
-      Raw_Type    : DU_Type;     -- 
-      NAXISn      : NAXIS_Array; -- FIXME later do: HDU'Class -> Image_Rec Table_Rec BinTable_Rec
+      Raw_Type    : DU_Type;
+      NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array);
 
-
-   procedure Write_Cards  -- Add_Cards
+   procedure Write_Cards
       (File       : in out HDU_Type;
       Cards : String_80_Array);
 
 
-
-   -- Conversions, Scaling and Undefined Values
+   -- set Scaling and Undefined Values in HDU_Type (but not in Header)
 
    procedure Set_Linear_Scaling(File : in out HDU_Type; A,B : Float);
    procedure Set_Undefined_Physical(File : in out HDU_Type; Undef_Phys : Float);
