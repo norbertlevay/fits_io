@@ -1,18 +1,9 @@
 
--- FIXME ? T can be of native Ada-types (Long_Long_Integer, Float,...)$
--- and also one of FITS V3-types$
--- Raw can be _only_ FITS V3-type$
--- How to solve Read / Write in case(BITPIX) ... ?
--- Need sizes for native type and do case(T_Bits)...
--- for all: native Types and also FITS-types
-
 
 with Ada.Streams.Stream_IO;
-with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Unchecked_Deallocation;-- for HDU Stream
 
--- for File_Type / Stream
+-- for HDU_Type / Stream
 with Header; -- Read Mandatory / Optional needed
 with Cache;
 
@@ -27,25 +18,18 @@ with V3_Types; use V3_Types;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 with FITS_IO.V3_Types_For_DU;
+use FITS_IO.V3_Types_For_DU;
 
 with File.Misc; -- DataPadding needed
 
 with DU_Pos;
 
 with FITS; use FITS;
+with Ada.Text_IO; -- for debug
 
-package body FITS_IO is
+package body HDU is
 
-   --package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
-
-   -- API
-   function Read_Content (FFile : in File_Type) return HDU_Info_Type
-   is
-   begin
-      return File.Read_Header(FFile.SIO_File);
-   end Read_Content;
-
 
    -----------
    -- Utils --
@@ -55,6 +39,7 @@ package body FITS_IO is
    function Data_Element_Count(NAXISn : NAXIS_Array) return Count -- alg
    is
       Data_Cnt : Count := 1;
+      use FITS;
    begin
       for I in NAXISn'Range
       loop
@@ -64,40 +49,40 @@ package body FITS_IO is
    end Data_Element_Count;
 
 
-   function To_SIO_Mode(Mode : File_Mode) return SIO.File_Mode
+   function To_SIO_Mode(Mode : DU_Mode) return SIO.File_Mode
    is
    begin
       case(Mode) is
-         when In_File => return SIO.In_File;
-         when Out_File => return SIO.Out_File;
-         when Append_File => return SIO.Append_File;
+         when In_Data      => return SIO.In_File;
+         when Out_Data     => return SIO.Out_File;
+         when Append_Data  => return SIO.Append_File;
       end case;
    end To_SIO_Mode;
 
-   function To_FIO_Mode(Mode : SIO.File_Mode) return File_Mode
+   function To_FIO_Mode(Mode : SIO.File_Mode) return DU_Mode
    is
    begin
       case(Mode) is
-         when SIO.In_File => return In_File;
-         when SIO.Out_File => return Out_File;
-         when SIO.Append_File => return Append_File;
+         when SIO.In_File     => return In_Data;
+         when SIO.Out_File    => return Out_Data;
+         when SIO.Append_File => return Append_Data;
       end case;
    end To_FIO_Mode;
 
 
-   ---------------------
-   -- File Management --
-   ---------------------
+   ----------------------
+   -- Media Management --
+   ----------------------
 
    procedure Create
-      (File : in out File_Type;
-      Mode : File_Mode := Out_File;
+      (File : in out HDU_Type;
+      Mode : DU_Mode := Out_Data;
       Name : String := ""; 
       Form : String := "")
    is
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init File_Type state
+      -- Init HDU_Type state
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
       File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
@@ -105,25 +90,25 @@ package body FITS_IO is
    end Create;
 
    procedure Open
-      (File : in out File_Type;
-      Mode : File_Mode;
+      (File : in out HDU_Type;
+      Mode : DU_Mode;
       Name : String;
       Form : String := "")
    is
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      -- Init File_Type state
+      -- Init HDU_Type state
       File.SIO_HDU_First := SIO.Index(File.SIO_File);
       File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Open;
 
-   procedure Close  (File : in out File_Type)
+   procedure Close  (File : in out HDU_Type)
    is
       Has_Data_Padding : Boolean := Is_Data_Padding_Written(File.Pos);
    begin
-      if(not Has_Data_Padding AND (Mode(File) = Out_File))
+      if(not Has_Data_Padding AND (Mode(File) = Out_Data))
       then
          SIO.Close(File.SIO_File);
          null;-- FIXME error: Fits_File invalid, Data Unit incomplete
@@ -132,33 +117,32 @@ package body FITS_IO is
          -- Boolean not necessary !! 
       end if;
       SIO.Close(File.SIO_File);
-      -- Reset File_Type state
+      -- Reset HDU_Type state
       File.Pos     := Null_Pos_Rec;
       File.Scaling := Null_Access_Rec;
       File.Cache   := Null_Cache_Rec;
    end Close;
 
-   procedure Reset  (File : in out File_Type; Mode : File_Mode)
+   function  Mode    (File : HDU_Type) return DU_Mode
    is
    begin
-      SIO.Reset(File.SIO_File, To_SIO_Mode(Mode));
-   end Reset;
-
-   function Mode(File : File_Type) return File_Mode
-   is
-   begin
-      return To_FIO_Mode(SIO.Mode(File.SIO_File));
+      return File.Mode;
    end Mode;
 
-   function End_Of_File (File : File_Type) return Boolean
-   is
-   begin
-      return SIO.End_Of_File(File.SIO_File);
-   end End_Of_File;
 
-   function Stream (File : File_Type) return SIO.Stream_Access
+
+   function End_Of_Data_Unit (File : HDU_Type) return Boolean
    is
    begin
+      -- FIXME implement: return HDU.DU_Length > SIO.Index(current)
+      return True;--SIO.End_Of_File(File.SIO_File);
+   end End_Of_Data_Unit;
+
+   function Stream (File : HDU_Type) return SIO.Stream_Access
+   is
+   begin
+      -- FIXME this is the point!
+      -- HDU Stream must have all of the properties in HDU_Type
       return SIO.Stream(File.SIO_File);
    end Stream;
 
@@ -170,20 +154,19 @@ package body FITS_IO is
 
    -- API but later hide behind Open
    function  Read_Header
-      (FFile   : in out File_Type;
+      (FFile   : in out HDU_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(FFile.SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
+
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
       DU_Pos.Set_DU_Length( FFile.Pos, Data_Element_Count(Mand.NAXISn) );
       -- FIXME cast
-      DU_Pos.Set_DU_First ( FFile.Pos, SIO.Index(FFile.SIO_File), Mand.BITPIX );
-      -- FIXME when is BITPIX actually written into File_Type ?? how be consistent on that ?
-      -- Should File.Pos calcs be also Cached first, and set by Load_ callls as AccessRec...
-      -- Read_Mandatory goes by Blocks, so we skip H-Padding -> DU_First is correct here
+
+
 
       SIO.Set_Index(FFile.SIO_File, FFile.SIO_HDU_First);
       -- FIXME update parser to avoid 2 reads
@@ -202,7 +185,7 @@ package body FITS_IO is
 
          Cache.Parse_Image_Cards
             (FFile.Cache,
-            String_80_Array(Cards)); -- FIXME conversion!
+            FITS.String_80_Array(Cards)); -- FIXME conversion!
 
          -- init data unit Access_Rec
          Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
@@ -216,7 +199,7 @@ package body FITS_IO is
 
    -- API on level of Open which calls Set_Index(HDUFirst)
    function  Read_Cards
-      (FFile : in out File_Type;
+      (FFile : in out HDU_Type;
       Keys   : BS_8_Array)
       return  String_80_Array
    is
@@ -236,7 +219,7 @@ package body FITS_IO is
    -- Write Header
 
 
-   procedure Write_End(FFile : in out File_Type)
+   procedure Write_End(FFile : in out HDU_Type)
    is
    begin
 
@@ -258,19 +241,19 @@ package body FITS_IO is
 
 
    procedure Write_Card_Arr
-      (File : in out File_Type;
+      (File : in out HDU_Type;
       Item : String_80_Array)
    is
    begin
       String_80_Array'Write(Stream(File), Item);
       Cache.Parse_Image_Cards
          (File.Cache,
-         String_80_Array(Item)); -- FIXME conversion!
+         FITS.String_80_Array(Item)); -- FIXME conversion!
    end Write_Card_Arr;
 
 
    procedure Write_Image
-      (File       : in out File_Type;
+      (File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array;
@@ -313,7 +296,7 @@ package body FITS_IO is
 
    -- API later hide behind Create / Open(Out_Mode)
    procedure Write_Header_Prim -- Compose_Header
-      (File       : in out File_Type;
+      (File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
@@ -330,7 +313,7 @@ package body FITS_IO is
 
    -- API later hide behind Open(Append_Mode)
    procedure Write_Header_Ext -- Compose_Header
-      (File       : in out File_Type;
+      (File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
@@ -348,7 +331,7 @@ package body FITS_IO is
 
    -- API on level od Open/Create; later rename to Append_Cards
    procedure Write_Cards
-      (File       : in out File_Type;
+      (File       : in out HDU_Type;
       Cards : String_80_Array)
    is
       Ix : SIO.Positive_Count := 1;
@@ -369,11 +352,11 @@ package body FITS_IO is
    -- Operations on Position within File --
    ----------------------------------------
 
-   function Size  (File : File_Type) return Count
+   function Data_Unit_Size  (File : HDU_Type) return Count
    is
    begin
-      return Positive_Count(SIO.Size(File.SIO_File));
-   end Size;
+      return File.Pos.DU_Length;
+   end Data_Unit_Size;
 
 
    -- FITS specific
@@ -382,7 +365,7 @@ package body FITS_IO is
    -- Converions, Scaling and Undefined Values --
    ----------------------------------------------
 
-   procedure Set_Raw_Type(File : in out File_Type; Raw_Type : DU_Type)
+   procedure Set_Raw_Type(File : in out HDU_Type; Raw_Type : DU_Type)
    is
       BITPIX   : Integer;
       Aui      : Float;
@@ -393,7 +376,7 @@ package body FITS_IO is
    end Set_Raw_Type;
 
 
-   procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float)
+   procedure Set_Linear_Scaling(File : in out HDU_Type; A,B : Float)
    is
    begin
       File.Cache.Au := A;
@@ -401,7 +384,7 @@ package body FITS_IO is
    end Set_Linear_Scaling;
 
 
-   procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float)
+   procedure Set_Undefined_Physical(File : in out HDU_Type; Undef_Phys : Float)
    is
    begin
       File.Cache.Physical_Undef_Valid := True;
@@ -409,13 +392,22 @@ package body FITS_IO is
    end Set_Undefined_Physical;
 
 
-   procedure Put_File_Type(File : File_Type; Prefix : String := "")
+   procedure Put_HDU_Type(File : HDU_Type; Prefix : String := "")
    is
    begin
       TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.Cache.Aui));
       Put_Access_Rec(File.Scaling,Prefix);
-   end Put_File_Type;
+   end Put_HDU_Type;
 
+
+   ----------------------
+   -- Data Unit access --
+   ----------------------
+
+
+
+
+   -- util FIXME get from some lib or dont use
 
    ----------------------
    -- Data Unit access --
@@ -427,8 +419,8 @@ package body FITS_IO is
    -- FIXME stop compile on system where DE_Site SE_Size is not divisible
    -- or how to avoid DE/SE & SE/DE divisions ?
 
-   function  Index(File : File_Type) return Positive_Count
-   is
+   function  Index(File : HDU_Type) return Positive_Count
+   is  
       SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
    begin
       return Positive_Count(
@@ -436,11 +428,11 @@ package body FITS_IO is
    end Index;
 
 
-   procedure Set_Index(File : File_Type; Ix : Positive_Count)
-   is
+   procedure Set_Index(File : HDU_Type; Ix : Positive_Count)
+   is  
       SIO_Index : SIO.Positive_Count;
       use SIO;
-      HDU_Inited : Boolean := (File.Pos.SIO_DU_First /= 0) AND (File.Scaling.BITPIX /= 0);
+      HDU_Inited : Boolean := (File.Pos.SIO_DU_First /= 0) AND (File.Scaling.BITPIX /= 0); 
    begin
       if(HDU_Inited)
       then
@@ -454,10 +446,10 @@ package body FITS_IO is
 
 
 
-   -- util FIXME get from some lib or dont use
 
    function Min(A,B : Count) return Count
-   is  
+   is
+      use FITS;
    begin
       if (A > B) then return B; else return A; end if;
    end Min;
@@ -466,11 +458,11 @@ package body FITS_IO is
    -- Data access
 
    procedure HDU_Read -- alg
-      (FFile    : in out File_Type;
+      (FFile    : in out HDU_Type;
       Item : out T_Arr;
       Last : out Count)
    is
-      type Float_Arr is array (Positive_Count range <>) of Float;
+      type Float_Arr is array (FITS.Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
       use FITS_IO.V3_Types_For_DU;
       package U8_AIO is new Array_IO(U8Raw, Physical);
@@ -487,6 +479,7 @@ package body FITS_IO is
       DU_Curr_Ix : Positive_Count := Index(FFile);
       DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
       DU_Item_Last : Positive_Count;
+      use FITS;
    begin
 
       if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
@@ -544,7 +537,7 @@ package body FITS_IO is
 
 
    procedure HDU_Write -- alg
-      (FFile : in out File_Type;
+      (FFile : in out HDU_Type;
       Item : T_Arr)
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
@@ -568,6 +561,7 @@ package body FITS_IO is
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
       Last : Count;
+      use FITS;
    begin
 
       -- dont Write beyond end of Data Unit
@@ -635,55 +629,5 @@ package body FITS_IO is
    end HDU_Write;
 
 
-   ----------------
-   -- HDU Stream --
-   ----------------
-
-   function AFCB_Allocate (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr is
-      pragma Warnings (Off, Control_Block);
-   begin
-      return new HDU_Stream_AFCB;
-   end AFCB_Allocate;
-
-   procedure AFCB_Close (File : not null access HDU_Stream_AFCB) is
-      pragma Warnings (Off, File);
-   begin
-      null;
-   end AFCB_Close;
-
-   procedure AFCB_Free (File : not null access HDU_Stream_AFCB) is
-      type FCB_Ptr is access all HDU_Stream_AFCB;
-      FT : FCB_Ptr := FCB_Ptr (File);
-      procedure Free is new Ada.Unchecked_Deallocation (HDU_Stream_AFCB, FCB_Ptr);
-   begin
-      Free (FT);
-   end AFCB_Free;
-
-   --  This version of Read is the primitive operation on the underlying
-   --  Stream type, used when a Stream_IO file is treated as a Stream
-
-   procedure Read
-      (File : in out HDU_Stream_AFCB;
-      Item : out Ada.Streams.Stream_Element_Array;
-      Last : out Ada.Streams.Stream_Element_Offset)
-   is
-   begin
-      null;-- FIXME implement
-      --HDU_Read (File'Unchecked_Access, Item, Last);
-   end Read;
-
-   --  This version of Write is the primitive operation on the underlying
-   --  Stream type, used when a Stream_IO file is treated as a Stream
-
-   procedure Write
-      (File : in out HDU_Stream_AFCB;
-      Item : Ada.Streams.Stream_Element_Array)
-   is
-   begin
-      null; -- FIXME implement
-      --HDU_Write (File'Unchecked_Access, Item);
-   end Write;
-
-
-end FITS_IO;
+end HDU;
 

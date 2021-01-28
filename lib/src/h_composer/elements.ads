@@ -1,6 +1,7 @@
 
 -- part of Header subsystem
-with FITS_IO; use FITS_IO;-- String80Arr needed
+with FITS; use FITS;-- String80Arr needed
+--with FITS_IO; use FITS_IO;-- String80Arr needed
 
 package Elements is
 

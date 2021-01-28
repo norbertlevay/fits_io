@@ -2,7 +2,8 @@
 -- part of Header subsystem
 
 with Card;
-with FITS_IO; use FITS_IO;
+with FITS; use FITS;
+--with FITS_IO; use FITS_IO;
 
 package body Elements is
 

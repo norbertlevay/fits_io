@@ -1,5 +1,7 @@
 
-with FITS_IO; use FITS_IO;
+with FITS; use FITS;
+--with FITS_IO; use FITS_IO;
+with FITS_IO;-- HDU_INfo_Type neede
 with Ada.Streams.Stream_IO;
 
 with Ada.Strings.Bounded; -- Max20 only FIXME !!
@@ -27,7 +29,7 @@ package File is
 --   end record;
 
    function Read_Header (FitsFile : in  SIO.File_Type)
-      return HDU_Info_Type;
+      return FITS_IO.HDU_Info_Type;
 
 
    -------------------------

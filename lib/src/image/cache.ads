@@ -1,6 +1,8 @@
 
 with Ada.Streams.Stream_IO;
 
+with FITS; use FITS;
+
 package Cache is
 
    -- Access_Rec relates metadata in Header to Data_Unit access (Read/Write)
@@ -21,8 +23,8 @@ package Cache is
    type     Count          is new Ada.Streams.Stream_IO.Count;
    subtype  Positive_Count is Count range 1 .. Count'Last;
 
-   subtype String_80 is String(1 .. 80);
-   type String_80_Array is array (Positive_Count range <>) of String_80;
+--   subtype String_80 is String(1 .. 80);
+--   type String_80_Array is array (Positive_Count range <>) of String_80;
 
 
 

@@ -1,7 +1,8 @@
 
 
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with FITS_IO; use FITS_IO;
+with FITS; use FITS;
+--with FITS_IO; use FITS_IO;
 -- Positive_Count needed
 
 

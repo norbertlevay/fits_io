@@ -4,9 +4,11 @@
 -- * can be instantiated with any number: float, integer or modular
 -- * supports conversion between Float and any of above types
 
-with FITS_IO; use FITS_IO;
+--with FITS_IO; use FITS_IO;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Positive_Count
 
+
+with FITS; use FITS;
 generic
 type Numeric is private;
 type Numeric_Arr is array (Positive_Count range <>) of Numeric;

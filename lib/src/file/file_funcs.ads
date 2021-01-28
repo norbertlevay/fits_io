@@ -5,7 +5,8 @@
 
 
 
-with FITS_IO; use FITS_IO; -- Positive_Count needed
+with FITS; use FITS; -- Positive_Count needed
+--with FITS_IO; use FITS_IO; -- Positive_Count needed
 --with Ada.Streams.Stream_IO;-- use Ada.Streams.Stream_IO; -- Positive_Count needed
 
 with Mandatory; -- NAXIS_Array needed

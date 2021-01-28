@@ -5,7 +5,8 @@ with Ada.Streams.Stream_IO; --use Ada.Streams.Stream_IO;-- (Positive_)Count need
 with Ada.Strings.Bounded; --	use Ada.Strings.Bounded;
 with Keyword_Record; --use Keyword_Record; -- String_80 needed
 
-with FITS_IO; use FITS_IO; -- Count needed
+with FITS; use FITS; -- Count needed
+--with FITS_IO; use FITS_IO; -- Count needed
 
 package Optional is
 
@@ -13,14 +14,15 @@ package Optional is
    package KWR renames Keyword_Record;
 
 --   package BS  renames Ada.Strings.Bounded;
-   package BS_8 renames FITS_IO.BS_8;--is new BS.Generic_Bounded_Length( 8); 
-   package BS70 renames FITS_IO.BS70;--is new BS.Generic_Bounded_Length(70);
+   package BS_8 renames FITS.BS_8;--is new BS.Generic_Bounded_Length( 8); 
+   package BS70 renames FITS.BS70;--is new BS.Generic_Bounded_Length(70);
 
-   subtype Bounded_String_8_Arr is FITS_IO.BS_8_Array;
+   subtype Bounded_String_8_Arr is FITS.BS_8_Array;
    --type Bounded_String_8_Arr  is array (Natural range <>) of BS_8.Bounded_String;
 
 
-subtype Card_Arr is FITS_IO.String_80_Array;
+subtype Card_Arr is String_80_Array;
+--subtype Card_Arr is FITS_IO.String_80_Array;
 Null_Card_Arr : Optional.Card_Arr(1 .. 0) := (others => ENDCard);
 
 function Init (Keys : in Bounded_String_8_Arr) return Positive_Count;

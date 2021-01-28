@@ -39,7 +39,7 @@ with Cache; use Cache; -- Access_Rec & Cache_Rec
 with DU_Pos; use DU_Pos; -- Pos_Rec
 with System.File_Control_Block; -- GNAT specific
 
-
+with FITS;
 
 package FITS_IO is
 
@@ -49,26 +49,37 @@ package FITS_IO is
 
    type File_Mode is (In_File, Out_File, Append_File);
 
-   type     Count          is new Ada.Streams.Stream_IO.Count;
-   subtype  Positive_Count is Count range 1 .. Count'Last;
+   subtype     Count          is FITS.Count;
+   --type     Count          is new Ada.Streams.Stream_IO.Count;
+   subtype  Positive_Count is FITS.Positive_Count;--Count range 1 .. Count'Last;
+   --subtype  Positive_Count is Count range 1 .. Count'Last;
 
    -- Card
 
-   subtype String_80 is String(1 .. 80);
-   ENDCard   : constant String_80 := ('E','N','D', others => ' ');
-   EmptyCard : constant String_80 := (others => ' ');
+   subtype String_80 is FITS.String_80;
+--   subtype String_80 is String(1 .. 80);
+--   ENDCard   : constant String_80 := ('E','N','D', others => ' ');
+--   EmptyCard : constant String_80 := (others => ' ');
 
-   package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
-   package BS20 is new Ada.Strings.Bounded.Generic_Bounded_Length(20);
-   package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
+   package BS_8 renames FITS.BS_8;
+   package BS20 renames FITS.BS20;
+   package BS70 renames FITS.BS70;
+--   package BS_8 is new Ada.Strings.Bounded.Generic_Bounded_Length( 8);
+--   package BS20 is new Ada.Strings.Bounded.Generic_Bounded_Length(20);
+--   package BS70 is new Ada.Strings.Bounded.Generic_Bounded_Length(70);
 
-   type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
-   type String_80_Array is array (Positive_Count range <>) of String_80;
+   subtype BS_8_Array  is FITS.BS_8_Array;
+   --type BS_8_Array  is array (Natural range <>) of BS_8.Bounded_String;
+   subtype String_80_Array is FITS.String_80_Array;
+   --type String_80_Array is array (Positive_Count range <>) of String_80;
 
    -- Header
 
-   subtype NAXIS_Index is Integer range 1 .. 999;
-   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+   subtype NAXIS_Index is FITS.NAXIS_Index;
+   subtype NAXIS_Array is FITS.NAXIS_Array;
+--   subtype NAXIS_Index is Integer range 1 .. 999;
+--   type    NAXIS_Array is array (NAXIS_Index range <>) of Positive_Count;
+
 
    type HDU_Info_Type(NAXIS : Positive) is
       record
@@ -80,12 +91,13 @@ package FITS_IO is
 
    -- Image metadata
 
-   type DU_Type is
-      (Int8, UInt16, UInt32, UInt64,
-      UInt8,  Int16,  Int32,  Int64,
-      F32, F64);
+   subtype DU_Type is FITS.DU_Type;
+--   type DU_Type is
+--      (Int8, UInt16, UInt32, UInt64,
+--      UInt8,  Int16,  Int32,  Int64,
+--      F32, F64);
 
-   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : Count) is
+   type Image_Rec(NAXIS : NAXIS_Index; Card_Count : FITS.Count) is
       record
          Data_Type   : DU_Type;
          NAXISn      : NAXIS_Array(1 .. NAXIS);

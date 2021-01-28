@@ -1,6 +1,7 @@
 
 
-with FITS_IO; use FITS_IO;
+--with FITS_IO; use FITS_IO;
+with FITS; use FITS;
 
 package DU_Types is
 

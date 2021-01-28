@@ -6,8 +6,8 @@
 
 with Interfaces;
 
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
-
+--with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
+with FITS; use FITS;
 package V3_Types is
 
    -- data types as of FITS Standard version 3
