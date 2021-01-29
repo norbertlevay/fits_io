@@ -84,10 +84,11 @@ package body FITS_IO is
       Name : String := ""; 
       Form : String := "")
    is
+      SIO_HDU_First : SIO.Positive_Count;
    begin
       SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      HDU.Reset(File.PHDU, File.SIO_HDU_First);
+      SIO_HDU_First := SIO.Index(File.SIO_File);
+      HDU.Reset(File.PHDU, SIO_HDU_First);
    end Create;
 
    procedure Open
@@ -96,10 +97,11 @@ package body FITS_IO is
       Name : String;
       Form : String := "")
    is
+      SIO_HDU_First : SIO.Positive_Count;
    begin
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      File.SIO_HDU_First := SIO.Index(File.SIO_File);
-      HDU.Reset(File.PHDU, File.SIO_HDU_First);
+      SIO_HDU_First := SIO.Index(File.SIO_File);
+      HDU.Reset(File.PHDU, SIO_HDU_First);
    end Open;
 
    procedure Close  (File : in out File_Type)
