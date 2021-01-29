@@ -26,6 +26,21 @@ package Array_IO is
       SE_Arr : in Ada.Streams.Stream_Element_Array) is null;
 
 
+      -- NOTE not really Read/Write but these could
+      -- substitute TT_AIO.Read/Write in Fits_IO.HDU_Write/Read:
+      -- has no Stream, but Stream compatible data(pointers!!)
+      -- (SEA is array of alised elements)
+procedure Read_From_SE_Array
+    (SE_Arr : in Ada.Streams.Stream_Element_Array;
+    A,B : in Float;
+    Phys_Arr : out Physical.Numeric_Arr) is null;
+
+procedure Write_To_SE_Array
+    (SE_Arr : out Ada.Streams.Stream_Element_Array;
+    A,B : in Float;
+    Phys_Arr : in Physical.Numeric_Arr)is null;
+
+
 
 
 
