@@ -65,27 +65,27 @@ package body HDU is
    end Reset;
 
 
-   procedure Write_Data_Unit_Padding(SIO_F : SIO.File_Type)
+   procedure Write_Data_Unit_Padding(SIO_File : SIO.File_Type)
    is
    begin
-      File.Misc.Write_Padding(SIO_F, SIO.Index(SIO_F), File.Misc.DataPadValue);
+      File.Misc.Write_Padding(SIO_File, SIO.Index(SIO_File), File.Misc.DataPadValue);
    end Write_Data_Unit_Padding;
 
 
 
-   function End_Of_Data_Unit (File : HDU_Type) return Boolean
+   function End_Of_Data_Unit (AHDU : HDU_Type) return Boolean
    is
    begin
-      -- FIXME implement: return HDU.DU_Length > SIO.Index(current)
+      -- FIXME implement: return HDU.Pos.DU_Length > SIO.Index(current)
       return True;--SIO.End_Of_File(File.SIO_File);
    end End_Of_Data_Unit;
 
-   function Stream (File : HDU_Type) return SIO.Stream_Access
+   function Stream (AHDU : HDU_Type) return SIO.Stream_Access
    is
    begin
       -- FIXME this is the point!
       -- HDU Stream must have all of the properties in HDU_Type
-      return SIO.Stream(File.SIO_File);
+      return SIO.Stream(AHDU.SIO_File);
    end Stream;
 
 
@@ -97,7 +97,7 @@ package body HDU is
    -- API but later hide behind Open
    function  Read_Header
       (SIO_File : SIO.File_Type;
-      FFile   : in out HDU_Type;
+      AHDU   : in out HDU_Type;
       Keys     : BS_8_Array)  return Image_Rec
    is
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(SIO_File);
@@ -106,11 +106,11 @@ package body HDU is
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
-      DU_Pos.Set_DU_Length( FFile.Pos, Data_Element_Count(Mand.NAXISn) );
+      DU_Pos.Set_DU_Length( AHDU.Pos, Data_Element_Count(Mand.NAXISn) );
       -- FIXME cast
 
 
-      SIO.Set_Index(SIO_File, FFile.SIO_HDU_First);
+      SIO.Set_Index(SIO_File, AHDU.SIO_HDU_First);
       -- FIXME update parser to avoid 2 reads
 
       declare
@@ -123,15 +123,15 @@ package body HDU is
 
          -- cache DU-access data
 
-         FFile.Cache.BITPIX := Mand.BITPIX;
+         AHDU.Cache.BITPIX := Mand.BITPIX;
 
          Cache.Parse_Image_Cards
-            (FFile.Cache,
+            (AHDU.Cache,
             FITS.String_80_Array(Cards)); -- FIXME conversion!
 
          -- init data unit Access_Rec
-         Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
-         Load_Undef_Vals_At_Read   (FFile.Scaling, FFile.Cache);
+         Load_BITPIX_And_Scaling_AB(AHDU.Scaling, AHDU.Cache);
+         Load_Undef_Vals_At_Read   (AHDU.Scaling, AHDU.Cache);
 
          return Image;
       end;
@@ -142,16 +142,16 @@ package body HDU is
    -- API on level of Open which calls Set_Index(HDUFirst)
    function  Read_Cards
       (SIO_File : SIO.File_Type;
-      FFile : in out HDU_Type;
+      AHDU : in out HDU_Type;
       Keys   : BS_8_Array)
       return  String_80_Array
    is
    begin
 
-      SIO.Set_Index(SIO_File, FFile.SIO_HDU_First);
+      SIO.Set_Index(SIO_File, AHDU.SIO_HDU_First);
 
       declare
-         Image : Image_Rec := Read_Header(SIO_File, FFile, Keys);
+         Image : Image_Rec := Read_Header(SIO_File, AHDU, Keys);
       begin
          return Image.Image_Cards;
       end;
@@ -164,23 +164,23 @@ package body HDU is
 
    procedure Write_End
       (SIO_File : SIO.File_Type;
-      FFile : in out HDU_Type)
+      AHDU : in out HDU_Type)
    is
    begin
 
-      -- origpos      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      DU_Pos.Set_ENDCard_Pos(FFile.Pos, SIO.Index(FFile.SIO_File));
+      -- origpos      AHDU.ENDCard_Pos := SIO.Index(AHDU.SIO_File);
+      DU_Pos.Set_ENDCard_Pos(AHDU.Pos, SIO.Index(AHDU.SIO_File));
 
       Header.Write_ENDCard_With_Padding(SIO_File);
 
-      -- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
-      DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(SIO_File), FFile.Cache.BITPIX);
+      -- origpos      AHDU.DU_First := SIO.Index(AHDU.SIO_File);
+      DU_Pos.Set_DU_First(AHDU.Pos, SIO.Index(SIO_File), AHDU.Cache.BITPIX);
       -- FIXME note had to use Cache.BITPIX !?
 
       -- init data unit Access_Rec
 
-      Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
-      Load_Undef_Vals_At_Write  (FFile.Scaling, FFile.Cache);
+      Load_BITPIX_And_Scaling_AB(AHDU.Scaling, AHDU.Cache);
+      Load_Undef_Vals_At_Write  (AHDU.Scaling, AHDU.Cache);
 
    end Write_End;
 
@@ -244,36 +244,36 @@ package body HDU is
    -- API later hide behind Create / Open(Out_Mode)
    procedure Write_Header_Prim -- Compose_Header
       (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
+      AHDU       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
+      Is_Primary : Boolean := (AHDU.SIO_HDU_First = 1);
       Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
    begin
-      Write_Card_Arr(SIO_File,File, Prim_First_Card);
-      Write_Image(SIO_File,File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
-      Write_End(SIO_File, File);
+      Write_Card_Arr(SIO_File,AHDU, Prim_First_Card);
+      Write_Image(SIO_File,AHDU, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
+      Write_End(SIO_File, AHDU);
    end Write_Header_Prim;
 
 
    -- API later hide behind Open(Append_Mode)
    procedure Write_Header_Ext -- Compose_Header
       (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
+      AHDU       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
    is
       use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
+      Is_Primary : Boolean := (AHDU.SIO_HDU_First = 1);
       Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
-      Write_Card_Arr(SIO_File, File, Ext_First_Card);
-      Write_Image(SIO_File, File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
-      Write_End(SIO_File, File);
+      Write_Card_Arr(SIO_File, AHDU, Ext_First_Card);
+      Write_Image(SIO_File, AHDU, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
+      Write_End(SIO_File, AHDU);
    end Write_Header_Ext;
 
 
@@ -281,15 +281,15 @@ package body HDU is
    -- API on level od Open/Create; later rename to Append_Cards
    procedure Write_Cards
       (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
+      AHDU       : in out HDU_Type;
       Cards : String_80_Array)
    is
       Ix : SIO.Positive_Count := 1;
    begin
       -- position File-Index at END-card
-      SIO.Set_Index(SIO_File, DU_Pos.Get_ENDCard_Pos(File.Pos));
-      Write_Card_Arr(SIO_File, File, Cards);  -- start writing Cards (overwrites existing ENDCard)
-      Write_End(SIO_File, File);              -- writes new END-card and padding
+      SIO.Set_Index(SIO_File, DU_Pos.Get_ENDCard_Pos(AHDU.Pos));
+      Write_Card_Arr(SIO_File, AHDU, Cards);  -- start writing Cards (overwrites existing ENDCard)
+      Write_End(SIO_File, AHDU);              -- writes new END-card and padding
    end Write_Cards;
 
 
@@ -302,10 +302,10 @@ package body HDU is
    -- Operations on Position within File --
    ----------------------------------------
 
-   function Data_Unit_Size  (File : HDU_Type) return Count
+   function Data_Unit_Size  (AHDU : HDU_Type) return Count
    is
    begin
-      return File.Pos.DU_Length;
+      return AHDU.Pos.DU_Length;
    end Data_Unit_Size;
 
 
@@ -315,38 +315,38 @@ package body HDU is
    -- Converions, Scaling and Undefined Values --
    ----------------------------------------------
 
-   procedure Set_Raw_Type(File : in out HDU_Type; Raw_Type : DU_Type)
+   procedure Set_Raw_Type(AHDU : in out HDU_Type; Raw_Type : DU_Type)
    is
       BITPIX   : Integer;
       Aui      : Float;
    begin
       DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-      File.Cache.BITPIX := BITPIX;
-      File.Cache.Aui    := Aui;
+      AHDU.Cache.BITPIX := BITPIX;
+      AHDU.Cache.Aui    := Aui;
    end Set_Raw_Type;
 
 
-   procedure Set_Linear_Scaling(File : in out HDU_Type; A,B : Float)
+   procedure Set_Linear_Scaling(AHDU : in out HDU_Type; A,B : Float)
    is
    begin
-      File.Cache.Au := A;
-      File.Cache.Bu := B;
+      AHDU.Cache.Au := A;
+      AHDU.Cache.Bu := B;
    end Set_Linear_Scaling;
 
 
-   procedure Set_Undefined_Physical(File : in out HDU_Type; Undef_Phys : Float)
+   procedure Set_Undefined_Physical(AHDU : in out HDU_Type; Undef_Phys : Float)
    is
    begin
-      File.Cache.Physical_Undef_Valid := True;
-      File.Cache.Physical_Undef_Value := Undef_Phys;
+      AHDU.Cache.Physical_Undef_Valid := True;
+      AHDU.Cache.Physical_Undef_Value := Undef_Phys;
    end Set_Undefined_Physical;
 
 
-   procedure Put_HDU_Type(File : HDU_Type; Prefix : String := "")
+   procedure Put_HDU_Type(AHDU : HDU_Type; Prefix : String := "")
    is
    begin
-      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.Cache.Aui));
-      Put_Access_Rec(File.Scaling,Prefix);
+      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(AHDU.Cache.Aui));
+      Put_Access_Rec(AHDU.Scaling,Prefix);
    end Put_HDU_Type;
 
 

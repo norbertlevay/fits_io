@@ -60,12 +60,12 @@ package HDU is
       (AHDU : in out HDU_Type;
       SIO_HDU_First : SIO.Positive_Count);
 
-   procedure Write_Data_Unit_Padding(SIO_F : SIO.File_Type);
+   procedure Write_Data_Unit_Padding(SIO_File : SIO.File_Type);
 
-   function  End_Of_Data_Unit (File : HDU_Type) return Boolean;
-   function  Data_Unit_Size  (File : HDU_Type) return Count;
+   function  End_Of_Data_Unit(AHDU : HDU_Type) return Boolean;
+   function  Data_Unit_Size  (AHDU : HDU_Type) return Count;
 
-   function Stream (File : HDU_Type) return SIO.Stream_Access;
+   function Stream (AHDU : HDU_Type) return SIO.Stream_Access;
 
 
    -------------------------
@@ -74,83 +74,83 @@ package HDU is
 
    function  Read_Header
       (SIO_File : SIO.File_Type;
-      FFile : in out HDU_Type;
+      AHDU : in out HDU_Type;
       Keys   : BS_8_Array)
       return Image_Rec;
 
-   function  Read_Cards
-      (SIO_File : SIO.File_Type;
-      FFile : in out HDU_Type;
-      Keys   : BS_8_Array)
-      return  String_80_Array;
+      function  Read_Cards
+         (SIO_File : SIO.File_Type;
+         AHDU : in out HDU_Type;
+         Keys   : BS_8_Array)
+         return  String_80_Array;
 
 
-   procedure Write_Header_Prim
-      (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
-      Raw_Type    : DU_Type;
-      NAXISn      : NAXIS_Array;
-      Optional_Cards : String_80_Array);
+         procedure Write_Header_Prim
+            (SIO_File : SIO.File_Type;
+            AHDU       : in out HDU_Type;
+            Raw_Type    : DU_Type;
+            NAXISn      : NAXIS_Array;
+            Optional_Cards : String_80_Array);
 
-   procedure Write_Header_Ext
-      (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
-      Raw_Type    : DU_Type;
-      NAXISn      : NAXIS_Array;
-      Optional_Cards : String_80_Array);
+         procedure Write_Header_Ext
+            (SIO_File : SIO.File_Type;
+            AHDU       : in out HDU_Type;
+            Raw_Type    : DU_Type;
+            NAXISn      : NAXIS_Array;
+            Optional_Cards : String_80_Array);
 
-   procedure Write_Cards
-      (SIO_File : SIO.File_Type;
-      File       : in out HDU_Type;
-      Cards : String_80_Array);
-
-
-   -- set Scaling and Undefined Values in HDU_Type (but not in Header)
-
-   procedure Set_Linear_Scaling(File : in out HDU_Type; A,B : Float);
-   procedure Set_Undefined_Physical(File : in out HDU_Type; Undef_Phys : Float);
+         procedure Write_Cards
+            (SIO_File : SIO.File_Type;
+            AHDU       : in out HDU_Type;
+            Cards : String_80_Array);
 
 
-   ---------------------------------
-   -- Data Unit sequential access --
-   ---------------------------------
+         -- set Scaling and Undefined Values in HDU_Type (but not in Header)
+
+         procedure Set_Linear_Scaling    (AHDU : in out HDU_Type; A,B : Float);
+         procedure Set_Undefined_Physical(AHDU : in out HDU_Type; Undef_Phys : Float);
 
 
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_Read
-      (FFile : in out HDU_Type;
-      Item : out T_Arr;
-      Last : out Count);
+         ---------------------------------
+         -- Data Unit sequential access --
+         ---------------------------------
 
 
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_Write
-      (FFile : in out HDU_Type;
-       Item : T_Arr);
+         generic
+         type T is private;
+         type T_Arr is array (Positive_Count range <>) of T;
+         with function "+"(V : in Float) return T     is <>; 
+         with function "+"(V : in T)     return Float is <>; 
+         with function Is_Undef  (V,U : in T) return Boolean is <>; 
+         with function To_BITPIX (V   : in T) return Integer is <>; 
+         procedure HDU_Read
+            (FFile : in out HDU_Type;
+            Item : out T_Arr;
+            Last : out Count);
 
 
-   ----------------
-   -- Exceptions --
-   ----------------
+         generic
+         type T is private;
+         type T_Arr is array (Positive_Count range <>) of T;
+         with function "+"(V : in Float) return T     is <>; 
+         with function "+"(V : in T)     return Float is <>; 
+         with function Is_Undef  (V,U : in T) return Boolean is <>; 
+         with function To_BITPIX (V   : in T) return Integer is <>; 
+         procedure HDU_Write
+            (FFile : in out HDU_Type;
+            Item : T_Arr);
 
-   End_Error         : exception renames Ada.IO_Exceptions.End_Error;
-   Programming_Error : exception;
+
+         ----------------
+         -- Exceptions --
+         ----------------
+
+         End_Error         : exception renames Ada.IO_Exceptions.End_Error;
+         Programming_Error : exception;
 
 
-   procedure Put_HDU_Type(File : HDU_Type; Prefix : String := "");
-   -- FIXME for debug only
+         procedure Put_HDU_Type(AHDU : HDU_Type; Prefix : String := "");
+         -- FIXME for debug only
 
-end HDU;
+      end HDU;
 
