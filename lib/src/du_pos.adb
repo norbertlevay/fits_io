@@ -11,7 +11,7 @@ package body DU_Pos is
       SE_Size : constant Positive_Count := Ada.Streams.Stream_Element'Size;
       DE_Size : constant Positive_Count := Positive_Count(abs BITPIX);
    begin
-      return (1 + (Positive_Count(SIO_Index) - Positive_Count(SIO_DU_First)) / DE_Size / SE_Size);
+      return (1 + (Positive_Count(SIO_Index) - Positive_Count(SIO_DU_First))/(DE_Size / SE_Size));
    end DU_Index;
 
 

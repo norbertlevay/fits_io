@@ -107,7 +107,10 @@ package body FITS_IO is
    procedure Close  (File : in out File_Type)
    is
    begin
-      HDU.Write_Data_Unit_Padding(File.SIO_File);
+      if(Mode(File) = Out_File)
+      then
+         null;-- FIXME add when removed from Write:   HDU.Write_Data_Unit_Padding(File.SIO_File);
+      end if;
       SIO.Close(File.SIO_File);
       HDU.Reset(File.PHDU, 1);
    end Close;
@@ -253,8 +256,7 @@ package body FITS_IO is
    procedure Put_File_Type(File : File_Type; Prefix : String := "")
    is
    begin
-      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.PHDU.Cache.Aui));
-      Put_Access_Rec(File.PHDU.Scaling,Prefix);
+      HDU.Put_HDU_Type(File.PHDU,Prefix);
    end Put_File_Type;
 
 
@@ -272,7 +274,10 @@ package body FITS_IO is
    is
       SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
    begin
-      return DU_Pos.DU_Index(SIO_Index, File.PHDU.Pos.SIO_DU_First, File.PHDU.Scaling.BITPIX);
+      return DU_Pos.DU_Index(
+         SIO_Index,
+         File.PHDU.Pos.SIO_DU_First,
+         File.PHDU.Cache.BITPIX);
    end Index;
 
 
@@ -280,15 +285,15 @@ package body FITS_IO is
    is
       SIO_Index : SIO.Positive_Count;
       use SIO;
-      HDU_Inited : Boolean:=(File.PHDU.Pos.SIO_DU_First /= 0) AND (File.PHDU.Scaling.BITPIX /= 0);
+      HDU_Inited : Boolean:=(File.PHDU.Pos.SIO_DU_First /= 0) AND (File.PHDU.Cache.BITPIX /= 0);
    begin
       if(HDU_Inited)
       then
          SIO_Index := DU_Pos.SE_Index(Ix,
-                                      File.PHDU.Pos.SIO_DU_First, File.PHDU.Scaling.BITPIX);
+                                      File.PHDU.Pos.SIO_DU_First, File.PHDU.Cache.BITPIX);
          SIO.Set_Index(File.SIO_File, SIO_Index);
       else
-         null; -- FIXME programming error: Set_Index called but HDU is empty
+         TIO.Put_Line("EXCEPT: ProgErr Set_Index called but HDU is empty");
       end if;
    end Set_Index;
 
@@ -305,7 +310,7 @@ package body FITS_IO is
 
    -- Data access
 
-   procedure HDU_Read -- alg
+   procedure HDU_Read
       (FFile    : in out File_Type;
       Item : out T_Arr;
       Last : out Count)
@@ -325,17 +330,18 @@ package body FITS_IO is
       -- for padding & detect End_Of_Data_Unit
 
       DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.PHDU.Pos));
+      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(FFile.PHDU.Pos);
       DU_Item_Last : Positive_Count;
    begin
 
-      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
+      if(DU_Curr_Ix > DU_Last )
+      then
+         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Read");
+      end if;
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
-
-      --      Is_Last_Write := (DU_Item_Last >= DU_Last);
 
       -- Set Undefined value
 
@@ -383,7 +389,7 @@ package body FITS_IO is
 
 
 
-   procedure HDU_Write -- alg
+   procedure HDU_Write
       (FFile : in out File_Type;
       Item : T_Arr)
    is
@@ -404,7 +410,7 @@ package body FITS_IO is
       -- FIXME all casts Pos Count <-> SIO Pos Count
 
       DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.PHDU.Pos));
+      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(FFile.PHDU.Pos);
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
       Last : Count;
@@ -412,14 +418,16 @@ package body FITS_IO is
 
       -- dont Write beyond end of Data Unit
 
-      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
+      if(DU_Curr_Ix > DU_Last )
+      then
+         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Write");
+      end if;
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
       Is_Last_Write := (DU_Item_Last >= DU_Last);
-
 
       -- Set Undefined value
 
@@ -468,7 +476,7 @@ package body FITS_IO is
       if(Is_Last_Write)
       then
          File.Misc.Write_Padding(FFile.SIO_File,
-         SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
+                     SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
          DU_Pos.Set_DU_Padding_Written(FFile.PHDU.Pos,True);
       end if;
 

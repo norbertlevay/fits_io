@@ -54,6 +54,8 @@ begin
       Open(In_File, FITS_IO.In_File, (Argument(1)));
    end if;
 
+   FITS_IO.Put_File_Type(In_File,"After Open: ");
+
    Set_Undefined_Physical(In_File, Undef_Phys);
    -- we expect undef values in Data and want to use own Undef
 
@@ -130,6 +132,7 @@ begin
         Last : FITS_IO.Count;
      begin
 
+      FITS_IO.Put_File_Type(In_File,"Start Read Data: ");
          -- read all Data Unit
 
          for I in 1 .. RowLength

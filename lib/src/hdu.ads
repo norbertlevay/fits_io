@@ -122,7 +122,7 @@ package HDU is
          with function "+"(V : in T)     return Float is <>; 
          with function Is_Undef  (V,U : in T) return Boolean is <>; 
          with function To_BITPIX (V   : in T) return Integer is <>; 
-         procedure HDU_Read
+         procedure My_Read
             (SIO_File : SIO.File_Type;
             AHDU : in out HDU_Type;
             Item : out T_Arr;
@@ -136,7 +136,7 @@ package HDU is
          with function "+"(V : in T)     return Float is <>; 
          with function Is_Undef  (V,U : in T) return Boolean is <>; 
          with function To_BITPIX (V   : in T) return Integer is <>; 
-         procedure HDU_Write
+         procedure My_Write
             (SIO_File : SIO.File_Type;
             AHDU : in out HDU_Type;
             Item : T_Arr);

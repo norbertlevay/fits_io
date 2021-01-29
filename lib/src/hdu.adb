@@ -98,6 +98,7 @@ package body HDU is
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
+      DU_Pos.Set_DU_First(AHDU.Pos, SIO.Index(SIO_File), AHDU.Cache.BITPIX);
       DU_Pos.Set_DU_Length( AHDU.Pos, Data_Element_Count(Mand.NAXISn) );
       -- FIXME cast
 
@@ -145,6 +146,9 @@ package body HDU is
       declare
          Image : Image_Rec := Read_Header(SIO_File, AHDU, Keys);
       begin
+
+         DU_Pos.Set_DU_First(AHDU.Pos, SIO.Index(SIO_File), AHDU.Cache.BITPIX);
+
          return Image.Image_Cards;
       end;
 
@@ -337,6 +341,7 @@ package body HDU is
    procedure Put_HDU_Type(AHDU : HDU_Type; Prefix : String := "")
    is
    begin
+      TIO.Put_Line(Prefix & "SIO_DU_First = "& SIO.Positive_Count'Image(AHDU.Pos.SIO_DU_First));
       TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(AHDU.Cache.Aui));
       Put_Access_Rec(AHDU.Scaling,Prefix);
    end Put_HDU_Type;
@@ -360,7 +365,7 @@ package body HDU is
    end Index;
 
 
-   procedure Set_Index(SIO_File : SIO.File_Type; AHDU : HDU_Type; Ix : Positive_Count)
+   procedure OFF_Set_Index(SIO_File : SIO.File_Type; AHDU : HDU_Type; Ix : Positive_Count)
    is
       SIO_Index : SIO.Positive_Count;
       use SIO;
@@ -374,7 +379,7 @@ package body HDU is
       else
          null; -- FIXME programming error: Set_Index called but HDU is empty
       end if;
-   end Set_Index;
+   end OFF_Set_Index;
 
 
 
@@ -389,7 +394,7 @@ package body HDU is
 
    -- Data access
 
-   procedure HDU_Read
+   procedure My_Read
       (SIO_File : SIO.File_Type;
       AHDU      : in out HDU_Type;
       Item : out T_Arr;
@@ -410,7 +415,7 @@ package body HDU is
       -- for padding & detect End_Of_Data_Unit
 
       DU_Curr_Ix : Positive_Count := Index(SIO_File, AHDU);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(AHDU.Pos));
+      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(AHDU.Pos);
       DU_Item_Last : Positive_Count;
       use FITS;
    begin
@@ -465,11 +470,11 @@ package body HDU is
 
       end;
 
-   end HDU_Read;
+   end My_Read;
 
 
 
-   procedure HDU_Write
+   procedure My_Write
       (SIO_File : SIO.File_Type;
       AHDU      : in out HDU_Type;
       Item : T_Arr)
@@ -560,7 +565,7 @@ package body HDU is
          DU_Pos.Set_DU_Padding_Written(AHDU.Pos,True);
       end if;
 
-   end HDU_Write;
+   end My_Write;
 
 
 end HDU;
