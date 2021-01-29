@@ -16,6 +16,8 @@ with Optional.Reserved; use Optional.Reserved;
 --with Header;
 with Card;
 
+with FITS;
+-- FIXME remove FITS later wehn module's type dependencies resolved
 
 procedure create
 is
@@ -70,7 +72,7 @@ is
 
    -- Float
 
-   Raw_Type      : DU_Type := FITS_IO.F32;
+   Raw_Type      : DU_Type := FITS.F32;
    Raw_Undef     : constant Float_32 := F32NaN;
    Raw_Undef_Str : constant String := "0";-- FIXME here with empty string fails (1* operator ??)
 
@@ -101,6 +103,7 @@ is
    is
        --Col : Phys_Data.T_Arr(1 .. ColLength);
        Col : Phys_Type_Arr(1 .. ColLength);
+      use FITS;-- FIXME remove later
    begin
        for I in Col'Range loop Col(I) := Phys_Type(I - 1); end loop;
        if (Phys_Undef_Valid)

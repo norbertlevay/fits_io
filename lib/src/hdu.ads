@@ -19,7 +19,7 @@ package HDU is
 
 
    type HDU_Type is record
-      SIO_File  : SIO.File_Type;-- to be removed , pass by param
+--      SIO_File  : SIO.File_Type;-- to be removed , pass by param
       SIO_HDU_First : SIO.Positive_Count;
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;
@@ -65,7 +65,6 @@ package HDU is
    function  End_Of_Data_Unit(AHDU : HDU_Type) return Boolean;
    function  Data_Unit_Size  (AHDU : HDU_Type) return Count;
 
-   function Stream (AHDU : HDU_Type) return SIO.Stream_Access;
 
 
    -------------------------
@@ -124,7 +123,8 @@ package HDU is
          with function Is_Undef  (V,U : in T) return Boolean is <>; 
          with function To_BITPIX (V   : in T) return Integer is <>; 
          procedure HDU_Read
-            (FFile : in out HDU_Type;
+            (SIO_File : SIO.File_Type;
+            AHDU : in out HDU_Type;
             Item : out T_Arr;
             Last : out Count);
 
@@ -137,7 +137,8 @@ package HDU is
          with function Is_Undef  (V,U : in T) return Boolean is <>; 
          with function To_BITPIX (V   : in T) return Integer is <>; 
          procedure HDU_Write
-            (FFile : in out HDU_Type;
+            (SIO_File : SIO.File_Type;
+            AHDU : in out HDU_Type;
             Item : T_Arr);
 
 

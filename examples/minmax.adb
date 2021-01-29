@@ -13,6 +13,7 @@ with Optional.Reserved;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with FITS_IO; use FITS_IO;
 
+with FITS; -- FIXME remove when type dependecies between modeuls resolved properly
 
 procedure minmax is
 
@@ -109,7 +110,7 @@ begin
             UValid : Boolean; UValue : Float)
         is
             V : Phys_Type;
-            use FITS_IO;
+            use FITS;-- FIXME remove later
         begin
             for I in CurF32Col'Range
             loop

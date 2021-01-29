@@ -227,32 +227,32 @@ package body FITS_IO is
       Aui      : Float;
    begin
       DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-      File.Cache.BITPIX := BITPIX;
-      File.Cache.Aui    := Aui;
+      File.PHDU.Cache.BITPIX := BITPIX;
+      File.PHDU.Cache.Aui    := Aui;
    end Set_Raw_Type;
 
 
    procedure Set_Linear_Scaling(File : in out File_Type; A,B : Float)
    is
    begin
-      File.Cache.Au := A;
-      File.Cache.Bu := B;
+      File.PHDU.Cache.Au := A;
+      File.PHDU.Cache.Bu := B;
    end Set_Linear_Scaling;
 
 
    procedure Set_Undefined_Physical(File : in out File_Type; Undef_Phys : Float)
    is
    begin
-      File.Cache.Physical_Undef_Valid := True;
-      File.Cache.Physical_Undef_Value := Undef_Phys;
+      File.PHDU.Cache.Physical_Undef_Valid := True;
+      File.PHDU.Cache.Physical_Undef_Value := Undef_Phys;
    end Set_Undefined_Physical;
 
 
    procedure Put_File_Type(File : File_Type; Prefix : String := "")
    is
    begin
-      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.Cache.Aui));
-      Put_Access_Rec(File.Scaling,Prefix);
+      TIO.Put_Line(Prefix & "Cache Aui = " & Float'Image(File.PHDU.Cache.Aui));
+      Put_Access_Rec(File.PHDU.Scaling,Prefix);
    end Put_File_Type;
 
 
@@ -270,8 +270,7 @@ package body FITS_IO is
    is
       SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
    begin
-      return Positive_Count(
-         DU_Pos.DU_Index(SIO_Index, File.Pos.SIO_DU_First, File.Scaling.BITPIX) );
+      return DU_Pos.DU_Index(SIO_Index, File.PHDU.Pos.SIO_DU_First, File.PHDU.Scaling.BITPIX);
    end Index;
 
 
@@ -279,12 +278,12 @@ package body FITS_IO is
    is
       SIO_Index : SIO.Positive_Count;
       use SIO;
-      HDU_Inited : Boolean := (File.Pos.SIO_DU_First /= 0) AND (File.Scaling.BITPIX /= 0);
+      HDU_Inited : Boolean:=(File.PHDU.Pos.SIO_DU_First /= 0) AND (File.PHDU.Scaling.BITPIX /= 0);
    begin
       if(HDU_Inited)
       then
          SIO_Index := DU_Pos.SE_Index(Ix,
-                                      File.Pos.SIO_DU_First, File.Scaling.BITPIX);
+                                      File.PHDU.Pos.SIO_DU_First, File.PHDU.Scaling.BITPIX);
          SIO.Set_Index(File.SIO_File, SIO_Index);
       else
          null; -- FIXME programming error: Set_Index called but HDU is empty
@@ -319,12 +318,12 @@ package body FITS_IO is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := FFile.Scaling;
+      Scaling : Access_Rec := FFile.PHDU.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
 
       DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.PHDU.Pos));
       DU_Item_Last : Positive_Count;
    begin
 
@@ -396,14 +395,14 @@ package body FITS_IO is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := FFile.Scaling;
+      Scaling : Access_Rec := FFile.PHDU.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
 
       -- FIXME all casts Pos Count <-> SIO Pos Count
 
       DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.PHDU.Pos));
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
       Last : Count;
@@ -468,7 +467,7 @@ package body FITS_IO is
       then
          File.Misc.Write_Padding(FFile.SIO_File,
          SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-         DU_Pos.Set_DU_Padding_Written(FFile.Pos,True);
+         DU_Pos.Set_DU_Padding_Written(FFile.PHDU.Pos,True);
       end if;
 
    end HDU_Write;

@@ -228,9 +228,9 @@ package FITS_IO is
       PHDU : HDU.HDU_Type;
 
       -- old , remove
-      Pos     : DU_Pos.Pos_Rec;
-      Scaling : Access_Rec;-- load it at Write_Header_End and Read_Header
-      Cache   : Cache_Rec;
+--      Pos     : DU_Pos.Pos_Rec;
+--      Scaling : Access_Rec;-- load it at Write_Header_End and Read_Header
+--     Cache   : Cache_Rec;
    end record;
 
    ----------------

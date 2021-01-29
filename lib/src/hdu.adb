@@ -80,14 +80,6 @@ package body HDU is
       return True;--SIO.End_Of_File(File.SIO_File);
    end End_Of_Data_Unit;
 
-   function Stream (AHDU : HDU_Type) return SIO.Stream_Access
-   is
-   begin
-      -- FIXME this is the point!
-      -- HDU Stream must have all of the properties in HDU_Type
-      return SIO.Stream(AHDU.SIO_File);
-   end Stream;
-
 
    -----------------------------
    -- Input-Output Operations --
@@ -169,7 +161,7 @@ package body HDU is
    begin
 
       -- origpos      AHDU.ENDCard_Pos := SIO.Index(AHDU.SIO_File);
-      DU_Pos.Set_ENDCard_Pos(AHDU.Pos, SIO.Index(AHDU.SIO_File));
+      DU_Pos.Set_ENDCard_Pos(AHDU.Pos, SIO.Index(SIO_File));
 
       Header.Write_ENDCard_With_Padding(SIO_File);
 
@@ -359,26 +351,26 @@ package body HDU is
    -- FIXME stop compile on system where DE_Site SE_Size is not divisible
    -- or how to avoid DE/SE & SE/DE divisions ?
 
-   function  Index(File : HDU_Type) return Positive_Count
+   function  Index(SIO_File: SIO.File_Type; AHDU : HDU_Type) return Positive_Count
    is  
-      SIO_Index  : SIO.Positive_Count := SIO.Index(File.SIO_File);
+      SIO_Index  : SIO.Positive_Count := SIO.Index(SIO_File);
    begin
       return Positive_Count(
-         DU_Pos.DU_Index(SIO_Index, File.Pos.SIO_DU_First, File.Scaling.BITPIX) );
+         DU_Pos.DU_Index(SIO_Index, AHDU.Pos.SIO_DU_First, AHDU.Scaling.BITPIX) );
    end Index;
 
 
-   procedure Set_Index(File : HDU_Type; Ix : Positive_Count)
-   is  
+   procedure Set_Index(SIO_File : SIO.File_Type; AHDU : HDU_Type; Ix : Positive_Count)
+   is
       SIO_Index : SIO.Positive_Count;
       use SIO;
-      HDU_Inited : Boolean := (File.Pos.SIO_DU_First /= 0) AND (File.Scaling.BITPIX /= 0); 
+      HDU_Inited : Boolean := (AHDU.Pos.SIO_DU_First /= 0) AND (AHDU.Scaling.BITPIX /= 0); 
    begin
       if(HDU_Inited)
       then
          SIO_Index := DU_Pos.SE_Index(Ix,
-                                      File.Pos.SIO_DU_First, File.Scaling.BITPIX);
-         SIO.Set_Index(File.SIO_File, SIO_Index);
+                                      AHDU.Pos.SIO_DU_First, AHDU.Scaling.BITPIX);
+         SIO.Set_Index(SIO_File, SIO_Index);
       else
          null; -- FIXME programming error: Set_Index called but HDU is empty
       end if;
@@ -398,7 +390,8 @@ package body HDU is
    -- Data access
 
    procedure HDU_Read
-      (FFile    : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      AHDU      : in out HDU_Type;
       Item : out T_Arr;
       Last : out Count)
    is
@@ -412,12 +405,12 @@ package body HDU is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := FFile.Scaling;
+      Scaling : Access_Rec := AHDU.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
 
-      DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Curr_Ix : Positive_Count := Index(SIO_File, AHDU);
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(AHDU.Pos));
       DU_Item_Last : Positive_Count;
       use FITS;
    begin
@@ -458,12 +451,12 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 => U8_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when   8 => U8_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
@@ -476,8 +469,9 @@ package body HDU is
 
 
 
-   procedure HDU_Write -- alg
-      (FFile : in out HDU_Type;
+   procedure HDU_Write
+      (SIO_File : SIO.File_Type;
+      AHDU      : in out HDU_Type;
       Item : T_Arr)
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
@@ -490,14 +484,14 @@ package body HDU is
       package F32_AIO is new Array_IO(F32Raw, Physical);
       package F64_AIO is new Array_IO(F64Raw, Physical);
 
-      Scaling : Access_Rec := FFile.Scaling;
+      Scaling : Access_Rec := AHDU.Scaling;
 
       -- for padding & detect End_Of_Data_Unit
 
       -- FIXME all casts Pos Count <-> SIO Pos Count
 
-      DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(FFile.Pos));
+      DU_Curr_Ix : Positive_Count := Index(SIO_File, AHDU);
+      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(AHDU.Pos));
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
       Last : Count;
@@ -544,12 +538,12 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 =>  U8_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
+            when   8 =>  U8_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity,
                "BITPIX: "&Integer'Image(Scaling.BITPIX));
@@ -561,9 +555,9 @@ package body HDU is
 
       if(Is_Last_Write)
       then
-         File.Misc.Write_Padding(FFile.SIO_File,
-         SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-         DU_Pos.Set_DU_Padding_Written(FFile.Pos,True);
+         File.Misc.Write_Padding(SIO_File,
+                        SIO.Index(SIO_File), File.Misc.DataPadValue);
+         DU_Pos.Set_DU_Padding_Written(AHDU.Pos,True);
       end if;
 
    end HDU_Write;

@@ -53,11 +53,15 @@ package DU_Pos is
 
    -- util FIXME does this really belong here ?
 
-   function DU_Index(SIO_Index : SIO.Positive_Count; SIO_DU_First : SIO.Positive_Count; BITPIX : Integer)
-      return Positive_Count;
+   function DU_Index
+      (SIO_Index : SIO.Positive_Count;
+      SIO_DU_First : SIO.Positive_Count;
+      BITPIX : Integer) return Positive_Count;
 
-   function SE_Index(DU_Index  : Positive_Count; SIO_DU_First : SIO.Positive_Count; BITPIX : Integer)
-      return SIO.Positive_Count;
+   function SE_Index
+      (DU_Index  : Positive_Count;
+      SIO_DU_First : SIO.Positive_Count;
+      BITPIX : Integer) return SIO.Positive_Count;
 
    end DU_Pos;
 
