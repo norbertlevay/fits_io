@@ -52,17 +52,6 @@ package body FITS_IO is
    -----------
 
 
-   function Data_Element_Count(NAXISn : NAXIS_Array) return Count -- alg
-   is
-      Data_Cnt : Count := 1;
-   begin
-      for I in NAXISn'Range
-      loop
-         Data_Cnt := Data_Cnt * NAXISn(I);
-      end loop;
-      return Data_Cnt;
-   end Data_Element_Count;
-
 
    function To_SIO_Mode(Mode : File_Mode) return SIO.File_Mode
    is
@@ -175,81 +164,6 @@ package body FITS_IO is
    -- Write Header
 
 
-   procedure Write_End(FFile : in out File_Type)
-   is
-   begin
-
-      -- origpos      FFile.ENDCard_Pos := SIO.Index(FFile.SIO_File);
-      DU_Pos.Set_ENDCard_Pos(FFile.Pos, SIO.Index(FFile.SIO_File));
-
-      Header.Write_ENDCard_With_Padding(FFile.SIO_File);
-
-      -- origpos      FFile.DU_First := SIO.Index(FFile.SIO_File);
-      DU_Pos.Set_DU_First(FFile.Pos, SIO.Index(FFile.SIO_File), FFile.Cache.BITPIX);
-      -- FIXME note had to use Cache.BITPIX !?
-
-      -- init data unit Access_Rec
-
-      Load_BITPIX_And_Scaling_AB(FFile.Scaling, FFile.Cache);
-      Load_Undef_Vals_At_Write  (FFile.Scaling, FFile.Cache);
-
-   end Write_End;
-
-
-   procedure Write_Card_Arr
-      (File : in out File_Type;
-      Item : String_80_Array)
-   is
-   begin
-      String_80_Array'Write(Stream(File), Item);
-      Cache.Parse_Image_Cards
-         (File.Cache,
-         String_80_Array(Item)); -- FIXME conversion!
-   end Write_Card_Arr;
-
-
-   procedure Write_Image
-      (File       : in out File_Type;
-      Raw_Type    : DU_Type;
-      NAXISn      : NAXIS_Array;
-      Optional_Cards : String_80_Array;
-      Is_Primary  : Boolean)
-   is
-      BITPIX : Integer;
-      Aui : Float;
-   begin
-
-      DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
-
-      declare
-         Im_Prim : Elements.Primary              := (NAXISn'Last, BITPIX, NAXISn);
-         Im_Ext  : Elements.Conforming_Extension := (NAXISn'Last, BITPIX, NAXISn, 0, 1);
-         Optional_Cards_Prim : String_80_Array := Elements.Generate_Cards(Im_Prim);
-         Optional_Cards_Ext  : String_80_Array := Elements.Generate_Cards(Im_Ext);
-      begin
-
-         if(Is_Primary)
-         then
-            Write_Card_Arr(File, Optional_Cards_Prim);
-         else
-            Write_Card_Arr(File, Optional_Cards_Ext);
-         end if;
-
-         Write_Card_Arr(File, Optional_Cards);
-
-         -- cache DU-access data
-
-         File.Cache.BITPIX := BITPIX;
-         File.Cache.Aui := Aui;
-
-         DU_Pos.Set_DU_Length(File.Pos, Data_Element_Count(NAXISn));
-         -- FIXME needed here? & cast!!
-
-      end;
-
-   end Write_Image;
-
-
    -- API later hide behind Create / Open(Out_Mode)
    procedure Write_Header_Prim -- Compose_Header
       (File       : in out File_Type;
@@ -257,14 +171,9 @@ package body FITS_IO is
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
    is
-      use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
-      Prim_First_Card : String_80_Array := Elements.Create_Card_SIMPLE(True);
-   begin
-      Write_Card_Arr(File, Prim_First_Card);
-      Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
-      Write_End(File);
-   end Write_Header_Prim;
+  begin
+      HDU.Write_Header_Prim(File.SIO_File, File.PHDU, Raw_Type, NAXISn, Optional_Cards);
+  end Write_Header_Prim;
 
 
    -- API later hide behind Open(Append_Mode)
@@ -274,13 +183,8 @@ package body FITS_IO is
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
    is
-      use Ada.Streams.Stream_IO;
-      Is_Primary : Boolean := (File.SIO_HDU_First = 1);
-      Ext_First_Card  : String_80_Array := Elements.Create_Card_XTENSION("'IMAGE   '");
    begin
-      Write_Card_Arr(File, Ext_First_Card);
-      Write_Image(File, Raw_Type, NAXISn, Optional_Cards, Is_Primary);
-      Write_End(File);
+      HDU.Write_Header_Ext(File.SIO_File, File.PHDU, Raw_Type, NAXISn, Optional_Cards);
    end Write_Header_Ext;
 
 
@@ -290,12 +194,8 @@ package body FITS_IO is
       (File       : in out File_Type;
       Cards : String_80_Array)
    is
-      Ix : SIO.Positive_Count := 1;
    begin
-      -- position File-Index at END-card
-      SIO.Set_Index(File.SIO_File, DU_Pos.Get_ENDCard_Pos(File.Pos));
-      Write_Card_Arr(File, Cards);  -- start writing Cards (overwrites existing ENDCard)
-      Write_End(File);              -- writes new END-card and padding
+      HDU.Write_Cards(File.SIO_File, File.PHDU, Cards);
    end Write_Cards;
 
 

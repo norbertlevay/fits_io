@@ -86,19 +86,22 @@ package HDU is
 
 
    procedure Write_Header_Prim
-      (File       : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array);
 
    procedure Write_Header_Ext
-      (File       : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      File       : in out HDU_Type;
       Raw_Type    : DU_Type;
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array);
 
    procedure Write_Cards
-      (File       : in out HDU_Type;
+      (SIO_File : SIO.File_Type;
+      File       : in out HDU_Type;
       Cards : String_80_Array);
 
 
