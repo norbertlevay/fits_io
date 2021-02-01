@@ -14,6 +14,7 @@ project examples is
    for Main use (
       "create.adb"
       ,"minmax.adb"
+      ,"scopium2.adb"
      -- ,"minmax_all_types.adb"
      -- ,"minmax_v3.adb"
      -- ,"init_test.adb"
@@ -23,7 +24,6 @@ project examples is
      -- ,"reserved_keys.adb"
      -- ,"cutout.adb"
      -- ,"undefvals.adb"
-     -- ,"scopium.adb"
      -- ,"testnum.adb"
       );
 
