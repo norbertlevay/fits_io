@@ -19,6 +19,8 @@ with FITS_IO;
 with Ada.Strings;
 with Ada.Strings.Fixed;
 
+with Debayer;
+
 procedure scopium2
 is
 
@@ -81,6 +83,8 @@ begin
    InStream := SIO.Stream(InFile);
    SIO.Set_Index(InFile, 1 + SIO.Positive_Count((Frame_Index - 1) * Frame_Size));
    V3T.U8_Arr'Read(InStream, Frame);
+
+   Debayer.Closest_Neighbour(RowsCnt, Frame);
 
    DU_Write(OutFile, Frame);
 
