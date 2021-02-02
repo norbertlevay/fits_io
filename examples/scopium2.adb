@@ -4,6 +4,7 @@
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;
 
 with FITS;
@@ -24,36 +25,36 @@ with Debayer;
 procedure scopium2
 is
 
- package TIO renames Ada.Text_IO;
- package SIO renames Ada.Streams.Stream_IO;
- package V3T renames FITS_IO.V3_Types_For_DU;
- package FIO renames FITS_IO;
+   package TIO renames Ada.Text_IO;
+   package SIO renames Ada.Streams.Stream_IO;
+   package V3T renames FITS_IO.V3_Types_For_DU;
+   package FIO renames FITS_IO;
 
 
- InFileName : constant String := Argument(1);
- InFile     : SIO.File_Type;
+   InFileName : constant String := Argument(1);
+   InFile     : SIO.File_Type;
 
 
- -- create Header
+   -- create Header
+   use FITS;
+   ScanLen : constant FITS.Positive_Count := 640;
+   ScanCnt : constant FITS.Positive_Count := 513;
+   NAXISn : FITS.NAXIS_Array := (ScanLen, ScanCnt);
 
- ColsCnt : constant FITS.Positive_Count := 640;
- RowsCnt : constant FITS.Positive_Count := 513;
- NAXISn : FITS.NAXIS_Array := (ColsCnt, RowsCnt);
-
- use FITS;
-   Frame_Size : FITS.Positive_Count := ColsCnt * RowsCnt;
+   use FITS;
+   Frame_Size : FITS.Positive_Count := ScanCnt * ScanLen;
    Frame : V3T.U8_Arr(1 .. Frame_Size);
    Frame_Index : FITS.Positive_Count := FITS.Positive_Count'Value(Argument(2));
 
    InStream : SIO.Stream_Access;
-use SIO;
+   use SIO;
 
 
--- FITS OutFile
+   -- FITS OutFile
 
- procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
- File_Name : constant String := Command_Name & "_" & Ada.Strings.Fixed.Trim(FITS.Positive_Count'Image(Frame_Index), Ada.Strings.Both)    & ".fits";
- OutFile  : FITS_IO.File_Type;
+   procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
+   File_Name : constant String := Command_Name & "_" & Ada.Strings.Fixed.Trim(FITS.Positive_Count'Image(Frame_Index), Ada.Strings.Both)    & ".fits";
+   OutFile  : FITS_IO.File_Type;
 
 
 
@@ -64,10 +65,10 @@ use SIO;
    end Valued_Card;
 
 
-    use Optional.BS70;
-     Array_Cards : String_80_Array :=
-                (Valued_Card(BZERO,    1*    "0.0"),
-                 Valued_Card(BSCALE,   1*    "1.0"));
+   use Optional.BS70;
+   Array_Cards : String_80_Array :=
+      (Valued_Card(BZERO,    1*    "0.0"),
+   Valued_Card(BSCALE,   1*    "1.0"));
 
 
 
@@ -84,19 +85,16 @@ begin
    SIO.Set_Index(InFile, 1 + SIO.Positive_Count((Frame_Index - 1) * Frame_Size));
    V3T.U8_Arr'Read(InStream, Frame);
 
-   Debayer.Closest_Neighbour(RowsCnt, Frame);
+   Debayer.Closest_Neighbour(ScanLen, Frame);
 
    DU_Write(OutFile, Frame);
 
    FIO.Close(OutFile);
    SIO.Close(InFile);
 
- exception
+exception
 
-  when Except_ID : others =>
-     declare
-      Error : Ada.Text_IO.File_Type := Standard_Error;
-     begin
-      Put_Line(Error, Exception_Information( Except_ID ) );
-     end;
+   when Except_ID : others =>
+      TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
+      TIO.Put_Line(TIO.Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
 end scopium2;

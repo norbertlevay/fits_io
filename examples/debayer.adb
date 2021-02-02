@@ -10,53 +10,68 @@ package body Debayer is
    package TIO renames Ada.Text_IO;
 
    procedure Closest_Neighbour
-      (Col_Length : Positive_Count;
+      (Scan_Length : Positive_Count;
       Frame : in out U8_Array)
    is
-      Ix_First, Ix_Last : Positive_Count;
+      Ix_First, Ix_Last,I : Positive_Count;
       Odd : Count := 1;
       Red, Gr1, Gr2, Blue : Positive_Count; -- indexes
       Val : Unsigned_8;
-      Do_Calc : Boolean := True;
    begin
       TIO.Put_Line("Closest_Neighbour");
 
-      while(Odd < (RowsCnt - 2)) -- 1 .. 511=(513 - 2)
+      while(Odd < (ScanCnt - 2)) -- 1 .. 511=(513 - 2)
          loop
 
-            Odd := Odd + 2;
+            Ix_First := Frame'First + ((Odd - 1)*ScanLen);
+            Ix_Last  := Ix_First + ScanLen - 1;
 
-            Ix_First := Frame'First + ((Odd - 1)*ColsCnt);
-            Ix_Last  := Ix_First + ColsCnt - 1;
-
-            TIO.Put(Count'Image(Odd) &": " & Count'Image(1 + Ix_Last - Ix_First) & " = " & Count'Image(Ix_First)& " " & Count'Image(Ix_Last) );
-                  TIO.New_Line;
+--            TIO.Put(Count'Image(Odd) &": " & Count'Image(1 + Ix_Last - Ix_First) & " = " & Count'Image(Ix_First)& " " & Count'Image(Ix_Last) );
+--             TIO.New_Line;
 
 
-            Do_Calc := True;
-            for I in Ix_First .. Ix_Last
-            loop
+--            TIO.Put_Line("------- New Scan -------");
 
-               if(Do_Calc)
-               then
+            I := Ix_First;
+            while(I <= Ix_Last)
+               loop
+
 
                   Red := I;
-                  Gr1 := Red + 1;
-                  Gr2 := Red + ColsCnt;
-                  Blue := Gr2 + 1;
+                  Gr1 := Red + ScanLen;
+                  Blue := Gr1 + ScanLen;
+                  --Gr2 := Blue + 1;
 
-                  Val := Frame(Red)/4 + Frame(Gr1)/4 + Frame(Gr2)/4 + Frame(Blue)/4;
+                  -- FIXME raw video moon.raw was actually rgb24 not Bayer RGGB
+                  -- take new video, and set back to de-Bayer RGGB
+
+                  Val := Frame(Red)/3 + Frame(Gr1)/3 + Frame(Blue)/3;
 
                   Frame(Red) := Val;
                   Frame(Gr1) := Val;
-                  Frame(Gr2) := Val;
+--                  Frame(Gr2) := Val;
                   Frame(Blue) := Val;
 
-               end if;
+                  if(I = 1)
+                  then
+                     Frame(Red) := 0;
+                     Frame(Gr1) := 10;
+                    -- Frame(Gr2) := 10;
+                     Frame(Blue) := 3;
+                  end if;
+                  if(I = 3)
+                  then
+                     Frame(Red) := 0;
+                     Frame(Gr1) := 10;
+                     --Frame(Gr2) := 10;
+                     Frame(Blue) := 3;
+                  end if;
 
-               Do_Calc := not Do_Calc;
+                  I := I + 1;
 
-            end loop;
+               end loop;
+
+               Odd := Odd + 3;
 
          end loop;
 
