@@ -37,7 +37,7 @@ is
 
    -- create Header
    use FITS;
-   ScanLen : constant FITS.Positive_Count := 640;
+   ScanLen : constant FITS.Positive_Count := 640*3;
    ScanCnt : constant FITS.Positive_Count := 513;
    NAXISn : FITS.NAXIS_Array := (ScanLen, ScanCnt);
 
@@ -70,7 +70,7 @@ is
       (Valued_Card(BZERO,    1*    "0.0"),
    Valued_Card(BSCALE,   1*    "1.0"));
 
-
+   Ix_First, Ix_Last : FITS.Count;
 
 begin
 
@@ -87,7 +87,12 @@ begin
 
    Debayer.Closest_Neighbour(ScanLen, Frame);
 
-   DU_Write(OutFile, Frame);
+   for I in 1 .. 513
+   loop
+      Ix_First := Frame'First + ScanLen*FITS.Count(I-1);
+      Ix_Last  := Ix_First + ScanLen - 1;
+      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
+   end loop;
 
    FIO.Close(OutFile);
    SIO.Close(InFile);

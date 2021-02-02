@@ -8,7 +8,7 @@ package Debayer is
    subtype Positive_Count is FITS.Positive_Count;
    subtype U8_Array is V3T.U8_Arr;
 use FITS;
-   ScanLen : constant Positive_Count := 640;
+   ScanLen : constant Positive_Count := 640*3;
    ScanCnt : constant Positive_Count := 513;
 
    use FITS;
