@@ -39,7 +39,7 @@ is
    use FITS;
    ScanLen : constant FITS.Positive_Count := 640*3;
    ScanCnt : constant FITS.Positive_Count := 513;
-   NAXISn : FITS.NAXIS_Array := (ScanLen, ScanCnt);
+   NAXISn : FITS.NAXIS_Array := (640, ScanCnt);
 
    use FITS;
    Frame_Size : FITS.Positive_Count := ScanCnt * ScanLen;
@@ -53,10 +53,11 @@ is
    -- FITS OutFile
 
    procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
-   File_Name : constant String := Command_Name & "_" & Ada.Strings.Fixed.Trim(FITS.Positive_Count'Image(Frame_Index), Ada.Strings.Both)    & ".fits";
+   File_Name : constant String := Command_Name & "_" 
+               & Ada.Strings.Fixed.Trim(
+                  FITS.Positive_Count'Image(Frame_Index),Ada.Strings.Both)
+              & ".fits";
    OutFile  : FITS_IO.File_Type;
-
-
 
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
    is  
@@ -85,12 +86,12 @@ begin
    SIO.Set_Index(InFile, 1 + SIO.Positive_Count((Frame_Index - 1) * Frame_Size));
    V3T.U8_Arr'Read(InStream, Frame);
 
-   Debayer.Closest_Neighbour(ScanLen, Frame);
+   Debayer.Grey_8(ScanLen, Frame);
 
    for I in 1 .. 513
    loop
-      Ix_First := Frame'First + ScanLen*FITS.Count(I-1);
-      Ix_Last  := Ix_First + ScanLen - 1;
+      Ix_First := Frame'First + 3*640*FITS.Count(I-1);
+      Ix_Last  := Ix_First + 640 - 1;
       DU_Write(OutFile, Frame(Ix_First..Ix_Last));
    end loop;
 
