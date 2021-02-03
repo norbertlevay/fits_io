@@ -82,12 +82,12 @@ begin
    Put_Line("Usage  " & Command_Name & "<filename.fits> <Frame_Index>");
 
 
-   SIO.Open (InFile, SIO.In_File, InFileName);
-   FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
-   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
-
+   SIO.Open  (InFile,  SIO.In_File,         InFileName);
+   FIO.Create(OutFile, FITS_IO.Append_File, File_Name);
    InStream  := SIO.Stream(InFile);
    OutStream := FIO.Stream(OutFile);
+
+   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
 
    SIO.Set_Index(InFile, 1 + SIO.Count((Frame_Index - 1) * Frame_Size) );
 
@@ -95,12 +95,7 @@ begin
 
    Debayer.Closest_Neighbour(ScanLen, Frame);
 
-   for I in 1 .. ScanCnt
-   loop
-      Ix_First := Frame'First + ScanLen * FITS.Count(I-1);
-      Ix_Last  := Ix_First + ScanLen - 1;
-      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
-   end loop;
+   DU_Write(OutFile, Frame);
 
    FIO.Close(OutFile);
    SIO.Close(InFile);
@@ -110,4 +105,14 @@ exception
       TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
       TIO.Put_Line(TIO.Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
 end scopium;
+--
+-- NOTE Frame is quite big for stack. Write by scanlines:
+-- 
+--   for I in 1 .. ScanCnt
+--   loop
+--      Ix_First := Frame'First + ScanLen * FITS.Count(I-1);
+--      Ix_Last  := Ix_First + ScanLen - 1;
+--      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
+--   end loop;
+
 
