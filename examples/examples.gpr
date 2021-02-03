@@ -14,7 +14,7 @@ project examples is
    for Main use (
       "create.adb"
       ,"minmax.adb"
-      ,"scopium2.adb"
+      ,"scopium.adb"
       ,"scopium_raw.adb"
      -- ,"minmax_all_types.adb"
      -- ,"minmax_v3.adb"

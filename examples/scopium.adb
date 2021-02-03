@@ -1,125 +1,113 @@
---
--- Example create & write small FITS file
---
--- "small" meaning data (and header) fit into memory (heap).
+
+
 
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;
 
-with V3_Types;        use V3_Types;
-with Keyword_Record;  use Keyword_Record; -- FPositive needed
-with Mandatory;       use Mandatory;      -- NAXISn_Arr needed
-with Optional;        use Optional;       -- Card_Arr & ENDCard needed 
-with Header;          use Header;         -- needed to setup Header-record
-with Raw.Data_Unit;                       -- writes data unit
---with DU_Type.Physical.Data_Unit;          -- writes data unit
-with V3_Pool_Scaling; use V3_Pool_Scaling;
+with FITS;
+with FITS_IO.V3_Types_For_DU;
+with V3_Types;
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
---with File.Misc;       use File.Misc; -- needs Write_Padding for Header
+with Optional;
+with Optional.Reserved; use Optional.Reserved;
+with Card;
+with FITS_IO;
 
-with Image;
-with DU_Type;
-with DU_Type.Physical;
-with Scaling;
+with Ada.Strings;
+with Ada.Strings.Fixed;
+
+with Debayer;
 
 procedure scopium
 is
 
- package TIO renames Ada.Text_IO;
- package SIO renames Ada.Streams.Stream_IO;
-
- FileName : constant String := Command_Name & ".fits";
- File     : SIO.File_Type;
-
- InFileName : constant String := Argument(1);
- InFile     : SIO.File_Type;
+   package TIO renames Ada.Text_IO;
+   package SIO renames Ada.Streams.Stream_IO;
+   package V3T renames FITS_IO.V3_Types_For_DU;
+   package FIO renames FITS_IO;
 
 
-
- -- create Header
-
- ColsCnt : constant SIO.Positive_Count := 640;
- RowsCnt : constant SIO.Positive_Count := 512;
- NAXISn : NAXIS_Arr := (ColsCnt, RowsCnt);
-
- -- FIXME these vals below should be calculated from InFile or inside Image
- OptCards  : Card_Arr :=
-            (
-                Create_Card("DATAMIN",  "0"),
-                Create_Card("DATAMAX","255")
-            );
-
- package ScImage is new Image(Unsigned_8, NAXISn, OptCards);
+   InFileName : constant String := Argument(1);
+   InFile     : SIO.File_Type;
 
 
- -- callback to generate data values
+   -- create Header
+   use FITS;
+   ScanLen : constant FITS.Positive_Count := 640;
+   ScanCnt : constant FITS.Positive_Count := 512;
+   NAXISn : FITS.NAXIS_Array := (ScanLen, ScanCnt);
 
- BlkCnt : SIO.Positive_Count := 1;
--- is in V3_Types type U8_Arr is array (SIO.Positive_Count range <>) of Unsigned_8;
+   use FITS;
+   Frame_Size : FITS.Positive_Count := ScanCnt * ScanLen;
+   Frame : V3T.U8_Arr(1 .. Frame_Size);
+   Frame_Index : FITS.Positive_Count := FITS.Positive_Count'Value(Argument(2));
 
- package U8_Raw is new Raw(Unsigned_8);--, U8_Arr);
-
- procedure DUData(Data : out U8_Raw.T_Arr)
- is
-   use SIO; -- NOTE 'mod' "+" : 'operator not visible'
- begin
-     U8_Raw.T_Arr'Read(SIO.Stream(InFile),Data);
-     BlkCnt := BlkCnt + 1;
- end DUData;
-
- package U8_Raw_DU is new U8_Raw.Data_Unit;
- procedure U8_Write_Data_Unit is new U8_Raw_DU.Write_Data_Unit(0, DUData);
+   InStream : SIO.Stream_Access;
+   use SIO;
 
 
- -- do in Physical domain (not Raw)
+   -- FITS OutFile
 
- ElemCnt : SIO.Positive_Count := 1;
- procedure DUElem(Data : out Unsigned_8)
- is
-   use SIO; -- NOTE 'mod' "+" : 'operator not visible'
- begin
-     Unsigned_8'Read(SIO.Stream(InFile),Data);
-     ElemCnt := ElemCnt + 1;
- end DUElem;
+   procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
+
+   File_Name : constant String := InFileName & ".frame_" 
+               & Ada.Strings.Fixed.Trim(
+                  FITS.Positive_Count'Image(Frame_Index),Ada.Strings.Both)
+              & ".fits";
+
+   OutFile   : FITS_IO.File_Type;
+   OutStream : SIO.Stream_Access;
 
 
- package  U8_Scaling is new Scaling(Unsigned_8, Float_32, Unsigned_8);
+   function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
+   is  
+   begin
+      return Card.Create_Card(BS_8.To_String(Key), BS70.To_String(Value));
+   end Valued_Card;
 
- package U8 is new DU_Type(Unsigned_8, Float_32, Unsigned_8);
- package U8_Phys is new U8.Physical(U8_Scaling,U8_Scaling);--(Unsigned_8);
- --package U8_Phys_DU is new U8_Phys.Data_Unit;
- procedure U8_Write_Data_Unit_Phys is new U8_Phys.Write_Data_Unit(0, DUElem);
+
+   use Optional.BS70;
+   Array_Cards : String_80_Array :=
+         (Valued_Card(BZERO,    1*    "0.0"),
+          Valued_Card(BSCALE,   1*    "1.0"));
+
+   Ix_First, Ix_Last : FITS.Count;
 
 begin
 
- Put_Line("Usage  " & Command_Name );
- Put_Line("Writing " & FileName & " ... ");
+   Put_Line("Usage  " & Command_Name & "<filename.fits> <Frame_Index>");
 
- SIO.Open (InFile, SIO.In_File, InFileName);
- SIO.Create (File, SIO.Out_File, FileName);
- -- FIXME check behaviour AdaRM: overwrites if file already exists ?
- -- FIXME if AdaRM says SIO.Create guarantees File Index
- -- to be 1 after Create ? Otherwise call Set_Index(File,1)
 
- Header.Write_Card_SIMPLE(File, True);
- Header.Write_Cards(File, ScImage.To_Cards(Unsigned_8'Size));
- Header.Close(File);
- 
--- U8_Phys.Init_Undef_For_Write(U8Dummy1_Valid, U8Dummy1, U8Dummy2_Valid, U8Dummy2);
- U8_Write_Data_Unit_Phys(File, NAXISn,0.0,1.0);
+   SIO.Open (InFile, SIO.In_File, InFileName);
+   FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
+   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
 
- SIO.Close(File);
- SIO.Close(InFile);
+   InStream  := SIO.Stream(InFile);
+   OutStream := FIO.Stream(OutFile);
 
- exception
+   SIO.Set_Index(InFile, 1 + SIO.Count((Frame_Index - 1) * Frame_Size) );
 
-  when Except_ID : others =>
-     declare
-      Error : Ada.Text_IO.File_Type := Standard_Error;
-     begin
-      Put_Line(Error, Exception_Information( Except_ID ) );
-     end;
+   V3T.U8_Arr'Read(InStream, Frame);
+
+   Debayer.Closest_Neighbour(ScanLen, Frame);
+
+   for I in 1 .. ScanCnt
+   loop
+      Ix_First := Frame'First + ScanLen * FITS.Count(I-1);
+      Ix_Last  := Ix_First + ScanLen - 1;
+      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
+   end loop;
+
+   FIO.Close(OutFile);
+   SIO.Close(InFile);
+
+exception
+   when Except_ID : others =>
+      TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
+      TIO.Put_Line(TIO.Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
 end scopium;
 
