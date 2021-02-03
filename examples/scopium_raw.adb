@@ -44,7 +44,7 @@ is
 
    Frame_Index : SIO.Positive_Count := SIO.Positive_Count'Value(Argument(2));
    File_Name : constant String
-               := Command_Name & "_" 
+               := InFileName & ".frame_" 
                & STR.Fixed.Trim(SIO.Positive_Count'Image(Frame_Index), STR.Both)
                & ".raw";
 
@@ -70,6 +70,9 @@ begin
    Put_Line("Usage  " & Command_Name & "<filename.fits> <Frame_Index>");
 
    SIO.Open   (InFile,  SIO.In_File,     InFileName);
+   Put_Line(InFileName & " contains "
+         &  SIO.Count'Image(SIO.Size(InFile) / Frame_Size) & " RGB24-frames");
+
    SIO.Create (OutFile, SIO.Append_File, File_Name);
    InStream  := SIO.Stream(InFile);
    OutStream := SIO.Stream(OutFile);
