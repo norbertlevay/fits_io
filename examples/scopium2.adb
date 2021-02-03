@@ -56,8 +56,10 @@ is
    File_Name : constant String := Command_Name & "_" 
                & Ada.Strings.Fixed.Trim(
                   FITS.Positive_Count'Image(Frame_Index),Ada.Strings.Both)
-              & ".fits";
-   OutFile  : FITS_IO.File_Type;
+              & ".raw";
+--   OutFile  : FITS_IO.File_Type;
+   OutFile  : SIO.File_Type;
+   OutStream : SIO.Stream_Access;
 
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
    is  
@@ -79,23 +81,27 @@ begin
 
 
    SIO.Open (InFile, SIO.In_File, InFileName);
-   FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
-   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
+   SIO.Create (OutFile, SIO.Append_File, File_Name);
+   --FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
+--   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
 
    InStream := SIO.Stream(InFile);
+   OutStream := SIO.Stream(OutFile);
    SIO.Set_Index(InFile, 1 + SIO.Positive_Count((Frame_Index - 1) * Frame_Size));
    V3T.U8_Arr'Read(InStream, Frame);
+   V3T.U8_Arr'Write(OutStream, Frame);
 
-   Debayer.Grey_8(ScanLen, Frame);
+   --Debayer.Grey_8(ScanLen, Frame);
 
-   for I in 1 .. 513
-   loop
-      Ix_First := Frame'First + 3*640*FITS.Count(I-1);
-      Ix_Last  := Ix_First + 640 - 1;
-      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
-   end loop;
+--   for I in 1 .. 513
+--   loop
+--      Ix_First := Frame'First + 3*640*FITS.Count(I-1);
+--      Ix_Last  := Ix_First + 640 - 1;
+--      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
+--   end loop;
 
-   FIO.Close(OutFile);
+   SIO.Close(OutFile);
+   --FIO.Close(OutFile);
    SIO.Close(InFile);
 
 exception

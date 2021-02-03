@@ -15,6 +15,7 @@ project examples is
       "create.adb"
       ,"minmax.adb"
       ,"scopium2.adb"
+      ,"scopium_raw.adb"
      -- ,"minmax_all_types.adb"
      -- ,"minmax_v3.adb"
      -- ,"init_test.adb"
