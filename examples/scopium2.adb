@@ -37,9 +37,9 @@ is
 
    -- create Header
    use FITS;
-   ScanLen : constant FITS.Positive_Count := 640*3;
-   ScanCnt : constant FITS.Positive_Count := 513;
-   NAXISn : FITS.NAXIS_Array := (640, ScanCnt);
+   ScanLen : constant FITS.Positive_Count := 640;
+   ScanCnt : constant FITS.Positive_Count := 512;
+   NAXISn : FITS.NAXIS_Array := (ScanLen, ScanCnt);
 
    use FITS;
    Frame_Size : FITS.Positive_Count := ScanCnt * ScanLen;
@@ -53,13 +53,15 @@ is
    -- FITS OutFile
 
    procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
-   File_Name : constant String := Command_Name & "_" 
+
+   File_Name : constant String := InFileName & ".frame_" 
                & Ada.Strings.Fixed.Trim(
                   FITS.Positive_Count'Image(Frame_Index),Ada.Strings.Both)
-              & ".raw";
---   OutFile  : FITS_IO.File_Type;
-   OutFile  : SIO.File_Type;
+              & ".fits";
+
+   OutFile   : FITS_IO.File_Type;
    OutStream : SIO.Stream_Access;
+
 
    function Valued_Card(Key : BS_8.Bounded_String; Value : BS70.Bounded_String) return String_80
    is  
@@ -70,8 +72,8 @@ is
 
    use Optional.BS70;
    Array_Cards : String_80_Array :=
-      (Valued_Card(BZERO,    1*    "0.0"),
-   Valued_Card(BSCALE,   1*    "1.0"));
+         (Valued_Card(BZERO,    1*    "0.0"),
+          Valued_Card(BSCALE,   1*    "1.0"));
 
    Ix_First, Ix_Last : FITS.Count;
 
@@ -81,32 +83,33 @@ begin
 
 
    SIO.Open (InFile, SIO.In_File, InFileName);
-   SIO.Create (OutFile, SIO.Append_File, File_Name);
-   --FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
---   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
+   FIO.Create (OutFile, FITS_IO.Append_File, File_Name);
+   FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
 
-   InStream := SIO.Stream(InFile);
-   OutStream := SIO.Stream(OutFile);
-   SIO.Set_Index(InFile, 1 + SIO.Positive_Count((Frame_Index - 1) * Frame_Size));
+   InStream  := SIO.Stream(InFile);
+   OutStream := FIO.Stream(OutFile);
+
+   SIO.Set_Index(InFile, 1 + SIO.Count((Frame_Index - 1) * Frame_Size) );
+
+   TIO.Put_Line("Fr Length : " & SIO.Count'Image(Frame'Length));
+
    V3T.U8_Arr'Read(InStream, Frame);
-   V3T.U8_Arr'Write(OutStream, Frame);
 
-   --Debayer.Grey_8(ScanLen, Frame);
+   Debayer.Closest_Neighbour(ScanLen, Frame);
 
---   for I in 1 .. 513
---   loop
---      Ix_First := Frame'First + 3*640*FITS.Count(I-1);
---      Ix_Last  := Ix_First + 640 - 1;
---      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
---   end loop;
+   for I in 1 .. ScanCnt
+   loop
+      Ix_First := Frame'First + ScanLen * FITS.Count(I-1);
+      Ix_Last  := Ix_First + ScanLen - 1;
+      DU_Write(OutFile, Frame(Ix_First..Ix_Last));
+   end loop;
 
-   SIO.Close(OutFile);
-   --FIO.Close(OutFile);
+   FIO.Close(OutFile);
    SIO.Close(InFile);
 
 exception
-
    when Except_ID : others =>
       TIO.Put_Line(TIO.Standard_Error, Exception_Information(Except_ID));
       TIO.Put_Line(TIO.Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback(Except_ID));
 end scopium2;
+
