@@ -430,13 +430,6 @@ package body FITS_IO is
 
       Is_Last_Write := (DU_Item_Last >= DU_Last);
 
-      TIO.Put(Integer'Image(Item'Length));
-      TIO.Put(FITS.Positive_Count'Image(DU_Curr_Ix));
-      TIO.Put(FITS.Positive_Count'Image(DU_Last));
-      TIO.Put(Integer'Image(Item'Length));
-      TIO.Put(Count'Image(Last));
-      TIO.New_Line;
-
 
       -- Set Undefined value
 
@@ -459,9 +452,6 @@ package body FITS_IO is
 
       end if;
 
-         TIO.Put(Count'Image(Item'First));
-         TIO.Put(Count'Image(Last));
- 
       declare
         Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
       begin

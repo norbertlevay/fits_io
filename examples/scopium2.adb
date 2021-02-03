@@ -91,8 +91,6 @@ begin
 
    SIO.Set_Index(InFile, 1 + SIO.Count((Frame_Index - 1) * Frame_Size) );
 
-   TIO.Put_Line("Fr Length : " & SIO.Count'Image(Frame'Length));
-
    V3T.U8_Arr'Read(InStream, Frame);
 
    Debayer.Closest_Neighbour(ScanLen, Frame);
