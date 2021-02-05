@@ -36,7 +36,6 @@ with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
 with Cache; use Cache; -- Access_Rec & Cache_Rec
-with DU_Pos; use DU_Pos; -- Pos_Rec
 with System.File_Control_Block; -- GNAT specific
 
 with FITS;
@@ -225,12 +224,6 @@ package FITS_IO is
    type File_Type is record
       SIO_File  : SIO.File_Type;
       PHDU : HDU.HDU_Type;
-
-      -- old , remove
---      SIO_HDU_First : SIO.Positive_Count; -- needed or always param only ?? FIXME
---      Pos     : DU_Pos.Pos_Rec;
---      Scaling : Access_Rec;-- load it at Write_Header_End and Read_Header
---     Cache   : Cache_Rec;
    end record;
 
    ----------------

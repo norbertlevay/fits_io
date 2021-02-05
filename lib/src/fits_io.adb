@@ -28,7 +28,7 @@ with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 with FITS_IO.V3_Types_For_DU;
 
-with File.Misc; -- DataPadding needed
+with File.Misc; -- Read Content uses
 
 with DU_Pos;
 
