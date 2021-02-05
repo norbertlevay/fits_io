@@ -194,7 +194,7 @@ package body HDU is
    end Write_Card_Arr;
 
 
-  procedure Write_Image
+   procedure Write_Image
       (SIO_File : SIO.File_Type;
       File       : in out HDU_Type;
       Raw_Type    : DU_Type;
@@ -374,7 +374,7 @@ package body HDU is
       if(HDU_Inited)
       then
          SIO_Index := DU_Pos.SE_Index(Ix,
-                                      AHDU.Pos.SIO_DU_First, AHDU.Scaling.BITPIX);
+         AHDU.Pos.SIO_DU_First, AHDU.Scaling.BITPIX);
          SIO.Set_Index(SIO_File, SIO_Index);
       else
          null; -- FIXME programming error: Set_Index called but HDU is empty
@@ -420,13 +420,14 @@ package body HDU is
       use FITS;
    begin
 
-      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
+      if(DU_Curr_Ix > DU_Last )
+      then
+         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Read");
+      end if;
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
-
-      --      Is_Last_Write := (DU_Item_Last >= DU_Last);
 
       -- Set Undefined value
 
@@ -450,7 +451,8 @@ package body HDU is
 
 
       declare
-         Loc_Item : T_Arr(Item'First .. Last);
+         --         Loc_Item : T_Arr(Item'First .. Last);
+         Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
       begin
 
          -- Scaling
@@ -496,16 +498,18 @@ package body HDU is
       -- FIXME all casts Pos Count <-> SIO Pos Count
 
       DU_Curr_Ix : Positive_Count := Index(SIO_File, AHDU);
-      DU_Last : constant Positive_Count := Positive_Count(DU_Pos.Get_DU_Last(AHDU.Pos));
+      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(AHDU.Pos);
       DU_Item_Last : Positive_Count;
       Is_Last_Write : Boolean := False;
       Last : Count;
-      use FITS;
    begin
 
       -- dont Write beyond end of Data Unit
 
-      if(DU_Curr_Ix > DU_Last ) then null; end if;-- FIXME raise error End-Of-DataUnit$
+      if(DU_Curr_Ix > DU_Last )
+     then
+          TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Write");
+      end if;
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
@@ -537,7 +541,8 @@ package body HDU is
 
 
       declare
-         Loc_Item : T_Arr := Item(Item'First .. Last);
+         --Loc_Item : T_Arr := Item(Item'First .. Last);
+         Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
       begin
 
          -- Scaling
@@ -561,7 +566,7 @@ package body HDU is
       if(Is_Last_Write)
       then
          File.Misc.Write_Padding(SIO_File,
-                        SIO.Index(SIO_File), File.Misc.DataPadValue);
+         SIO.Index(SIO_File), File.Misc.DataPadValue);
          DU_Pos.Set_DU_Padding_Written(AHDU.Pos,True);
       end if;
 

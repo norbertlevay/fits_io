@@ -162,7 +162,7 @@ package body FITS_IO is
       return  String_80_Array
    is
    begin
-        return HDU.Read_Cards(FFile.SIO_File, FFile.PHDU, Keys);
+      return HDU.Read_Cards(FFile.SIO_File, FFile.PHDU, Keys);
    end Read_Cards;
 
 
@@ -176,9 +176,9 @@ package body FITS_IO is
       NAXISn      : NAXIS_Array;
       Optional_Cards : String_80_Array)
    is
-  begin
+   begin
       HDU.Write_Header_Prim(File.SIO_File, File.PHDU, Raw_Type, NAXISn, Optional_Cards);
-  end Write_Header_Prim;
+   end Write_Header_Prim;
 
 
    -- API later hide behind Open(Append_Mode)
@@ -290,7 +290,7 @@ package body FITS_IO is
       if(HDU_Inited)
       then
          SIO_Index := DU_Pos.SE_Index(Ix,
-                                      File.PHDU.Pos.SIO_DU_First, File.PHDU.Cache.BITPIX);
+         File.PHDU.Pos.SIO_DU_First, File.PHDU.Cache.BITPIX);
          SIO.Set_Index(File.SIO_File, SIO_Index);
       else
          TIO.Put_Line("EXCEPT: ProgErr Set_Index called but HDU is empty");
@@ -298,190 +298,35 @@ package body FITS_IO is
    end Set_Index;
 
 
-
-   -- util FIXME get from some lib or dont use
-
-   function Min(A,B : Count) return Count
-   is  
-   begin
-      if (A > B) then return B; else return A; end if;
-   end Min;
-
-
    -- Data access
+
 
    procedure HDU_Read
       (FFile    : in out File_Type;
       Item : out T_Arr;
       Last : out Count)
-   is
-      type Float_Arr is array (Positive_Count range <>) of Float;
-      package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      use FITS_IO.V3_Types_For_DU;
-      package U8_AIO is new Array_IO(U8Raw, Physical);
-      package I16_AIO is new Array_IO(I16Raw, Physical);
-      package I32_AIO is new Array_IO(I32Raw, Physical);
-      package I64_AIO is new Array_IO(I64Raw, Physical);
-      package F32_AIO is new Array_IO(F32Raw, Physical);
-      package F64_AIO is new Array_IO(F64Raw, Physical);
-
-      Scaling : Access_Rec := FFile.PHDU.Scaling;
-
-      -- for padding & detect End_Of_Data_Unit
-
-      DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(FFile.PHDU.Pos);
-      DU_Item_Last : Positive_Count;
+    is
+      procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
    begin
-
-      if(DU_Curr_Ix > DU_Last )
-      then
-         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Read");
-      end if;
-
-      DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
-
-      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
-
-      -- Set Undefined value
-
-      if(Scaling.Undef_Used)
-      then
-
-         Physical.Set_Undefined(+Scaling.Undef_Phys);
-
-         case(Scaling.BITPIX) is
-            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when others =>
-               Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-      end if;
-
-
-      declare
-        -- Loc_Item : T_Arr(Item'First .. Last);
-        Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
-      begin
-
-         -- Scaling
-
-         case(Scaling.BITPIX) is
-            when   8 => U8_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Read(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when others =>
-               Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-         Item(Item'First .. Last) := Loc_Item;
-
-      end;
-
+      iRead(FFile.SIO_File, FFile.PHDU, Item, Last);
    end HDU_Read;
-
 
 
    procedure HDU_Write
       (FFile : in out File_Type;
       Item : T_Arr)
-   is
-      type Float_Arr is array (Positive_Count range <>) of Float;
-      package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      use FITS_IO.V3_Types_For_DU;
-      package U8_AIO is new Array_IO(U8Raw, Physical);
-      package I16_AIO is new Array_IO(I16Raw, Physical);
-      package I32_AIO is new Array_IO(I32Raw, Physical);
-      package I64_AIO is new Array_IO(I64Raw, Physical);
-      package F32_AIO is new Array_IO(F32Raw, Physical);
-      package F64_AIO is new Array_IO(F64Raw, Physical);
-
-      Scaling : Access_Rec := FFile.PHDU.Scaling;
-
-      -- for padding & detect End_Of_Data_Unit
-
-      -- FIXME all casts Pos Count <-> SIO Pos Count
-
-      DU_Curr_Ix : Positive_Count := Index(FFile);
-      DU_Last : constant Positive_Count := DU_Pos.Get_DU_Last(FFile.PHDU.Pos);
-      DU_Item_Last : Positive_Count;
-      Is_Last_Write : Boolean := False;
-      Last : Count;
+    is
+      procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
    begin
-
-      -- dont Write beyond end of Data Unit
-
-      if(DU_Curr_Ix > DU_Last )
-      then
-         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Write");
-      end if;
-
-      DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
-
-      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
-
-      Is_Last_Write := (DU_Item_Last >= DU_Last);
-
-
-      -- Set Undefined value
-
-      if(Scaling.Undef_Used)
-      then
-
-         Physical.Set_Undefined(+Scaling.Undef_Phys);
-
-         case(Scaling.BITPIX) is
-            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when others =>
-               Raise_Exception(Programming_Error'Identity,
-               "BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-      end if;
-
-      declare
-        Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
-      begin
-
-         -- Scaling
-
-         case(Scaling.BITPIX) is
-            when   8 =>  U8_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Write(Stream(FFile), Scaling.A,Scaling.B, Loc_Item);
-            when others =>
-               Raise_Exception(Programming_Error'Identity,
-               "BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-      end;
-
-      -- add padding if wrote last data in Data Unit
-
-      if(Is_Last_Write)
-      then
-         File.Misc.Write_Padding(FFile.SIO_File,
-                     SIO.Index(FFile.SIO_File), File.Misc.DataPadValue);
-         DU_Pos.Set_DU_Padding_Written(FFile.PHDU.Pos,True);
-      end if;
-
+      iWrite(FFile.SIO_File, FFile.PHDU, Item);
    end HDU_Write;
+
+
+
+
+
+
+
 
 
    ----------------
