@@ -333,44 +333,27 @@ package body FITS_IO is
    -- HDU Stream --
    ----------------
 
-   function AFCB_Allocate (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr is
-      pragma Warnings (Off, Control_Block);
-   begin
-      return new HDU_Stream_AFCB;
-   end AFCB_Allocate;
-
-   procedure AFCB_Close (File : not null access HDU_Stream_AFCB) is
-      pragma Warnings (Off, File);
-   begin
-      null;
-   end AFCB_Close;
-
-   procedure AFCB_Free (File : not null access HDU_Stream_AFCB) is
-      type FCB_Ptr is access all HDU_Stream_AFCB;
-      FT : FCB_Ptr := FCB_Ptr (File);
-      procedure Free is new Ada.Unchecked_Deallocation (HDU_Stream_AFCB, FCB_Ptr);
-   begin
-      Free (FT);
-   end AFCB_Free;
-
-   --  This version of Read is the primitive operation on the underlying
+      --  This version of Read is the primitive operation on the underlying
    --  Stream type, used when a Stream_IO file is treated as a Stream
 
    procedure Read
-      (File : in out HDU_Stream_AFCB;
+      (File : in out File_Type;
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
+      procedure F32_HDU_Read is new HDU_Read(Float_32,F32_Arr);
    begin
-      null;-- FIXME implement
-      --HDU_Read (File'Unchecked_Access, Item, Last);
+      null;
+      -- FIXME in Stream_IO Read's Item is Strem_Element_Array, but here T_Arr
+--      F32_HDU_Read (File, Item, Last);
+      --F32_HDU_Read (File'Unchecked_Access, Item, Last);
    end Read;
 
    --  This version of Write is the primitive operation on the underlying
    --  Stream type, used when a Stream_IO file is treated as a Stream
 
    procedure Write
-      (File : in out HDU_Stream_AFCB;
+      (File : in out File_Type;
       Item : Ada.Streams.Stream_Element_Array)
    is
    begin

@@ -43,7 +43,7 @@ with HDU;
 
 package FITS_IO is
 
-   type HDU_Stream_Access is limited private;
+--   type HDU_Stream_Access is limited private;
 
    type File_Type is limited private;
 
@@ -221,59 +221,24 @@ package FITS_IO is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   type File_Type is record
+   type File_Type is new Ada.Streams.Root_Stream_Type with record
+   --type File_Type is record
       SIO_File  : SIO.File_Type;
       PHDU : HDU.HDU_Type;
    end record;
 
-   ----------------
-   -- HDU Stream --
-   ----------------
-
-   package FCB renames System.File_Control_Block;
-
-   type HDU_Stream_AFCB is new FCB.AFCB with record
-      Index : Count := 1;
-      --  Current Index value
-
-      -- FITS specific fields
-
-      ENDCard_Pos : Ada.Streams.Stream_IO.Positive_Count;-- keep track where is END-card
-      DU_First  : Ada.Streams.Stream_IO.Positive_Count; -- start of the DataUnit
-      DU_Length : Positive_Count;
-      Scaling  : Access_Rec;-- load it at Write_Header_End and Read_Header
-      Cache    : Cache_Rec;
- 
-   end record;
-
-   type HDU_Stream_Access is access all HDU_Stream_AFCB'Class;
-   type HDU_Type is access all HDU_Stream_AFCB;
-
-   overriding function AFCB_Allocate
-     (Control_Block : HDU_Stream_AFCB) return FCB.AFCB_Ptr;
-
-   overriding procedure AFCB_Close (File : not null access HDU_Stream_AFCB);
-   overriding procedure AFCB_Free  (File : not null access HDU_Stream_AFCB);
 
    overriding procedure Read
-     (File : in out HDU_Stream_AFCB;
+     (File : in out File_Type;
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset);
    --  Read operation used when Stream_IO file is treated directly as Stream
 
    overriding procedure Write
-     (File : in out HDU_Stream_AFCB;
+     (File : in out File_Type;
       Item : Ada.Streams.Stream_Element_Array);
    --  Write operation used when Stream_IO file is treated directly as Stream
 
-   -- FITS Header becomes HDU_Stream attributes: atribute set/get funcs
-   -- corrspong to Read_Cards Write_Cards
-   procedure Set
-     (File : in out HDU_Stream_AFCB;
-      Item : Ada.Streams.Stream_Element_Array) is null;
-   procedure Get
-     (File : in out HDU_Stream_AFCB;
-     Item : out Ada.Streams.Stream_Element_Array) is null;
 
 
 end FITS_IO;
