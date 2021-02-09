@@ -11,6 +11,7 @@ with Ada.Streams.Stream_IO;
 with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Unchecked_Deallocation;-- for HDU Stream
+with Ada.Tags;
 
 -- for File_Type / Stream
 with Header; -- Read Mandatory / Optional needed
@@ -33,6 +34,8 @@ with File.Misc; -- Read Content uses
 with DU_Pos;
 
 with FITS; use FITS;
+
+
 
 package body FITS_IO is
 
@@ -363,9 +366,20 @@ package body FITS_IO is
    is
       procedure SIntArrWrite is new HDU_SWrite(Short_Integer, SInt_Type_Arr);
       FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
+      use type Ada.Tags.Tag;
    begin
-      TIO.Put("SIntArr_Write");
-      SIntArrWrite(FS, Item);
+      TIO.Put("SIntArr_Write" );
+      if(FFile.all'Tag = FITS_Stream_Type'Tag)
+      then
+         TIO.Put(" FITS_Stream_Type ");
+         SIntArrWrite(FS, Item);
+         -- on FITS stream do scale and undef
+      else
+         SInt_Type_Arr'Write(FFile, Item);
+         -- on other Stream just do what Ada offers
+      end if;
+      -- NOTE what if I develop yet another Stream like Net_Stream or USB_Stream??
+      -- the overloaded func should recognize all Streams and trigger its own 'Write rutine ?
    end SIntArr_Write;
 
    procedure LLFloatArr_Read
@@ -377,7 +391,7 @@ package body FITS_IO is
       procedure LLFloatArrRead is new HDU_SRead(Long_Long_Float, LLFloat_Type_Arr);
       FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
    begin
-      TIO.Put("SIntArr_Write");
+      TIO.Put("LLFloatArr_Read");
       LLFloatArrRead(FS, Item, Last);
       -- FIXME error if Last /= Item'Length,  or ?
    end LLFloatArr_Read;

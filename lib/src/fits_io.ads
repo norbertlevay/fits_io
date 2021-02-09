@@ -36,7 +36,7 @@ with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
 with Cache; use Cache; -- Access_Rec & Cache_Rec
-with System.File_Control_Block; -- GNAT specific
+--with System.File_Control_Block; -- GNAT specific
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with FITS;
 with HDU;
