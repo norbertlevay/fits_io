@@ -98,8 +98,9 @@ begin
     declare
 
         --package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
-       type Phys_Type_Arr is array (FITS_IO.Positive_Count range <>) of Phys_Type;
-       procedure DU_Read is new FITS_IO.HDU_Read(Phys_Type, Phys_Type_Arr);
+       --type Phys_Type_Arr is array (FITS_IO.Positive_Count range <>) of Phys_Type;
+       subtype Phys_Type_Arr is LLFloat_Type_Arr;
+       --procedure DU_Read is new FITS_IO.HDU_Read(Phys_Type, Phys_Type_Arr);
 
         -- example of data elaboration: find min max and count undef values
 
@@ -138,7 +139,8 @@ begin
          for I in 1 .. RowLength
          loop
              --Phys_Data.Read(In_File, Curr_Col, Last);
-             DU_Read(In_File, Curr_Col, Last);
+             --DU_Read(In_File, Curr_Col, Last);
+             Phys_Type_Arr'Read(HDU_Stream(In_File), Curr_Col);
 
 --             TIO.New_Line;
 --             TIO.New_Line;

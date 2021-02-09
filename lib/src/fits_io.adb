@@ -106,6 +106,7 @@ package body FITS_IO is
    is
       SIO_HDU_First : SIO.Positive_Count;
    begin
+      File := FStream'Access;
       SIO.Open(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
       SIO_HDU_First := SIO.Index(File.SIO_File);
       HDU.Reset(File.PHDU, SIO_HDU_First);
