@@ -86,7 +86,8 @@ is
 
 --   package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
 --   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
-   type Phys_Type_Arr is array (Positive_Count range <>) of Phys_Type;
+--   type Phys_Type_Arr is array (Positive_Count range <>) of Phys_Type;
+   subtype Phys_Type_Arr is SInt_Type_Arr;--array (Positive_Count range <>) of Phys_Type;
    procedure DU_Write is new FITS_IO.HDU_Write(Phys_Type, Phys_Type_Arr);
    Write_Buffer : Phys_Type_Arr(1 .. ColLength);
 
@@ -140,6 +141,9 @@ is
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
 
+  -- type LStream_Type is access all FITS_IO.File_Type;
+--   Out_Stream : FITS_IO.Stream_Type := Out_File'Access;
+
 begin
 
    TIO.Put_Line("DBG  i> "&Phys_Type'Image(Phys_Undef_Value));
@@ -159,7 +163,8 @@ begin
  for I in 1 .. RowLength
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
-    DU_Write(Out_File, Write_Buffer);
+    --DU_Write(Out_File, Write_Buffer);
+    Phys_Type_Arr'Write(FITS_IO.HDU_Stream(Out_File), Write_Buffer);
  end loop;
 
  Close(Out_File);

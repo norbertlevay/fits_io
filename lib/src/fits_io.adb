@@ -78,17 +78,21 @@ package body FITS_IO is
    -- File Management --
    ---------------------
 
+   FStream : aliased FITS_Stream_Type; -- FIXME why aliased ??
+
    procedure Create
       (File : in out File_Type;
       Mode : File_Mode := Out_File;
       Name : String := ""; 
       Form : String := "")
    is
+--      FF : File_Type := File_Type(File);
       SIO_HDU_First : SIO.Positive_Count;
    begin
-      SIO.Create(File.SIO_File, To_SIO_Mode(Mode), Name, Form);
-      SIO_HDU_First := SIO.Index(File.SIO_File);
-      HDU.Reset(File.PHDU, SIO_HDU_First);
+      File := FStream'Access;
+      SIO.Create(File.all.SIO_File, To_SIO_Mode(Mode), Name, Form);
+      SIO_HDU_First := SIO.Index(File.all.SIO_File);
+      HDU.Reset(File.all.PHDU, SIO_HDU_First);
    end Create;
 
    procedure Open
@@ -305,7 +309,7 @@ package body FITS_IO is
       (FFile    : in out File_Type;
       Item : out T_Arr;
       Last : out Count)
-    is
+   is
       procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
    begin
       iRead(FFile.SIO_File, FFile.PHDU, Item, Last);
@@ -315,15 +319,54 @@ package body FITS_IO is
    procedure HDU_Write
       (FFile : in out File_Type;
       Item : T_Arr)
-    is
+   is
       procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
    begin
       iWrite(FFile.SIO_File, FFile.PHDU, Item);
    end HDU_Write;
 
 
+   procedure HDU_SRead
+      (FFile    : in out HDU_Stream_Access;
+      Item : out T_Arr;
+      Last : out Count)
+   is
+      --       FF : File_Type :=  (File_Type(FFile).all.SIO_File,
+      --        HDU_Stream_Access(FFile).all.PHDU);
+      procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+   begin
+      iRead(File_Type(FFile).all.SIO_File, File_Type(FFile).all.PHDU, Item, Last);
+   end HDU_SRead;
 
 
+   procedure HDU_SWrite
+      (FFile : in out HDU_Stream_Access;
+      Item : T_Arr)
+   is
+      File : File_Type := File_Type(FFile);--.all.SIO_File, File_Type(FFile).all.PHDU);
+      procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+   begin
+      iWrite(File.SIO_File, File.PHDU, Item);
+   end HDU_SWrite;
+
+
+   function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class
+   is
+   begin
+      return HDU_Stream_Access(File);
+      --return access Ada.Streams.Root_Stream_Type'Class(File);
+   end HDU_Stream;
+
+   procedure SIntArr_Write
+      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
+      Item : in SInt_Type_Arr)
+   is
+      procedure SIntArrWrite is new HDU_SWrite(Short_Integer, SInt_Type_Arr);
+      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
+   begin
+      TIO.Put("SIntArr_Write");
+      SIntArrWrite(FS, Item);
+   end SIntArr_Write;
 
 
 
@@ -333,11 +376,11 @@ package body FITS_IO is
    -- HDU Stream --
    ----------------
 
-      --  This version of Read is the primitive operation on the underlying
+   --  This version of Read is the primitive operation on the underlying
    --  Stream type, used when a Stream_IO file is treated as a Stream
 
    procedure Read
-      (File : in out File_Type;
+      (File : in out FITS_Stream_Type;
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
@@ -345,7 +388,7 @@ package body FITS_IO is
    begin
       null;
       -- FIXME in Stream_IO Read's Item is Strem_Element_Array, but here T_Arr
---      F32_HDU_Read (File, Item, Last);
+      --      F32_HDU_Read (File, Item, Last);
       --F32_HDU_Read (File'Unchecked_Access, Item, Last);
    end Read;
 
@@ -353,7 +396,7 @@ package body FITS_IO is
    --  Stream type, used when a Stream_IO file is treated as a Stream
 
    procedure Write
-      (File : in out File_Type;
+      (File : in out FITS_Stream_Type;
       Item : Ada.Streams.Stream_Element_Array)
    is
    begin

@@ -37,13 +37,13 @@ with Ada.Strings.Bounded;
 
 with Cache; use Cache; -- Access_Rec & Cache_Rec
 with System.File_Control_Block; -- GNAT specific
-
+with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with FITS;
 with HDU;
 
 package FITS_IO is
 
---   type HDU_Stream_Access is limited private;
+   type HDU_Stream_Access is limited private;
 
    type File_Type is limited private;
 
@@ -205,7 +205,45 @@ package FITS_IO is
       (FFile : in out File_Type;
        Item : T_Arr);
 
+   -- via Stream
 
+   generic
+   type T is private;
+   type T_Arr is array (Positive_Count range <>) of T;
+   with function "+"(V : in Float) return T     is <>; 
+   with function "+"(V : in T)     return Float is <>; 
+   with function Is_Undef  (V,U : in T) return Boolean is <>; 
+   with function To_BITPIX (V   : in T) return Integer is <>; 
+   procedure HDU_SRead
+      (FFile : in out HDU_Stream_Access;
+      Item : out T_Arr;
+      Last : out Count);
+
+
+   generic
+   type T is private;
+   type T_Arr is array (Positive_Count range <>) of T;
+   with function "+"(V : in Float) return T     is <>; 
+   with function "+"(V : in T)     return Float is <>; 
+   with function Is_Undef  (V,U : in T) return Boolean is <>; 
+   with function To_BITPIX (V   : in T) return Integer is <>; 
+   procedure HDU_SWrite
+      (FFile : in out HDU_Stream_Access;
+       Item : T_Arr);
+
+   -- FIXME instantiate for all FITSv3Types and do:
+   -- for VrType'Write use VrType_HDU_SWrite;
+
+   type SInt_Type_Arr is array (Positive_Count range <>) of Short_Integer;
+
+procedure SIntArr_Write
+      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
+      Item : in SInt_Type_Arr);
+
+   for SInt_Type_Arr'Write use SIntArr_Write;
+
+
+--   procedure SIntArr_Write is new FITS_IO.HDU_Write(Short_Integer, SInt_Type_Arr);
    ----------------
    -- Exceptions --
    ----------------
@@ -217,25 +255,34 @@ package FITS_IO is
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only
 
+   function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class;
+-- HDU_Stream_Access;
+
+
    private
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   type File_Type is new Ada.Streams.Root_Stream_Type with record
+
+   type FITS_Stream_Type is new Ada.Streams.Root_Stream_Type with record
    --type File_Type is record
       SIO_File  : SIO.File_Type;
       PHDU : HDU.HDU_Type;
    end record;
+   type File_Type is access all FITS_Stream_Type;
 
+--   type HDU_Stream_Access is access all File_Type'Class;
+   type HDU_Stream_Access is access  all Ada.Streams.Root_Stream_Type'Class;
+--   type HDU_Stream_Access is access all HDU_Stream_AFCB'Class
 
    overriding procedure Read
-     (File : in out File_Type;
+     (File : in out FITS_Stream_Type;
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset);
    --  Read operation used when Stream_IO file is treated directly as Stream
 
    overriding procedure Write
-     (File : in out File_Type;
+     (File : in out FITS_Stream_Type;
       Item : Ada.Streams.Stream_Element_Array);
    --  Write operation used when Stream_IO file is treated directly as Stream
 
