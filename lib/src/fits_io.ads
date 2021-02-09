@@ -235,15 +235,23 @@ package FITS_IO is
    -- for VrType'Write use VrType_HDU_SWrite;
 
    type SInt_Type_Arr is array (Positive_Count range <>) of Short_Integer;
+   type LLFloat_Type_Arr is array (Positive_Count range <>) of Long_Long_Float;
 
-procedure SIntArr_Write
+   procedure SIntArr_Write
       (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
       Item : in SInt_Type_Arr);
 
    for SInt_Type_Arr'Write use SIntArr_Write;
 
+   procedure LLFloatArr_Read
+      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
+      Item : out LLFloat_Type_Arr);
+--      Last : out Count);
 
---   procedure SIntArr_Write is new FITS_IO.HDU_Write(Short_Integer, SInt_Type_Arr);
+   for LLFloat_Type_Arr'Read use LLFloatArr_Read;
+
+
+
    ----------------
    -- Exceptions --
    ----------------
@@ -251,13 +259,10 @@ procedure SIntArr_Write
    End_Error         : exception renames Ada.IO_Exceptions.End_Error;
    Programming_Error : exception;
 
-
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only
 
    function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class;
--- HDU_Stream_Access;
-
 
    private
 
@@ -265,15 +270,14 @@ procedure SIntArr_Write
 
 
    type FITS_Stream_Type is new Ada.Streams.Root_Stream_Type with record
-   --type File_Type is record
       SIO_File  : SIO.File_Type;
       PHDU : HDU.HDU_Type;
    end record;
-   type File_Type is access all FITS_Stream_Type;
 
---   type HDU_Stream_Access is access all File_Type'Class;
+   type File_Type          is access all FITS_Stream_Type;
    type HDU_Stream_Access is access  all Ada.Streams.Root_Stream_Type'Class;
---   type HDU_Stream_Access is access all HDU_Stream_AFCB'Class
+
+
 
    overriding procedure Read
      (File : in out FITS_Stream_Type;

@@ -368,6 +368,20 @@ package body FITS_IO is
       SIntArrWrite(FS, Item);
    end SIntArr_Write;
 
+   procedure LLFloatArr_Read
+      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
+      Item : out LLFloat_Type_Arr)
+--      Last : out Count)
+   is
+      Last : Count;
+      procedure LLFloatArrRead is new HDU_SRead(Long_Long_Float, LLFloat_Type_Arr);
+      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
+   begin
+      TIO.Put("SIntArr_Write");
+      LLFloatArrRead(FS, Item, Last);
+      -- FIXME error if Last /= Item'Length,  or ?
+   end LLFloatArr_Read;
+
 
 
 
