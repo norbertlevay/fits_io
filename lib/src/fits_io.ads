@@ -35,11 +35,8 @@ with Ada.IO_Exceptions;
 with Ada.Streams.Stream_IO;
 with Ada.Strings.Bounded;
 
-with Cache; use Cache; -- Access_Rec & Cache_Rec
---with System.File_Control_Block; -- GNAT specific
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
-with FITS;
-with HDU;
+with FITS; -- common types : those commented out below FIXME
+with HDU;  -- alogrithms : used private File_Type
 
 package FITS_IO is
 
@@ -205,52 +202,6 @@ package FITS_IO is
       (FFile : in out File_Type;
        Item : T_Arr);
 
-   -- via Stream
-
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_SRead
-      (FFile : in out HDU_Stream_Access;
-      Item : out T_Arr;
-      Last : out Count);
-
-
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_SWrite
-      (FFile : in out HDU_Stream_Access;
-       Item : T_Arr);
-
-   -- FIXME instantiate for all FITSv3Types and do:
-   -- for VrType'Write use VrType_HDU_SWrite;
-
-   type SInt_Type_Arr is array (Positive_Count range <>) of Short_Integer;
-   type LLFloat_Type_Arr is array (Positive_Count range <>) of Long_Long_Float;
-
-   procedure SIntArr_Write
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : in SInt_Type_Arr);
-
-   for SInt_Type_Arr'Write use SIntArr_Write;
-
-   procedure LLFloatArr_Read
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : out LLFloat_Type_Arr);
---      Last : out Count);
-
-   for LLFloat_Type_Arr'Read use LLFloatArr_Read;
-
-
 
    ----------------
    -- Exceptions --
@@ -274,8 +225,8 @@ package FITS_IO is
       PHDU : HDU.HDU_Type;
    end record;
 
-   type File_Type          is access all FITS_Stream_Type;
-   type HDU_Stream_Access is access  all Ada.Streams.Root_Stream_Type'Class;
+   type File_Type         is access all FITS_Stream_Type;
+   type HDU_Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
 
 

@@ -330,29 +330,6 @@ package body FITS_IO is
    end HDU_Write;
 
 
-   procedure HDU_SRead
-      (FFile    : in out HDU_Stream_Access;
-      Item : out T_Arr;
-      Last : out Count)
-   is
-      --       FF : File_Type :=  (File_Type(FFile).all.SIO_File,
-      --        HDU_Stream_Access(FFile).all.PHDU);
-      procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
-   begin
-      iRead(File_Type(FFile).all.SIO_File, File_Type(FFile).all.PHDU, Item, Last);
-   end HDU_SRead;
-
-
-   procedure HDU_SWrite
-      (FFile : in out HDU_Stream_Access;
-      Item : T_Arr)
-   is
-      File : File_Type := File_Type(FFile);--.all.SIO_File, File_Type(FFile).all.PHDU);
-      procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
-   begin
-      iWrite(File.SIO_File, File.PHDU, Item);
-   end HDU_SWrite;
-
 
    function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class
    is
@@ -360,44 +337,6 @@ package body FITS_IO is
       return HDU_Stream_Access(File);
       --return access Ada.Streams.Root_Stream_Type'Class(File);
    end HDU_Stream;
-
-   procedure SIntArr_Write
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : in SInt_Type_Arr)
-   is
-      procedure SIntArrWrite is new HDU_SWrite(Short_Integer, SInt_Type_Arr);
-      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
-      use type Ada.Tags.Tag;
-   begin
-      TIO.Put("SIntArr_Write" );
-      if(FFile.all'Tag = FITS_Stream_Type'Tag)
-      then
-         TIO.Put(" FITS_Stream_Type ");
-         SIntArrWrite(FS, Item);
-         -- on FITS stream do scale and undef
-      else
-         SInt_Type_Arr'Write(FFile, Item);
-         -- on other Stream just do what Ada offers
-      end if;
-      -- NOTE what if I develop yet another Stream like Net_Stream or USB_Stream??
-      -- the overloaded func should recognize all Streams and trigger its own 'Write rutine ?
-   end SIntArr_Write;
-
-   procedure LLFloatArr_Read
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : out LLFloat_Type_Arr)
---      Last : out Count)
-   is
-      Last : Count;
-      procedure LLFloatArrRead is new HDU_SRead(Long_Long_Float, LLFloat_Type_Arr);
-      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
-   begin
-      TIO.Put("LLFloatArr_Read");
-      LLFloatArrRead(FS, Item, Last);
-      -- FIXME error if Last /= Item'Length,  or ?
-   end LLFloatArr_Read;
-
-
 
 
 

@@ -8,6 +8,7 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
 
 with FITS_IO;           use FITS_IO;
+with FITS_IO.Serialize;           use FITS_IO.Serialize;
 --with FITS_IO.Data_Unit;
 with V3_Types; use V3_Types;
 with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
