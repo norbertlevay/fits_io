@@ -5,9 +5,10 @@
 -- instantiates generics for all types defined by FITS Standard Version3
 
 with Interfaces;
-
+with Ada.Streams;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
 with FITS; use FITS;
+with FITS_IO.Serialize; use FITS_IO.Serialize;
 package V3_Types is
 
    -- data types as of FITS Standard version 3
@@ -19,6 +20,16 @@ package V3_Types is
 
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
+--   type Float_64   is digits 15;
+--   for Float_64'Size use 64;
+
+--   procedure F64Arr_Write is new HDU_VWrite(Float_64);
+   --   FIXME instantiation uses FLoat_64 <-- not allowed
+   procedure F64_Write
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+      Item : Float_64) is null;-- FIXME null
+   for Float_64'Write use F64_Write;
+
 
    F64Zero :Float_64 := 0.0;
    F32Zero :Float_32 := 0.0;
@@ -53,8 +64,14 @@ package V3_Types is
     type I16_Arr is array (Positive_Count range <>) of Integer_16;
     type U8_Arr  is array (Positive_Count range <>) of Unsigned_8;
 
---end V3_Arrays;
 
+   procedure F64Arr_Write
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+      Item : F64_Arr) is null;-- FIXME null
+   for F64_Arr'Write use F64Arr_Write;
+
+
+--end V3_Arrays;
    -- pool_v3type_convs.ads.adb
 
 --with V3_Types; use V3_Types;
@@ -160,5 +177,111 @@ function To_V3Type(S : String) return Unsigned_8;
 
 
 
-end V3_Types;
 
+
+--with V3_Types; use V3_Types;
+
+--package Pool_For_Numeric_Type
+--is
+
+   -- conversions to/from ABFloat
+
+   subtype ABFloat is Float;
+
+function "+"(V : in ABFloat) return Long_Long_Float;
+function "+"(V : in ABFloat) return Long_Float;
+function "+"(V : in ABFloat) return Float;
+function "+"(V : in ABFloat) return Integer;
+function "+"(V : in ABFloat) return Short_Integer;
+function "+"(V : in ABFloat) return Short_Short_Integer;
+
+function "+"(V : in Short_Short_Integer)  return ABFloat;
+function "+"(V : in Short_Integer)        return ABFloat;
+function "+"(V : in Integer)              return ABFloat;
+function "+"(V : in Long_Float)           return ABFloat;
+function "+"(V : in Long_Long_Float)      return ABFloat;
+
+
+function "+"(R : in ABFloat) return Unsigned_8;
+function "+"(R : in ABFloat) return Integer_16;
+function "+"(R : in ABFloat) return Integer_32;
+function "+"(R : in ABFloat) return Integer_64;
+function "+"(R : in ABFloat) return Float_32;
+function "+"(R : in ABFloat) return Float_64;
+
+function "+"(R : in Unsigned_8) return ABFloat;
+function "+"(R : in Integer_16) return ABFloat;
+function "+"(R : in Integer_32) return ABFloat;
+function "+"(R : in Integer_64) return ABFloat;
+function "+"(R : in Float_32)   return ABFloat;
+function "+"(R : in Float_64)   return ABFloat;
+
+   -- complementary integer types
+
+function "+"(R : in ABFloat) return Integer_8;
+function "+"(R : in ABFloat) return Unsigned_16;
+function "+"(R : in ABFloat) return Unsigned_32;
+function "+"(R : in ABFloat) return Unsigned_64;
+
+function "+"(R : in Integer_8) return ABFloat;
+function "+"(R : in Unsigned_16) return ABFloat;
+function "+"(R : in Unsigned_32) return ABFloat;
+function "+"(R : in Unsigned_64) return ABFloat;
+
+
+   -- ABFloat independent ops
+
+function Is_Undef(V,U : in Short_Short_Integer)    return Boolean;
+function Is_Undef(V,U : in Short_Integer)    return Boolean;
+function Is_Undef(V,U : in Integer)    return Boolean;
+function Is_Undef(V,U : in Float)      return Boolean;
+function Is_Undef(V,U : in Long_Float) return Boolean;
+function Is_Undef(V,U : in Long_Long_Float) return Boolean;
+
+
+function To_BITPIX(V : in Short_Short_Integer) return Integer;
+function To_BITPIX(V : in Short_Integer) return Integer;
+function To_BITPIX(V : in Integer) return Integer;
+function To_BITPIX(V : in Float  ) return Integer;
+function To_BITPIX(V : in Long_Float) return Integer;
+function To_BITPIX(V : in Long_Long_Float) return Integer;
+
+-- V3 FITS types
+
+function Is_Undef(V,U : in Unsigned_8) return Boolean;
+function Is_Undef(V,U : in Integer_16) return Boolean;
+function Is_Undef(V,U : in Integer_32) return Boolean;
+function Is_Undef(V,U : in Integer_64) return Boolean;
+function Is_Undef(V,U : in Float_32)   return Boolean;
+function Is_Undef(V,U : in Float_64)   return Boolean;
+
+
+function To_BITPIX(V : in Unsigned_8) return Integer;
+function To_BITPIX(V : in Integer_16) return Integer;
+function To_BITPIX(V : in Integer_32) return Integer;
+function To_BITPIX(V : in Integer_64) return Integer;
+function To_BITPIX(V : in Float_32)   return Integer;
+function To_BITPIX(V : in Float_64)   return Integer;
+
+-- FITS complementary types
+
+function Is_Undef(V,U : in Integer_8) return Boolean;
+function Is_Undef(V,U : in Unsigned_16) return Boolean;
+function Is_Undef(V,U : in Unsigned_32) return Boolean;
+function Is_Undef(V,U : in Unsigned_64) return Boolean;
+
+
+function To_BITPIX(V : in Integer_8) return Integer;
+function To_BITPIX(V : in Unsigned_16) return Integer;
+function To_BITPIX(V : in Unsigned_32) return Integer;
+function To_BITPIX(V : in Unsigned_64) return Integer;
+
+
+
+--procedure F64Arr_Write is new HDU_SWrite(Float_64, F64_Arr);
+
+
+
+--end Pool_For_Numeric_Type;
+
+end V3_Types;

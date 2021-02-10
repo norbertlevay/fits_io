@@ -8,10 +8,10 @@ with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
 
 with FITS_IO;           use FITS_IO;
-with FITS_IO.Serialize;           use FITS_IO.Serialize;
+--with FITS_IO.Serialize;           use FITS_IO.Serialize;
 --with FITS_IO.Data_Unit;
 with V3_Types; use V3_Types;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+--with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Optional.Reserved; use Optional.Reserved;
 --with Header;
@@ -19,6 +19,8 @@ with Card;
 
 with FITS;
 -- FIXME remove FITS later wehn module's type dependencies resolved
+
+--with Interfaces;
 
 procedure create
 is
@@ -44,9 +46,10 @@ is
 
    -- Integer
 
-   subtype Phys_Type is Short_Integer;
+   subtype Phys_Type is Float_64;
+   --subtype Phys_Type is Short_Integer;
    Phys_Undef_Used  : constant Boolean   := True;
-   Phys_Undef_Value : constant Phys_Type := Phys_Type'Last;
+   Phys_Undef_Value : constant Phys_Type := F64NaN;--Phys_Type'Last;
 
    -- Unsigned
 
@@ -88,7 +91,7 @@ is
 --   package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
 --   Write_Buffer : Phys_Data.T_Arr(1 .. ColLength);
 --   type Phys_Type_Arr is array (Positive_Count range <>) of Phys_Type;
-   subtype Phys_Type_Arr is SInt_Type_Arr;--array (Positive_Count range <>) of Phys_Type;
+   subtype Phys_Type_Arr is F64_Arr;--SInt_Type_Arr;--array (Positive_Count range <>) of Phys_Type;
    procedure DU_Write is new FITS_IO.HDU_Write(Phys_Type, Phys_Type_Arr);
    Write_Buffer : Phys_Type_Arr(1 .. ColLength);
 
@@ -165,7 +168,7 @@ begin
  loop
     Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
     --DU_Write(Out_File, Write_Buffer);
-    Phys_Type_Arr'Write(FITS_IO.HDU_Stream(Out_File), Write_Buffer);
+    F64_Arr'Write(FITS_IO.HDU_Stream(Out_File), Write_Buffer);
  end loop;
 
  Close(Out_File);

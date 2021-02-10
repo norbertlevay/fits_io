@@ -7,7 +7,7 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 with Numeric_Type;
 with V3_Types; use V3_Types;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+--with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 
 with Ada.Text_IO;

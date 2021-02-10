@@ -9,8 +9,8 @@ with Ada.Streams.Stream_IO;
 
 with FITS;
 with FITS_IO.V3_Types_For_DU;
-with V3_Types;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+with V3_Types; use V3_Types;
+--with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Optional;
 with Optional.Reserved; use Optional.Reserved;

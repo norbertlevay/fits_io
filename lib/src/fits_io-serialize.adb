@@ -4,7 +4,7 @@ with Ada.Text_IO;
 with HDU;
 with FITS_IO; use FITS_IO;
 with Ada.Tags;
---with V3_Types; use V3_Types;
+with V3_Types; use V3_Types;
 --with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 package body FITS_IO.Serialize is
@@ -57,6 +57,14 @@ package body FITS_IO.Serialize is
 
    end HDU_SWrite;
 
+   procedure HDU_VWrite
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+      Item : T)
+   is
+      use type Ada.Tags.Tag;
+   begin
+      null;
+   end HDU_VWrite;
 
 
 

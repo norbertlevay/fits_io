@@ -10,7 +10,7 @@ with V3_Types;  use V3_Types;
 with File;
 with Optional;
 with Optional.Reserved;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+--with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with FITS_IO; use FITS_IO;
 with FITS_IO.Serialize; use FITS_IO.Serialize;
 
