@@ -4,7 +4,8 @@ with Ada.Text_IO;
 with HDU;
 with FITS_IO; use FITS_IO;
 with Ada.Tags;
-with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
+--with V3_Types; use V3_Types;
+--with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 package body FITS_IO.Serialize is
 
@@ -18,43 +19,45 @@ package body FITS_IO.Serialize is
    with function Is_Undef  (V,U : in T) return Boolean is <>; 
    with function To_BITPIX (V   : in T) return Integer is <>; 
    procedure HDU_SRead
-      (FFile : in out HDU_Stream_Access;
+      (HDU_Stream : HDU_Stream_Access;
       Item : out T_Arr;
       Last : out Count);
 
 
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_SWrite
-      (FFile : in out HDU_Stream_Access;
-       Item : T_Arr);
-
 
    procedure HDU_SRead
-      (FFile    : in out HDU_Stream_Access;
+      (HDU_Stream    : HDU_Stream_Access;
       Item : out T_Arr;
       Last : out Count)
    is
       procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
    begin
-      iRead(File_Type(FFile).all.SIO_File, File_Type(FFile).all.PHDU, Item, Last);
+      iRead(File_Type(HDU_Stream).all.SIO_File, File_Type(HDU_Stream).all.PHDU, Item, Last);
    end HDU_SRead;
 
 
    procedure HDU_SWrite
-      (FFile : in out HDU_Stream_Access;
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
       Item : T_Arr)
    is
-      File : File_Type := File_Type(FFile);
-      procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+      use type Ada.Tags.Tag;
    begin
-      iWrite(File.SIO_File, File.PHDU, Item);
+
+      if(Stream.all'Tag = FITS_Stream_Type'Tag)
+      then
+         declare
+            File : File_Type := File_Type(Stream);
+            procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+         begin
+            iWrite(File.SIO_File, File.PHDU, Item);
+         end;
+      else
+         T_Arr'Write(Stream, Item);
+      end if;
+
    end HDU_SWrite;
+
+
 
 
    -- instantiate for specific types
