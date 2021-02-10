@@ -9,12 +9,17 @@ package FITS_IO.Serialize is
    procedure SIntArr_Write
       (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
       Item : in SInt_Type_Arr);
-   for SInt_Type_Arr'Write use SIntArr_Write;
 
    procedure LLFloatArr_Read
       (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
       Item : out LLFloat_Type_Arr);
+
+
+
+
+
    for LLFloat_Type_Arr'Read use LLFloatArr_Read;
+   for SInt_Type_Arr'Write use SIntArr_Write;
 
 
 
