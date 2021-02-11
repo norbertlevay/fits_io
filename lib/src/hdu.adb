@@ -15,10 +15,7 @@ with Elements;
 -- for Data Unit Read/Write
 with Numeric_Type;
 with V3_Types; use V3_Types;
---with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
-with FITS_IO.V3_Types_For_DU;
-use FITS_IO.V3_Types_For_DU;
 
 with File.Misc; -- DataPadding needed
 
@@ -30,6 +27,8 @@ with Ada.Text_IO; -- for debug
 package body HDU is
 
    package TIO renames Ada.Text_IO;
+
+
 
    -----------
    -- Utils --
@@ -394,6 +393,17 @@ package body HDU is
 
    -- Data access
 
+
+   type Float_Arr is array (FITS.Positive_Count range <>) of Float;
+   package U8Raw  is new Numeric_Type(Unsigned_8, U8_Arr,    Float_Arr);
+   package I16Raw  is new Numeric_Type(Integer_16, I16_Arr,    Float_Arr);
+   package I32Raw  is new Numeric_Type(Integer_32, I32_Arr,    Float_Arr);
+   package I64Raw  is new Numeric_Type(Integer_64, I64_Arr,    Float_Arr);
+   package F32Raw  is new Numeric_Type(Float_32,   F32_Arr,    Float_Arr);
+   package F64Raw  is new Numeric_Type(Float_64,   F64_Arr,    Float_Arr);
+
+
+
    procedure My_Read
       (SIO_File : SIO.File_Type;
       AHDU      : in out HDU_Type;
@@ -402,7 +412,6 @@ package body HDU is
    is
       type Float_Arr is array (FITS.Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      use FITS_IO.V3_Types_For_DU;
       package U8_AIO is new Array_IO(U8Raw, Physical);
       package I16_AIO is new Array_IO(I16Raw, Physical);
       package I32_AIO is new Array_IO(I32Raw, Physical);
@@ -483,7 +492,7 @@ package body HDU is
    is
       type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      use FITS_IO.V3_Types_For_DU;
+      --use FITS_IO.V3_Types_For_DU;
       package U8_AIO is new Array_IO(U8Raw, Physical);
       package I16_AIO is new Array_IO(I16Raw, Physical);
       package I32_AIO is new Array_IO(I32Raw, Physical);

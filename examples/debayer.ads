@@ -1,10 +1,10 @@
 
 with FITS;
-with FITS_IO.V3_Types_For_DU;
+with V3_Types;
 
 package Debayer is
 
-   package V3T renames FITS_IO.V3_Types_For_DU;
+   package V3T renames V3_Types;
 
    subtype Count           is FITS.Count;
    subtype Positive_Count  is FITS.Positive_Count;

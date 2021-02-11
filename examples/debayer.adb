@@ -2,7 +2,7 @@
 with Ada.Text_IO;
 
 with FITS;
-with FITS_IO.V3_Types_For_DU;
+--with FITS_IO.V3_Types_For_DU;
 with V3_Types; use V3_Types;
 
 package body Debayer is

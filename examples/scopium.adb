@@ -8,9 +8,8 @@ with GNAT.Traceback.Symbolic;
 with Ada.Streams.Stream_IO;
 
 with FITS;
-with FITS_IO.V3_Types_For_DU;
+--with FITS_IO.V3_Types_For_DU;
 with V3_Types; use V3_Types;
---with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 with Optional;
 with Optional.Reserved; use Optional.Reserved;
@@ -27,7 +26,7 @@ is
 
    package TIO renames Ada.Text_IO;
    package SIO renames Ada.Streams.Stream_IO;
-   package V3T renames FITS_IO.V3_Types_For_DU;
+   package V3T renames V3_Types;
    package FIO renames FITS_IO;
 
 
@@ -52,7 +51,7 @@ is
 
    -- FITS OutFile
 
-   procedure DU_Write is new FITS_IO.HDU_Write(V3_Types.Unsigned_8, V3T.U8_Arr);
+   procedure DU_Write is new FITS_IO.HDU_Write(V3T.Unsigned_8, V3T.U8_Arr);
 
    File_Name : constant String := InFileName & ".frame_" 
                & Ada.Strings.Fixed.Trim(

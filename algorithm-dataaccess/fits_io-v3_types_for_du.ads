@@ -7,7 +7,6 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 with Numeric_Type;
 with V3_Types; use V3_Types;
---with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with Array_IO;
 
 with Ada.Text_IO;
@@ -15,19 +14,18 @@ with Ada.Text_IO;
 
 package FITS_IO.V3_Types_For_DU is
 
---   package SIO renames Ada.Streams.Stream_IO;
    package TIO renames Ada.Text_IO;
 
    type Float_Arr is array (FITS.Positive_Count range <>) of Float;
 
    -- V3-types
 
-   type U8_Arr   is array (FITS.Positive_Count range <>) of Unsigned_8;
-   type I16_Arr   is array (FITS.Positive_Count range <>) of Integer_16;
-   type I32_Arr   is array (FITS.Positive_Count range <>) of Integer_32;
-   type I64_Arr   is array (FITS.Positive_Count range <>) of Integer_64;
-   type F32_Arr   is array (FITS.Positive_Count range <>) of Float_32;
-   type F64_Arr   is array (FITS.Positive_Count range <>) of Float_64;
+--   type U8_Arr   is array (FITS.Positive_Count range <>) of Unsigned_8;
+--   type I16_Arr   is array (FITS.Positive_Count range <>) of Integer_16;
+--   type I32_Arr   is array (FITS.Positive_Count range <>) of Integer_32;
+--   type I64_Arr   is array (FITS.Positive_Count range <>) of Integer_64;
+--   type F32_Arr   is array (FITS.Positive_Count range <>) of Float_32;
+--   type F64_Arr   is array (FITS.Positive_Count range <>) of Float_64;
 
    package U8Raw  is new Numeric_Type(Unsigned_8, U8_Arr,    Float_Arr);
    package I16Raw  is new Numeric_Type(Integer_16, I16_Arr,    Float_Arr);
