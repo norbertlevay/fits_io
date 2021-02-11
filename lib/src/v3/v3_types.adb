@@ -243,6 +243,10 @@ procedure I64Arr_Write
    T_Write(Stream, Item);
  end I64Arr_Write;
 
+procedure I32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I32_Arr) is procedure T_Write is new HDU_SWrite(Integer_32, I32_Arr); begin TIO.Put("SI32W"); T_Write(Stream, Item); end I32Arr_Write;
+procedure I16Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I16_Arr) is procedure T_Write is new HDU_SWrite(Integer_16, I16_Arr); begin TIO.Put("SI16W"); T_Write(Stream, Item); end I16Arr_Write;
+procedure U8Arr_Write(Stream : access  Root_Stream_Type'Class; Item : U8_Arr) is procedure T_Write is new HDU_SWrite(Unsigned_8, U8_Arr); begin TIO.Put("SU8W"); T_Write(Stream, Item); end U8Arr_Write;
+
 
 
 -- Difficulties with FITSv3 types vs Ada-generics:

@@ -72,10 +72,16 @@ package V3_Types is
    procedure F64Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F64_Arr);
    procedure F32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F32_Arr);
    procedure I64Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I64_Arr);
+   procedure I32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I32_Arr);
+   procedure I16Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I16_Arr);
+   procedure U8Arr_Write(Stream : access  Root_Stream_Type'Class; Item : U8_Arr);
 
    for F64_Arr'Write use F64Arr_Write;
    for F32_Arr'Write use F32Arr_Write;
    for I64_Arr'Write use I64Arr_Write;
+   for I32_Arr'Write use I32Arr_Write;
+   for I16_Arr'Write use I16Arr_Write;
+   for U8_Arr'Write use U8Arr_Write;
 
 
 --end V3_Arrays;
