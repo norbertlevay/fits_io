@@ -218,9 +218,31 @@ function To_BITPIX(V : in Unsigned_64) return Integer is begin return  V'Size; e
  is
     procedure T_Write is new HDU_SWrite(Float_64, F64_Arr);
  begin
-    TIO.Put("S");
+    TIO.Put("SF64W");
    T_Write(Stream, Item);
  end F64Arr_Write;
+
+ 
+ procedure F32Arr_Write
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+       Item : F32_Arr)
+ is
+    procedure T_Write is new HDU_SWrite(Float_32, F32_Arr);
+ begin
+    TIO.Put("SF32W");
+   T_Write(Stream, Item);
+ end F32Arr_Write;
+
+procedure I64Arr_Write
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+       Item : I64_Arr)
+ is
+    procedure T_Write is new HDU_SWrite(Integer_64, I64_Arr);
+ begin
+    TIO.Put("SI64W");
+   T_Write(Stream, Item);
+ end I64Arr_Write;
+
 
 
 -- Difficulties with FITSv3 types vs Ada-generics:
