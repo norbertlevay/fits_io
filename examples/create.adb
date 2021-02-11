@@ -12,7 +12,7 @@ with Ada.Float_Text_IO;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;   use Ada.Exceptions;
 with GNAT.Traceback.Symbolic;
-
+with Ada.Streams;
 with FITS_IO;  use FITS_IO;
 with V3_Types; use V3_Types;
 
@@ -132,17 +132,13 @@ is
 
    File_Name : constant String := Command_Name & ".fits";
    Out_File  : FITS_IO.File_Type;
+   Out_Stream : access Ada.Streams.Root_Stream_Type'Class;
 
 begin
-
-   TIO.Put_Line("DBG  i> "&Phys_Type'Image(Phys_Undef_Value));
-   TIO.Put     ("DBG fi> "); TIOF.Put(Float(Phys_Undef_Value), 3, 10, 2);TIO.New_Line;
-   --   TIO.Put_Line("DBGifi> "&Integer'Image(Integer(Float_64(Phys_Undef_Value))));
-
-
    -- Write Primary HDU
 
    Create (Out_File, FITS_IO.Append_File, File_Name);
+   Out_Stream := FITS_IO.HDU_Stream(Out_File);
 
    Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
    Write_Header_Prim(Out_File, Raw_Type, NAXISn, Array_Cards);
@@ -153,7 +149,9 @@ begin
    loop
       Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
       --DU_Write(Out_File, Write_Buffer);
-      Phys_Type_Arr'Write(FITS_IO.HDU_Stream(Out_File), I16_Arr(Write_Buffer));
+      TIO.New_Line;
+      TIO.Put(FITS_IO.Count'Image(I));
+      Phys_Type_Arr'Write(Out_Stream, Write_Buffer);
    end loop;
 
    Close(Out_File);
@@ -164,6 +162,7 @@ begin
    -- Add extension
 
    Open (Out_File, FITS_IO.Append_File, File_Name);
+   Out_Stream := FITS_IO.HDU_Stream(Out_File);
 
    Set_Undefined_Physical(Out_File, Float(Phys_Undef_Value));
    Write_Header_Ext(Out_File, Raw_Type, NAXISn, Array_Cards);

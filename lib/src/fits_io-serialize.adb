@@ -22,7 +22,7 @@ package body FITS_IO.Serialize is
       use type Ada.Tags.Tag;
    begin
 
-      TIO.Put("HDU_SRead" );
+      TIO.Put(" HDU_SRead::" );
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
          declare
@@ -36,6 +36,7 @@ package body FITS_IO.Serialize is
             if(Last < Item'length) then TIO.Put("HDU_SRead: ERR End-Of-DataUnit"); end if;
          end;
       else
+         TIO.Put("Stream" );
          T_Arr'Read(Stream, Item);
       end if;
 
@@ -48,18 +49,19 @@ package body FITS_IO.Serialize is
    is
       use type Ada.Tags.Tag;
    begin
+       TIO.Put(" HDU_SWrite::" );
 
-      TIO.Put("HDU_SWrite" );
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
          declare
-            File : File_Type := File_Type(Stream);
+            File : File_Type := FITS_IO.File_Type(Stream);
             procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
          begin
             TIO.Put("HDU_Stream" );
             iWrite(File.SIO_File, File.PHDU, Item);
          end;
       else
+         TIO.Put("Stream" );
          T_Arr'Write(Stream, Item);
       end if;
 
