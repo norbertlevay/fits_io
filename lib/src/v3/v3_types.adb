@@ -224,8 +224,12 @@ function To_BITPIX(V : in Unsigned_64) return Integer is begin return  V'Size; e
 
 
 -- Difficulties with FITSv3 types vs Ada-generics:
- -- * supra-types in generics do not have "numeric" type, e.g. use private or next step is Integer (range) or Float (digits) types separately
- -- * stream attributes 'Write 'Read require first-subtype
+ -- * supra-types in generics do not have "numeric" type,
+ -- e.g. use private or next step is Integer (range) or Float (digits) types separately
+ --
+ -- * stream attributes T'Write T'Read require first-subtype
+ -- (The Write func cannot be instantiated from genric using the Type T as param)
+ --
 
 
 
