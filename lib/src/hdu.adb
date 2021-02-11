@@ -410,7 +410,6 @@ package body HDU is
       Item : out T_Arr;
       Last : out Count)
    is
-      type Float_Arr is array (FITS.Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
       package U8_AIO is new Array_IO(U8Raw, Physical);
       package I16_AIO is new Array_IO(I16Raw, Physical);
@@ -490,9 +489,8 @@ package body HDU is
       AHDU      : in out HDU_Type;
       Item : T_Arr)
    is
-      type Float_Arr is array (Positive_Count range <>) of Float;
+   --   type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      --use FITS_IO.V3_Types_For_DU;
       package U8_AIO is new Array_IO(U8Raw, Physical);
       package I16_AIO is new Array_IO(I16Raw, Physical);
       package I32_AIO is new Array_IO(I32Raw, Physical);

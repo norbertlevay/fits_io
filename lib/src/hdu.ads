@@ -19,7 +19,6 @@ package HDU is
 
 
    type HDU_Type is record
---      SIO_File  : SIO.File_Type;-- to be removed , pass by param
       SIO_HDU_First : SIO.Positive_Count;
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;
