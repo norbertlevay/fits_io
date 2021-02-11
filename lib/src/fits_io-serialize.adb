@@ -57,15 +57,6 @@ package body FITS_IO.Serialize is
 
    end HDU_SWrite;
 
-   procedure HDU_VWrite
-      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
-      Item : T)
-   is
-      use type Ada.Tags.Tag;
-   begin
-      null;
-   end HDU_VWrite;
-
 
 
    -- instantiate for specific types

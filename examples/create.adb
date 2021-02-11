@@ -152,7 +152,7 @@ begin
 
    TIO.Put_Line("DBG  i> "&Phys_Type'Image(Phys_Undef_Value));
    TIO.Put     ("DBG fi> "); TIOF.Put(Float(Phys_Undef_Value), 3, 10, 2);TIO.New_Line;
-   TIO.Put_Line("DBGifi> "&Integer'Image(Integer(Float(Phys_Undef_Value))));
+--   TIO.Put_Line("DBGifi> "&Integer'Image(Integer(Float_64(Phys_Undef_Value))));
 
 
    -- Write Primary HDU

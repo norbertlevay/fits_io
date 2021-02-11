@@ -8,7 +8,8 @@ with Interfaces;
 with Ada.Streams;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
 with FITS; use FITS;
-with FITS_IO.Serialize; use FITS_IO.Serialize;
+
+
 package V3_Types is
 
    -- data types as of FITS Standard version 3
@@ -23,8 +24,6 @@ package V3_Types is
 --   type Float_64   is digits 15;
 --   for Float_64'Size use 64;
 
---   procedure F64Arr_Write is new HDU_VWrite(Float_64);
-   --   FIXME instantiation uses FLoat_64 <-- not allowed
    procedure F64_Write
       (Stream : access  Ada.Streams.Root_Stream_Type'Class;
       Item : Float_64) is null;-- FIXME null
@@ -65,9 +64,11 @@ package V3_Types is
     type U8_Arr  is array (Positive_Count range <>) of Unsigned_8;
 
 
+   -- Stream attribs 'Read 'Write
+
    procedure F64Arr_Write
       (Stream : access  Ada.Streams.Root_Stream_Type'Class;
-      Item : F64_Arr) is null;-- FIXME null
+      Item : F64_Arr);
    for F64_Arr'Write use F64Arr_Write;
 
 
@@ -275,12 +276,6 @@ function To_BITPIX(V : in Integer_8) return Integer;
 function To_BITPIX(V : in Unsigned_16) return Integer;
 function To_BITPIX(V : in Unsigned_32) return Integer;
 function To_BITPIX(V : in Unsigned_64) return Integer;
-
-
-
---procedure F64Arr_Write is new HDU_SWrite(Float_64, F64_Arr);
-
-
 
 --end Pool_For_Numeric_Type;
 

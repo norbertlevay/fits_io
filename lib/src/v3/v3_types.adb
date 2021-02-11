@@ -1,8 +1,12 @@
 
+with Ada.Text_IO;
 
+with FITS_IO.Serialize; use FITS_IO.Serialize;
 
 --package body Pool_V3Type_Convs is
 package body V3_Types is
+
+   package TIO renames Ada.Text_IO;
 
 -- cases for Tin -> Tout (no Tcalc)
 
@@ -205,4 +209,24 @@ function To_BITPIX(V : in Unsigned_64) return Integer is begin return  V'Size; e
 
 
 --end Pool_For_Numeric_Type;
+
+
+
+ procedure F64Arr_Write
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+       Item : F64_Arr)
+ is
+    procedure T_Write is new HDU_SWrite(Float_64, F64_Arr);
+ begin
+    TIO.Put("S");
+   T_Write(Stream, Item);
+ end F64Arr_Write;
+
+
+-- Difficulties with FITSv3 types vs Ada-generics:
+ -- * supra-types in generics do not have "numeric" type, e.g. use private or next step is Integer (range) or Float (digits) types separately
+ -- * stream attributes 'Write 'Read require first-subtype
+
+
+
 end V3_Types;
