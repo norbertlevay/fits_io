@@ -63,7 +63,7 @@ is
    type Frame_Type is array (SIO.Positive_Count range 1 .. Frame_Size) of UInt8;
    Frame : Frame_Type;
 
-   Ix_First, Ix_Last : SIO.Count;
+   --Ix_First, Ix_Last : SIO.Count;
 
 begin
 

@@ -131,7 +131,7 @@ begin
 
         --Curr_Col : Phys_Data.T_Arr(1..ColLength);
         Curr_Col : Phys_Type_Arr(1..ColLength);
-        Last : FITS_IO.Count;
+        --Last : FITS_IO.Count;
      begin
 
       FITS_IO.Put_File_Type(In_File,"Start Read Data: ");

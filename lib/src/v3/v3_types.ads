@@ -21,13 +21,6 @@ package V3_Types is
 
    type Float_32   is new Interfaces.IEEE_Float_32;
    type Float_64   is new Interfaces.IEEE_Float_64;
---   type Float_64   is digits 15;
---   for Float_64'Size use 64;
-
-   procedure F64_Write
-      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
-      Item : Float_64) is null;-- FIXME null
-   for Float_64'Write use F64_Write;
 
 
    F64Zero :Float_64 := 0.0;

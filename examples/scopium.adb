@@ -75,7 +75,7 @@ is
          (Valued_Card(BZERO,    1*    "0.0"),
           Valued_Card(BSCALE,   1*    "1.0"));
 
-   Ix_First, Ix_Last : FITS.Count;
+   --Ix_First, Ix_Last : FITS.Count;
 
 begin
 
