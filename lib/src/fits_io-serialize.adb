@@ -19,7 +19,6 @@ package body FITS_IO.Serialize is
       (Stream : access  Ada.Streams.Root_Stream_Type'Class;
       Item : out T_Arr)
    is
-      Last : Count; -- FIXME excpetion if EndOfDU reached : Last < T'Length, or ?
       use type Ada.Tags.Tag;
    begin
 
@@ -27,11 +26,14 @@ package body FITS_IO.Serialize is
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
          declare
+            Last : Count;
             File : File_Type := File_Type(Stream);
             procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+            use type FITS.Count;
          begin
             TIO.Put("HDU_Stream" );
             iRead(File.SIO_File, File.PHDU, Item, Last);
+            if(Last < Item'length) then TIO.Put("HDU_SRead: ERR End-Of-DataUnit"); end if;
          end;
       else
          T_Arr'Read(Stream, Item);
@@ -64,47 +66,5 @@ package body FITS_IO.Serialize is
    end HDU_SWrite;
 
 
-
-   -- instantiate for specific types
-
-   procedure SIntArr_Write
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : in SInt_Type_Arr)
-   is  
-      procedure SIntArrWrite is new HDU_SWrite(Short_Integer, SInt_Type_Arr);
-      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
-      use type Ada.Tags.Tag;
-   begin
-      TIO.Put("SIntArr_Write" );
-      if(FFile.all'Tag = FITS_Stream_Type'Tag)
-      then
-         TIO.Put(" FITS_Stream_Type ");
-         SIntArrWrite(FS, Item);
-         -- on FITS stream do scale and undef
-      else
-         SInt_Type_Arr'Write(FFile, Item);
-         -- on other Stream just do what Ada offers
-      end if;
-   end SIntArr_Write;
-
-
-
-
-
-   procedure LLFloatArr_Read
-      (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
-      Item : out LLFloat_Type_Arr)
-   is  
-      procedure LLFloatArrRead is new HDU_SRead(Long_Long_Float, LLFloat_Type_Arr);
-      FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
-   begin
-      TIO.Put("LLFloatArr_Read");
-      LLFloatArrRead(FS, Item);
-      -- FIXME error if Last /= Item'Length,  or ?
-   end LLFloatArr_Read;
-
-
-
-
-
 end FITS_IO.Serialize;
+
