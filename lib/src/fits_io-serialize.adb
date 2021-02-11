@@ -11,28 +11,32 @@ package body FITS_IO.Serialize is
 
    package TIO renames Ada.Text_IO;
 
-   generic
-   type T is private;
-   type T_Arr is array (Positive_Count range <>) of T;
-   with function "+"(V : in Float) return T     is <>; 
-   with function "+"(V : in T)     return Float is <>; 
-   with function Is_Undef  (V,U : in T) return Boolean is <>; 
-   with function To_BITPIX (V   : in T) return Integer is <>; 
-   procedure HDU_SRead
-      (HDU_Stream : HDU_Stream_Access;
-      Item : out T_Arr;
-      Last : out Count);
 
-
+   -- check stream type, and call stream-specific implementation of 'Write 'Read attribs
+   -- currently only File-stream supported
 
    procedure HDU_SRead
-      (HDU_Stream    : HDU_Stream_Access;
-      Item : out T_Arr;
-      Last : out Count)
+      (Stream : access  Ada.Streams.Root_Stream_Type'Class;
+      Item : out T_Arr)
    is
-      procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+      Last : Count; -- FIXME excpetion if EndOfDU reached : Last < T'Length, or ?
+      use type Ada.Tags.Tag;
    begin
-      iRead(File_Type(HDU_Stream).all.SIO_File, File_Type(HDU_Stream).all.PHDU, Item, Last);
+
+      TIO.Put("HDU_SRead" );
+      if(Stream.all'Tag = FITS_Stream_Type'Tag)
+      then
+         declare
+            File : File_Type := File_Type(Stream);
+            procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
+         begin
+            TIO.Put("HDU_Stream" );
+            iRead(File.SIO_File, File.PHDU, Item, Last);
+         end;
+      else
+         T_Arr'Read(Stream, Item);
+      end if;
+
    end HDU_SRead;
 
 
@@ -43,12 +47,14 @@ package body FITS_IO.Serialize is
       use type Ada.Tags.Tag;
    begin
 
+      TIO.Put("HDU_SWrite" );
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
          declare
             File : File_Type := File_Type(Stream);
             procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
          begin
+            TIO.Put("HDU_Stream" );
             iWrite(File.SIO_File, File.PHDU, Item);
          end;
       else
@@ -89,12 +95,11 @@ package body FITS_IO.Serialize is
       (FFile :  access  Ada.Streams.Root_Stream_Type'Class;
       Item : out LLFloat_Type_Arr)
    is  
-      Last : Count;
       procedure LLFloatArrRead is new HDU_SRead(Long_Long_Float, LLFloat_Type_Arr);
       FS : HDU_Stream_Access := HDU_Stream_Access(FFile);
    begin
       TIO.Put("LLFloatArr_Read");
-      LLFloatArrRead(FS, Item, Last);
+      LLFloatArrRead(FS, Item);
       -- FIXME error if Last /= Item'Length,  or ?
    end LLFloatArr_Read;
 

@@ -69,12 +69,26 @@ package V3_Types is
 
    use Ada.Streams;
 
+   procedure F64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F64_Arr);
+   procedure F32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F32_Arr);
+   procedure I64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I64_Arr);
+   procedure I32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I32_Arr);
+   procedure I16Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I16_Arr);
+   procedure U8Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out U8_Arr);
+
    procedure F64Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F64_Arr);
    procedure F32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F32_Arr);
    procedure I64Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I64_Arr);
    procedure I32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I32_Arr);
    procedure I16Arr_Write(Stream : access  Root_Stream_Type'Class; Item : I16_Arr);
    procedure U8Arr_Write(Stream : access  Root_Stream_Type'Class; Item : U8_Arr);
+
+   for F64_Arr'Read use F64Arr_Read;
+   for F32_Arr'Read use F32Arr_Read;
+   for I64_Arr'Read use I64Arr_Read;
+   for I32_Arr'Read use I32Arr_Read;
+   for I16_Arr'Read use I16Arr_Read;
+   for U8_Arr'Read use U8Arr_Read;
 
    for F64_Arr'Write use F64Arr_Write;
    for F32_Arr'Write use F32Arr_Write;

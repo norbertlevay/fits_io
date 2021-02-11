@@ -10,7 +10,6 @@ with V3_Types;  use V3_Types;
 with File;
 with Optional;
 with Optional.Reserved;
---with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 with FITS_IO; use FITS_IO;
 with FITS_IO.Serialize; use FITS_IO.Serialize;
 
@@ -21,7 +20,7 @@ procedure minmax is
     package TIO renames Ada.Text_IO;
     package SIO renames Ada.Streams.Stream_IO;
 
-   subtype Phys_Type is Long_Long_Float;
+   subtype Phys_Type is Float_64;
 
     Zero    : Float := 0.0;
     F_NaN   : constant Float := 0.0/Zero;
@@ -100,7 +99,8 @@ begin
 
         --package Phys_Data is new FITS_IO.Data_Unit(Phys_Type);
        --type Phys_Type_Arr is array (FITS_IO.Positive_Count range <>) of Phys_Type;
-       subtype Phys_Type_Arr is LLFloat_Type_Arr;
+       --subtype Phys_Type_Arr is LLFloat_Type_Arr;
+       subtype Phys_Type_Arr is F64_Arr;
        --procedure DU_Read is new FITS_IO.HDU_Read(Phys_Type, Phys_Type_Arr);
 
         -- example of data elaboration: find min max and count undef values
