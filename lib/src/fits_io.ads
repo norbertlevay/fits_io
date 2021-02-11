@@ -241,6 +241,11 @@ package FITS_IO is
       Item : Ada.Streams.Stream_Element_Array);
    --  Write operation used when Stream_IO file is treated directly as Stream
 
+   -- in FITS: the oberloaded Read Write do:
+   -- * Endianness
+   -- * DU-limit checks
+   -- * and then forwards to SIO 'Read 'Write
+
 
 
 end FITS_IO;
