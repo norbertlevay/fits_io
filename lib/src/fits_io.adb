@@ -139,11 +139,11 @@ package body FITS_IO is
       return SIO.End_Of_File(File.SIO_File);
    end End_Of_File;
 
-   function Stream (File : File_Type) return SIO.Stream_Access
-   is
-   begin
-      return SIO.Stream(File.SIO_File);
-   end Stream;
+--   function Stream (File : File_Type) return SIO.Stream_Access
+--   is
+--   begin
+--      return SIO.Stream(File.SIO_File);
+--   end Stream;
 
 
    -----------------------------
@@ -329,11 +329,10 @@ package body FITS_IO is
 
 
 
-   function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class
+   function HDU_Stream(File : File_Type) return Stream_Access
    is
    begin
-      return HDU_Stream_Access(File);
-      --return access Ada.Streams.Root_Stream_Type'Class(File);
+      return Stream_Access(File);
    end HDU_Stream;
 
 
@@ -350,12 +349,8 @@ package body FITS_IO is
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
-      procedure F32_HDU_Read is new HDU_Read(Float_32,F32_Arr);
    begin
-      null;
-      -- FIXME in Stream_IO Read's Item is Strem_Element_Array, but here T_Arr
-      --      F32_HDU_Read (File, Item, Last);
-      --F32_HDU_Read (File'Unchecked_Access, Item, Last);
+      SIO.Read(File.SIO_File, Item, Last);
    end Read;
 
    --  This version of Write is the primitive operation on the underlying
@@ -366,8 +361,7 @@ package body FITS_IO is
       Item : Ada.Streams.Stream_Element_Array)
    is
    begin
-      null; -- FIXME implement
-      --HDU_Write (File'Unchecked_Access, Item);
+      SIO.Write(File.SIO_File, Item);
    end Write;
 
 

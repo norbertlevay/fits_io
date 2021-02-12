@@ -8,6 +8,7 @@ with Interfaces;
 with Ada.Streams;
 --with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;-- Arrays need Positive_Count
 with FITS; use FITS;
+with FITS_IO;
 
 
 package V3_Types is
@@ -67,7 +68,7 @@ package V3_Types is
    procedure I64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I64_Arr);
    procedure I32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I32_Arr);
    procedure I16Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I16_Arr);
-   procedure U8Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out U8_Arr);
+   procedure U8Arr_Read(Stream : access   Root_Stream_Type'Class; Item : out U8_Arr);
 
    procedure F64Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F64_Arr);
    procedure F32Arr_Write(Stream : access  Root_Stream_Type'Class; Item : F32_Arr);

@@ -1,10 +1,11 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Unchecked_Conversion;
+with Ada.Streams; use Ada.Streams;
+with System;
 
---with Ada.Streams.Stream_IO;
 with Numeric_Type;
 with Endian;
-
 
 -- FIXME stack/local arrays: Af Fin_Arr Fout_Arr Af, use 3x more space: price to pay
 -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
@@ -118,11 +119,21 @@ procedure Write
 is
    Af : Raw.Numeric_Arr(Phys_Arr'Range);
    procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
+--   FITS_Stream : FITS_IO.FITS_Stream_Type := FITS_IO.FITS_Stream_Type(S.all);
+
+   Dummy : Physical.Numeric;
+   NBits : Integer := Phys_Arr'Length * Physical.To_BITPIX(Dummy);
+   Phys_Arr_Size : constant Stream_Element_Offset :=
+                                 Ada.Streams.Stream_Element_Offset(NBits) / Stream_Element'Size;
+                                 --Physical.Numeric_Arr'Object_Size / Stream_Element'Size;
+   type SEA_Pointer is access all Stream_Element_Array (1 .. Phys_Arr_Size);
+   function As_SEA_Pointer is new Ada.Unchecked_Conversion (System.Address, SEA_Pointer);
 begin
    Phys_To_Raw(Af, A,B, Phys_Arr);
    -- low level write
    Raw_CheckAndRevert(Af);
-   Raw.Numeric_Arr'Write(S, Af);
+   Ada.Streams.Stream_Element_Array'Write(S, As_SEA_Pointer(Phys_Arr'Address).all );
+--   Raw.Numeric_Arr'Write(S, Af);
 end Write;
 
 

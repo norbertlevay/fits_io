@@ -40,7 +40,7 @@ with HDU;  -- alogrithms : used private File_Type
 
 package FITS_IO is
 
-   type HDU_Stream_Access is limited private;
+   type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
    type File_Type is limited private;
 
@@ -116,7 +116,7 @@ package FITS_IO is
 
    function Size  (File : File_Type) return Count;
 
-   function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
+--   function Stream (File : File_Type) return Ada.Streams.Stream_IO.Stream_Access;
 
 
    -----------------------
@@ -213,7 +213,7 @@ package FITS_IO is
    procedure Put_File_Type(File : File_Type; Prefix : String := "");
    -- FIXME for debug only
 
-   function HDU_Stream(File : File_Type) return access Ada.Streams.Root_Stream_Type'Class;
+   function HDU_Stream(File : File_Type) return Stream_Access;
 
    private
 
@@ -225,8 +225,7 @@ package FITS_IO is
       PHDU : HDU.HDU_Type;
    end record;
 
-   type File_Type         is access all FITS_Stream_Type;
-   type HDU_Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
+   type File_Type     is access all FITS_Stream_Type;
 
 
 

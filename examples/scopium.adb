@@ -84,7 +84,7 @@ begin
    SIO.Open  (InFile,  SIO.In_File,         InFileName);
    FIO.Create(OutFile, FITS_IO.Append_File, File_Name);
    InStream  := SIO.Stream(InFile);
-   OutStream := FIO.Stream(OutFile);
+--   OutStream := FIO.Stream(OutFile);
 
    FIO.Write_Header_Prim(OutFile, FITS.UInt8, NAXISn, Array_Cards);
 
