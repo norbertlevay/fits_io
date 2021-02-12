@@ -350,6 +350,7 @@ package body FITS_IO is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
    begin
+      TIO.Put(" FITS_Stream::Read ");
       SIO.Read(File.SIO_File, Item, Last);
    end Read;
 
@@ -361,6 +362,7 @@ package body FITS_IO is
       Item : Ada.Streams.Stream_Element_Array)
    is
    begin
+      TIO.Put(" FITS_Stream::Write ");
       SIO.Write(File.SIO_File, Item);
    end Write;
 

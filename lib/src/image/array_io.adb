@@ -64,8 +64,21 @@ procedure Read
 is
    Af : Raw.Numeric_Arr(Phys_Arr'Range);
    procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
+
+   Dummy : Raw.Numeric;
+   NBits : Integer := Af'Length * abs Raw.To_BITPIX(Dummy);
+   -- FIXME how to find Object_Size of Raw.Numeric_Arr which is generic here ?
+   -- GEM39: Item <-> Af and Buffer <-> Raw.Numeric_Arr
+   -- Item_Size : constant Stream_Element_Offset := Buffer'Object_Size / Stream_Element'Size;
+   Raw_Arr_Size : constant Stream_Element_Offset :=
+                                 Ada.Streams.Stream_Element_Offset(NBits) / Stream_Element'Size;
+   type SEA_Pointer is access all Stream_Element_Array (1 .. Raw_Arr_Size);
+   function As_SEA_Pointer is new Ada.Unchecked_Conversion (System.Address, SEA_Pointer);
+   Length : Ada.Streams.Stream_Element_Offset;
 begin
-   Raw.Numeric_Arr'Read(S, Af);
+   --Raw.Numeric_Arr'Read(S, Af);
+   Ada.Streams.Read(S.all, As_SEA_Pointer(Af'Address).all, Length );
+   --Ada.Streams.Stream_Element_Array'Read(S, As_SEA_Pointer(Af'Address).all );
    Raw_CheckAndRevert(Af);
    -- low level read done
    Raw_To_Phys(Af, A,B, Phys_Arr);
@@ -122,11 +135,10 @@ is
 
    Dummy : Raw.Numeric;
    NBits : Integer := Af'Length * abs Raw.To_BITPIX(Dummy);
-   -- FIXME how to find Object_Size of Phys_Arr which is generic here ?
-   -- GEM39
+   -- FIXME how to find Object_Size of Raw.Numeric_Arr which is generic here ?
+   -- GEM39:
    Raw_Arr_Size : constant Stream_Element_Offset :=
                                  Ada.Streams.Stream_Element_Offset(NBits) / Stream_Element'Size;
-                                 --Physical.Numeric_Arr'Object_Size / Stream_Element'Size;
    type SEA_Pointer is access all Stream_Element_Array (1 .. Raw_Arr_Size);
    function As_SEA_Pointer is new Ada.Unchecked_Conversion (System.Address, SEA_Pointer);
 
@@ -135,7 +147,8 @@ begin
    Phys_To_Raw(Af, A,B, Phys_Arr);
    -- low level write
    Raw_CheckAndRevert(Af);
-   Ada.Streams.Stream_Element_Array'Write(S, As_SEA_Pointer(Af'Address).all );
+   Ada.Streams.Write(S.all, As_SEA_Pointer(Af'Address).all );
+   --Ada.Streams.Stream_Element_Array'Write(S, As_SEA_Pointer(Af'Address).all );
 --   Raw.Numeric_Arr'Write(S, Af);
 end Write;
 
