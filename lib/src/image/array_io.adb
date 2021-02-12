@@ -24,6 +24,7 @@ is
  Af         : Raw.Numeric_Arr(Phys_Arr'Range);
  Fin_Arr    : Raw.Float_Arr(Phys_Arr'Range);
  Fout_Arr   : Phys.Float_Arr(Phys_Arr'Range);
+   procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
 begin
 
    Af := Raw_Arr;
@@ -32,7 +33,7 @@ begin
     -- low-level read
 
 --    Raw.Numeric_Arr'Read(S, Af);
---    Raw_CheckAndRevert(Af);
+    Raw_CheckAndRevert(Af);
 
     -- conversions
 

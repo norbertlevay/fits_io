@@ -1,5 +1,5 @@
 
---with Ada.Streams.Stream_IO;
+with Ada.Streams;
 --with Mandatory; use Mandatory; -- NAXIS_Array needed
 
 with FITS; use FITS;
@@ -11,6 +11,12 @@ package Numeric_Type.Data_IO is
 --package SIO renames FITS_IO;
 --package SIO renames Ada.Streams.Stream_IO;
 
+
+
+procedure Read_Buffered
+   (F : SIO.File_Type;
+   Arr : out Numeric_Arr;
+   Length : out Ada.Streams.Stream_Element_Offset);
 
 
 procedure Read (F : SIO.File_Type; A : out Float_Arr);

@@ -2,6 +2,9 @@
 
 with Ada.Streams.Stream_IO;
 with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Unchecked_Conversion;
+with Ada.Streams; use Ada.Streams;
+with System;
 
 -- for HDU_Type / Stream
 with Header; -- Read Mandatory / Optional needed
@@ -14,6 +17,7 @@ with Elements;
 
 -- for Data Unit Read/Write
 with Numeric_Type;
+with Numeric_Type.Data_IO;
 with V3_Types; use V3_Types;
 with Array_IO;
 
@@ -402,6 +406,7 @@ package body HDU is
    package F32Raw  is new Numeric_Type(Float_32,   F32_Arr,    Float_Arr);
    package F64Raw  is new Numeric_Type(Float_64,   F64_Arr,    Float_Arr);
 
+   package F32Raw_DIO is new F32Raw.Data_IO;
 
 
    procedure My_Read
@@ -461,6 +466,8 @@ package body HDU is
       declare
          --         Loc_Item : T_Arr(Item'First .. Last);
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
+         S : access Ada.Streams.Root_Stream_Type'Class := SIO.Stream(SIO_File);
+         Length : Ada.Streams.Stream_Element_Offset;
       begin
 
          -- Scaling
@@ -470,7 +477,14 @@ package body HDU is
             when  16 => I16_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  32 => I32_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  64 => I64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 =>
+               declare
+                  RawArr : F32_Arr(Loc_Item'Range);
+               begin
+                  F32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);--FIXME see Last vs Length
+                  F32_AIO.Raw_To_Phys(RawArr, Scaling.A,Scaling.B, Loc_Item);
+               end;
+
             when -64 => F64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
@@ -489,7 +503,7 @@ package body HDU is
       AHDU      : in out HDU_Type;
       Item : T_Arr)
    is
-   --   type Float_Arr is array (Positive_Count range <>) of Float;
+      --   type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
       package U8_AIO is new Array_IO(U8Raw, Physical);
       package I16_AIO is new Array_IO(I16Raw, Physical);
@@ -514,8 +528,8 @@ package body HDU is
       -- dont Write beyond end of Data Unit
 
       if(DU_Curr_Ix > DU_Last )
-     then
-          TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Write");
+      then
+         TIO.Put_Line("EXCEPT: End Of Data Unit in HDU_Write");
       end if;
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
