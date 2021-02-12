@@ -119,20 +119,23 @@ procedure Write
 is
    Af : Raw.Numeric_Arr(Phys_Arr'Range);
    procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
---   FITS_Stream : FITS_IO.FITS_Stream_Type := FITS_IO.FITS_Stream_Type(S.all);
 
-   Dummy : Physical.Numeric;
-   NBits : Integer := Phys_Arr'Length * Physical.To_BITPIX(Dummy);
-   Phys_Arr_Size : constant Stream_Element_Offset :=
+   Dummy : Raw.Numeric;
+   NBits : Integer := Af'Length * abs Raw.To_BITPIX(Dummy);
+   -- FIXME how to find Object_Size of Phys_Arr which is generic here ?
+   -- GEM39
+   Raw_Arr_Size : constant Stream_Element_Offset :=
                                  Ada.Streams.Stream_Element_Offset(NBits) / Stream_Element'Size;
                                  --Physical.Numeric_Arr'Object_Size / Stream_Element'Size;
-   type SEA_Pointer is access all Stream_Element_Array (1 .. Phys_Arr_Size);
+   type SEA_Pointer is access all Stream_Element_Array (1 .. Raw_Arr_Size);
    function As_SEA_Pointer is new Ada.Unchecked_Conversion (System.Address, SEA_Pointer);
+
 begin
+   Put(Integer'Image(NBits));
    Phys_To_Raw(Af, A,B, Phys_Arr);
    -- low level write
    Raw_CheckAndRevert(Af);
-   Ada.Streams.Stream_Element_Array'Write(S, As_SEA_Pointer(Phys_Arr'Address).all );
+   Ada.Streams.Stream_Element_Array'Write(S, As_SEA_Pointer(Af'Address).all );
 --   Raw.Numeric_Arr'Write(S, Af);
 end Write;
 
