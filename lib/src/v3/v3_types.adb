@@ -212,21 +212,21 @@ function To_BITPIX(V : in Unsigned_64) return Integer is begin return  V'Size; e
 
 
 
- procedure F64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F64_Arr)is procedure T_Read is new HDU_SRead(Float_64, F64_Arr); begin TIO.Put(" SF64R"); T_Read(Stream, Item); end F64Arr_Read;
- procedure F32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F32_Arr)is procedure T_Read is new HDU_SRead(Float_32, F32_Arr); begin TIO.Put(" SF32R"); T_Read(Stream, Item); end F32Arr_Read;
- procedure I64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I64_Arr)is procedure T_Read is new HDU_SRead(Integer_64, I64_Arr); begin TIO.Put(" SI64R"); T_Read(Stream, Item); end I64Arr_Read;
- procedure I32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I32_Arr)is procedure T_Read is new HDU_SRead(Integer_32, I32_Arr); begin TIO.Put(" SI32R"); T_Read(Stream, Item); end I32Arr_Read;
- procedure I16Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I16_Arr)is procedure T_Read is new HDU_SRead(Integer_16, I16_Arr); begin TIO.Put(" SI16R"); T_Read(Stream, Item); end I16Arr_Read;
- procedure U8Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out U8_Arr)is procedure T_Read is new HDU_SRead(Unsigned_8, U8_Arr); begin TIO.Put(" SU8R"); T_Read(Stream, Item); end U8Arr_Read;
+ procedure F64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F64_Arr)is procedure T_Read is new HDU_SRead(Float_64, F64_Arr); begin T_Read(Stream, Item); end F64Arr_Read;
+ procedure F32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out F32_Arr)is procedure T_Read is new HDU_SRead(Float_32, F32_Arr); begin T_Read(Stream, Item); end F32Arr_Read;
+ procedure I64Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I64_Arr)is procedure T_Read is new HDU_SRead(Integer_64, I64_Arr); begin T_Read(Stream, Item); end I64Arr_Read;
+ procedure I32Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I32_Arr)is procedure T_Read is new HDU_SRead(Integer_32, I32_Arr); begin T_Read(Stream, Item); end I32Arr_Read;
+ procedure I16Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out I16_Arr)is procedure T_Read is new HDU_SRead(Integer_16, I16_Arr); begin T_Read(Stream, Item); end I16Arr_Read;
+ procedure U8Arr_Read(Stream : access  Root_Stream_Type'Class; Item : out U8_Arr)is procedure T_Read is new HDU_SRead(Unsigned_8, U8_Arr); begin T_Read(Stream, Item); end U8Arr_Read;
  
  
  
- procedure F64Arr_Write(Stream : access Root_Stream_Type'Class; Item : F64_Arr)is procedure T_Write is new HDU_SWrite(Float_64, F64_Arr); begin TIO.Put(" SF64W"); T_Write(Stream, Item); end F64Arr_Write;
- procedure F32Arr_Write(Stream : access Root_Stream_Type'Class; Item : F32_Arr)is procedure T_Write is new HDU_SWrite(Float_32, F32_Arr); begin TIO.Put(" SF32W"); T_Write(Stream, Item); end F32Arr_Write;
- procedure I64Arr_Write(Stream : access Root_Stream_Type'Class; Item : I64_Arr)is procedure T_Write is new HDU_SWrite(Integer_64, I64_Arr); begin TIO.Put(" SI64W"); T_Write(Stream, Item); end I64Arr_Write;
- procedure I32Arr_Write(Stream : access Root_Stream_Type'Class; Item : I32_Arr)is procedure T_Write is new HDU_SWrite(Integer_32, I32_Arr); begin TIO.Put(" SI32W"); T_Write(Stream, Item); end I32Arr_Write;
- procedure I16Arr_Write(Stream : access Root_Stream_Type'Class; Item : I16_Arr)is procedure T_Write is new HDU_SWrite(Integer_16, I16_Arr); begin TIO.Put(" SI16W"); T_Write(Stream, Item); end I16Arr_Write;
- procedure U8Arr_Write(Stream : access Root_Stream_Type'Class; Item : U8_Arr)is procedure T_Write is new HDU_SWrite(Unsigned_8, U8_Arr); begin TIO.Put(" SU8W"); T_Write(Stream, Item); end U8Arr_Write;
+ procedure F64Arr_Write(Stream : access Root_Stream_Type'Class; Item : F64_Arr)is procedure T_Write is new HDU_SWrite(Float_64, F64_Arr); begin T_Write(Stream, Item); end F64Arr_Write;
+ procedure F32Arr_Write(Stream : access Root_Stream_Type'Class; Item : F32_Arr)is procedure T_Write is new HDU_SWrite(Float_32, F32_Arr); begin T_Write(Stream, Item); end F32Arr_Write;
+ procedure I64Arr_Write(Stream : access Root_Stream_Type'Class; Item : I64_Arr)is procedure T_Write is new HDU_SWrite(Integer_64, I64_Arr); begin T_Write(Stream, Item); end I64Arr_Write;
+ procedure I32Arr_Write(Stream : access Root_Stream_Type'Class; Item : I32_Arr)is procedure T_Write is new HDU_SWrite(Integer_32, I32_Arr); begin T_Write(Stream, Item); end I32Arr_Write;
+ procedure I16Arr_Write(Stream : access Root_Stream_Type'Class; Item : I16_Arr)is procedure T_Write is new HDU_SWrite(Integer_16, I16_Arr); begin T_Write(Stream, Item); end I16Arr_Write;
+ procedure U8Arr_Write(Stream : access Root_Stream_Type'Class; Item : U8_Arr)is procedure T_Write is new HDU_SWrite(Unsigned_8, U8_Arr); begin T_Write(Stream, Item); end U8Arr_Write;
 
 
 

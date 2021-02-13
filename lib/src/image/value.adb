@@ -10,6 +10,8 @@ with Endian;
 -- FIXME stack/local arrays: Af Fin_Arr Fout_Arr Af, use 3x more space: price to pay
 -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
 
+with Cache; -- Access_Rec
+
 
 package body Value is
 
@@ -18,14 +20,28 @@ package Phys renames Physical;
 
 procedure Raw_To_Phys
     (Raw_Arr : in Raw.Numeric_Arr;
-    A,B : in Float;
+    Scaling : Access_Rec;
     Phys_Arr : out Physical.Numeric_Arr)
 is
  Af         : Raw.Numeric_Arr(Phys_Arr'Range);
  Fin_Arr    : Raw.Float_Arr(Phys_Arr'Range);
  Fout_Arr   : Phys.Float_Arr(Phys_Arr'Range);
    procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
+   A : Float := Scaling.A;
+   B : Float := Scaling.B;
 begin
+
+   -- BEGIN from HDU
+
+   if(Scaling.Undef_Used)
+   then
+      Raw.Set_Undefined (Raw."+"(Scaling.Undef_Raw));
+      Phys.Set_Undefined(Phys."+"(Scaling.Undef_Phys));
+   end if;
+
+   -- END from HDU
+
+
 
    Af := Raw_Arr;
    -- FIXME raises excpetion is Raw_Arr'Range /= Phys_Arr_Range
@@ -82,20 +98,34 @@ begin
    --Ada.Streams.Stream_Element_Array'Read(S, As_SEA_Pointer(Af'Address).all );
    Raw_CheckAndRevert(Af);
    -- low level read done
-   Raw_To_Phys(Af, A,B, Phys_Arr);
+   --Raw_To_Phys(Af, A,B, Phys_Arr);
 end Read;
 
 
 
 procedure Phys_To_Raw
     (Raw_Arr : out Raw.Numeric_Arr;
-    A,B : in Float;
+    Scaling : Access_Rec;
     Phys_Arr : in Physical.Numeric_Arr)
 is
  Af         : Raw.Numeric_Arr(Phys_Arr'Range);
  Fin_Arr    : Phys.Float_Arr(Phys_Arr'Range);
  Fout_Arr   : Raw.Float_Arr(Phys_Arr'Range);
+   procedure Raw_CheckAndRevert is new Endian.Check_And_Revert(Raw.Numeric,Raw.Numeric_Arr);
+ A : Float := Scaling.A;
+ B : Float := Scaling.B;
 begin
+
+   -- BEGIN from HDU
+
+   if(Scaling.Undef_Used)
+   then
+      Raw.Set_Undefined (Raw."+"(Scaling.Undef_Raw));
+      Phys.Set_Undefined(Phys."+"(Scaling.Undef_Phys));
+   end if;
+
+   -- END from HDU
+
 
     -- conversions
 
@@ -118,7 +148,7 @@ begin
 
     -- low-level write
 
---    Raw_CheckAndRevert(Af);
+    Raw_CheckAndRevert(Af);
 --    Raw.Numeric_Arr'Write(S, Af);
    Raw_Arr := Af;
 
@@ -145,7 +175,7 @@ is
 
 begin
    Put(Integer'Image(NBits));
-   Phys_To_Raw(Af, A,B, Phys_Arr);
+   --Phys_To_Raw(Af, A,B, Phys_Arr);
    -- low level write
    Raw_CheckAndRevert(Af);
    Ada.Streams.Write(S.all, As_SEA_Pointer(Af'Address).all );

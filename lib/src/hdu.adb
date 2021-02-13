@@ -444,7 +444,8 @@ package body HDU is
 
       -- Set Undefined value
 
-      if(Scaling.Undef_Used)
+      if(False)
+      --if(Scaling.Undef_Used)
       then
 
          Physical.Set_Undefined(+Scaling.Undef_Phys);
@@ -482,7 +483,7 @@ package body HDU is
                   RawArr : F32_Arr(Loc_Item'Range);
                begin
                   F32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
-                  F32_Value.Raw_To_Phys(RawArr, Scaling.A,Scaling.B, Loc_Item);
+                  F32_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
                end;
 
             when -64 => F64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
@@ -541,7 +542,8 @@ package body HDU is
 
       -- Set Undefined value
 
-      if(Scaling.Undef_Used)
+      if(False)
+      --if(Scaling.Undef_Used)
       then
 
          Physical.Set_Undefined(+Scaling.Undef_Phys);
@@ -576,7 +578,7 @@ package body HDU is
                declare
                   RawArr : F32_Arr(Loc_Item'Range);
                begin
-                  F32_Value.Phys_To_Raw(RawArr, Scaling.A,Scaling.B, Loc_Item);
+                  F32_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
                   F32Raw_DIO.Write_Buffered(SIO_File, RawArr);
                end;
 

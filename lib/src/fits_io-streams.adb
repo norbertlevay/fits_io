@@ -22,7 +22,6 @@ package body FITS_IO.Streams is
       use type Ada.Tags.Tag;
    begin
 
-      TIO.Put(" HDU_SRead::" );
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
          declare
@@ -31,12 +30,10 @@ package body FITS_IO.Streams is
             procedure iRead is new HDU.My_Read( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
             use type FITS.Count;
          begin
-            TIO.Put("HDU_Stream" );
             iRead(File.SIO_File, File.PHDU, Item, Last);
             if(Last < Item'length) then TIO.Put("HDU_SRead: ERR End-Of-DataUnit"); end if;
          end;
       else
-         TIO.Put("Stream" );
          T_Arr'Read(Stream, Item);
       end if;
 
@@ -49,7 +46,6 @@ package body FITS_IO.Streams is
    is
       use type Ada.Tags.Tag;
    begin
-       TIO.Put(" HDU_SWrite::" );
 
       if(Stream.all'Tag = FITS_Stream_Type'Tag)
       then
@@ -57,11 +53,9 @@ package body FITS_IO.Streams is
             File : File_Type := FITS_IO.File_Type(Stream);
             procedure iWrite is new HDU.My_Write( T, T_Arr, "+", "+", Is_Undef,To_BITPIX);
          begin
-            TIO.Put("HDU_Stream" );
             iWrite(File.SIO_File, File.PHDU, Item);
          end;
       else
-         TIO.Put("Stream" );
          T_Arr'Write(Stream, Item);
       end if;
 

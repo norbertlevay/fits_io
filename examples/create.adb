@@ -149,8 +149,6 @@ begin
    loop
       Write_Buffer := Generate_Data(ColLength, Phys_Undef_Used, Phys_Undef_Value, UCnt);
       --DU_Write(Out_File, Write_Buffer);
-      TIO.New_Line;
-      TIO.Put(FITS_IO.Count'Image(I));
       Phys_Type_Arr'Write(Out_Stream, Write_Buffer);
    end loop;
 
