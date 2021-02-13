@@ -447,35 +447,13 @@ package body HDU is
 
       Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
-      -- Set Undefined value
-
-      if(False)
-      --if(Scaling.Undef_Used)
-      then
-
-         Physical.Set_Undefined(+Scaling.Undef_Phys);
-
-         case(Scaling.BITPIX) is
-            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when others =>
-               Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-      end if;
-
+      -- Read and convert Raw->Phys
 
       declare
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
          S : access Ada.Streams.Root_Stream_Type'Class := SIO.Stream(SIO_File);
          Length : Ada.Streams.Stream_Element_Offset;--FIXME see Last vs Length
       begin
-
-         -- Scaling
 
          case(Scaling.BITPIX) is
 
@@ -578,35 +556,11 @@ package body HDU is
 
       Is_Last_Write := (DU_Item_Last >= DU_Last);
 
-
-      -- Set Undefined value
-
-      if(False)
-      --if(Scaling.Undef_Used)
-      then
-
-         Physical.Set_Undefined(+Scaling.Undef_Phys);
-
-         case(Scaling.BITPIX) is
-            when   8=> U8Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  16=> I16Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  32=> I32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when  64=> I64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -32=> F32Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when -64=> F64Raw.Set_Undefined(+Scaling.Undef_Raw);
-            when others =>
-               Raise_Exception(Programming_Error'Identity,
-               "BITPIX: "&Integer'Image(Scaling.BITPIX));
-         end case;
-
-      end if;
-
+      -- convert Phys->Raw and Write
 
       declare
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
       begin
-
-         -- Scaling
 
          case(Scaling.BITPIX) is
 
