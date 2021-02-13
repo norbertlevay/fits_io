@@ -451,7 +451,6 @@ package body HDU is
 
       declare
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
-         S : access Ada.Streams.Root_Stream_Type'Class := SIO.Stream(SIO_File);
          Length : Ada.Streams.Stream_Element_Offset;--FIXME see Last vs Length
       begin
 
