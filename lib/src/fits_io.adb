@@ -23,9 +23,7 @@ with Mandatory; -- Result_Rec needed
 with Elements;
 
 -- for Data Unit Read/Write
-with Numeric_Type;
 with V3_Types; use V3_Types;
-with Array_IO;
 
 with File.Misc; -- Read Content uses
 

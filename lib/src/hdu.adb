@@ -19,7 +19,7 @@ with Elements;
 with Numeric_Type;
 with Numeric_Type.Data_IO;
 with V3_Types; use V3_Types;
-with Array_IO;
+with Value;
 
 with File.Misc; -- DataPadding needed
 
@@ -416,12 +416,12 @@ package body HDU is
       Last : out Count)
    is
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      package U8_AIO is new Array_IO(U8Raw, Physical);
-      package I16_AIO is new Array_IO(I16Raw, Physical);
-      package I32_AIO is new Array_IO(I32Raw, Physical);
-      package I64_AIO is new Array_IO(I64Raw, Physical);
-      package F32_AIO is new Array_IO(F32Raw, Physical);
-      package F64_AIO is new Array_IO(F64Raw, Physical);
+      package U8_Value is new Value(U8Raw, Physical);
+      package I16_Value is new Value(I16Raw, Physical);
+      package I32_Value is new Value(I32Raw, Physical);
+      package I64_Value is new Value(I64Raw, Physical);
+      package F32_Value is new Value(F32Raw, Physical);
+      package F64_Value is new Value(F64Raw, Physical);
 
       Scaling : Access_Rec := AHDU.Scaling;
 
@@ -473,19 +473,19 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 => U8_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when   8 => U8_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when -32 =>
                declare
                   RawArr : F32_Arr(Loc_Item'Range);
                begin
                   F32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);--FIXME see Last vs Length
-                  F32_AIO.Raw_To_Phys(RawArr, Scaling.A,Scaling.B, Loc_Item);
+                  F32_Value.Raw_To_Phys(RawArr, Scaling.A,Scaling.B, Loc_Item);
                end;
 
-            when -64 => F64_AIO.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
@@ -505,12 +505,12 @@ package body HDU is
    is
       --   type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
-      package U8_AIO is new Array_IO(U8Raw, Physical);
-      package I16_AIO is new Array_IO(I16Raw, Physical);
-      package I32_AIO is new Array_IO(I32Raw, Physical);
-      package I64_AIO is new Array_IO(I64Raw, Physical);
-      package F32_AIO is new Array_IO(F32Raw, Physical);
-      package F64_AIO is new Array_IO(F64Raw, Physical);
+      package U8_Value is new Value(U8Raw, Physical);
+      package I16_Value is new Value(I16Raw, Physical);
+      package I32_Value is new Value(I32Raw, Physical);
+      package I64_Value is new Value(I64Raw, Physical);
+      package F32_Value is new Value(F32Raw, Physical);
+      package F64_Value is new Value(F64Raw, Physical);
 
       Scaling : Access_Rec := AHDU.Scaling;
 
@@ -569,12 +569,12 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 =>  U8_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when -64 => F64_AIO.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when   8 =>  U8_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  16 => I16_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  32 => I32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when  64 => I64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => F32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 => F64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity,
                "BITPIX: "&Integer'Image(Scaling.BITPIX));

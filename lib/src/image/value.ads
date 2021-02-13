@@ -5,7 +5,7 @@ with Numeric_Type;
 generic
  with package Raw      is new Numeric_Type(<>);
  with package Physical is new Numeric_Type(<>);
-package Array_IO is
+package Value is
 
    procedure Raw_To_Phys
     (Raw_Arr : in Raw.Numeric_Arr;
@@ -56,5 +56,5 @@ procedure Write
     A,B : in Float;
     Phys_Arr : in Physical.Numeric_Arr);
 
-end Array_IO;
+end Value;
 

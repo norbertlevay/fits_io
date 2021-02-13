@@ -11,7 +11,7 @@ with Endian;
 -- for saving if(Use_Undef AND Is_Undef()) at cycle twice
 
 
-package body Array_IO is
+package body Value is
 
 package Phys renames Physical;
 
@@ -155,5 +155,5 @@ end Write;
 
 
 
-end Array_IO;
+end Value;
 
