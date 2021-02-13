@@ -464,10 +464,9 @@ package body HDU is
 
 
       declare
-         --         Loc_Item : T_Arr(Item'First .. Last);
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
          S : access Ada.Streams.Root_Stream_Type'Class := SIO.Stream(SIO_File);
-         Length : Ada.Streams.Stream_Element_Offset;
+         Length : Ada.Streams.Stream_Element_Offset;--FIXME see Last vs Length
       begin
 
          -- Scaling
@@ -477,15 +476,17 @@ package body HDU is
             when  16 => I16_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  32 => I32_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  64 => I64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+
             when -32 =>
                declare
                   RawArr : F32_Arr(Loc_Item'Range);
                begin
-                  F32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);--FIXME see Last vs Length
+                  F32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
                   F32_Value.Raw_To_Phys(RawArr, Scaling.A,Scaling.B, Loc_Item);
                end;
 
             when -64 => F64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+
             when others =>
                Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
@@ -503,7 +504,6 @@ package body HDU is
       AHDU      : in out HDU_Type;
       Item : T_Arr)
    is
-      --   type Float_Arr is array (Positive_Count range <>) of Float;
       package Physical is new Numeric_Type(T, T_Arr, Float_Arr);
       package U8_Value is new Value(U8Raw, Physical);
       package I16_Value is new Value(I16Raw, Physical);
@@ -562,7 +562,6 @@ package body HDU is
 
 
       declare
-         --Loc_Item : T_Arr := Item(Item'First .. Last);
          Loc_Item : T_Arr := Item(Item'First .. Item'First + Last - 1);
       begin
 
@@ -573,7 +572,15 @@ package body HDU is
             when  16 => I16_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  32 => I32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when  64 => I64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when -32 => F32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -32 => --F32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : F32_Arr(Loc_Item'Range);
+               begin
+                  F32_Value.Phys_To_Raw(RawArr, Scaling.A,Scaling.B, Loc_Item);
+                  F32Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
+
+
             when -64 => F64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity,

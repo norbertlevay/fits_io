@@ -18,6 +18,11 @@ procedure Read_Buffered
    Arr : out Numeric_Arr;
    Length : out Ada.Streams.Stream_Element_Offset);
 
+procedure Write_Buffered
+   (F : SIO.File_Type;
+   Arr : Numeric_Arr);
+
+
 
 procedure Read (F : SIO.File_Type; A : out Float_Arr);
 procedure Write(F : SIO.File_Type; A : in  Float_Arr);

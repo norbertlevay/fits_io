@@ -30,6 +30,29 @@ package body Numeric_Type.Data_IO is
    end Read_Buffered;
 
 
+   procedure Write_Buffered
+      (F : SIO.File_Type;
+      Arr : Numeric_Arr)
+   is
+     -- RawArr : F32_Arr(Loc_Item'Range);
+      Dummy : Numeric;
+      NBits : Integer := Arr'Length * abs To_BITPIX(Dummy);
+      Arr_Size : constant Stream_Element_Offset :=
+         Ada.Streams.Stream_Element_Offset(NBits) / Stream_Element'Size;
+
+      type SEA_Pointer is access all Stream_Element_Array (1 .. Arr_Size);
+      function As_SEA_Pointer is
+         new Ada.Unchecked_Conversion (System.Address, SEA_Pointer);
+   begin
+      Ada.Streams.Write(SIO.Stream(F).all, As_SEA_Pointer(Arr'Address).all);
+   end Write_Buffered;
+
+
+
+
+
+
+
    procedure Read(F : SIO.File_Type; A : out Float_Arr)
    is
       Abuf : Numeric_Arr(A'Range);
