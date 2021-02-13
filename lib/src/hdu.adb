@@ -406,7 +406,12 @@ package body HDU is
    package F32Raw  is new Numeric_Type(Float_32,   F32_Arr,    Float_Arr);
    package F64Raw  is new Numeric_Type(Float_64,   F64_Arr,    Float_Arr);
 
+   package U8Raw_DIO  is new U8Raw.Data_IO;
+   package I16Raw_DIO is new I16Raw.Data_IO;
+   package I32Raw_DIO is new I32Raw.Data_IO;
+   package I64Raw_DIO is new I64Raw.Data_IO;
    package F32Raw_DIO is new F32Raw.Data_IO;
+   package F64Raw_DIO is new F64Raw.Data_IO;
 
 
    procedure My_Read
@@ -473,10 +478,38 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 => U8_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+
+            when   8 => --U8_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : U8_Arr(Loc_Item'Range);
+               begin
+                  U8Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
+                  U8_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
+               end;
+
+            when  16 => --I16_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I16_Arr(Loc_Item'Range);
+               begin
+                  I16Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
+                  I16_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
+               end;
+
+            when  32 =>-- I32_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I32_Arr(Loc_Item'Range);
+               begin
+                  I32Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
+                  I32_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
+               end;
+
+            when  64 => --I64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I64_Arr(Loc_Item'Range);
+               begin
+                  I64Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
+                  I64_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
+               end;
 
             when -32 =>
                declare
@@ -486,10 +519,16 @@ package body HDU is
                   F32_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
                end;
 
-            when -64 => F64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+            when -64 =>-- F64_Value.Read(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : F64_Arr(Loc_Item'Range);
+               begin
+                  F64Raw_DIO.Read_Buffered(SIO_File, RawArr, Length);
+                  F64_Value.Raw_To_Phys(RawArr, Scaling, Loc_Item);
+               end;
 
             when others =>
-               Raise_Exception(Programming_Error'Identity, "BITPIX: "&Integer'Image(Scaling.BITPIX));
+             Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
 
          Item(Item'First .. Last) := Loc_Item;
