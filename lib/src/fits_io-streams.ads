@@ -4,7 +4,7 @@
 --with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
 
-package FITS_IO.Serialize is
+package FITS_IO.Streams is
 
    generic
    type T is private;
@@ -29,5 +29,5 @@ package FITS_IO.Serialize is
       Item : out T_Arr);
 
 
-end FITS_IO.Serialize;
+end FITS_IO.Streams;
 

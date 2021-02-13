@@ -1,7 +1,7 @@
 
 with Ada.Text_IO;
 
-with FITS_IO.Serialize; use FITS_IO.Serialize;
+with FITS_IO.Streams; use FITS_IO.Streams;
 
 --package body Pool_V3Type_Convs is
 package body V3_Types is

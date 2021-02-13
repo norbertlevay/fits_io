@@ -11,7 +11,6 @@ with File;
 with Optional;
 with Optional.Reserved;
 with FITS_IO; use FITS_IO;
-with FITS_IO.Serialize; use FITS_IO.Serialize;
 
 with FITS; -- FIXME remove when type dependecies between modeuls resolved properly
 

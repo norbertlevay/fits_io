@@ -7,7 +7,7 @@ with Ada.Tags;
 with V3_Types; use V3_Types;
 --with Pool_For_Numeric_Type; use Pool_For_Numeric_Type;
 
-package body FITS_IO.Serialize is
+package body FITS_IO.Streams is
 
    package TIO renames Ada.Text_IO;
 
@@ -68,5 +68,5 @@ package body FITS_IO.Serialize is
    end HDU_SWrite;
 
 
-end FITS_IO.Serialize;
+end FITS_IO.Streams;
 
