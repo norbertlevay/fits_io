@@ -609,10 +609,39 @@ package body HDU is
          -- Scaling
 
          case(Scaling.BITPIX) is
-            when   8 =>  U8_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  16 => I16_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  32 => I32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
-            when  64 => I64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+
+            when   8 =>  --U8_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : U8_Arr(Loc_Item'Range);
+               begin
+                  U8_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
+                  U8Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
+
+            when  16 => --I16_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I16_Arr(Loc_Item'Range);
+               begin
+                  I16_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
+                  I16Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
+
+            when  32 => --I32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I32_Arr(Loc_Item'Range);
+               begin
+                  I32_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
+                  I32Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
+
+            when  64 => --I64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : I64_Arr(Loc_Item'Range);
+               begin
+                  I64_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
+                  I64Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
+
             when -32 => --F32_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
                declare
                   RawArr : F32_Arr(Loc_Item'Range);
@@ -621,8 +650,14 @@ package body HDU is
                   F32Raw_DIO.Write_Buffered(SIO_File, RawArr);
                end;
 
+            when -64 => --F64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
+               declare
+                  RawArr : F64_Arr(Loc_Item'Range);
+               begin
+                  F64_Value.Phys_To_Raw(RawArr, Scaling, Loc_Item);
+                  F64Raw_DIO.Write_Buffered(SIO_File, RawArr);
+               end;
 
-            when -64 => F64_Value.Write(SIO.Stream(SIO_File), Scaling.A,Scaling.B, Loc_Item);
             when others =>
                Raise_Exception(Programming_Error'Identity,
                "BITPIX: "&Integer'Image(Scaling.BITPIX));
