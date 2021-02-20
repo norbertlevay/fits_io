@@ -17,12 +17,19 @@ package HDU is
 
    package SIO renames Ada.Streams.Stream_IO;
 
+   type Check_End_Rec is
+      record
+         DU_Length : FITS.Positive_Count;
+         Curr_Pos  : FITS.Positive_Count;
+      end record;
+
 
    type HDU_Type is record
       SIO_HDU_First : SIO.Positive_Count;
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;
       Cache   : Cache_Rec;
+      Check_End : Check_End_Rec;
    end record;
 
    subtype  Count is FITS.Count;

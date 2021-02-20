@@ -32,8 +32,6 @@ package body HDU is
 
    package TIO renames Ada.Text_IO;
 
-
-
    -----------
    -- Utils --
    -----------
@@ -50,6 +48,57 @@ package body HDU is
       end loop;
       return Data_Cnt;
    end Data_Element_Count;
+
+
+   ----------------------
+   -- DU Guard - begin --
+   ----------------------
+
+   type Check_End_Rec_MOVED_TO_ads is
+      record
+         DU_Length : Positive_Count;
+         Curr_Pos  : Positive_Count;
+      end record;
+
+
+   procedure Check_End_Reset
+      (End_Rec : in out Check_End_Rec;
+      DU_Len : in Positive_Count)
+   is
+   begin
+      End_Rec.DU_Length := DU_Len;
+      End_Rec.Curr_Pos := 1;
+   end Check_End_Reset;
+
+
+   function Check_End_Update
+      (End_Rec : in out Check_End_Rec;
+      Data_Length : in Positive_Count)
+      return Count
+   is
+      Pos : Positive_Count := End_Rec.DU_Length - End_Rec.Curr_Pos;
+   begin
+
+      if(Pos <= 0)
+      then
+         return 0; -- End-Of-DU
+      end if;
+
+      -- Pos > 0 :
+
+      if(Pos <= Data_Length)
+      then
+         return Pos;
+      else
+         return Data_Length;
+      end if;
+
+   end Check_End_Update;
+
+   ----------------------
+   -- DU Guard - end   --
+   ----------------------
+
 
 
    ----------------------
@@ -98,6 +147,11 @@ package body HDU is
       Mand : Mandatory.Result_Rec := Header.Read_Mandatory(SIO_File);
       -- FIXME check HDU_Type -> raise exception if not the expected type
    begin
+
+      -- Reset DU-guard
+
+      Check_End_Reset(AHDU.Check_End, Data_Element_Count(Mand.NAXISn));
+
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
 
@@ -190,7 +244,7 @@ package body HDU is
       Item : String_80_Array)
    is
    begin
-      String_80_Array'Write(SIO.Stream(SIO_File), Item);
+     String_80_Array'Write(SIO.Stream(SIO_File), Item);
       Cache.Parse_Image_Cards
          (File.Cache,
          FITS.String_80_Array(Item)); -- FIXME conversion!
@@ -208,6 +262,9 @@ package body HDU is
       BITPIX : Integer;
       Aui : Float;
    begin
+      -- Reset DU-guard
+      Check_End_Reset(File.Check_End, Data_Element_Count(NAXISn));
+
 
       DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
 
@@ -437,6 +494,9 @@ package body HDU is
       DU_Item_Last : Positive_Count;
       use FITS;
    begin
+      -- calc Last DU-guard
+      Last := Check_End_Update(AHDU.Check_End, Item'Length);
+
 
       if(DU_Curr_Ix > DU_Last )
       then
@@ -505,7 +565,7 @@ package body HDU is
                end;
 
             when others =>
-             Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
+               Raise_Exception(Programming_Error'Identity,"BITPIX: "&Integer'Image(Scaling.BITPIX));
          end case;
 
          Item(Item'First .. Last) := Loc_Item;
@@ -541,6 +601,9 @@ package body HDU is
       Is_Last_Write : Boolean := False;
       Last : Count;
    begin
+      -- calc Last DU-guard
+      Last := Check_End_Update(AHDU.Check_End, Item'Length);
+
 
       -- dont Write beyond end of Data Unit
 
