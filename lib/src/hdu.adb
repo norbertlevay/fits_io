@@ -76,7 +76,7 @@ package body HDU is
       Data_Length : in Positive_Count)
       return Count
    is
-      Pos : Positive_Count := End_Rec.DU_Length - End_Rec.Curr_Pos;
+      Pos : Count := 1 + End_Rec.DU_Length - End_Rec.Curr_Pos;
    begin
 
       if(Pos <= 0)
@@ -86,10 +86,16 @@ package body HDU is
 
       -- Pos > 0 :
 
+      TIO.Put(">"&Positive_Count'Image(Data_Length)&"<");
+
       if(Pos <= Data_Length)
       then
+         End_Rec.Curr_Pos := End_Rec.Curr_Pos + Pos;
+         TIO.Put("p");
          return Pos;
       else
+         End_Rec.Curr_Pos := End_Rec.Curr_Pos + Data_Length;
+         TIO.Put("l");
          return Data_Length;
       end if;
 
@@ -496,7 +502,7 @@ package body HDU is
    begin
       -- calc Last DU-guard
       Last := Check_End_Update(AHDU.Check_End, Item'Length);
-
+      TIO.Put(Count'Image(Last) & " ");
 
       if(DU_Curr_Ix > DU_Last )
       then
@@ -603,6 +609,7 @@ package body HDU is
    begin
       -- calc Last DU-guard
       Last := Check_End_Update(AHDU.Check_End, Item'Length);
+      TIO.Put(Count'Image(Last) & " ");
 
 
       -- dont Write beyond end of Data Unit

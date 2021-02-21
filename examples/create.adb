@@ -152,6 +152,8 @@ begin
       Phys_Type_Arr'Write(Out_Stream, Write_Buffer);
    end loop;
 
+      Phys_Type_Arr'Write(Out_Stream, Write_Buffer);
+
    Close(Out_File);
 
    TIO.Put_Line("Undefs written : " & Natural'Image(UCnt));
