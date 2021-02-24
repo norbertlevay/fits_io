@@ -504,7 +504,7 @@ package body HDU is
 
       DU_Item_Last := DU_Curr_Ix + Item'Length - 1;
 
-      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
+--      Last := Min(Item'Last, 1 + DU_Item_Last - DU_Curr_Ix);
 
       -- Read and convert Raw->Phys
 
