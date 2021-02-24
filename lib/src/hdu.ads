@@ -17,10 +17,10 @@ package HDU is
 
    package SIO renames Ada.Streams.Stream_IO;
 
-   type Check_End_Rec is
+   type DU_End_Rec is
       record
-         DU_Length : FITS.Positive_Count;
-         Curr_Pos  : FITS.Positive_Count;
+         DU_Last   : FITS.Positive_Count; -- last position in DU
+         Curr_Last : FITS.Count; -- last position Read/Written; 0 -> no access yet
       end record;
 
 
@@ -29,7 +29,7 @@ package HDU is
       Pos     : DU_Pos.Pos_Rec;
       Scaling : Access_Rec;
       Cache   : Cache_Rec;
-      Check_End : Check_End_Rec;
+      DU_End : DU_End_Rec;
    end record;
 
    subtype  Count is FITS.Count;

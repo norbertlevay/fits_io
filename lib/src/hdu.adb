@@ -54,29 +54,22 @@ package body HDU is
    -- DU Guard - begin --
    ----------------------
 
-   type Check_End_Rec_MOVED_TO_ads is
-      record
-         DU_Length : Positive_Count;
-         Curr_Pos  : Positive_Count;
-      end record;
-
-
-   procedure Check_End_Reset
-      (End_Rec : in out Check_End_Rec;
+   procedure DU_End_Reset
+      (End_Rec : in out DU_End_Rec;
       DU_Len : in Positive_Count)
    is
    begin
-      End_Rec.DU_Length := DU_Len;
-      End_Rec.Curr_Pos := 1;
-   end Check_End_Reset;
+      End_Rec.DU_Last := DU_Len;
+      End_Rec.Curr_Last := 0;
+   end DU_End_Reset;
 
 
-   function Check_End_Update
-      (End_Rec : in out Check_End_Rec;
-      Data_Length : in Positive_Count)
+   function DU_End_Update
+      (End_Rec : in out DU_End_Rec;
+      Item_Length : in Count)
       return Count
    is
-      Pos : Count := 1 + End_Rec.DU_Length - End_Rec.Curr_Pos;
+      Pos : Count := End_Rec.DU_Last - End_Rec.Curr_Last;
    begin
 
       if(Pos <= 0)
@@ -86,20 +79,20 @@ package body HDU is
 
       -- Pos > 0 :
 
-      TIO.Put(">"&Positive_Count'Image(Data_Length)&"<");
+      TIO.Put(">"&Positive_Count'Image(Item_Length)&"<");
 
-      if(Pos <= Data_Length)
+      if(Pos <= Item_Length)
       then
-         End_Rec.Curr_Pos := End_Rec.Curr_Pos + Pos;
+         End_Rec.Curr_Last := End_Rec.Curr_Last + Pos;
          TIO.Put("p");
          return Pos;
       else
-         End_Rec.Curr_Pos := End_Rec.Curr_Pos + Data_Length;
+         End_Rec.Curr_Last := End_Rec.Curr_Last + Item_Length;
          TIO.Put("l");
-         return Data_Length;
+         return Item_Length;
       end if;
 
-   end Check_End_Update;
+   end DU_End_Update;
 
    ----------------------
    -- DU Guard - end   --
@@ -156,7 +149,7 @@ package body HDU is
 
       -- Reset DU-guard
 
-      Check_End_Reset(AHDU.Check_End, Data_Element_Count(Mand.NAXISn));
+      DU_End_Reset(AHDU.DU_End, Data_Element_Count(Mand.NAXISn));
 
 
       -- store begining of DU for DU Read/Write DU_End-guard and padding write
@@ -269,7 +262,7 @@ package body HDU is
       Aui : Float;
    begin
       -- Reset DU-guard
-      Check_End_Reset(File.Check_End, Data_Element_Count(NAXISn));
+      DU_End_Reset(File.DU_End, Data_Element_Count(NAXISn));
 
 
       DU_Types.DU_Type_To_BITPIX(Raw_Type, BITPIX, Aui);
@@ -501,7 +494,7 @@ package body HDU is
       use FITS;
    begin
       -- calc Last DU-guard
-      Last := Check_End_Update(AHDU.Check_End, Item'Length);
+      Last := DU_End_Update(AHDU.DU_End, Item'Length);
       TIO.Put(Count'Image(Last) & " ");
 
       if(DU_Curr_Ix > DU_Last )
@@ -608,7 +601,7 @@ package body HDU is
       Last : Count;
    begin
       -- calc Last DU-guard
-      Last := Check_End_Update(AHDU.Check_End, Item'Length);
+      Last := DU_End_Update(AHDU.DU_End, Item'Length);
       TIO.Put(Count'Image(Last) & " ");
 
 
